@@ -1,0 +1,15 @@
+<document>
+  <properties>
+    <title>JBoss jBPM integration changes</title>
+    <author email="eiki@idega.com">Eirikur S. Hrafnsson</author>
+  </properties>
+  <body>
+  
+    <release version="3.1.4" date="2007-02-11">
+      <action dev="eiki" type="update">
+      	First version of a bundle for the JBoss jBPM framework.
+      </action>
+    </release>
+    
+  </body>
+</document>
