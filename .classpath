@@ -1,40 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <classpath>
-  <classpathentry excluding="" kind="src" path="src/java">
-  </classpathentry>
-  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/jbpm/jars/jbpm-3.1.4.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/jbpm/jars/jbpm-webapp-3.1.4.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/jbpm/jars/jbpm-identity-3.1.4.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/dom4j/jars/dom4j-1.6.1.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/hibernate/jars/hibernate-3.1.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/hibernate/jars/jaxen-1.1-beta-4.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/hibernate/jars/jdbc2_0-stdext.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/jboss/jars/antlr-2.7.5H3.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/jboss/jars/cglib-2.1_2jboss.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/asm/jars/asm-1.5.3.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/asm/jars/asm-attrs-1.5.3.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/bsh/jars/bsh-2.0b4.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/ehcache/jars/ehcache-1.2.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/commons-collections/jars/commons-collections-3.1.jar">
-  </classpathentry>
-  <classpathentry kind="var" path="MAVEN_REPO/log4j/jars/log4j-1.2.8.jar">
-  </classpathentry>
-  <classpathentry kind="output" path="target/classes">
-  </classpathentry>
+	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
