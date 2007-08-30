@@ -2,12 +2,36 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
-	xmlns:h="http://java.sun.com/jsf/html">
+	xmlns:jb="http://xmlns.idega.com/org.jboss.jbpm"
+>
 
-<ws:page id="jbmpProcessDefUpload" showFunctionMenu="false">
-	<h:form>
-		<h:outputText value="valio" />
+<!--  <ws:page id="jbmpProcessDefUpload" showFunctionMenu="false">-->
+
+	<h:form enctype="multipart/form-data">
+		<table class="results">
+			<thead>
+				<tr>
+					<th colspan="2">Deploy</th>
+				</tr>
+			</thead>
+			<tbody class="results">
+				<tr>
+					<th>Upload xx</th>
+					<td>
+						<jb:deployProcess />
+					</td>
+				</tr>
+				<tr>
+					<th />
+					<td style="text-align:right;">
+						<h:commandButton value="press me">
+                        </h:commandButton>
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</h:form>
-</ws:page>
+<!--  </ws:page>-->
 </html>
