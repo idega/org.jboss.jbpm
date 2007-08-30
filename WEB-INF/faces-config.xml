@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE faces-config PUBLIC
+  "-//Sun Microsystems, Inc.//DTD JavaServer Faces Config 1.0//EN"
+  "http://java.sun.com/dtd/web-facesconfig_1_0.dtd">
+
+<faces-config>
+
+	<component>
+		<component-type>DeployProcess</component-type>
+		<component-class>org.jboss.jbpm.DeployProcess</component-class>
+	</component>
+	
+</faces-config>
