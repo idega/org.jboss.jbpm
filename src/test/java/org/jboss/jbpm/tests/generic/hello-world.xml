@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-definition name='hello world' xmlns="urn:jbpm.org:jpdl-3.1">
+	<start-state name='start'>
+		<transition to='s' />
+	</start-state>
+	<state name='s'>
+		<transition to='end' />
+	</state>
+	<end-state name='end' />
+	<event type='node-enter'>
+		<script>
+			System.out.println("this script is entering node "+node);
+		</script>
+	</event>
+</process-definition>
