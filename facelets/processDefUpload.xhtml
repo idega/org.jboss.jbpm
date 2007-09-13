@@ -4,34 +4,37 @@
 	xmlns:ui="http://java.sun.com/jsf/facelets"
     xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
-	xmlns:jb="http://xmlns.idega.com/org.jboss.jbpm"
+	xmlns:t="http://myfaces.apache.org/tomahawk"
+	
 >
 
-<!--  <ws:page id="jbmpProcessDefUpload" showFunctionMenu="false">-->
+<ws:page id="jbmpProcessDefUpload" showFunctionMenu="false">
 
 	<h:form enctype="multipart/form-data">
-		<table class="results">
+		<table>
 			<thead>
 				<tr>
 					<th colspan="2">Deploy</th>
 				</tr>
 			</thead>
-			<tbody class="results">
+			<tbody>
 				<tr>
-					<th>Upload xx</th>
+					<th>Upload pd xml</th>
 					<td>
-						<jb:deployProcess />
+						<t:inputFileUpload id="fileupload"
+                               value="#{idegaDeployProcess.processDefinition}"
+                               storage="file"
+                        />
 					</td>
 				</tr>
 				<tr>
 					<th />
 					<td style="text-align:right;">
-						<h:commandButton value="press me">
-                        </h:commandButton>
+						<h:commandButton value="Deploy process" action="#{idegaDeployProcess.upload}" />
 					</td>
 				</tr>
 			</tbody>
 		</table>
 	</h:form>
-<!--  </ws:page>-->
+</ws:page>
 </html>

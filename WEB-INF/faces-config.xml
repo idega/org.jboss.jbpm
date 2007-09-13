@@ -6,9 +6,14 @@
 
 <faces-config>
 
-	<component>
-		<component-type>DeployProcess</component-type>
-		<component-class>org.jboss.jbpm.DeployProcess</component-class>
-	</component>
-	
+	<managed-bean>
+        <managed-bean-name>idegaDeployProcess</managed-bean-name>
+        <managed-bean-class>com.idega.jbpm.def.DeployProcess</managed-bean-class>
+        <managed-bean-scope>request</managed-bean-scope>
+        <managed-property>
+		  	<property-name>jbpmConfiguration</property-name>
+		    <value>#{defaultJbpmConfiguration}</value>
+		</managed-property>
+    </managed-bean>
+
 </faces-config>
