@@ -8,19 +8,20 @@
   <session-factory>
 
     <!-- hibernate dialect -->
-    <property name="hibernate.dialect">org.hibernate.dialect.HSQLDialect</property>
+    <!--  <property name="hibernate.dialect">org.hibernate.dialect.HSQLDialect</property>-->
 
-    <!-- JDBC connection properties (begin) -->
-<!--  
+    <!-- JDBC connection properties (begin)
     <property name="hibernate.connection.driver_class">org.hsqldb.jdbcDriver</property>
     <property name="hibernate.connection.url">jdbc:hsqldb:mem:jbpm</property>
     <property name="hibernate.connection.username">sa</property>
     <property name="hibernate.connection.password"></property>
--->
-    <!-- JDBC connection properties (end) -->
+    JDBC connection properties (end) -->
     
     <property name="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>
+    
+    <!-- Automatically create and drop schema when starting/closing application (begin) ===-->
     <property name="hibernate.hbm2ddl.auto">create-drop</property>
+    <!-- ==== Automatically create and drop schema when starting/closing application (end) -->
     
     <!-- DataSource properties (begin) ===-->
     <property name="hibernate.connection.datasource">java:comp/env/jdbc/JbpmDS</property>
