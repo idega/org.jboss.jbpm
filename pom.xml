@@ -49,6 +49,12 @@
       <type>jar</type>
     </dependency>
     <dependency>
+      <groupId>com.idega.block.platform</groupId>
+      <artifactId>com.idega.hibernate</artifactId>
+      <version>${com.idega.block.platform-com.idega.hibernate-version}</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
       <groupId>jbpm</groupId>
       <artifactId>jbpm-jpdl</artifactId>
       <version>${jbpm-jbpm-jpdl-version}</version>
@@ -72,14 +78,6 @@
       <version>1.1-beta-4</version>
       <type>jar</type>
     </dependency>
-<!--  
-    <dependency>
-      <groupId>hibernate</groupId>
-      <artifactId>jdbc2_0</artifactId>
-      <version>stdext</version>
-      <type>jar</type>
-    </dependency>
--->
     <dependency>
       <groupId>jboss</groupId>
       <artifactId>antlr</artifactId>
