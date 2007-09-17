@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<!DOCTYPE hibernate-configuration PUBLIC
+          "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+          "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+  <session-factory>
+
+    <property name="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>
+    
+    <!-- Automatically create and drop schema when starting/closing application (begin) ===-->
+    <property name="hibernate.hbm2ddl.auto">update</property>
+    <!-- ==== Automatically create and drop schema when starting/closing application (end) -->
+    
+    <!-- DataSource properties (begin) ===-->
+    <property name="hibernate.connection.datasource">java:comp/env/jdbc/JbpmDS</property>
+    <!-- ==== DataSource properties (end) -->
+    
+    <!-- ###################### -->
+    <!-- # idega jbpm related mapping files # -->
+    <!-- ###################### -->
+    <!-- TODO: those should be dynamically collected from modules configuration files. e.g. idega.hibernate.hbm.xml -->
+    <mapping class="com.idega.jbpm.data.ViewTaskBind" />
+    
+  </session-factory>
+</hibernate-configuration>

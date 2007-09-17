@@ -6,5 +6,9 @@
 		<constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
 	</bean>
 	
+	<bean id="idega_jbpmDSHibernateSessionFactory" class="com.idega.hibernate.HibernateUtil" factory-method="getSessionFactory" scope="singleton">
+		<constructor-arg value="com/idega/jbpm/idega.jbpmDS.hibernate.cfg.xml" />
+	</bean>
+	
 	<bean id="jbpmProcessBusiness" class="com.idega.jbpm.business.JbpmProcessBusinessBean" scope="singleton" />
 </beans>

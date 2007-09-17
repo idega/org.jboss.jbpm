@@ -1,6 +1,8 @@
 package com.idega.jbpm.def;
 
 import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.myfaces.custom.fileupload.UploadedFile;
 import org.jbpm.JbpmConfiguration;
@@ -10,9 +12,9 @@ import org.jbpm.graph.def.ProcessDefinition;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/09/13 11:21:24 $ by $Author: civilis $
+ * Last modified: $Date: 2007/09/17 13:33:39 $ by $Author: civilis $
  *
  */
 public class DeployProcess {
@@ -32,12 +34,11 @@ public class DeployProcess {
 		InputStream is = null;
 		
 		try {
-			
 			is = getProcessDefinition().getInputStream();
 
 		} catch (Exception e) {
 			
-			e.printStackTrace();
+			Logger.getLogger(DeployProcess.class.getName()).log(Level.WARNING, "Exception while reading process while getting process definition input stream", e);
 //			TODO: display err msg
 			return;
 		}
@@ -47,14 +48,12 @@ public class DeployProcess {
 		
 		try {
 			
-			try {
-				ctx.deployProcessDefinition(ProcessDefinition.parseXmlInputStream(is));
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-//				TODO: display err msg				
-				return;
-			}
+			ctx.deployProcessDefinition(ProcessDefinition.parseXmlInputStream(is));
+			
+		} catch (Exception e) {
+			
+			Logger.getLogger(DeployProcess.class.getName()).log(Level.WARNING, "Exception while deploying process definition", e);
+//			TODO: display err msg				
 			
 		} finally {
 				ctx.close();

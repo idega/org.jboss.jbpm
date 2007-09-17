@@ -19,9 +19,9 @@
     
     <property name="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>
     
-    <!-- Automatically create and drop schema when starting/closing application (begin) ===-->
-    <property name="hibernate.hbm2ddl.auto">create-drop</property>
-    <!-- ==== Automatically create and drop schema when starting/closing application (end) -->
+    <!-- Automatically create and drop / update schema when starting/closing application (begin) ===-->
+    <property name="hibernate.hbm2ddl.auto">update</property>
+    <!-- ==== Automatically create and drop / update schema when starting/closing application (end) -->
     
     <!-- DataSource properties (begin) ===-->
     <property name="hibernate.connection.datasource">java:comp/env/jdbc/JbpmDS</property>
@@ -46,7 +46,7 @@
     <!-- ############################################ -->
     <!-- # mapping files with external dependencies # -->
     <!-- ############################################ -->
-
+    
     <!-- following mapping file has a dependendy on   -->
     <!-- 'bsh-{version}.jar'.                         -->
     <!-- uncomment this if you don't have bsh on your -->
