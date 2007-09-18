@@ -2,6 +2,7 @@ package com.idega.jbpm.data;
 
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,15 +11,22 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.Session;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/09/17 13:33:39 $ by $Author: civilis $
+ * Last modified: $Date: 2007/09/18 09:45:39 $ by $Author: civilis $
  */
 @Entity
 @Table(name="VIEW_TASK_BINDINGS")
 public class ViewTaskBind implements Serializable {
+	
+//	TODO: make bind id and view type as the composite PK. remove bind id.
+//	supposedly add versioning (hibernate versioning)
+// 	add constraints - no column should be null
+	
 	
 	private static final long serialVersionUID = 7744283644611519318L;
 	
@@ -68,5 +76,19 @@ public class ViewTaskBind implements Serializable {
 
 	public void setViewType(String viewType) {
 		this.viewType = viewType;
+	}
+	
+	private static final String getViewTaskBindQuery = "from "+ViewTaskBind.class.getName()+" as VTB where VTB.taskId = ? and viewType = ?";
+	
+	public static ViewTaskBind getViewTaskBind(Session session, long taskId, String viewType) {
+	
+//		TODO: retrieve ViewTaskBind by using taskId and viewType as the composite PK
+		@SuppressWarnings("unchecked")
+		List<ViewTaskBind> binds = session.createQuery(getViewTaskBindQuery)
+		.setLong(0, taskId)
+		.setString(1, viewType)
+		.list();
+		
+		return binds.isEmpty() ? null : binds.iterator().next();
 	}
 }
