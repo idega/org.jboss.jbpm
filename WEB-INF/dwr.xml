@@ -1,0 +1,12 @@
+<!DOCTYPE dwr PUBLIC "-//GetAhead Limited//DTD Direct Web Remoting 2.0//EN" "http://www.getahead.ltd.uk/dwr//dwr20.dtd">
+
+<dwr>
+  	<allow>
+  		<create creator="jsf" javascript="JbpmBusiness" scope="application">
+	    	<param name="managedBeanName" value="jbpmProcessBusiness"/>
+	    	<param name="class" value="com.idega.jbpm.business.JbpmProcessBusinessBean"/>
+    	</create>
+  	</allow>
+  	<signatures>
+	</signatures>
+</dwr>
