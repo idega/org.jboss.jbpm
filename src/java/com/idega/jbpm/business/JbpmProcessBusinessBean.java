@@ -40,6 +40,18 @@ public class JbpmProcessBusinessBean {
 		return ctx.getGraphSession().getProcessDefinition(id);
 	}
 	
+	public ProcessDefinition getProcessDefinition(String processId) {
+		JbpmContext ctx = getJbpmContext();
+		try {
+			long id = new Long(processId).longValue();
+			return ctx.getGraphSession().getProcessDefinition(id);
+		} finally {
+			if(ctx != null) {
+				ctx.close();
+			}
+		}
+	}
+	
 	public void deployProcessDefinition(InputStream is) {
 		JbpmContext ctx = getJbpmContext();
 		try {
