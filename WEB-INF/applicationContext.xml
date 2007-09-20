@@ -10,5 +10,7 @@
 		<constructor-arg value="com/idega/jbpm/idega.jbpmDS.hibernate.cfg.xml" />
 	</bean>
 	
-	<bean id="jbpmProcessBusiness" class="com.idega.jbpm.business.JbpmProcessBusinessBean" scope="singleton" />
+	<bean id="jbpmProcessBusiness" class="com.idega.jbpm.business.JbpmProcessBusinessBean" scope="singleton">
+		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
+	</bean>
 </beans>
