@@ -79,12 +79,12 @@ public class JbpmProcessBusinessBean {
 		}
 	}
 	
-	public List getProcessDefinitionTasks(String processId) {
+	public List<AdvancedProperty> getProcessDefinitionTasks(String processId) {
 		JbpmContext ctx = getJbpmContext();
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
 			TaskMgmtDefinition mgmt = pd.getTaskMgmtDefinition();
-			List result = new ArrayList();
+			List<AdvancedProperty> result = new ArrayList<AdvancedProperty>();
 			for(Iterator it = mgmt.getTasks().keySet().iterator(); it.hasNext(); ) {
 				String nextId = (String) it.next();
 				Task task = mgmt.getTask(nextId);
