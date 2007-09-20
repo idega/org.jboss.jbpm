@@ -25,7 +25,7 @@ public class JbpmProcessBusinessBean {
 	}
 	
 	public List<ProcessDefinition> getProcessList() {
-		JbpmContext ctx = null;
+		JbpmContext ctx = getJbpmContext();
 		try {
 			return ctx.getGraphSession().findAllProcessDefinitions();
 		} finally {
