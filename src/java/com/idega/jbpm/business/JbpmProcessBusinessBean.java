@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,38 +14,20 @@ import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
 import com.idega.builder.bean.AdvancedProperty;
-import com.idega.core.cache.IWCacheManager2;
 import com.idega.jbpm.def.DeployProcess;
 import com.idega.jbpm.def.ViewToTask;
-import com.idega.util.CoreUtil;
 
 public class JbpmProcessBusinessBean {
-	
-	private static final String JBPM_CASH = "jbpm_b_cash";
-	private static final String JBPM_PROCESS_LIST = "jbpm_process_list";
 	
 	public JbpmContext getJbpmContext() {
 		JbpmConfiguration config = getJbpmConfiguration();
 		return config.createJbpmContext();
 	}
 	
-	private Map getJbpmCache() {
-		IWCacheManager2 cache = IWCacheManager2.getInstance(CoreUtil.getIWContext().getIWMainApplication());
-		return cache.getCache(JBPM_CASH);
-	}
-	
 	public List<ProcessDefinition> getProcessList() {
-		Map cacheMap = getJbpmCache();
 		JbpmContext ctx = null;
 		try {
-			if(cacheMap.get(JBPM_PROCESS_LIST) == null) {
-				ctx = getJbpmContext();
-				List<ProcessDefinition> defs = ctx.getGraphSession().findAllProcessDefinitions();
-				cacheMap.put(JBPM_PROCESS_LIST, defs);
-				return defs;
-			} else {
-				return (List<ProcessDefinition>) cacheMap.get(JBPM_PROCESS_LIST);
-			}
+			return ctx.getGraphSession().findAllProcessDefinitions();
 		} finally {
 			if(ctx != null) {
 				ctx.close();
@@ -60,9 +41,8 @@ public class JbpmProcessBusinessBean {
 	}
 	
 	public void deployProcessDefinition(InputStream is) {
-		JbpmContext ctx = null;
+		JbpmContext ctx = getJbpmContext();
 		try {
-			ctx = getJbpmContext();
 			ctx.deployProcessDefinition(ProcessDefinition.parseXmlInputStream(is));
 		} catch (Exception e) {
 			Logger.getLogger(DeployProcess.class.getName()).log(Level.WARNING, "Exception while deploying process definition", e);
