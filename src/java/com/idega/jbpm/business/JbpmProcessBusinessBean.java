@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
@@ -19,7 +20,7 @@ import com.idega.jbpm.def.ViewToTask;
 
 public class JbpmProcessBusinessBean {
 	
-	public JbpmContext getJbpmContext() {
+	private JbpmContext getJbpmContext() {
 		JbpmConfiguration config = getJbpmConfiguration();
 		return config.createJbpmContext();
 	}
@@ -33,6 +34,42 @@ public class JbpmProcessBusinessBean {
 				ctx.close();
 			}
 		}
+	}
+	
+	public List<ProcessInstance> getProcessInstances(ProcessDefinition pd) {
+		if (pd == null) {
+			return null;
+		}
+		return getProcessInstances(pd.getId());
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<ProcessInstance> getProcessInstances(long processDefinitionId) {
+		List<ProcessInstance> instances = null;
+		JbpmContext ctx = getJbpmContext();
+		try {
+			List items = ctx.getGraphSession().findProcessInstances(processDefinitionId);
+			if (items == null) {
+				return null;
+			}
+			
+			instances = new ArrayList<ProcessInstance>();
+			Object o = null;
+			for (int i = 0; i < items.size(); i++) {
+				o = items.get(i);
+				if (o instanceof ProcessInstance) {
+					instances.add((ProcessInstance) o);
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			if (ctx != null) {
+				ctx.close();
+			}
+		}
+		return instances;
 	}
 	
 	public ProcessDefinition getProcessDefinition(String processId, JbpmContext ctx) {
