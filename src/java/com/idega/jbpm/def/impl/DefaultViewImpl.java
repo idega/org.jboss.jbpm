@@ -1,10 +1,12 @@
-package com.idega.jbpm.def;
+package com.idega.jbpm.def.impl;
+
+import com.idega.jbpm.def.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2007/09/18 09:45:39 $ by $Author: civilis $
+ * Last modified: $Date: 2007/09/21 11:29:39 $ by $Author: civilis $
  */
 public class DefaultViewImpl implements View {
 

@@ -8,15 +8,11 @@
 
 	<managed-bean>
         <managed-bean-name>idegaDeployProcess</managed-bean-name>
-        <managed-bean-class>com.idega.jbpm.def.DeployProcess</managed-bean-class>
+        <managed-bean-class>com.idega.jbpm.presentation.beans.DeployProcess</managed-bean-class>
         <managed-bean-scope>request</managed-bean-scope>
         <managed-property>
 		  	<property-name>jbpmConfiguration</property-name>
 		    <value>#{defaultJbpmConfiguration}</value>
-		</managed-property>
-		<managed-property>
-		  	<property-name>jbpmProcessBusiness</property-name>
-		    <value>#{jbpmProcessBusiness}</value>
 		</managed-property>
     </managed-bean>
     <managed-bean>

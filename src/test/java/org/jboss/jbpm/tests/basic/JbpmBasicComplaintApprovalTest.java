@@ -21,19 +21,19 @@ import junit.framework.TestCase;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2007/09/21 11:29:07 $ by $Author: civilis $
+ * Last modified: $Date: 2007/09/21 11:29:06 $ by $Author: civilis $
  *
  */
-public class JbpmOneTaskTest extends TestCase {
+public class JbpmBasicComplaintApprovalTest extends TestCase {
 	
 	static ProcessDefinition process = null;
 	
 	static {
 		try {
 			process = 
-			      ProcessDefinition.parseXmlInputStream(JbpmOneTaskTest.class.getResourceAsStream("oneTask.xml"));
+			      ProcessDefinition.parseXmlInputStream(JbpmBasicComplaintApprovalTest.class.getResourceAsStream("basicComplaintApproval.xml"));
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -61,6 +61,14 @@ public class JbpmOneTaskTest extends TestCase {
   
 	public void testMainScenario() {
 
+		
+		
+		
+		
+		
+		
+		
+		
 		assertSame(start, token.getNode());
 
 		System.out.println("unfinished tasks: "+processInstance.getTaskMgmtInstance().getUnfinishedTasks(processInstance.getRootToken()));

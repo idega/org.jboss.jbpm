@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-diagram name="basicComplaintApproval" width="785" height="630">
+  <node name="start" x="129" y="65" width="140" height="40">
+    <transition name="">
+      <label x="5" y="-10"/>
+    </transition>
+  </node>
+  <node name="end" x="127" y="353" width="140" height="40"/>
+  <node name="Initiate complaint" x="200" y="159" width="140" height="40">
+    <transition name="">
+      <label x="5" y="-10"/>
+    </transition>
+  </node>
+  <node name="Decide" x="205" y="252" width="140" height="40">
+    <transition name="">
+      <label x="5" y="-10"/>
+    </transition>
+  </node>
+</process-diagram>

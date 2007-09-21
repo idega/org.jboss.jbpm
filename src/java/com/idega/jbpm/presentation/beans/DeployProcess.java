@@ -1,5 +1,6 @@
-package com.idega.jbpm.def;
+package com.idega.jbpm.presentation.beans;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -9,14 +10,12 @@ import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 
-import com.idega.jbpm.business.JbpmProcessBusinessBean;
-
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2007/09/20 07:01:48 $ by $Author: alexis $
+ * Last modified: $Date: 2007/09/21 11:29:39 $ by $Author: civilis $
  *
  */
 public class DeployProcess {
@@ -34,23 +33,32 @@ public class DeployProcess {
 	public void upload() {
 		
 		InputStream is = null;
+		JbpmContext ctx = null;
 		
 		try {
 			is = getProcessDefinition().getInputStream();
+			
+			JbpmConfiguration cfg = getJbpmConfiguration();
+			ctx = cfg.createJbpmContext();
+			ctx.deployProcessDefinition(ProcessDefinition.parseXmlInputStream(is));
 
-		} catch (Exception e) {
+		} catch (IOException e) {
 			
 			Logger.getLogger(DeployProcess.class.getName()).log(Level.WARNING, "Exception while reading process while getting process definition input stream", e);
 //			TODO: display err msg
-			return;
+			
+		} catch (Exception e) {
+			
+			Logger.getLogger(DeployProcess.class.getName()).log(Level.WARNING, "Exception while deploying process definition", e);
+//			TODO: display err msg				
+			
+		} finally {
+			if(ctx != null)
+				ctx.close();
 		}
-		
-		jbpmProcessBusiness.deployProcessDefinition(is);
-
 	}
 	
 	private JbpmConfiguration cfg;
-	private JbpmProcessBusinessBean jbpmProcessBusiness;
 	
 	public void setJbpmConfiguration(JbpmConfiguration cfg) {
 		this.cfg = cfg;
@@ -58,13 +66,5 @@ public class DeployProcess {
 	
 	public JbpmConfiguration getJbpmConfiguration() {
 		return cfg;
-	}
-
-	public JbpmProcessBusinessBean getJbpmProcessBusiness() {
-		return jbpmProcessBusiness;
-	}
-
-	public void setJbpmProcessBusiness(JbpmProcessBusinessBean jbpmProcessBusiness) {
-		this.jbpmProcessBusiness = jbpmProcessBusiness;
 	}
 }
