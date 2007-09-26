@@ -2,6 +2,10 @@
 
 <dwr>
   	<allow>
+  		<create creator="jsf" javascript="ActorManager" scope="session">
+	    	<param name="managedBeanName" value="actorBindingManager"/>
+	    	<param name="class" value="com.idega.jbpm.presentation.beans.ActorBindingViewBean"/>
+    	</create>
   		<create creator="jsf" javascript="JbpmBusiness" scope="application">
 	    	<param name="managedBeanName" value="jbpmProcessBusiness"/>
 	    	<param name="class" value="com.idega.jbpm.business.JbpmProcessBusinessBean"/>

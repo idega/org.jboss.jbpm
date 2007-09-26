@@ -8,7 +8,7 @@
 	
 >
 
-<ws:page id="jbmpProcessDefUpload" showFunctionMenu="false" useHtmlTag="false">
+<ws:page id="jbmpProcessDefUpload" showFunctionMenu="true" useHtmlTag="false">
 
 	<h:form enctype="multipart/form-data">
 		<table>
@@ -32,6 +32,7 @@
 					<td style="text-align:right;">
 						<h:commandButton value="Deploy process" action="#{idegaDeployProcess.upload}" />
 						<h:commandButton value="Do stuff on mockup" action="#{idegaSomeMockup.doStuff}" />
+						<h:commandButton value="Test identity" action="#{identityTest.startTest}" />
 					</td>
 				</tr>
 			</tbody>

@@ -13,4 +13,13 @@
 	<bean id="jbpmProcessBusiness" class="com.idega.jbpm.business.JbpmProcessBusinessBean" scope="singleton">
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
 	</bean>
+	
+	<bean id="actorToTaskBinder" class="com.idega.jbpm.def.ActorTaskBinder" scope="singleton">
+		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
+		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
+	</bean>
+	
+	<bean id="assignmentHandler" class="com.idega.jbpm.identity.TaskAssignmentHandler" scope="session">
+		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
+	</bean>
 </beans>
