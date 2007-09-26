@@ -22,6 +22,7 @@
     <!-- ###################### -->
     <!-- TODO: those should be dynamically collected from modules configuration files. e.g. idega.hibernate.hbm.xml -->
     <mapping class="com.idega.jbpm.data.ViewTaskBind" />
+    <mapping class="com.idega.jbpm.data.ActorTaskBinding" />
     
   </session-factory>
 </hibernate-configuration>

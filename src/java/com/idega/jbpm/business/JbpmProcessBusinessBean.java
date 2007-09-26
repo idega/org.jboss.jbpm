@@ -1,8 +1,13 @@
 package com.idega.jbpm.business;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.faces.model.SelectItem;
 
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
@@ -13,10 +18,11 @@ import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.jbpm.def.ViewToTask;
+import com.idega.jbpm.presentation.beans.DeployProcess;
 
 public class JbpmProcessBusinessBean {
 	
-	private JbpmContext getJbpmContext() {
+	public JbpmContext getJbpmContext() {
 		JbpmConfiguration config = getJbpmConfiguration();
 		return config.createJbpmContext();
 	}
@@ -37,6 +43,40 @@ public class JbpmProcessBusinessBean {
 			return null;
 		}
 		return getProcessInstances(pd.getId());
+	}
+	
+	public ProcessDefinition getProcessDefinition(String processId, JbpmContext ctx) {
+		if(processId == null) {
+			return null;
+		}
+		long id = new Long(processId).longValue();
+		return ctx.getGraphSession().getProcessDefinition(id);
+	}
+	
+	public ProcessDefinition getProcessDefinition(String processId) {
+		JbpmContext ctx = getJbpmContext();
+		try {
+			long id = new Long(processId).longValue();
+			return ctx.getGraphSession().getProcessDefinition(id);
+		} finally {
+			if(ctx != null) {
+				ctx.close();
+			}
+		}
+	}
+	
+	public void deployProcessDefinition(InputStream is) {
+		JbpmContext ctx = getJbpmContext();
+		try {
+			ctx.deployProcessDefinition(ProcessDefinition.parseXmlInputStream(is));
+		} catch (Exception e) {
+			Logger.getLogger(DeployProcess.class.getName()).log(Level.WARNING, "Exception while deploying process definition", e);
+//			TODO: display err msg				
+		} finally {
+			if(ctx != null) {
+				ctx.close();
+			}
+		}
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -68,23 +108,6 @@ public class JbpmProcessBusinessBean {
 		return instances;
 	}
 	
-	public ProcessDefinition getProcessDefinition(String processId, JbpmContext ctx) {
-		long id = new Long(processId).longValue();
-		return ctx.getGraphSession().getProcessDefinition(id);
-	}
-	
-	public ProcessDefinition getProcessDefinition(String processId) {
-		JbpmContext ctx = getJbpmContext();
-		try {
-			long id = new Long(processId).longValue();
-			return ctx.getGraphSession().getProcessDefinition(id);
-		} finally {
-			if(ctx != null) {
-				ctx.close();
-			}
-		}
-	}
-	
 	public Task getProcessTask(String processId, String taskName) {
 		JbpmContext ctx = getJbpmContext();
 		try {
@@ -98,17 +121,24 @@ public class JbpmProcessBusinessBean {
 		}
 	}
 	
-	public List<AdvancedProperty> getProcessDefinitionTasks(String processId) {
+	public List getProcessDefinitionTasks(String processId, boolean forDWR) {
 		JbpmContext ctx = getJbpmContext();
+		List result = new ArrayList();
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
-			TaskMgmtDefinition mgmt = pd.getTaskMgmtDefinition();
-			List<AdvancedProperty> result = new ArrayList<AdvancedProperty>();
-			for(Iterator it = mgmt.getTasks().keySet().iterator(); it.hasNext(); ) {
-				String nextId = (String) it.next();
-				Task task = mgmt.getTask(nextId);
-				AdvancedProperty prop = new AdvancedProperty(task.getName(), task.getName());
-				result.add(prop);
+			if(pd != null) {
+				TaskMgmtDefinition mgmt = pd.getTaskMgmtDefinition();
+				for(Iterator it = mgmt.getTasks().keySet().iterator(); it.hasNext(); ) {
+					String nextId = (String) it.next();
+					Task task = mgmt.getTask(nextId);
+					if(forDWR) {
+						AdvancedProperty prop = new AdvancedProperty(task.getName(), task.getName());
+						result.add(prop);
+					} else {
+						SelectItem prop = new SelectItem(task.getName(), task.getName());
+						result.add(prop);
+					}
+				}
 			}
 			return result;
 		} finally {

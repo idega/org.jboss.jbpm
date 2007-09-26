@@ -68,7 +68,7 @@ public class JbmpViewManager implements Singleton  {
 		roles.add(StandardRoles.ROLE_KEY_BUILDER);
 		node.setAuthorizedRoles(roles);
 		
-		node.setFaceletUri(contentBundle.getFaceletURI("processDefUpload.xhtml"));
+		node.setFaceletUri(contentBundle.getFaceletURI("process.xhtml"));
 		rootNode = node;
 		return rootNode;
 	}
@@ -77,9 +77,14 @@ public class JbmpViewManager implements Singleton  {
 	public void initializeStandardNodes(IWBundle bundle){
 		ViewNode contentNode = initalizeContentNode(bundle);
 		
-		DefaultViewNode jbmp_node = new DefaultViewNode(VIEW_MANAGER_ID, contentNode);
-		jbmp_node.setFaceletUri(bundle.getFaceletURI("processDefUpload.xhtml"));
-		jbmp_node.setName(VIEW_MANAGER_ID);
-		jbmp_node.setVisibleInMenus(false);
+		DefaultViewNode processDeploynode = new DefaultViewNode(VIEW_MANAGER_ID, contentNode);
+		processDeploynode.setFaceletUri(bundle.getFaceletURI("processDefUpload.xhtml"));
+		processDeploynode.setName(VIEW_MANAGER_ID);
+		processDeploynode.setVisibleInMenus(true);
+		
+		DefaultViewNode xformsWorflowNode = new DefaultViewNode("xforms_workflow", contentNode);
+		xformsWorflowNode.setFaceletUri("/idegaweb/bundles/com.idega.formbuilder.bundle/facelets/xformsWorkflow.xhtml");
+		xformsWorflowNode.setName("XForms Workflow");
+		xformsWorflowNode.setVisibleInMenus(true);
 	}
 }
