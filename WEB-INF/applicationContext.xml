@@ -19,7 +19,4 @@
 		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>
 	
-	<bean id="assignmentHandler" class="com.idega.jbpm.identity.TaskAssignmentHandler" scope="session">
-		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
-	</bean>
 </beans>
