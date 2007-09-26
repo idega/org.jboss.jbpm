@@ -48,6 +48,10 @@
     </dependency>
     <dependency>
       <groupId>com.idega.block.platform</groupId>
+      <artifactId>com.idega.webface</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.hibernate</artifactId>
     </dependency>
     <dependency>
