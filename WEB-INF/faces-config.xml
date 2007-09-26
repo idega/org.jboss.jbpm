@@ -20,19 +20,6 @@
 		</managed-property>
     </managed-bean>
     <managed-bean>
-        <managed-bean-name>identityTest</managed-bean-name>
-        <managed-bean-class>org.jboss.jbpm.tests.identity.IdentityTest</managed-bean-class>
-        <managed-bean-scope>session</managed-bean-scope>
-        <managed-property>
-		  	<property-name>jbpmConfiguration</property-name>
-		    <value>#{defaultJbpmConfiguration}</value>
-		</managed-property>
-		<managed-property>
-		  	<property-name>jbpmProcessBusiness</property-name>
-		    <value>#{jbpmProcessBusiness}</value>
-		</managed-property>
-    </managed-bean>
-    <managed-bean>
         <managed-bean-name>jbpmProcessBusiness</managed-bean-name>
         <managed-bean-class>com.idega.jbpm.business.JbpmProcessBusinessBean</managed-bean-class>
         <managed-bean-scope>application</managed-bean-scope>
