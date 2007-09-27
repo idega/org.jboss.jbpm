@@ -17,7 +17,6 @@ import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
 import com.idega.builder.bean.AdvancedProperty;
-import com.idega.jbpm.def.ViewToTask;
 import com.idega.jbpm.presentation.beans.DeployProcess;
 
 public class JbpmProcessBusinessBean {
@@ -149,16 +148,7 @@ public class JbpmProcessBusinessBean {
 	}
 	
 	private JbpmConfiguration cfg;
-	private ViewToTask viewToTaskBinder;
 	
-	public ViewToTask getViewToTaskBinder() {
-		return viewToTaskBinder;
-	}
-
-	public void setViewToTaskBinder(ViewToTask viewToTaskBinder) {
-		this.viewToTaskBinder = viewToTaskBinder;
-	}
-
 	public void setJbpmConfiguration(JbpmConfiguration cfg) {
 		this.cfg = cfg;
 	}
@@ -166,5 +156,4 @@ public class JbpmProcessBusinessBean {
 	public JbpmConfiguration getJbpmConfiguration() {
 		return cfg;
 	}
-
 }

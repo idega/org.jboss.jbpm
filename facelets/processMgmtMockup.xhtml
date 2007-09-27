@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
+	xmlns:t="http://myfaces.apache.org/tomahawk"
+	xmlns:f="http://java.sun.com/jsf/core"
+>
+
+<ws:page id="jbmpProcessMgmtMockup" showFunctionMenu="true" useHtmlTag="false">
+
+	<h:form enctype="multipart/form-data">
+		<table>
+			<thead>
+				<tr>
+					<th colspan="20">Another mockup for ya</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>
+						<label for="processSelector">Select process</label>
+						<h:selectOneMenu id="processSelector" value="#{processMgmtMockup.processId}">
+							<f:selectItems value="#{processMgmtMockup.processes}" />
+						</h:selectOneMenu>
+					</td>
+					<td>
+					</td>
+					<td>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</h:form>
+</ws:page>
+</html>

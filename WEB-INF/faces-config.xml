@@ -20,19 +20,6 @@
 		</managed-property>
     </managed-bean>
     <managed-bean>
-        <managed-bean-name>jbpmProcessBusiness</managed-bean-name>
-        <managed-bean-class>com.idega.jbpm.business.JbpmProcessBusinessBean</managed-bean-class>
-        <managed-bean-scope>application</managed-bean-scope>
-        <managed-property>
-		  	<property-name>jbpmConfiguration</property-name>
-		    <value>#{defaultJbpmConfiguration}</value>
-		</managed-property>
-		<managed-property>
-		  	<property-name>viewToTaskBinder</property-name>
-		    <value>#{process_xforms_viewToTask}</value>
-		</managed-property>
-    </managed-bean>
-    <managed-bean>
         <managed-bean-name>actorBindingManager</managed-bean-name>
         <managed-bean-class>com.idega.jbpm.presentation.beans.ActorBindingViewBean</managed-bean-class>
         <managed-bean-scope>session</managed-bean-scope>
@@ -40,6 +27,15 @@
 		  	<property-name>actorToTaskBinder</property-name>
 		    <value>#{actorToTaskBinder}</value>
 		</managed-property>
+		<managed-property>
+		  	<property-name>jbpmProcessBusiness</property-name>
+		    <value>#{jbpmProcessBusiness}</value>
+		</managed-property>
+    </managed-bean>
+    <managed-bean>
+        <managed-bean-name>processMgmtMockup</managed-bean-name>
+        <managed-bean-class>org.jboss.jbpm.tests.basic.ProcessMgmtMockupBean</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
 		<managed-property>
 		  	<property-name>jbpmProcessBusiness</property-name>
 		    <value>#{jbpmProcessBusiness}</value>
