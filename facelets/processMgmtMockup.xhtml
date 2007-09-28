@@ -20,12 +20,28 @@
 			<tbody>
 				<tr>
 					<td>
-						<label for="processSelector">Select process</label>
+						<label for="processSelector">Proc:</label>
 						<h:selectOneMenu id="processSelector" value="#{processMgmtMockup.processId}">
 							<f:selectItems value="#{processMgmtMockup.processes}" />
 						</h:selectOneMenu>
+						
 					</td>
 					<td>
+						<label for="processInstanceSelector">PI: </label>
+						<h:selectOneMenu id="processInstanceSelector" value="#{processMgmtMockup.processInstanceId}">
+							<f:selectItems value="#{processMgmtMockup.processInstances}" />
+						</h:selectOneMenu>
+					</td>
+					<td>
+						<label for="taskSelector">Ti to finish:</label>
+						<h:selectOneMenu id="taskSelector" value="#{processMgmtMockup.taskInstanceId}">
+							<f:selectItems value="#{processMgmtMockup.taskInstances}" />
+						</h:selectOneMenu>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<h:commandButton value="Select" />
 					</td>
 					<td>
 					</td>

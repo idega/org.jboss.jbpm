@@ -34,11 +34,11 @@
     </managed-bean>
     <managed-bean>
         <managed-bean-name>processMgmtMockup</managed-bean-name>
-        <managed-bean-class>org.jboss.jbpm.tests.basic.ProcessMgmtMockupBean</managed-bean-class>
+        <managed-bean-class>com.idega.jbpm.presentation.beans.ProcessMgmtMockupBean</managed-bean-class>
         <managed-bean-scope>session</managed-bean-scope>
 		<managed-property>
-		  	<property-name>jbpmProcessBusiness</property-name>
-		    <value>#{jbpmProcessBusiness}</value>
+		  	<property-name>jbpmConfiguration</property-name>
+		    <value>#{defaultJbpmConfiguration}</value>
 		</managed-property>
     </managed-bean>
 </faces-config>
