@@ -29,7 +29,7 @@ public class JbpmProcessBusinessBean {
 	public List<ProcessDefinition> getProcessList() {
 		JbpmContext ctx = getJbpmContext();
 		try {
-			return ctx.getGraphSession().findAllProcessDefinitions();
+			return ctx.getGraphSession().findLatestProcessDefinitions();
 		} finally {
 			if(ctx != null) {
 				ctx.close();

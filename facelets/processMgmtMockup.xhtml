@@ -6,6 +6,7 @@
 	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
 	xmlns:t="http://myfaces.apache.org/tomahawk"
 	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
 >
 
 <ws:page id="jbmpProcessMgmtMockup" showFunctionMenu="true" useHtmlTag="false">
@@ -24,7 +25,6 @@
 						<h:selectOneMenu id="processSelector" value="#{processMgmtMockup.processId}">
 							<f:selectItems value="#{processMgmtMockup.processes}" />
 						</h:selectOneMenu>
-						
 					</td>
 					<td>
 						<label for="processInstanceSelector">PI: </label>
@@ -40,14 +40,33 @@
 					</td>
 				</tr>
 				<tr>
-					<td colspan="2">
-						<h:commandButton value="Select" />
+					<td>
+						<h:commandButton value="Next" />
+					</td>
+					<td>
+						<h:commandButton value="Next" />
+						<h:commandButton value="Delet pi" action="#{processMgmtMockup.deleteProcessInstance}" />
+					</td>
+					<td>
+						<h:commandButton value="Take task" action="#{processMgmtMockup.takeTask}" />
+						<h:commandButton value="Finish this ti" action="#{processMgmtMockup.finishTaskInstance}" />
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<h:commandButton value="Create new PI" action="#{processMgmtMockup.newProcessInstance}" />
+					</td>
+					<td>
 					</td>
 					<td>
 					</td>
 				</tr>
 			</tbody>
 		</table>
+		<div id="taketask">
+		#{processMgmtMockup.formId}
+			<fv:formViewer taskInstanceId="#{processMgmtMockup.taskInstanceId}" formId="#{processMgmtMockup.formId}" />
+		</div>
 	</h:form>
 </ws:page>
 </html>

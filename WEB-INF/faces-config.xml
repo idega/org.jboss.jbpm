@@ -40,5 +40,9 @@
 		  	<property-name>jbpmConfiguration</property-name>
 		    <value>#{defaultJbpmConfiguration}</value>
 		</managed-property>
+		<managed-property>
+		  	<property-name>viewToTask</property-name>
+		    <value>#{process_xforms_viewToTask}</value>
+		</managed-property>
     </managed-bean>
 </faces-config>

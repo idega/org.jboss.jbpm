@@ -10,9 +10,9 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/09/27 16:26:43 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/01 16:32:27 $ by $Author: civilis $
  */
 public class ProcessManager {
 
@@ -20,16 +20,12 @@ public class ProcessManager {
 	
 	public void submitVariables(Map<String, Object> variables, long taskInstanceId) {
 
-		System.out.println("submitting variables: "+variables+" to: "+taskInstanceId);
 		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
 		
 		try {
 			if(variables == null || variables.isEmpty())
 				return;
 
-			if(true)
-				return;
-			
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
 			
 			@SuppressWarnings("unchecked")
@@ -41,6 +37,24 @@ public class ProcessManager {
 
 			ti.setVariables(variables);
 			ti.getTask().getTaskController().submitParameters(ti);
+			
+		} finally {
+			ctx.close();
+		}
+	}
+	
+	public Map<String, Object> populateVariables(long taskInstanceId) {
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		
+		try {
+
+			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
+			
+			@SuppressWarnings("unchecked")
+			Map<String, Object> variables = (Map<String, Object>)ti.getVariables();
+			
+			return variables;
 			
 		} finally {
 			ctx.close();

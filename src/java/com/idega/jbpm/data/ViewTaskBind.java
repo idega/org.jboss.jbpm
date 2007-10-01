@@ -15,9 +15,9 @@ import org.hibernate.Session;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/09/18 09:45:39 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/01 16:32:27 $ by $Author: civilis $
  */
 @Entity
 @Table(name="VIEW_TASK_BINDINGS")
@@ -50,7 +50,7 @@ public class ViewTaskBind implements Serializable {
 	}
 
 	@SuppressWarnings("unused")
-	private void setBindId(Long bindId) {
+	public void setBindId(Long bindId) {
 		this.bindId = bindId;
 	}
 
@@ -83,6 +83,7 @@ public class ViewTaskBind implements Serializable {
 	public static ViewTaskBind getViewTaskBind(Session session, long taskId, String viewType) {
 	
 //		TODO: retrieve ViewTaskBind by using taskId and viewType as the composite PK
+		
 		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = session.createQuery(getViewTaskBindQuery)
 		.setLong(0, taskId)

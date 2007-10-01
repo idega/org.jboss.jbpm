@@ -2,17 +2,15 @@ package com.idega.jbpm.exe.impl;
 
 import java.util.Map;
 
-import org.jbpm.taskmgmt.exe.TaskInstance;
-
 import com.idega.jbpm.business.ProcessManager;
 import com.idega.jbpm.exe.Converter;
 import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/09/27 16:27:04 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/01 16:32:27 $ by $Author: civilis $
  */
 public class DefaultVariablesHandler implements VariablesHandler {
 
@@ -21,7 +19,6 @@ public class DefaultVariablesHandler implements VariablesHandler {
 
 	public void submit(long tiId, Object submissionData) {
 
-		System.out.println("submiting... "+tiId);
 		if(getConverter() == null)
 			throw new NullPointerException("Converter not set");
 
@@ -31,18 +28,14 @@ public class DefaultVariablesHandler implements VariablesHandler {
 		getProcessManager().submitVariables(variables, tiId);
 	}
 	
-	public Object populate(TaskInstance ti, Object objectToPopulate) {
+	public Object populate(long tiId, Object objectToPopulate) {
 		
 		if(getConverter() == null)
 			throw new NullPointerException("Converter not set");
+		
+		Map<String, Object> variables = getProcessManager().populateVariables(tiId);
 	
-		@SuppressWarnings("unchecked")
-		Map<String, Object> variables = ti.getVariables();
-		objectToPopulate = getConverter().revert(variables, objectToPopulate);
-		
-		System.out.println("returning populated...");
-		
-		return objectToPopulate;
+		return getConverter().revert(variables, objectToPopulate);
 	}
 	
 	public Converter getConverter() {
