@@ -63,8 +63,15 @@
 				</tr>
 			</tbody>
 		</table>
-		<div id="taketask">
-		#{processMgmtMockup.formId}
+		
+		<div>
+			<div style="color: red;">#{simpleCasesProcessManager.message}</div>
+			<div style="display: inline;">Form name: <h:inputText value="#{simpleCasesProcessManager.formName}" /></div>
+			<br />
+			<h:commandButton value="Create new simple process" action="#{simpleCasesProcessManager.createNewSimpleProcess}" />
+		</div>
+		<div>
+			#{processMgmtMockup.formId}
 			<fv:formViewer taskInstanceId="#{processMgmtMockup.taskInstanceId}" formId="#{processMgmtMockup.formId}" />
 		</div>
 	</h:form>
