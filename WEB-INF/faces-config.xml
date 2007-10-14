@@ -53,5 +53,25 @@
 		  	<property-name>jbpmConfiguration</property-name>
 		    <value>#{defaultJbpmConfiguration}</value>
 		</managed-property>
+		<managed-property>
+		  	<property-name>documentManagerFactory</property-name>
+		    <value>#{xformsDocumentManagerFact}</value>
+		</managed-property>
+		<managed-property>
+		  	<property-name>persistenceManager</property-name>
+		    <value>#{xformsPersistenceManager}</value>
+		</managed-property>
+		<managed-property>
+		  	<property-name>processDefinitionTemplateLocation</property-name>
+		    <value>resources/simpleCasesProcTemplates/simpleCasesProcessTemplate/processdefinition.xml</value>
+		</managed-property>
+		<managed-property>
+		  	<property-name>createRequestFormTemplateLocation</property-name>
+		    <value>resources/simpleCasesProcTemplates/createRequestTask.xhtml</value>
+		</managed-property>
+		<managed-property>
+		  	<property-name>createResponseFormTemplateLocation</property-name>
+		    <value>resources/simpleCasesProcTemplates/createResponseTask.xhtml</value>
+		</managed-property>
 	</managed-bean>
 </faces-config>
