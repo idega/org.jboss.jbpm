@@ -55,6 +55,10 @@
       <artifactId>com.idega.hibernate</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.idega.block.platform</groupId>
+  	  <artifactId>com.idega.documentmanager</artifactId>
+    </dependency>
+    <dependency>
       <groupId>jbpm</groupId>
       <artifactId>jbpm-jpdl</artifactId>
       <version>${jbpm-jbpm-jpdl-version}</version>
