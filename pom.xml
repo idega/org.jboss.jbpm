@@ -9,8 +9,8 @@
   </parent>
   <packaging>jar</packaging>
   <groupId>com.idega.block.addon</groupId>
-  <name>JBoss jBPM Integration</name>
   <artifactId>org.jboss.jbpm</artifactId>
+  <name>JBoss jBPM Integration</name>
   <version>${com.idega.block.addon-org.jboss.jbpm-version}</version>
   <inceptionYear>2007</inceptionYear>
   <description>The JBoss business process and workflow engine. See http://docs.jboss.com/jbpm/v3/userguide/deployment.html</description>
@@ -53,10 +53,6 @@
     <dependency>
       <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.hibernate</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.idega.block.platform</groupId>
-  	  <artifactId>com.idega.documentmanager</artifactId>
     </dependency>
     <dependency>
       <groupId>jbpm</groupId>
