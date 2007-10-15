@@ -15,9 +15,9 @@ import org.hibernate.Session;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2007/10/01 16:32:27 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/15 16:16:24 $ by $Author: civilis $
  */
 @Entity
 @Table(name="VIEW_TASK_BINDINGS")
@@ -27,9 +27,8 @@ public class ViewTaskBind implements Serializable {
 //	supposedly add versioning (hibernate versioning)
 // 	add constraints - no column should be null
 	
-	
-	private static final long serialVersionUID = 7744283644611519318L;
-	
+	private static final long serialVersionUID = -1604232647212632303L;
+
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="bind_id")
     private Long bindId;
@@ -50,7 +49,7 @@ public class ViewTaskBind implements Serializable {
 	}
 
 	@SuppressWarnings("unused")
-	public void setBindId(Long bindId) {
+	private void setBindId(Long bindId) {
 		this.bindId = bindId;
 	}
 

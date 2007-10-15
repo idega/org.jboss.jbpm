@@ -63,10 +63,18 @@
 				</tr>
 			</tbody>
 		</table>
-		
 		<div>
 			<div style="color: red;">#{simpleCasesProcessManager.message}</div>
 			<div style="display: inline;">Form name: <h:inputText value="#{simpleCasesProcessManager.formName}" /></div>
+			<br />
+			<label for="caseCategoriesSelector">Select case category:</label>
+			<h:selectOneMenu id="caseCategoriesSelector" value="#{simpleCasesProcessManager.caseCategory}">
+				<f:selectItems value="#{simpleCasesProcessManager.casesCategories}" />
+			</h:selectOneMenu>
+			<label for="caseTypesSelector">Select case type:</label>
+			<h:selectOneMenu id="caseTypesSelector" value="#{simpleCasesProcessManager.caseType}">
+				<f:selectItems value="#{simpleCasesProcessManager.casesTypes}" />
+			</h:selectOneMenu>
 			<br />
 			<h:commandButton value="Create new simple process" action="#{simpleCasesProcessManager.createNewSimpleProcess}" />
 		</div>
