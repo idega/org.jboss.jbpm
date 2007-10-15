@@ -62,6 +62,14 @@
 		    <value>#{xformsPersistenceManager}</value>
 		</managed-property>
 		<managed-property>
+		  	<property-name>viewFactory</property-name>
+		    <value>#{process_xforms_viewFactory}</value>
+		</managed-property>
+		<managed-property>
+		  	<property-name>viewToTaskBinder</property-name>
+		    <value>#{process_xforms_viewToTask}</value>
+		</managed-property>
+		<managed-property>
 		  	<property-name>processDefinitionTemplateLocation</property-name>
 		    <value>resources/simpleCasesProcTemplates/simpleCasesProcessTemplate/processdefinition.xml</value>
 		</managed-property>

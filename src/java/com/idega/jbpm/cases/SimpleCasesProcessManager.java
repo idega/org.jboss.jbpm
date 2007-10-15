@@ -22,13 +22,16 @@ import com.idega.documentmanager.util.FormManagerUtil;
 import com.idega.idegaweb.DefaultIWBundle;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.jbpm.def.View;
+import com.idega.jbpm.def.ViewFactory;
+import com.idega.jbpm.def.ViewToTask;
 
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/10/14 10:54:58 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/15 05:03:42 $ by $Author: civilis $
  *
  */
 public class SimpleCasesProcessManager {
@@ -38,6 +41,8 @@ public class SimpleCasesProcessManager {
 	private String message;
 	private DocumentManagerFactory documentManagerFactory;
 	private PersistenceManager persistenceManager;
+	private ViewFactory viewFactory;
+	private ViewToTask viewToTaskBinder;
 	
 	private String processDefinitionTemplateLocation;
 	private String createRequestFormTemplateLocation;
@@ -104,8 +109,23 @@ public class SimpleCasesProcessManager {
 			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(facesCtx);
 			DocumentBuilder builder = FormManagerUtil.getDocumentBuilder();
 			
-			loadAndSaveForm(builder, documentManager, getFormName()+" request", createReqFormIs);
-			loadAndSaveForm(builder, documentManager, getFormName()+" response", createResFormIs);
+			String[] values1 = loadAndSaveForm(builder, documentManager, getFormName()+" request", createReqFormIs);
+			String[] values2 = loadAndSaveForm(builder, documentManager, getFormName()+" response", createResFormIs);
+			
+			String createReqFormId = values1[0];
+			String createResFormId = values2[0];
+			String createReqTaskName = values1[1];
+			String createResTaskName = values2[1];
+			
+			View view = getViewFactory().createView();
+			view.setViewId(createReqFormId);
+			
+			getViewToTaskBinder().bind(view, pd.getTaskMgmtDefinition().getTask(createReqTaskName));
+			
+			view = getViewFactory().createView();
+			view.setViewId(createResFormId);
+			
+			getViewToTaskBinder().bind(view, pd.getTaskMgmtDefinition().getTask(createResTaskName));
 			
 		} catch (IOException e) {
 			setMessage("IO Exception occured");
@@ -121,7 +141,7 @@ public class SimpleCasesProcessManager {
 		return null;
 	}
 	
-	private void loadAndSaveForm(DocumentBuilder builder, DocumentManager documentManager, String formName, InputStream formIs) throws Exception {
+	private String[] loadAndSaveForm(DocumentBuilder builder, DocumentManager documentManager, String formName, InputStream formIs) throws Exception {
 		
 		Document xformXml = builder.parse(formIs);
 		PersistenceManager persistenceManager = getPersistenceManager();
@@ -131,11 +151,15 @@ public class SimpleCasesProcessManager {
 		
 		LocalizedStringBean title = form.getFormTitle();
 		
+		String taskName = title.getString(new Locale("en"));
+		
 		for (Locale titleLocale : title.getLanguagesKeySet())
 			title.setString(titleLocale, formName);
 		
 		form.setFormTitle(title);
 		form.save();
+		
+		return new String[] {formId, taskName};
 	}
 
 	public String getMessage() {
@@ -186,5 +210,21 @@ public class SimpleCasesProcessManager {
 	public void setCreateResponseFormTemplateLocation(
 			String createResponseFormTemplateLocation) {
 		this.createResponseFormTemplateLocation = createResponseFormTemplateLocation;
+	}
+
+	public ViewFactory getViewFactory() {
+		return viewFactory;
+	}
+
+	public void setViewFactory(ViewFactory viewFactory) {
+		this.viewFactory = viewFactory;
+	}
+
+	public ViewToTask getViewToTaskBinder() {
+		return viewToTaskBinder;
+	}
+
+	public void setViewToTaskBinder(ViewToTask viewToTaskBinder) {
+		this.viewToTaskBinder = viewToTaskBinder;
 	}
 }
