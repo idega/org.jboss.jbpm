@@ -16,7 +16,6 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.jbpm.data.ActorTaskBind;
-import com.idega.jbpm.presentation.beans.ActorBindingViewBean;
 import com.idega.user.business.GroupBusiness;
 import com.idega.user.data.Group;
 import com.idega.util.CoreUtil;
@@ -31,8 +30,8 @@ public class TaskAssignmentHandler implements AssignmentHandler {
 		
 		long taskId = task.getId();
 		
-		ActorBindingViewBean actorBindingManager = (ActorBindingViewBean) WFUtil.getBeanInstance("actorBindingManager");
-		Session session = actorBindingManager.getActorToTaskBinder().getSessionFactory().openSession();
+		SessionFactory sessionFactory = (SessionFactory) WFUtil.getBeanInstance("idega_jbpmDSHibernateSessionFactory");
+		Session session = sessionFactory.getCurrentSession();
 		try {
 			ActorTaskBind atb = ActorTaskBind.getBinding(session, taskId);
 			if(atb != null) {
