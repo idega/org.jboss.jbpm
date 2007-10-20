@@ -24,7 +24,8 @@
     <!-- ==== Automatically create and drop / update schema when starting/closing application (end) -->
     
     <!-- DataSource properties (begin) ===-->
-    <property name="hibernate.connection.datasource">java:comp/env/jdbc/JbpmDS</property>
+    <!-- FIXME: make this setable as it is in slide -->
+    <property name="hibernate.connection.datasource">java:comp/env/jdbc/DefaultDS</property>
     <!-- ==== DataSource properties (end) -->
     
     <!-- JTA transaction properties (begin) ===

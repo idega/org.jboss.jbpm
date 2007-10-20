@@ -14,8 +14,12 @@
     <!-- ==== Automatically create and drop schema when starting/closing application (end) -->
     
     <!-- DataSource properties (begin) ===-->
-    <property name="hibernate.connection.datasource">java:comp/env/jdbc/JbpmDS</property>
+    <!-- FIXME: make this setable as it is in slide -->
+    <property name="hibernate.connection.datasource">java:comp/env/jdbc/DefaultDS</property>
     <!-- ==== DataSource properties (end) -->
+    
+    <!-- Enable Hibernate's automatic session context management -->
+    <property name="hibernate.current_session_context_class">thread</property>
     
     <!-- ###################### -->
     <!-- # idega jbpm related mapping files # -->
