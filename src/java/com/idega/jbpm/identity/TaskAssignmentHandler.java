@@ -23,6 +23,8 @@ import com.idega.webface.WFUtil;
 
 public class TaskAssignmentHandler implements AssignmentHandler {
 
+	private static final long serialVersionUID = 5029739971157745012L;
+
 	public void assign(Assignable assignable, ExecutionContext executionContext)
 			throws Exception {
 		TaskInstance taskInstance = (TaskInstance) assignable;
@@ -32,35 +34,30 @@ public class TaskAssignmentHandler implements AssignmentHandler {
 		
 		SessionFactory sessionFactory = (SessionFactory) WFUtil.getBeanInstance("idega_jbpmDSHibernateSessionFactory");
 		Session session = sessionFactory.getCurrentSession();
-		try {
-			ActorTaskBind atb = ActorTaskBind.getBinding(session, taskId);
-			if(atb != null) {
-				String type = atb.getActorType();
-				String actorId = atb.getActorId();
-				if(type.equals(ActorTaskBind.USER)) {
-					assignable.setActorId(actorId);
-				} else if(type.equals(ActorTaskBind.ROLE)) {
-					AccessController accessController = CoreUtil.getIWContext().getAccessController();
-					Collection groups = accessController.getAllGroupsForRoleKey(actorId, CoreUtil.getIWContext());
-					for(Iterator it = groups.iterator(); it.hasNext(); ) {
-						Group group = (Group) it.next();
-						Collection users = getGroupBusiness().getUsers(group);
-						String[] pooledIds = {};
-						pooledIds = (String[]) users.toArray(pooledIds);
-						assignable.setPooledActors(pooledIds);
-					}
-				} else if(type.equals(ActorTaskBind.GROUP)) {
-					Collection users = getGroupBusiness().getUsers(new Integer(actorId).intValue());
+		
+		ActorTaskBind atb = ActorTaskBind.getBinding(session, taskId);
+		if(atb != null) {
+			String type = atb.getActorType();
+			String actorId = atb.getActorId();
+			if(type.equals(ActorTaskBind.USER)) {
+				assignable.setActorId(actorId);
+			} else if(type.equals(ActorTaskBind.ROLE)) {
+				AccessController accessController = CoreUtil.getIWContext().getAccessController();
+				Collection groups = accessController.getAllGroupsForRoleKey(actorId, CoreUtil.getIWContext());
+				for(Iterator it = groups.iterator(); it.hasNext(); ) {
+					Group group = (Group) it.next();
+					Collection users = getGroupBusiness().getUsers(group);
 					String[] pooledIds = {};
 					pooledIds = (String[]) users.toArray(pooledIds);
 					assignable.setPooledActors(pooledIds);
 				}
+			} else if(type.equals(ActorTaskBind.GROUP)) {
+				Collection users = getGroupBusiness().getUsers(new Integer(actorId).intValue());
+				String[] pooledIds = {};
+				pooledIds = (String[]) users.toArray(pooledIds);
+				assignable.setPooledActors(pooledIds);
 			}
-		} finally {
-			if(session != null)
-				session.close();
 		}
-
 	}
 	
 	protected GroupBusiness getGroupBusiness() {

@@ -6,11 +6,11 @@ import javax.ejb.FinderException;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
-import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -30,29 +30,30 @@ public class ActorTaskBinder {
 	private SessionFactory sessionFactory;
 	
 	public String getBindingType(long taskId) {
-		Session session = getSessionFactory().openSession();
-		try {
-			ActorTaskBind atb = ActorTaskBind.getBinding(session, taskId);
-			if(atb == null)
-				return null;
-			return atb.getActorType();
-		} finally {
-			if(session != null)
-				session.close();
-		}
+		
+		ActorTaskBind atb = ActorTaskBind.getBinding(getSessionFactory().getCurrentSession(), taskId);
+		
+		return atb == null ? null : atb.getActorType(); 
 	}
 	
+//	FIXME: so do you get task by it's id or name? you use parameter name as taskId, but call method getTask by name
 	public void bindActor(String processId, String taskId, String actorId, String actorType) {
-		if(actorType == null || processId == null || taskId == null || actorType == null) {
-			throw new IllegalArgumentException("Parameters cannot be null");
-		}
-		JbpmContext ctx = cfg.createJbpmContext();
-		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(new Long(processId).longValue());
-		TaskMgmtDefinition mgmt = pd.getTaskMgmtDefinition();
-		Task task = mgmt.getTask(taskId);
-		Session session = null;
+		
+		if(actorType == null || processId == null || taskId == null || actorType == null)
+			throw new IllegalArgumentException("Any of parameters cannot be null");
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
+		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
+		
+		Session session = getSessionFactory().getCurrentSession();
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
 		try {
-			session = getSessionFactory().openSession();
 			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
 			if(bind == null) {
 				bind = new ActorTaskBind();
@@ -67,48 +68,66 @@ public class ActorTaskBinder {
 			}
 		} finally {
 			ctx.close();
-			if(session != null)
-				session.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 	
+//	FIXME: so do you get task by it's id or name? you use parameter name as taskId, but call method getTask by name
 	public void bindUser(String processId, String taskId, String userId) {
-		if(userId == null || processId == null || taskId == null) {
-			throw new IllegalArgumentException("Parameters cannot be null");
-		}
-		JbpmContext ctx = cfg.createJbpmContext();
-		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(new Long(processId).longValue());
-		TaskMgmtDefinition mgmt = pd.getTaskMgmtDefinition();
-		Task task = mgmt.getTask(taskId);
-		Session session = null;
+		
+		if(userId == null || processId == null || taskId == null)
+			throw new IllegalArgumentException("Any of parameters cannot be null");
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
+		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
+		
+		Session session = getSessionFactory().getCurrentSession();
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
 		try {
-			session = getSessionFactory().openSession();
 			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
-			if(bind == null) {
+			
+			if(bind == null)
 				bind = new ActorTaskBind();
-			}
+			
 			bind.setTaskId(task.getId());
 			bind.setActorId(userId);
 			bind.setActorType(ActorTaskBind.USER);
 			session.save(bind);
+			
 		} finally {
 			ctx.close();
-			if(session != null)
-				session.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
-	
+
+//	FIXME: so do you get task by it's id or name? you use parameter name as taskId, but call method getTask by name
 	public void bindGroup(String processId, String taskId, String groupId) {
-		if(groupId == null || processId == null || taskId == null) {
-			throw new IllegalArgumentException("Parameters cannot be null");
-		}
-		JbpmContext ctx = cfg.createJbpmContext();
-		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(new Long(processId).longValue());
-		TaskMgmtDefinition mgmt = pd.getTaskMgmtDefinition();
-		Task task = mgmt.getTask(taskId);
-		Session session = null;
+		
+		if(groupId == null || processId == null || taskId == null)
+			throw new IllegalArgumentException("Any of parameters cannot be null");
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
+		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
+		
+		Session session = getSessionFactory().getCurrentSession();
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
 		try {
-			session = getSessionFactory().openSession();
 			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
 			if(bind == null) {
 				bind = new ActorTaskBind();
@@ -123,45 +142,49 @@ public class ActorTaskBinder {
 			}
 		} finally {
 			ctx.close();
-			if(session != null)
-				session.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 	
+//	FIXME: so do you get task by it's id or name? you use parameter name as taskId, but call method getTask by name
 	public void bindRole(String processId, String taskId, String roleId) {
-		if(roleId == null || processId == null || taskId == null) {
-			throw new IllegalArgumentException("Parameters cannot be null");
-		}
-		JbpmContext ctx = cfg.createJbpmContext();
-		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(new Long(processId).longValue());
-		TaskMgmtDefinition mgmt = pd.getTaskMgmtDefinition();
-		Task task = mgmt.getTask(taskId);
-		Session session = null;
+		
+		if(roleId == null || processId == null || taskId == null)
+			throw new IllegalArgumentException("Any of parameters cannot be null");
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
+		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
+		
+		Session session = getSessionFactory().getCurrentSession();
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
 		try {
-			session = getSessionFactory().openSession();
 			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
-			if(bind == null) {
+			
+			if(bind == null)
 				bind = new ActorTaskBind();
-			}
+			
 			bind.setTaskId(task.getId());
 			bind.setActorId(roleId);
 			bind.setActorType(ActorTaskBind.ROLE);
 			session.save(bind);
 		} finally {
 			ctx.close();
-			if(session != null)
-				session.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 	
 	public ActorTaskBind getActor(long taskId) {
-		Session session = getSessionFactory().openSession();
-		try {
-			return ActorTaskBind.getBinding(session, taskId);
-		} finally {
-			if(session != null)
-				session.close();
-		}
+		return ActorTaskBind.getBinding(getSessionFactory().getCurrentSession(), taskId);
 	}
 	
 	public String getActorName(String actorId, String actorType) {
@@ -228,5 +251,4 @@ public class ActorTaskBinder {
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
-
 }
