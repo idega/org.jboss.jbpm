@@ -82,6 +82,12 @@
 			#{processMgmtMockup.formId}
 			<fv:formViewer taskInstanceId="#{processMgmtMockup.taskInstanceId}" formId="#{processMgmtMockup.formId}" />
 		</div>
+		<div style="display: inline;">
+			<label for="createdFormsProcessesSelector">Created forms processes:</label>
+			<h:selectOneMenu id="createdFormsProcessesSelector">
+				<f:selectItems value="#{simpleCasesProcessManager.simpleCasesProcessesDefinitions}" />
+			</h:selectOneMenu>
+		</div>
 	</h:form>
 </ws:page>
 </html>

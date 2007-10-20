@@ -5,7 +5,7 @@
     xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
 	xmlns:t="http://myfaces.apache.org/tomahawk"
-	
+	xmlns:fv="http://xmlns.idega.com/com.idega.block.form"	
 >
 
 <ws:page id="jbmpProcessDefUpload" showFunctionMenu="true" useHtmlTag="false">
@@ -36,6 +36,8 @@
 				</tr>
 			</tbody>
 		</table>
+		
+		<fv:casesformViewer processDefinitionId="123" processInstanceId="455" processingBean="#{simpleCasesProcessProcessingBean}" />
 	</h:form>
 </ws:page>
 </html>
