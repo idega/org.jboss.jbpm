@@ -7,15 +7,30 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.NamedQueries;
+
 import javax.persistence.Table;
 
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 @Entity
 @Table(name="ACTOR_TASK_BINDINGS")
+@NamedQueries(
+		{
+			@NamedQuery(name="actorTaskBind.getUniqueByTaskIdAndActorType", query="from ActorTaskBind ATB where ATB.taskId = :taskId and ATB.actorType = :actorType"),
+			@NamedQuery(name="actorTaskBind.getUniqueByTaskId", query="from ActorTaskBind ATB where ATB.taskId = :taskId")
+		}		
+)
 public class ActorTaskBind implements Serializable {
 	
 	private static final long serialVersionUID = 7744283649458519318L;
+	
+	public static final String GET_UNIQUE_BY_TASK_ID_AND_ACTOR_TYPE_QUERY_NAME = "actorTaskBind.getUniqueByTaskIdAndActorType";
+	public static final String GET_UNIQUE_BY_TASK_ID_QUERY_NAME = "actorTaskBind.getUniqueByTaskId";
+	public static final String taskIdParam = "taskId";
+	public static final String actorTypeParam = "actorType";
 	
 	public static final String USER = "USER";
 	public static final String GROUP = "GROUP";
@@ -67,20 +82,43 @@ public class ActorTaskBind implements Serializable {
 		this.actorType = actorType;
 	}
 	
-	private static final String getByTaskIdAndActorType = "from " + ActorTaskBind.class.getName() + " as ATB where ATB.taskId = ? and ATB.actorType = ?";
-	private static final String getByTaskId = "from " + ActorTaskBind.class.getName() + " ATB where ATB.taskId = :type";
-	
+//	FIXME: why is this needed if taskId describes record uniquely? (@see method getBinding(Session session, long taskId))
 	public static ActorTaskBind getBinding(Session session, long taskId, String actorType) {
-		return (ActorTaskBind) session.createQuery(getByTaskIdAndActorType)
-		.setLong(0, taskId)
-		.setString(1, actorType)
-		.uniqueResult();
+		
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		try {
+			return (ActorTaskBind) session.getNamedQuery(GET_UNIQUE_BY_TASK_ID_AND_ACTOR_TYPE_QUERY_NAME)
+			.setLong(taskIdParam, taskId)
+			.setString(actorTypeParam, actorType)
+			.uniqueResult();
+			
+		} finally {
+			if(!transactionWasActive)
+				transaction.commit();
+		}
 	}
 	
 	public static ActorTaskBind getBinding(Session session, long taskId) {
-		return (ActorTaskBind) session.createQuery(getByTaskId)
-		.setLong("type", taskId)
-		.uniqueResult();
+		
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		try {
+			return (ActorTaskBind) session.getNamedQuery(GET_UNIQUE_BY_TASK_ID_QUERY_NAME)
+			.setLong(taskIdParam, taskId)
+			.uniqueResult();
+			
+		} finally {
+			if(!transactionWasActive)
+				transaction.commit();
+		}
 	}
-	
 }
