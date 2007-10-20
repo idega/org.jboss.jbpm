@@ -5,22 +5,29 @@
 	<bean id="defaultJbpmConfiguration" class="org.jbpm.JbpmConfiguration" factory-method="getInstance" scope="singleton">
 		<constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
 	</bean>
-	
 	<bean id="idega_jbpmDSHibernateSessionFactory" class="com.idega.hibernate.HibernateUtil" factory-method="getSessionFactory" scope="singleton">
 		<constructor-arg value="com/idega/jbpm/idega.jbpmDS.hibernate.cfg.xml" />
 	</bean>
-	
 	<bean id="jbpmProcessBusiness" class="com.idega.jbpm.business.JbpmProcessBusinessBean" scope="singleton">
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
 	</bean>
-	
 	<bean id="jbpmProcessManager" class="com.idega.jbpm.business.ProcessManager" scope="singleton">
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
 	</bean>
-	
 	<bean id="actorToTaskBinder" class="com.idega.jbpm.def.ActorTaskBinder" scope="singleton">
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
 		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>
-	
+	<bean id="idegaDeployProcess" class="com.idega.jbpm.presentation.beans.DeployProcess" scope="request">
+		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
+		<property name="jbpmProcessBusiness" ref="jbpmProcessBusiness" />
+	</bean>
+	<bean id="actorBindingManager" class="com.idega.jbpm.presentation.beans.ActorBindingViewBean" scope="session">
+		<property name="actorToTaskBinder" ref="actorToTaskBinder" />
+		<property name="jbpmProcessBusiness" ref="jbpmProcessBusiness" />
+	</bean>
+	<bean id="processMgmtMockup" class="com.idega.jbpm.presentation.beans.ProcessMgmtMockupBean" scope="session">
+		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
+		<property name="viewToTask" ref="process_xforms_viewToTask" />
+	</bean>
 </beans>
