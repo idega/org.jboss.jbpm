@@ -1,14 +1,13 @@
 package com.idega.jbpm.business;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.faces.model.SelectItem;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
@@ -17,23 +16,42 @@ import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
 import com.idega.builder.bean.AdvancedProperty;
-import com.idega.jbpm.presentation.beans.DeployProcess;
 
 public class JbpmProcessBusinessBean {
 	
-	public JbpmContext getJbpmContext() {
-		JbpmConfiguration config = getJbpmConfiguration();
-		return config.createJbpmContext();
-	}
+	private SessionFactory sessionFactory;
 	
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+
 	public List<ProcessDefinition> getProcessList() {
-		JbpmContext ctx = getJbpmContext();
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
 		try {
-			return ctx.getGraphSession().findLatestProcessDefinitions();
+			@SuppressWarnings("unchecked")
+			List<ProcessDefinition> processes = ctx.getGraphSession().findLatestProcessDefinitions();
+			
+			return processes;
+			
 		} finally {
-			if(ctx != null) {
-				ctx.close();
-			}
+			
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 	
@@ -53,75 +71,94 @@ public class JbpmProcessBusinessBean {
 	}
 	
 	public ProcessDefinition getProcessDefinition(String processId) {
-		JbpmContext ctx = getJbpmContext();
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
 		try {
 			long id = new Long(processId).longValue();
 			return ctx.getGraphSession().getProcessDefinition(id);
-		} finally {
-			if(ctx != null) {
-				ctx.close();
-			}
-		}
-	}
-	
-	public void deployProcessDefinition(InputStream is) {
-		JbpmContext ctx = getJbpmContext();
-		try {
-			ctx.deployProcessDefinition(ProcessDefinition.parseXmlInputStream(is));
-		} catch (Exception e) {
-			Logger.getLogger(DeployProcess.class.getName()).log(Level.WARNING, "Exception while deploying process definition", e);
-//			TODO: display err msg				
-		} finally {
-			if(ctx != null) {
-				ctx.close();
-			}
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	public List<ProcessInstance> getProcessInstances(long processDefinitionId) {
-		List<ProcessInstance> instances = null;
-		JbpmContext ctx = getJbpmContext();
-		try {
-			List items = ctx.getGraphSession().findProcessInstances(processDefinitionId);
-			if (items == null) {
-				return null;
-			}
 			
-			instances = new ArrayList<ProcessInstance>();
-			Object o = null;
-			for (int i = 0; i < items.size(); i++) {
-				o = items.get(i);
-				if (o instanceof ProcessInstance) {
-					instances.add((ProcessInstance) o);
-				}
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
-			return null;
 		} finally {
-			if (ctx != null) {
-				ctx.close();
-			}
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
-		return instances;
+	}
+	
+	public List<ProcessInstance> getProcessInstances(long processDefinitionId) {
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
+		try {
+			@SuppressWarnings("unchecked")
+			List<ProcessInstance> items = ctx.getGraphSession().findProcessInstances(processDefinitionId);
+			if (items == null)
+				return null;
+			
+//			FIXME: why is this needed? why cannot we use items directly?
+			List<ProcessInstance> instances = new ArrayList<ProcessInstance>();
+			instances.addAll(items);
+			
+			return instances;
+			
+		} finally {
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
+		}
 	}
 	
 	public Task getProcessTask(String processId, String taskName) {
-		JbpmContext ctx = getJbpmContext();
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
-			TaskMgmtDefinition mgmt = pd.getTaskMgmtDefinition();
-			return mgmt.getTask(taskName);
+			return pd.getTaskMgmtDefinition().getTask(taskName);
+			
 		} finally {
-			if(ctx != null) {
-				ctx.close();
-			}
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 	
+//	FIXME: fix warnings - use generics
 	public List getProcessDefinitionTasks(String processId, boolean forDWR) {
-		JbpmContext ctx = getJbpmContext();
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
 		List result = new ArrayList();
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
@@ -141,9 +178,10 @@ public class JbpmProcessBusinessBean {
 			}
 			return result;
 		} finally {
-			if(ctx != null) {
-				ctx.close();
-			}
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 	

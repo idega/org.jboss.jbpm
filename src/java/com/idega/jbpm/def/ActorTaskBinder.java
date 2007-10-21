@@ -42,16 +42,18 @@ public class ActorTaskBinder {
 		if(actorType == null || processId == null || taskId == null || actorType == null)
 			throw new IllegalArgumentException("Any of parameters cannot be null");
 		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
-		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
-		
 		Session session = getSessionFactory().getCurrentSession();
 		Transaction transaction = session.getTransaction();
 		boolean transactionWasActive = transaction.isActive();
 		
 		if(!transactionWasActive)
 			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(session);
+		
+		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
+		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
 		
 		try {
 			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
@@ -64,7 +66,6 @@ public class ActorTaskBinder {
 			} else {
 				bind.setActorId(actorId);
 				bind.setActorType(actorType);
-				session.flush();
 			}
 		} finally {
 			ctx.close();
@@ -80,16 +81,18 @@ public class ActorTaskBinder {
 		if(userId == null || processId == null || taskId == null)
 			throw new IllegalArgumentException("Any of parameters cannot be null");
 		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
-		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
-		
 		Session session = getSessionFactory().getCurrentSession();
 		Transaction transaction = session.getTransaction();
 		boolean transactionWasActive = transaction.isActive();
 		
 		if(!transactionWasActive)
 			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(session);
+		
+		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
+		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
 		
 		try {
 			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
@@ -116,16 +119,18 @@ public class ActorTaskBinder {
 		if(groupId == null || processId == null || taskId == null)
 			throw new IllegalArgumentException("Any of parameters cannot be null");
 		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
-		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
-		
 		Session session = getSessionFactory().getCurrentSession();
 		Transaction transaction = session.getTransaction();
 		boolean transactionWasActive = transaction.isActive();
 		
 		if(!transactionWasActive)
 			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(session);
+		
+		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
+		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
 		
 		try {
 			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
@@ -154,16 +159,18 @@ public class ActorTaskBinder {
 		if(roleId == null || processId == null || taskId == null)
 			throw new IllegalArgumentException("Any of parameters cannot be null");
 		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
-		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
-		
 		Session session = getSessionFactory().getCurrentSession();
 		Transaction transaction = session.getTransaction();
 		boolean transactionWasActive = transaction.isActive();
 		
 		if(!transactionWasActive)
 			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(session);
+		
+		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
+		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
 		
 		try {
 			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());

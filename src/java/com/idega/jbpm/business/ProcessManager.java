@@ -3,6 +3,8 @@ package com.idega.jbpm.business;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.context.def.VariableAccess;
@@ -10,17 +12,25 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/10/01 16:32:27 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/21 21:19:20 $ by $Author: civilis $
  */
 public class ProcessManager {
 
 	private JbpmConfiguration jbpmConfiguration;
+	private SessionFactory sessionFactory;
 	
 	public void submitVariables(Map<String, Object> variables, long taskInstanceId) {
 
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
 		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
 		
 		try {
 			if(variables == null || variables.isEmpty())
@@ -40,15 +50,24 @@ public class ProcessManager {
 			
 		} finally {
 			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 	
 	public Map<String, Object> populateVariables(long taskInstanceId) {
 		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
 		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
 		
 		try {
-
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
 			
 			@SuppressWarnings("unchecked")
@@ -58,6 +77,9 @@ public class ProcessManager {
 			
 		} finally {
 			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 
@@ -67,5 +89,13 @@ public class ProcessManager {
 
 	public void setJbpmConfiguration(JbpmConfiguration jbpmConfiguration) {
 		this.jbpmConfiguration = jbpmConfiguration;
+	}
+
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
 	}
 }

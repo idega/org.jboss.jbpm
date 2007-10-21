@@ -6,23 +6,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.myfaces.custom.fileupload.UploadedFile;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 
-import com.idega.jbpm.business.JbpmProcessBusinessBean;
-
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/09/26 07:33:19 $ by $Author: alexis $
+ * Last modified: $Date: 2007/10/21 21:19:20 $ by $Author: civilis $
  *
  */
 public class DeployProcess {
 	
 	private UploadedFile pd;
+	private SessionFactory sessionFactory;
 	
 	public UploadedFile getProcessDefinition() {
 		return pd;
@@ -34,14 +36,20 @@ public class DeployProcess {
 	
 	public void upload() {
 		
+		Session session = getSessionFactory().getCurrentSession();
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(session);
+		
 		InputStream is = null;
-		JbpmContext ctx = null;
 		
 		try {
 			is = getProcessDefinition().getInputStream();
-			
-			JbpmConfiguration cfg = getJbpmConfiguration();
-			ctx = cfg.createJbpmContext();
 			ctx.deployProcessDefinition(ProcessDefinition.parseXmlInputStream(is));
 
 		} catch (IOException e) {
@@ -57,10 +65,14 @@ public class DeployProcess {
 		} finally {
 			if(ctx != null)
 				ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
+			
+//			TODO: close is?
 		}
 	}
 	
-	private JbpmProcessBusinessBean jbpmProcessBusiness;
 	private JbpmConfiguration cfg;
 	
 	public void setJbpmConfiguration(JbpmConfiguration cfg) {
@@ -71,11 +83,11 @@ public class DeployProcess {
 		return cfg;
 	}
 
-	public JbpmProcessBusinessBean getJbpmProcessBusiness() {
-		return jbpmProcessBusiness;
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
 	}
 
-	public void setJbpmProcessBusiness(JbpmProcessBusinessBean jbpmProcessBusiness) {
-		this.jbpmProcessBusiness = jbpmProcessBusiness;
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
 	}
 }
