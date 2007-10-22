@@ -84,9 +84,12 @@
 		</div>
 		<div style="display: inline;">
 			<label for="createdFormsProcessesSelector">Created forms processes:</label>
-			<h:selectOneMenu id="createdFormsProcessesSelector">
+			<h:selectOneMenu id="createdFormsProcessesSelector" value="#{simpleCasesProcessManager.processDefinitionId}">
 				<f:selectItems value="#{simpleCasesProcessManager.simpleCasesProcessesDefinitions}" />
 			</h:selectOneMenu>
+		</div>
+		<div>
+			<fv:casesformViewer processDefinitionId="#{simpleCasesProcessManager.processDefinitionId}" processInstanceId="#{simpleCasesProcessManager.processInstanceId}" processingBean="#{simpleCasesProcessProcessingBean}" />
 		</div>
 	</h:form>
 </ws:page>
