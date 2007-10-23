@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
+	xmlns:t="http://myfaces.apache.org/tomahawk"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
+>
+
+<ws:page id="jbmpProcessMgmtMockup" showFunctionMenu="true" useHtmlTag="false">
+
+	<h:form enctype="multipart/form-data">
+				<div>
+			<div style="color: red;">#{simpleCasesProcessManager.message}</div>
+			<div style="display: inline;">Form name: <h:inputText value="#{simpleCasesProcessManager.formName}" /></div>
+			<br />
+			<label for="caseCategoriesSelector">Select case category:</label>
+			<h:selectOneMenu id="caseCategoriesSelector" value="#{simpleCasesProcessManager.caseCategory}">
+				<f:selectItems value="#{simpleCasesProcessManager.casesCategories}" />
+			</h:selectOneMenu>
+			<label for="caseTypesSelector">Select case type:</label>
+			<h:selectOneMenu id="caseTypesSelector" value="#{simpleCasesProcessManager.caseType}">
+				<f:selectItems value="#{simpleCasesProcessManager.casesTypes}" />
+			</h:selectOneMenu>
+			<br />
+			<h:commandButton value="Create new simple process" action="#{simpleCasesProcessManager.createNewSimpleProcess}" />
+		</div>
+		<div style="display: inline;">
+			<label for="createdFormsProcessesSelector">Created forms processes:</label>
+			<h:selectOneMenu id="createdFormsProcessesSelector" value="#{simpleCasesProcessManager.processDefinitionId}">
+				<f:selectItems value="#{simpleCasesProcessManager.simpleCasesProcessesDefinitions}" />
+			</h:selectOneMenu>
+			
+			<h:commandButton value="New form" action="#{simpleCasesProcessManager.showProcessInitationForm}" />
+		</div>
+		<div>
+			<fv:casesformViewer processDefinitionId="#{simpleCasesProcessManager.chosenProcessDefinitionId}" processInstanceId="#{simpleCasesProcessManager.chosenProcessInstanceId}" processingBean="#{simpleCasesProcessProcessingBean}" />
+		</div>
+	</h:form>
+</ws:page>
+</html>

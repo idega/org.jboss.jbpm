@@ -90,5 +90,10 @@ public class JbmpViewManager implements Singleton  {
 		node.setFaceletUri(bundle.getFaceletURI("processMgmtMockup.xhtml"));
 		node.setName("Process Mgmnt Mockup");
 		node.setVisibleInMenus(true);
+		
+		node = new DefaultViewNode("simpleCasesProcess", contentNode);
+		node.setFaceletUri(bundle.getFaceletURI("SimpleCasesProcess.xhtml"));
+		node.setName("Simple cases process");
+		node.setVisibleInMenus(true);
 	}
 }
