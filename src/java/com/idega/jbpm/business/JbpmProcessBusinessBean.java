@@ -147,6 +147,44 @@ public class JbpmProcessBusinessBean {
 		}
 	}
 	
+	public List<Task> getProcessDefinitionTasks(ProcessDefinition pd) {
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
+		List<Task> result = new ArrayList<Task>();
+		try {
+//			ProcessDefinition pd = getProcessDefinition(processId, ctx);
+//			if(pd != null) {
+				TaskMgmtDefinition mgmt = pd.getTaskMgmtDefinition();
+				for(Iterator it = mgmt.getTasks().keySet().iterator(); it.hasNext(); ) {
+					String nextId = (String) it.next();
+					Task task = mgmt.getTask(nextId);
+					result.add(task);
+//					if(forDWR) {
+//						AdvancedProperty prop = new AdvancedProperty(task.getName(), task.getName());
+//						result.add(prop);
+//					} else {
+//						SelectItem prop = new SelectItem(task.getName(), task.getName());
+//						result.add(prop);
+//					}
+				}
+//			}
+			return result;
+		} finally {
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
+		}
+	}
+	
 //	FIXME: fix warnings - use generics
 	public List getProcessDefinitionTasks(String processId, boolean forDWR) {
 		

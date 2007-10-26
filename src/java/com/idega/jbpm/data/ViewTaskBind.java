@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
@@ -17,36 +18,37 @@ import org.hibernate.Transaction;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2007/10/20 20:18:27 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/26 12:35:59 $ by $Author: alexis $
  */
 @Entity
 @Table(name="VIEW_TASK_BINDINGS")
-@NamedQuery(name="viewTaskBind.getUniqueByTaskIdAndViewType", query="from ViewTaskBind VTB where VTB.taskId = :taskId and viewType = :viewType")
+@NamedQueries({@NamedQuery(name="viewTaskBind.getUniqueByTaskIdAndViewType", query="from ViewTaskBind VTB where VTB.taskId = :taskId and viewType = :viewType"),
+@NamedQuery(name="viewTaskBind.getViewTaskBindByView", query="from ViewTaskBind VTB where VTB.viewIdentifier = :viewIdentifier and viewType = :viewType")})
 public class ViewTaskBind implements Serializable {
 	
 	public static final String GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME = "viewTaskBind.getUniqueByTaskIdAndViewType";
 	public static final String taskIdParam = "taskId";
 	public static final String viewTypeParam = "viewType";
+	public static final String viewIdParam = "viewIdentifier";
 	
 //	TODO: make bind id and view type as the composite PK. remove bind id.
 //	supposedly add versioning (hibernate versioning)
-// 	add constraints - no column should be null
 	
 	private static final long serialVersionUID = -1604232647212632303L;
 
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name="bind_id")
+	@Column(name="bind_id", nullable=false)
     private Long bindId;
 	
-	@Column(name="task_id")
+	@Column(name="task_id", nullable=false)
 	private Long taskId;
 	
-	@Column(name="view_identifier")
+	@Column(name="view_identifier", nullable=false)
 	private String viewIdentifier;
 	
-	@Column(name="view_type")
+	@Column(name="view_type", nullable=false)
 	private String viewType;
 	
 	public ViewTaskBind() { }
@@ -108,4 +110,27 @@ public class ViewTaskBind implements Serializable {
 				transaction.commit();
 		}
 	}
+	
+	public static ViewTaskBind getViewTaskBindByView(Session session, String viewId, String viewType) {
+		
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		try {
+			@SuppressWarnings("unchecked")
+			ViewTaskBind bind = (ViewTaskBind) session.getNamedQuery("viewTaskBind.getViewTaskBindByView")
+			.setString(viewIdParam, viewId)
+			.setString(viewTypeParam, viewType)
+			.uniqueResult();
+			
+			return bind;
+		} finally {
+			if(!transactionWasActive)
+				transaction.commit();
+		}
+	}
+
 }
