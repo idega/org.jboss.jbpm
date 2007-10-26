@@ -33,7 +33,7 @@
 				<f:selectItems value="#{simpleCasesProcessManager.simpleCasesProcessesDefinitions}" />
 			</h:selectOneMenu>
 			
-			<h:commandButton value="New form" action="#{simpleCasesProcessManager.showProcessInitationForm}" />
+			<h:commandButton value="Fillout form" action="#{simpleCasesProcessManager.showProcessInitationForm}" />
 		</div>
 		<div>
 			<fv:casesformViewer processDefinitionId="#{simpleCasesProcessManager.chosenProcessDefinitionId}" processInstanceId="#{simpleCasesProcessManager.chosenProcessInstanceId}" processingBean="#{simpleCasesProcessProcessingBean}" />
