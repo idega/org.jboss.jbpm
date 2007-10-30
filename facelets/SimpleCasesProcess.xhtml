@@ -7,6 +7,7 @@
 	xmlns:t="http://myfaces.apache.org/tomahawk"
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
+	xmlns:ca="http://xmlns.idega.com/is.idega.idegaweb.egoc.cases"
 >
 
 <ws:page id="jbmpProcessMgmtMockup" showFunctionMenu="true" useHtmlTag="false">
@@ -36,7 +37,7 @@
 			<h:commandButton value="Fillout form" action="#{simpleCasesProcessManager.showProcessInitationForm}" />
 		</div>
 		<div>
-			<fv:casesformViewer processDefinitionId="#{simpleCasesProcessManager.chosenProcessDefinitionId}" processInstanceId="#{simpleCasesProcessManager.chosenProcessInstanceId}" processingBean="#{simpleCasesProcessProcessingBean}" />
+			<ca:casesJbpmFormViewer processDefinitionId="#{simpleCasesProcessManager.chosenProcessDefinitionId}" processInstanceId="#{simpleCasesProcessManager.chosenProcessInstanceId}" casesJbpmProcess="#{casesJbpmProcess}" />
 		</div>
 	</h:form>
 </ws:page>
