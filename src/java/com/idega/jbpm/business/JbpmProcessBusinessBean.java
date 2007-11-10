@@ -1,8 +1,11 @@
 package com.idega.jbpm.business;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import javax.faces.model.SelectItem;
 
@@ -10,6 +13,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
+import org.jbpm.context.def.VariableAccess;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
@@ -18,6 +22,8 @@ import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 import com.idega.builder.bean.AdvancedProperty;
 
 public class JbpmProcessBusinessBean {
+	
+	public static final String BEAN_ID = "jbpmProcessBusiness";
 	
 	private SessionFactory sessionFactory;
 	
@@ -122,6 +128,107 @@ public class JbpmProcessBusinessBean {
 			if(!transactionWasActive)
 				transaction.commit();
 		}
+	}
+	
+	public void addTaskVariable(String processId, String taskName, String datatype, String variableName) {
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
+		try {
+			ProcessDefinition pd = getProcessDefinition(processId, ctx);
+			Task task = pd.getTaskMgmtDefinition().getTask(taskName);
+			List list = task.getTaskController().getVariableAccesses();
+			VariableAccess newVariable = new VariableAccess(datatype + ":" + variableName, "rw", "");
+			list.add(newVariable);
+			task.getTaskController().setVariableAccesses(list);
+		} finally {
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
+		}
+	}
+	
+	public Map<String, List<String>> getTaskVariables(String processId, String taskName) {
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
+		try {
+			ProcessDefinition pd = getProcessDefinition(processId, ctx);
+			Task task = pd.getTaskMgmtDefinition().getTask(taskName);
+			List list = task.getTaskController().getVariableAccesses();
+			Map<String, List<String>> variables = new HashMap<String, List<String>>();
+			for(Iterator it = list.iterator(); it.hasNext(); ) {
+				VariableAccess va = (VariableAccess) it.next();
+				String fullName = va.getVariableName();
+				StringTokenizer stk = new StringTokenizer(fullName, ":");
+				String type = stk.nextToken();
+				String name = stk.nextToken();
+				if(variables.containsKey(type)) {
+					variables.get(type).add(name);
+				} else {
+					List<String> newList = new ArrayList<String>();
+					newList.add(name);
+					variables.put(type, newList);
+				}
+			}
+			return variables;
+		} finally {
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
+		}
+		
+	}
+	
+	public List<String> getTaskVariablesByDatatype(String processId, String taskName, String datatype) {
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
+		try {
+			ProcessDefinition pd = getProcessDefinition(processId, ctx);
+			Task task = pd.getTaskMgmtDefinition().getTask(taskName);
+			List list = task.getTaskController().getVariableAccesses();
+			List<String> variables = new ArrayList<String>();
+			for(Iterator it = list.iterator(); it.hasNext(); ) {
+				VariableAccess va = (VariableAccess) it.next();
+				String fullName = va.getVariableName();
+				StringTokenizer stk = new StringTokenizer(fullName, ":");
+				String type = stk.nextToken();
+				if(type.equals(datatype)) {
+					variables.add(stk.nextToken());
+				}
+			}
+			return variables;
+		} finally {
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
+		}
+		
 	}
 	
 	public Task getProcessTask(String processId, String taskName) {

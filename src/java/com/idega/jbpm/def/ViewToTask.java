@@ -6,13 +6,14 @@ import org.jbpm.taskmgmt.def.Task;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2007/10/26 12:35:59 $ by $Author: alexis $
+ * Last modified: $Date: 2007/11/10 14:02:06 $ by $Author: alexis $
  */
 public interface ViewToTask {
 
 	public abstract void bind(View view, Task task);
 	public abstract View getView(long taskId);
-	public List<View> getAllViewsForViewType(String viewType);
+	public abstract List<View> getAllViewsForViewType(String viewType);
+	public abstract Long getTask(String formId);
 }
