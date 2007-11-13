@@ -17,6 +17,7 @@ import org.jbpm.context.def.VariableAccess;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
+import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
 import com.idega.builder.bean.AdvancedProperty;
@@ -144,10 +145,19 @@ public class JbpmProcessBusinessBean {
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
 			Task task = pd.getTaskMgmtDefinition().getTask(taskName);
-			List list = task.getTaskController().getVariableAccesses();
-			VariableAccess newVariable = new VariableAccess(datatype + ":" + variableName, "rw", "");
-			list.add(newVariable);
-			task.getTaskController().setVariableAccesses(list);
+			if(task != null) {
+				VariableAccess newVariable = new VariableAccess(datatype + ":" + variableName, "rw", "");
+				TaskController controller = task.getTaskController();
+				List list = new ArrayList();
+				if(controller == null) {
+					controller = new TaskController();
+				} else {
+					list = controller.getVariableAccesses();
+				}
+				list.add(newVariable);
+				controller.setVariableAccesses(list);
+				task.setTaskController(controller);
+			}
 		} finally {
 			ctx.close();
 			
@@ -210,15 +220,20 @@ public class JbpmProcessBusinessBean {
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
 			Task task = pd.getTaskMgmtDefinition().getTask(taskName);
-			List list = task.getTaskController().getVariableAccesses();
 			List<String> variables = new ArrayList<String>();
-			for(Iterator it = list.iterator(); it.hasNext(); ) {
-				VariableAccess va = (VariableAccess) it.next();
-				String fullName = va.getVariableName();
-				StringTokenizer stk = new StringTokenizer(fullName, ":");
-				String type = stk.nextToken();
-				if(type.equals(datatype)) {
-					variables.add(stk.nextToken());
+			if(task != null) {
+				TaskController controller = task.getTaskController();
+				if(controller != null) {
+					List list = controller.getVariableAccesses();
+					for(Iterator it = list.iterator(); it.hasNext(); ) {
+						VariableAccess va = (VariableAccess) it.next();
+						String fullName = va.getVariableName();
+						StringTokenizer stk = new StringTokenizer(fullName, ":");
+						String type = stk.nextToken();
+						if(type.equals(datatype)) {
+							variables.add(stk.nextToken());
+						}
+					}
 				}
 			}
 			return variables;
