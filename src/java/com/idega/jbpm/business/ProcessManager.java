@@ -8,13 +8,14 @@ import org.hibernate.Transaction;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.context.def.VariableAccess;
+import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2007/10/21 21:19:20 $ by $Author: civilis $
+ * Last modified: $Date: 2007/11/14 13:10:56 $ by $Author: civilis $
  */
 public class ProcessManager {
 
@@ -37,13 +38,20 @@ public class ProcessManager {
 				return;
 
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
+			TaskController tiController = ti.getTask().getTaskController();
+			
+			if(tiController == null)
+//				no variables perhaps?
+				return;
 			
 			@SuppressWarnings("unchecked")
-			List<VariableAccess> variableAccesses = ti.getTask().getTaskController().getVariableAccesses();
+			List<VariableAccess> variableAccesses = tiController.getVariableAccesses();
 			
 			for (VariableAccess variableAccess : variableAccesses)
 				if(!variableAccess.isWritable() && variables.containsKey(variableAccess.getVariableName()))
 					variables.remove(variableAccess.getVariableName());
+			
+//			TODO: remove variables, that don't exist in process definition
 
 			ti.setVariables(variables);
 			ti.getTask().getTaskController().submitParameters(ti);

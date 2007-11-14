@@ -11,33 +11,33 @@
 >
 
 <ws:page id="jbmpProcessMgmtMockup" showFunctionMenu="true" useHtmlTag="false">
-
+ 
 	<h:form enctype="multipart/form-data">
 				<div>
-			<div style="color: red;">#{simpleCasesProcessManager.message}</div>
-			<div style="display: inline;">Form name: <h:inputText value="#{simpleCasesProcessManager.formName}" /></div>
+			<div style="color: red;">#{casesJbpmProcess.message}</div>
+			<div style="display: inline;">Form name: <h:inputText value="#{casesJbpmProcess.formName}" /></div>
 			<br />
 			<label for="caseCategoriesSelector">Select case category:</label>
-			<h:selectOneMenu id="caseCategoriesSelector" value="#{simpleCasesProcessManager.caseCategory}">
-				<f:selectItems value="#{simpleCasesProcessManager.casesCategories}" />
+			<h:selectOneMenu id="caseCategoriesSelector" value="#{casesJbpmProcess.caseCategory}">
+				<f:selectItems value="#{casesJbpmProcess.casesCategories}" />
 			</h:selectOneMenu>
 			<label for="caseTypesSelector">Select case type:</label>
-			<h:selectOneMenu id="caseTypesSelector" value="#{simpleCasesProcessManager.caseType}">
-				<f:selectItems value="#{simpleCasesProcessManager.casesTypes}" />
+			<h:selectOneMenu id="caseTypesSelector" value="#{casesJbpmProcess.caseType}">
+				<f:selectItems value="#{casesJbpmProcess.casesTypes}" />
 			</h:selectOneMenu>
 			<br />
-			<h:commandButton value="Create new simple process" action="#{simpleCasesProcessManager.createNewSimpleProcess}" />
+			<h:commandButton value="Create new simple process" action="#{casesJbpmProcess.createNewSimpleProcess}" />
 		</div>
 		<div style="display: inline;">
 			<label for="createdFormsProcessesSelector">Created forms processes:</label>
-			<h:selectOneMenu id="createdFormsProcessesSelector" value="#{simpleCasesProcessManager.processDefinitionId}">
-				<f:selectItems value="#{simpleCasesProcessManager.simpleCasesProcessesDefinitions}" />
+			<h:selectOneMenu id="createdFormsProcessesSelector" value="#{casesJbpmProcess.processDefinitionId}">
+				<f:selectItems value="#{casesJbpmProcess.simpleCasesProcessesDefinitions}" />
 			</h:selectOneMenu>
 			
-			<h:commandButton value="Fillout form" action="#{simpleCasesProcessManager.showProcessInitationForm}" />
+			<h:commandButton value="Fillout form" action="#{casesJbpmProcess.showProcessInitationForm}" />
 		</div>
 		<div>
-			<ca:casesJbpmFormViewer processDefinitionId="#{simpleCasesProcessManager.chosenProcessDefinitionId}" processInstanceId="#{simpleCasesProcessManager.chosenProcessInstanceId}" casesJbpmProcess="#{casesJbpmProcess}" />
+			<ca:casesJbpmFormViewer processDefinitionId="#{casesJbpmProcess.chosenProcessDefinitionId}" processInstanceId="#{casesJbpmProcess.chosenProcessInstanceId}" casesJbpmFormManager="#{casesJbpmFormManager}" />
 		</div>
 	</h:form>
 </ws:page>
