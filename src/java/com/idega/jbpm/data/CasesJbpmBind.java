@@ -11,9 +11,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/10/22 15:40:01 $ by $Author: civilis $
+ * Last modified: $Date: 2007/11/20 19:58:40 $ by $Author: civilis $
  */
 @Entity
 @Table(name="CASES_JBPM_BINDINGS")
@@ -21,6 +21,8 @@ import javax.persistence.Table;
 public class CasesJbpmBind implements Serializable {
 	
 	private static final long serialVersionUID = -3222584305636229751L;
+	
+	public static final String SIMPLE_CASES_PROCESSES_DEFINITIONS_QUERY_NAME = "casesJbpmBind.simpleCasesProcessesDefinitionsQuery";
 
 	@Id
 	@Column(name="process_definition_id")
