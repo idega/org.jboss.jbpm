@@ -8,9 +8,9 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/10/01 16:32:27 $ by $Author: civilis $
+ * Last modified: $Date: 2007/11/20 19:37:15 $ by $Author: civilis $
  */
 public class DefaultVariablesHandler implements VariablesHandler {
 
@@ -34,6 +34,17 @@ public class DefaultVariablesHandler implements VariablesHandler {
 			throw new NullPointerException("Converter not set");
 		
 		Map<String, Object> variables = getProcessManager().populateVariables(tiId);
+	
+		return getConverter().revert(variables, objectToPopulate);
+	}
+
+	public Object populateFromProcess(long processInstanceId, Object objectToPopulate) {
+		
+		if(getConverter() == null)
+			throw new NullPointerException("Converter not set");
+		
+		Map<String, Object> variables = getProcessManager().populateVariablesFromProcess(processInstanceId);
+		System.out.println("variables: "+variables);
 	
 		return getConverter().revert(variables, objectToPopulate);
 	}
