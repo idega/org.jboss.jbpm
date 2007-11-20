@@ -1,5 +1,7 @@
 package com.idega.jbpm.business;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,14 +10,15 @@ import org.hibernate.Transaction;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.context.def.VariableAccess;
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2007/11/14 13:10:56 $ by $Author: civilis $
+ * Last modified: $Date: 2007/11/20 19:58:51 $ by $Author: civilis $
  */
 public class ProcessManager {
 
@@ -80,6 +83,41 @@ public class ProcessManager {
 			
 			@SuppressWarnings("unchecked")
 			Map<String, Object> variables = (Map<String, Object>)ti.getVariables();
+			
+			return variables;
+			
+		} finally {
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
+		}
+	}
+	
+	public Map<String, Object> populateVariablesFromProcess(long processInstanceId) {
+		
+		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		ctx.setSession(getSessionFactory().getCurrentSession());
+		
+		try {
+			ProcessInstance pi = ctx.getProcessInstance(processInstanceId);
+			
+			@SuppressWarnings("unchecked")
+			Collection<TaskInstance> taskInstances = pi.getTaskMgmtInstance().getTaskInstances();
+			Map<String, Object> variables = new HashMap<String, Object>();
+			
+			for (TaskInstance taskInstance : taskInstances) {
+
+				@SuppressWarnings("unchecked")
+				Map<String, Object> taskInstanceVariables = (Map<String, Object>)taskInstance.getVariables();
+				variables.putAll(taskInstanceVariables);
+			}
 			
 			return variables;
 			
