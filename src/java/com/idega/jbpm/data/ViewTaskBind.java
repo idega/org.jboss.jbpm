@@ -18,9 +18,9 @@ import org.hibernate.Transaction;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2007/10/26 12:35:59 $ by $Author: alexis $
+ * Last modified: $Date: 2007/11/20 18:36:52 $ by $Author: civilis $
  */
 @Entity
 @Table(name="VIEW_TASK_BINDINGS")
@@ -29,6 +29,7 @@ import org.hibernate.Transaction;
 public class ViewTaskBind implements Serializable {
 	
 	public static final String GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME = "viewTaskBind.getUniqueByTaskIdAndViewType";
+	public static final String GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME = "viewTaskBind.getUniqueByTaskIdAndViewType";
 	public static final String taskIdParam = "taskId";
 	public static final String viewTypeParam = "viewType";
 	public static final String viewIdParam = "viewIdentifier";
@@ -120,13 +121,12 @@ public class ViewTaskBind implements Serializable {
 			transaction.begin();
 		
 		try {
-			@SuppressWarnings("unchecked")
-			ViewTaskBind bind = (ViewTaskBind) session.getNamedQuery("viewTaskBind.getViewTaskBindByView")
+			
+			return (ViewTaskBind) session.getNamedQuery(GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME)
 			.setString(viewIdParam, viewId)
 			.setString(viewTypeParam, viewType)
 			.uniqueResult();
 			
-			return bind;
 		} finally {
 			if(!transactionWasActive)
 				transaction.commit();

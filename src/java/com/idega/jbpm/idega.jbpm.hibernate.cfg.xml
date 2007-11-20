@@ -36,6 +36,7 @@
     <mapping class="com.idega.jbpm.data.ViewTaskBind" />
     <mapping class="com.idega.jbpm.data.ActorTaskBind" />
     <mapping class="com.idega.jbpm.data.CasesJbpmBind" />
+    <mapping class="com.idega.jbpm.data.ProcessViewByActor" />
     <!-- 
     </idega jbpm related mapping files>
      -->
