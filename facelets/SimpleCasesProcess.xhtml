@@ -8,6 +8,7 @@
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
 	xmlns:ca="http://xmlns.idega.com/is.idega.idegaweb.egoc.cases"
+	xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
 >
 
 <ws:page id="jbmpProcessMgmtMockup" showFunctionMenu="true" useHtmlTag="false">
@@ -39,6 +40,10 @@
 		<div>
 			<ca:casesJbpmFormViewer processDefinitionId="#{casesJbpmProcess.chosenProcessDefinitionId}" processInstanceId="#{casesJbpmProcess.chosenProcessInstanceId}" casesJbpmFormManager="#{casesJbpmFormManager}" />
 		</div>
+		x
+	<fc:faceletComponent faceletURI="/idegaweb/bundles/org.jboss.jbpm.bundle/facelets/process.xhtml" />
 	</h:form>
+	
+	
 </ws:page>
 </html>

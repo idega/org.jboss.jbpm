@@ -10,6 +10,13 @@
 	    	<param name="managedBeanName" value="jbpmProcessBusiness"/>
 	    	<param name="class" value="com.idega.jbpm.business.JbpmProcessBusinessBean"/>
     	</create>
+        <create creator="jsf" javascript="JbpmProcessArtifacts">
+            <param name="managedBeanName" value="jbpmProcessArtifacts" />
+            <param name="class" value="com.idega.jbpm.presentation.beans.ProcessArtifacts" />
+            <include method="processArtifactsList" />
+        </create>
+        
+        <convert converter="bean" match="com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean" />
   	</allow>
   	<signatures>
 	</signatures>

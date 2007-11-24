@@ -33,4 +33,6 @@
 		<property name="viewToTask" ref="process_xforms_viewToTask" />
         <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>
+    
+    <bean id="jbpmProcessArtifacts" class="com.idega.jbpm.presentation.beans.ProcessArtifacts" scope="session" />
 </beans>
