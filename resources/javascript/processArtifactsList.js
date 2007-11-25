@@ -1,25 +1,18 @@
 jQuery.noConflict();
 
-jQuery(document).ready(function(){
+if(ProcessArtifactsList == null) var ProcessArtifactsList = function() {};
 
-    var mygrid = jQuery("#list11").jqGrid({ 
+ProcessArtifactsList.prototype.createArtifactsTable = function(procInstId, tblSelector) {
+
+    this.grid = jQuery(tblSelector).jqGrid({ 
             url:'local',
-            retrieveMode: 'function', 
+            retrieveMode: 'function',
+             
             populateFromFunction: function(params, callback) {
             
+                params.piId = procInstId;
+                                
                 JbpmProcessArtifacts.processArtifactsList(params,
-                    {
-                        callback: function(result) {
-                            console.log("got callback");
-                            callback(result);
-                        }
-                    }
-                );
-            },
-            
-            populateSubgridFromFunction: function(params, callback) {
-            
-                JbpmProcessArtifacts.processArtifactsList(
                     {
                         callback: function(result) {
                             console.log("got callback");
@@ -50,4 +43,12 @@ jQuery(document).ready(function(){
             multiselect: false, 
             subGrid : false 
         });
+        
+        return this.grid;
+}
+
+jQuery(document).ready(function(){
+
+    var artifactsList = new ProcessArtifactsList();
+    var tbl = artifactsList.createArtifactsTable(344, "#list11");
 });
