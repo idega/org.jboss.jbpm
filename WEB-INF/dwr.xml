@@ -12,7 +12,7 @@
     	</create>
         <create creator="jsf" javascript="JbpmProcessArtifacts">
             <param name="managedBeanName" value="jbpmProcessArtifacts" />
-            <param name="class" value="com.idega.jbpm.presentation.beans.ProcessArtifacts" />
+            <param name="class" value="com.idega.jbpm.exe.ProcessArtifacts" />
             <include method="processArtifactsList" />
         </create>
         

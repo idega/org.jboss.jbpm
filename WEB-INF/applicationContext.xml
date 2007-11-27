@@ -34,5 +34,13 @@
         <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>
     
-    <bean id="jbpmProcessArtifacts" class="com.idega.jbpm.presentation.beans.ProcessArtifacts" scope="session" />
+    <bean id="jbpmProcessArtifacts" class="com.idega.jbpm.exe.ProcessArtifacts" scope="session">
+    
+        <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
+        <property name="viewCreator" ref="jbpmViewCreator" />
+        <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
+    </bean>
+    <bean id="jbpmProcessArtifactsParams" class="com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean" scope="request" />
+    
+    <bean id="jbpmViewCreator" class="com.idega.jbpm.def.ViewCreator" scope="singleton" />
 </beans>
