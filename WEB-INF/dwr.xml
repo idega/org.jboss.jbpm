@@ -14,6 +14,7 @@
             <param name="managedBeanName" value="jbpmProcessArtifacts" />
             <param name="class" value="com.idega.jbpm.exe.ProcessArtifacts" />
             <include method="processArtifactsList" />
+            <include method="getViewDisplay" />
         </create>
         
         <convert converter="bean" match="com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean" />

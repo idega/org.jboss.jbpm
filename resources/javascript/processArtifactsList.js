@@ -43,7 +43,19 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
             viewrecords: true, 
             sortorder: "desc", 
             multiselect: false, 
-            subGrid : false 
+            subGrid : false,
+            onSelectRow: function(rowId) {
+            
+                JbpmProcessArtifacts.getViewDisplay(rowId, {
+                        callback: function(result) {
+                            
+                            var container = jQuery("#viewDisplay");
+                            jQuery(container).empty();
+                            jQuery(container).append(result);
+                        }
+                    }
+                );
+            }
         });
         
         return this.grid;

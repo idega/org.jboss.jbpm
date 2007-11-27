@@ -33,9 +33,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/11/27 16:33:26 $ by $Author: civilis $
+ * Last modified: $Date: 2007/11/27 20:34:41 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -72,7 +72,7 @@ public class ProcessArtifacts {
 			//add link here
 			
 			if(processArtifact.getCheckoutLink() == null)
-				row.addCell(processArtifact.getCheckoutLink());
+				row.addCell(CoreConstants.EMPTY);
 			else
 				row.addCell(
 						new StringBuilder("<a href=\"")
@@ -81,11 +81,13 @@ public class ProcessArtifacts {
 						.append(processArtifact.getName())
 						.append("</a>")
 						.toString()
-				);				
+				);
 			
 			row.addCell(processArtifact.getCreateDate() == null ? CoreConstants.EMPTY :
 					new IWTimestamp(processArtifact.getCreateDate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 					);
+			
+			System.out.println("cells: "+row.getCells());
 		}
 		
 		try {
@@ -97,8 +99,9 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	public org.jdom.Document getViewDisplay(Long taskInstanceId, String viewType) {
+	public org.jdom.Document getViewDisplay(Long taskInstanceId) {
 		
+//		TODO: should know the view type from task instance id 
 		SessionFactory sessionFactory = getSessionFactory();
 		
 		Transaction transaction = sessionFactory.getCurrentSession().getTransaction();
@@ -113,11 +116,12 @@ public class ProcessArtifacts {
 		ctx.setSession(session);
 		
 		try {
-			ViewTaskBind viewTaskBind = ViewTaskBind.getViewTaskBind(session, ctx.getTaskInstance(taskInstanceId).getTask().getId(), viewType);
+			ViewTaskBind viewTaskBind = ViewTaskBind.getViewTaskBind(session, ctx.getTaskInstance(taskInstanceId).getTask().getId(), "xforms");
 			ViewFactory viewFactory = getViewCreator().getViewFactory(viewTaskBind.getViewType());
 			View view = viewFactory.createView(viewTaskBind);
 			
 			UIComponent viewUIComponent = view.getViewForDisplay(taskInstanceId);
+			
 			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, false);
 			
 		} finally {
@@ -163,6 +167,7 @@ public class ProcessArtifacts {
 				if(taskInstance.hasEnded()) {
 				
 					ProcessArtifact artifact = new ProcessArtifact();
+//					TODO: bind task instance with view type, so we know, what view type to display
 					artifact.setId(String.valueOf(taskInstance.getId()));
 					artifact.setName(taskInstance.getName());
 					artifact.setCreateDate(taskInstance.getEnd());
