@@ -50,7 +50,7 @@ public class ActorBindingViewBean implements Serializable {
 	public String getActorLabel() {
 		if(actorType == null || actorType.equals("")) {
 			if(taskId != null) {
-				Task task = getJbpmProcessBusiness().getProcessTask(processId, taskId[0]);
+				Task task = getJbpmProcessBusiness().getProcessTask(new Long(processId), taskId[0]);
 				if(task != null) {
 					ActorTaskBind atb = getActorToTaskBinder().getActor(task.getId());
 					if(atb != null) {
@@ -65,12 +65,12 @@ public class ActorBindingViewBean implements Serializable {
 	}
 
 	public List getTasks() {
-		return getJbpmProcessBusiness().getProcessDefinitionTasks(processId, false);
+		return getJbpmProcessBusiness().getProcessDefinitionTasks(new Long(processId), false);
 	}
 	
 	public List getTaskList(String processId) {
 		this.processId = processId;
-		return getJbpmProcessBusiness().getProcessDefinitionTasks(processId, true);
+		return getJbpmProcessBusiness().getProcessDefinitionTasks(new Long(processId), true);
 	}
 	
 	public List getProcesses() {

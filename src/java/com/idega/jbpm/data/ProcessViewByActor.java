@@ -2,6 +2,7 @@ package com.idega.jbpm.data;
 
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,20 +18,22 @@ import org.hibernate.Transaction;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/11/20 18:36:52 $ by $Author: civilis $
+ * Last modified: $Date: 2007/11/28 12:45:19 $ by $Author: alexis $
  */
 @Entity
 @Table(name="PROCESS_VIEW_BIND")
 @NamedQueries({
-		@NamedQuery(name="processViewByActor.getByViewerType", query="from ProcessViewByActor PVA where PVA.viewerType = :viewerType and viewType = :viewType and processDefinitionId = :processDefinitionId")
+		@NamedQuery(name="processViewByActor.getByViewerType", query="from ProcessViewByActor PVA where PVA.viewerType = :viewerType and viewType = :viewType and processDefinitionId = :processDefinitionId"),
+		@NamedQuery(name="processViewByActor.getByViewType", query="from ProcessViewByActor PVA where PVA.viewType = :viewType and processDefinitionId = :processDefinitionId")
 })
 public class ProcessViewByActor implements Serializable {
 	
 	private static final long serialVersionUID = -4151166970366065468L;
 	
 	public static final String GET_BY_VIEWER_TYPE_QUERY_NAME = "processViewByActor.getByViewerType";
+	public static final String GET_BY_VIEW_TYPE_QUERY_NAME = "processViewByActor.getByViewType";
 	public static final String viewerTypeParam = "viewerType";
 	public static final String viewTypeParam = "viewType";
 	public static final String processDefinitionIdParam = "processDefinitionId";
@@ -134,6 +137,27 @@ public class ProcessViewByActor implements Serializable {
 			.setString(viewTypeParam, viewType)
 			.setLong(processDefinitionIdParam, processDefinition)
 			.uniqueResult();
+			
+		} finally {
+			
+			if(!transactionWasActive)
+				transaction.commit();
+		}
+	}
+	
+	public static List getByViewType(Session session, String viewType, Long processDefinition) {
+		
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		try {
+			return session.getNamedQuery(GET_BY_VIEW_TYPE_QUERY_NAME)
+			.setString(viewTypeParam, viewType)
+			.setLong(processDefinitionIdParam, processDefinition)
+			.list();
 			
 		} finally {
 			
