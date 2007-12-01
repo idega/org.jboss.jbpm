@@ -49,9 +49,9 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
                 JbpmProcessArtifacts.getViewDisplay(rowId, {
                         callback: function(result) {
                             
-                            var container = jQuery("#viewDisplay");
-                            jQuery(container).empty();
-                            jQuery(container).append(result);
+                            //var container = jQuery("#viewDisplay");
+                            var container = document.getElementById("viewDisplay");
+                           insertNodesToContainer(result, container);
                         }
                     }
                 );
@@ -61,10 +61,9 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
         return this.grid;
 }
 
+
 jQuery(document).ready(function(){
 
     var artifactsList = new ProcessArtifactsList();
     var tbl = artifactsList.createArtifactsTable("#artifactsList");
-    
-    //console.log(tbl.attr("processInstanceId"));
 });

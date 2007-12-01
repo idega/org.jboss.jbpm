@@ -33,9 +33,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/11/27 20:34:41 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/01 17:05:45 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -122,7 +122,7 @@ public class ProcessArtifacts {
 			
 			UIComponent viewUIComponent = view.getViewForDisplay(taskInstanceId);
 			
-			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, false);
+			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
 			
 		} finally {
 			ctx.close();
