@@ -33,9 +33,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2007/12/01 17:05:45 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/02 11:53:41 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -71,23 +71,11 @@ public class ProcessArtifacts {
 			row.addCell(processArtifact.getId());
 			//add link here
 			
-			if(processArtifact.getCheckoutLink() == null)
-				row.addCell(CoreConstants.EMPTY);
-			else
-				row.addCell(
-						new StringBuilder("<a href=\"")
-						.append(processArtifact.getCheckoutLink())
-						.append("\">")
-						.append(processArtifact.getName())
-						.append("</a>")
-						.toString()
-				);
+			row.addCell(processArtifact.getName());
 			
 			row.addCell(processArtifact.getCreateDate() == null ? CoreConstants.EMPTY :
 					new IWTimestamp(processArtifact.getCreateDate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 					);
-			
-			System.out.println("cells: "+row.getCells());
 		}
 		
 		try {
@@ -169,7 +157,7 @@ public class ProcessArtifacts {
 					ProcessArtifact artifact = new ProcessArtifact();
 //					TODO: bind task instance with view type, so we know, what view type to display
 					artifact.setId(String.valueOf(taskInstance.getId()));
-					artifact.setName(taskInstance.getName());
+					artifact.setName(taskInstance.getTask().getName());
 					artifact.setCreateDate(taskInstance.getEnd());
 					
 					artifacts.add(artifact);

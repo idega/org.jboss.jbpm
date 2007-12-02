@@ -26,15 +26,11 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
             
             datatype: "xml", 
             height: 250, 
-            colNames:['Inv No','Date', 'Client', 'Amount','Tax','Total','Notes'], 
+            colNames:['Nr','Task name', 'Created date'], 
             colModel:[ 
-                {name:'id',index:'id', width:55}, 
-                {name:'invdate',index:'invdate', width:90}, 
-                {name:'name',index:'name', width:100}, 
-                {name:'amount',index:'amount', width:80, align:"right"}, 
-                {name:'tax',index:'tax', width:80, align:"right"}, 
-                {name:'total',index:'total', width:80,align:"right"}, 
-                {name:'note',index:'note', width:150, sortable:false} 
+                {name:'id',index:'id'},
+                {name:'name',index:'name'}, 
+                {name:'createdDate',index:'createdDate'} 
             ], 
             rowNum: null, 
             rowList: null, 
@@ -48,10 +44,11 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
             
                 JbpmProcessArtifacts.getViewDisplay(rowId, {
                         callback: function(result) {
-                            
-                            //var container = jQuery("#viewDisplay");
+                        
                             var container = document.getElementById("viewDisplay");
-                           insertNodesToContainer(result, container);
+                            jQuery(container).empty();
+                            
+                            insertNodesToContainer(result, container);
                         }
                     }
                 );
@@ -60,7 +57,6 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
         
         return this.grid;
 }
-
 
 jQuery(document).ready(function(){
 
