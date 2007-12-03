@@ -1,8 +1,8 @@
 jQuery.noConflict();
 
-if(ProcessArtifactsList == null) var ProcessArtifactsList = function() {};
+if(ProcessTasksList == null) var ProcessTasksList = function() {};
 
-ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
+ProcessTasksList.prototype.createArtifactsTable = function(tblSelector) {
 
     this.grid = jQuery(tblSelector);
     var processInstanceId = this.grid.attr("processInstanceId");
@@ -15,7 +15,7 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
             
                 params.piId = processInstanceId;
                                 
-                JbpmProcessArtifacts.processArtifactsList(params,
+                JbpmProcessArtifacts.processTasksList(params,
                     {
                         callback: function(result) {
                             callback(result);
@@ -26,7 +26,7 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
             
             datatype: "xml", 
             height: 250, 
-            colNames:['Nr','Task name', 'Submitted date'], 
+            colNames:['Nr','Task name', 'Created date'], 
             colModel:[ 
                 {name:'id',index:'id'},
                 {name:'name',index:'name'}, 
@@ -42,7 +42,7 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
             subGrid : false,
             onSelectRow: function(rowId) {
             
-                JbpmProcessArtifacts.getArtifactViewDisplay(rowId, {
+                JbpmProcessArtifacts.getTaskViewDisplay(rowId, {
                         callback: function(result) {
                         
                             var container = document.getElementById("viewDisplay");
@@ -60,6 +60,6 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
 
 jQuery(document).ready(function(){
 
-    var artifactsList = new ProcessArtifactsList();
-    var tbl = artifactsList.createArtifactsTable("#artifactsList");
+    var tasksList = new ProcessTasksList();
+    var tbl = tasksList.createArtifactsTable("#taskList");
 });

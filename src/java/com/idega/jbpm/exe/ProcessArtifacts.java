@@ -4,6 +4,8 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
@@ -33,15 +35,17 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2007/12/02 11:53:41 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/03 09:47:59 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
 	private SessionFactory sessionFactory;
 	private JbpmConfiguration jbpmConfiguration;
 	private ViewCreator viewCreator;
+	
+	Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 
 	public Document processArtifactsList(ProcessArtifactsParamsBean params) {
 		
@@ -82,12 +86,85 @@ public class ProcessArtifacts {
 			return rows.getDocument();
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
 	}
 	
-	public org.jdom.Document getViewDisplay(Long taskInstanceId) {
+	public Document processTasksList(ProcessArtifactsParamsBean params) {
+		
+		Integer processInstanceId = params.getPiId();
+		
+		if(processInstanceId == null)
+			return null;
+	
+		SessionFactory sessionFactory = getSessionFactory();
+		
+		Transaction transaction = sessionFactory.getCurrentSession().getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
+		Session session = sessionFactory.getCurrentSession();
+		
+		ctx.setSession(session);
+		
+		try {
+			IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+//			FacesContext context = FacesContext.getCurrentInstance();
+//			int initiatorId = IWContext.getIWContext(context).getCurrentUserId();
+			
+			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
+			//TODO:
+//			each token -> get tasks processInstance.findAllTokens()
+			
+			@SuppressWarnings("unchecked")
+			Collection<TaskInstance> tasks = processInstance.getTaskMgmtInstance().getUnfinishedTasks(processInstance.getRootToken());
+			
+			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+
+			int size = tasks.size();
+			rows.setTotal(size);
+			rows.setPage(size == 0 ? 0 : 1);
+			
+			for (TaskInstance taskInstance : tasks) {
+				
+				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
+				rows.addRow(row);
+				
+				String tidStr = String.valueOf(taskInstance.getId());
+				row.setId(tidStr);
+				row.addCell(tidStr);
+				row.addCell(taskInstance.getName());
+				row.addCell(taskInstance.getCreate() == null ? CoreConstants.EMPTY :
+							new IWTimestamp(taskInstance.getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
+				);
+			}
+			
+			try {
+				return rows.getDocument();
+				
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Exception while parsing rows", e);
+				return null;
+			}
+			
+		} finally {
+			ctx.close();
+			
+			if(!transactionWasActive)
+				transaction.commit();
+		}
+	}
+	
+	public org.jdom.Document getArtifactViewDisplay(Long taskInstanceId) {
+		
+		return getViewDisplay(taskInstanceId, false);
+	}
+	
+	protected org.jdom.Document getViewDisplay(Long taskInstanceId, boolean editable) {
 		
 //		TODO: should know the view type from task instance id 
 		SessionFactory sessionFactory = getSessionFactory();
@@ -118,6 +195,11 @@ public class ProcessArtifacts {
 			if(!transactionWasActive)
 				transaction.commit();
 		}
+	}
+	
+	public org.jdom.Document getTaskViewDisplay(Long taskInstanceId) {
+		
+		return getViewDisplay(taskInstanceId, true);
 	}
 	
 	public List<ProcessArtifact> getProcessInstanceArtifacts(Integer processInstanceId) {
@@ -157,7 +239,7 @@ public class ProcessArtifacts {
 					ProcessArtifact artifact = new ProcessArtifact();
 //					TODO: bind task instance with view type, so we know, what view type to display
 					artifact.setId(String.valueOf(taskInstance.getId()));
-					artifact.setName(taskInstance.getTask().getName());
+					artifact.setName(taskInstance.getName());
 					artifact.setCreateDate(taskInstance.getEnd());
 					
 					artifacts.add(artifact);
