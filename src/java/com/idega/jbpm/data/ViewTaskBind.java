@@ -19,15 +19,16 @@ import org.jbpm.taskmgmt.def.Task;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2007/11/27 16:33:26 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 18:49:48 $ by $Author: civilis $
  */
 @Entity
 @Table(name="VIEW_TASK_BINDINGS")
 @NamedQueries(
 		{
 			@NamedQuery(name="viewTaskBind.getUniqueByTaskIdAndViewType", query="from ViewTaskBind VTB where VTB.taskId = :taskId and viewType = :viewType"),
+			@NamedQuery(name="viewTaskBind.getViewTaskBindsByTaskId", query="from ViewTaskBind VTB where VTB.taskId = :taskId"),
 			@NamedQuery(name="viewTaskBind.getViewTaskBindsByTasksIds", query="from ViewTaskBind VTB where VTB.taskId in (:tasksIds)"),
 			@NamedQuery(name="viewTaskBind.getViewTaskBindByView", query="from ViewTaskBind VTB where VTB.viewIdentifier = :viewIdentifier and viewType = :viewType"),
 			@NamedQuery(name="viewTaskBind.getViewTask", query="select TASK from org.jbpm.taskmgmt.def.Task TASK, ViewTaskBind VTB where TASK.id = VTB.taskId and VTB.taskId = :taskId and VTB.viewType = :viewType")
@@ -36,6 +37,7 @@ import org.jbpm.taskmgmt.def.Task;
 public class ViewTaskBind implements Serializable {
 	
 	public static final String GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME = "viewTaskBind.getUniqueByTaskIdAndViewType";
+	public static final String getViewTaskBindsByTaskId = "viewTaskBind.getViewTaskBindsByTaskId";
 	public static final String GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME = "viewTaskBind.getUniqueByTaskIdAndViewType";
 	public static final String GET_VIEW_TASK_BINDS_BY_TASKS_IDS = "viewTaskBind.getViewTaskBindsByTasksIds";
 	public static final String GET_VIEW_TASK = "viewTaskBind.getViewTask";
@@ -45,7 +47,6 @@ public class ViewTaskBind implements Serializable {
 	public static final String viewTypeParam = "viewType";
 	public static final String viewIdParam = "viewIdentifier";
 	
-//	TODO: make bind id and view type as the composite PK. remove bind id.
 //	supposedly add versioning (hibernate versioning)
 	
 	private static final long serialVersionUID = -1604232647212632303L;
@@ -120,6 +121,28 @@ public class ViewTaskBind implements Serializable {
 			.list();
 			
 			return binds.isEmpty() ? null : binds.iterator().next();
+			
+		} finally {
+			if(!transactionWasActive)
+				transaction.commit();
+		}
+	}
+	
+	public static List<ViewTaskBind> getViewTaskBindsByTaskId(Session session, long taskId) {
+		
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
+		
+		try {
+			@SuppressWarnings("unchecked")
+			List<ViewTaskBind> binds = session.getNamedQuery(getViewTaskBindsByTaskId)
+			.setLong(taskIdParam, taskId)
+			.list();
+			
+			return binds;
 			
 		} finally {
 			if(!transactionWasActive)

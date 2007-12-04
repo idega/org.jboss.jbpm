@@ -22,10 +22,7 @@ import org.w3c.dom.Document;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.data.ViewTaskBind;
-import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewCreator;
-import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
@@ -35,9 +32,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2007/12/04 14:06:02 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 18:49:48 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -45,9 +42,11 @@ public class ProcessArtifacts {
 	private JbpmConfiguration jbpmConfiguration;
 	private ViewCreator viewCreator;
 	
+	private Process process;
+	
 	Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 
-	public Document processArtifactsList(ProcessArtifactsParamsBean params) {
+	public Document getProcessArtifactsList(ProcessArtifactsParamsBean params) {
 		
 		Integer processInstanceId = params.getPiId();
 		
@@ -91,7 +90,7 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	public Document processTasksList(ProcessArtifactsParamsBean params) {
+	public Document getProcessTasksList(ProcessArtifactsParamsBean params) {
 		
 		Integer processInstanceId = params.getPiId();
 		
@@ -159,13 +158,11 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	public org.jdom.Document getArtifactViewDisplay(Long taskInstanceId) {
-		
-		return getViewDisplay(taskInstanceId, false);
-	}
-	
 	protected org.jdom.Document getViewDisplay(Long taskInstanceId, boolean editable) {
-		
+
+		UIComponent viewUIComponent = getProcess().getViewManager().loadTaskInstanceView(FacesContext.getCurrentInstance(), taskInstanceId).getViewForDisplay();
+		return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
+/*		
 //		TODO: should know the view type from task instance id 
 		SessionFactory sessionFactory = getSessionFactory();
 		
@@ -196,11 +193,7 @@ public class ProcessArtifacts {
 			if(!transactionWasActive)
 				transaction.commit();
 		}
-	}
-	
-	public org.jdom.Document getTaskViewDisplay(Long taskInstanceId) {
-		
-		return getViewDisplay(taskInstanceId, true);
+*/
 	}
 	
 	public List<ProcessArtifact> getProcessInstanceArtifacts(Integer processInstanceId) {
@@ -288,5 +281,13 @@ public class ProcessArtifacts {
 		} catch (RemoteException e) {
 			throw new RuntimeException("Error while retrieving builder service", e);
 		}
+	}
+
+	public Process getProcess() {
+		return process;
+	}
+
+	public void setProcess(Process process) {
+		this.process = process;
 	}
 }
