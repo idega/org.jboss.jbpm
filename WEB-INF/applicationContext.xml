@@ -12,7 +12,7 @@
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
         <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>
-	<bean id="jbpmProcessManager" class="com.idega.jbpm.business.ProcessManager" scope="singleton">
+	<bean id="jbpmProcessManager" class="com.idega.jbpm.exe.VariablesHandler" scope="singleton">
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
         <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>

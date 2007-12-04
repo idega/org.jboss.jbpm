@@ -35,9 +35,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2007/12/03 09:47:59 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 14:06:02 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -183,9 +183,10 @@ public class ProcessArtifacts {
 		try {
 			ViewTaskBind viewTaskBind = ViewTaskBind.getViewTaskBind(session, ctx.getTaskInstance(taskInstanceId).getTask().getId(), "xforms");
 			ViewFactory viewFactory = getViewCreator().getViewFactory(viewTaskBind.getViewType());
-			View view = viewFactory.createView(viewTaskBind);
+			View view = viewFactory.getView(viewTaskBind.getViewIdentifier());
 			
-			UIComponent viewUIComponent = view.getViewForDisplay(taskInstanceId);
+//			UIComponent viewUIComponent = view.getViewForDisplay(taskInstanceId);
+			UIComponent viewUIComponent = view.getViewForDisplay();
 			
 			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
 			

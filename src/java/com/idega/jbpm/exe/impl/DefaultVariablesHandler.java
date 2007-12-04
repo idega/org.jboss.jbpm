@@ -2,20 +2,20 @@ package com.idega.jbpm.exe.impl;
 
 import java.util.Map;
 
-import com.idega.jbpm.business.ProcessManager;
 import com.idega.jbpm.exe.Converter;
+import com.idega.jbpm.exe.VariablesHandler;
 import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2007/11/20 19:58:24 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 14:06:02 $ by $Author: civilis $
  */
-public class DefaultVariablesHandler implements VariablesHandler {
+public class DefaultVariablesHandler {
 
 	private Converter converter;
-	private ProcessManager processManager;
+	private VariablesHandler processManager;
 
 	public void submit(long tiId, Object submissionData) {
 
@@ -56,11 +56,11 @@ public class DefaultVariablesHandler implements VariablesHandler {
 		this.converter = converter;
 	}
 
-	public ProcessManager getProcessManager() {
+	public VariablesHandler getProcessManager() {
 		return processManager;
 	}
 
-	public void setProcessManager(ProcessManager processManager) {
+	public void setProcessManager(VariablesHandler processManager) {
 		this.processManager = processManager;
 	}
 }
