@@ -32,9 +32,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2007/12/04 18:49:48 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 19:38:27 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -158,45 +158,13 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	protected org.jdom.Document getViewDisplay(Long taskInstanceId, boolean editable) {
+	public org.jdom.Document getViewDisplay(Long taskInstanceId) {
 
 		UIComponent viewUIComponent = getProcess().getViewManager().loadTaskInstanceView(FacesContext.getCurrentInstance(), taskInstanceId).getViewForDisplay();
 		return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
-/*		
-//		TODO: should know the view type from task instance id 
-		SessionFactory sessionFactory = getSessionFactory();
-		
-		Transaction transaction = sessionFactory.getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		Session session = sessionFactory.getCurrentSession();
-		
-		ctx.setSession(session);
-		
-		try {
-			ViewTaskBind viewTaskBind = ViewTaskBind.getViewTaskBind(session, ctx.getTaskInstance(taskInstanceId).getTask().getId(), "xforms");
-			ViewFactory viewFactory = getViewCreator().getViewFactory(viewTaskBind.getViewType());
-			View view = viewFactory.getView(viewTaskBind.getViewIdentifier());
-			
-//			UIComponent viewUIComponent = view.getViewForDisplay(taskInstanceId);
-			UIComponent viewUIComponent = view.getViewForDisplay();
-			
-			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
-			
-		} finally {
-			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
-		}
-*/
 	}
 	
-	public List<ProcessArtifact> getProcessInstanceArtifacts(Integer processInstanceId) {
+	protected List<ProcessArtifact> getProcessInstanceArtifacts(Integer processInstanceId) {
 
 		SessionFactory sessionFactory = getSessionFactory();
 		
