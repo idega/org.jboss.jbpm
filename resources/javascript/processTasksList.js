@@ -2,7 +2,7 @@ jQuery.noConflict();
 
 if(ProcessTasksList == null) var ProcessTasksList = function() {};
 
-ProcessTasksList.prototype.createArtifactsTable = function(tblSelector) {
+ProcessTasksList.prototype.createArtifactsTable = function(tblSelector, processArtifacts) {
 
     this.grid = jQuery(tblSelector);
     var processInstanceId = this.grid.attr("processInstanceId");
@@ -15,7 +15,7 @@ ProcessTasksList.prototype.createArtifactsTable = function(tblSelector) {
             
                 params.piId = processInstanceId;
                                 
-                JbpmProcessArtifacts.processTasksList(params,
+                processArtifacts.getProcessTasksList(params,
                     {
                         callback: function(result) {
                             callback(result);
@@ -42,7 +42,7 @@ ProcessTasksList.prototype.createArtifactsTable = function(tblSelector) {
             subGrid : false,
             onSelectRow: function(rowId) {
             
-                JbpmProcessArtifacts.getTaskViewDisplay(rowId, {
+                processArtifacts.getViewDisplay(rowId, {
                         callback: function(result) {
                         
                             var container = document.getElementById("viewDisplay");
@@ -60,6 +60,8 @@ ProcessTasksList.prototype.createArtifactsTable = function(tblSelector) {
 
 jQuery(document).ready(function(){
 
+    /*
     var tasksList = new ProcessTasksList();
     var tbl = tasksList.createArtifactsTable("#taskList");
+    */
 });

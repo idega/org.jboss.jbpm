@@ -2,7 +2,7 @@ jQuery.noConflict();
 
 if(ProcessArtifactsList == null) var ProcessArtifactsList = function() {};
 
-ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
+ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector, processArtifacts) {
 
     this.grid = jQuery(tblSelector);
     var processInstanceId = this.grid.attr("processInstanceId");
@@ -15,7 +15,7 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
             
                 params.piId = processInstanceId;
                                 
-                JbpmProcessArtifacts.processArtifactsList(params,
+                processArtifacts.getProcessArtifactsList(params,
                     {
                         callback: function(result) {
                             callback(result);
@@ -42,7 +42,7 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
             subGrid : false,
             onSelectRow: function(rowId) {
             
-                JbpmProcessArtifacts.getArtifactViewDisplay(rowId, {
+                processArtifacts.getViewDisplay(rowId, {
                         callback: function(result) {
                         
                             var container = document.getElementById("viewDisplay");
@@ -60,6 +60,8 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector) {
 
 jQuery(document).ready(function(){
 
+    /*
     var artifactsList = new ProcessArtifactsList();
-    var tbl = artifactsList.createArtifactsTable("#artifactsList");
+    var tbl = artifactsList.createArtifactsTable("#artifactsList", JbpmProcessArtifacts);
+    */
 });

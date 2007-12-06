@@ -22,7 +22,6 @@ import org.w3c.dom.Document;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.def.ViewCreator;
 import com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
@@ -32,19 +31,17 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2007/12/04 19:38:27 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/06 13:26:17 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
 	private SessionFactory sessionFactory;
 	private JbpmConfiguration jbpmConfiguration;
-	private ViewCreator viewCreator;
-	
 	private Process process;
 	
-	Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
+	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 
 	public Document getProcessArtifactsList(ProcessArtifactsParamsBean params) {
 		
@@ -234,14 +231,6 @@ public class ProcessArtifacts {
 		this.jbpmConfiguration = jbpmConfiguration;
 	}
 
-	public ViewCreator getViewCreator() {
-		return viewCreator;
-	}
-
-	public void setViewCreator(ViewCreator viewCreator) {
-		this.viewCreator = viewCreator;
-	}
-	
 	protected BuilderService getBuilderService() {
 		
 		try {

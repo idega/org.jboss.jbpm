@@ -1,14 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
     xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
-	xmlns:t="http://myfaces.apache.org/tomahawk"
 	xmlns:f="http://java.sun.com/jsf/core"
-	xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
-	xmlns:ca="http://xmlns.idega.com/is.idega.idegaweb.egoc.cases"
-	xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
+	xmlns:jp="http://xmlns.idega.com/org.jboss.jbpm"
 >
 
 <ws:page id="jbmpProcessMgmtMockup" showFunctionMenu="true" useHtmlTag="false">
@@ -38,7 +34,7 @@
 			<h:commandButton value="Fillout form" action="#{casesJbpmProcess.showProcessInitationForm}" />
 		</div>
 		<div>
-			<ca:casesJbpmFormViewer processDefinitionId="#{casesJbpmProcess.chosenProcessDefinitionId}" processInstanceId="#{casesJbpmProcess.chosenProcessInstanceId}" casesJbpmFormManager="#{casesJbpmFormManager}" />
+			<jp:processViewer processDefinitionId="#{casesJbpmProcess.chosenProcessDefinitionId}" processInstanceId="#{casesJbpmProcess.chosenProcessInstanceId}" process="#{casesJbpmProcessManager}" />
 		</div>
 	</h:form>
 </ws:page>

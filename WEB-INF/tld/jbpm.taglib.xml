@@ -13,5 +13,12 @@
             <component-type>DeployProcess</component-type>
         </component>
 	</tag>
+    
+    <tag>
+        <tag-name>processViewer</tag-name>
+        <component>
+            <component-type>ProcessViewer</component-type>
+        </component>
+    </tag>
 	
 </facelet-taglib>

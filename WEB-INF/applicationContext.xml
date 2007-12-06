@@ -12,7 +12,7 @@
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
         <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>
-	<bean id="jbpmProcessManager" class="com.idega.jbpm.exe.VariablesHandler" scope="singleton">
+	<bean id="jbpmProcessVariablesHandler" class="com.idega.jbpm.exe.VariablesHandler" scope="singleton">
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
         <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>
@@ -34,11 +34,12 @@
         <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>
     
+    <!-- TODO: remove this -->
     <bean id="jbpmProcessArtifacts" class="com.idega.jbpm.exe.ProcessArtifacts" scope="session">
     
         <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
-        <property name="viewCreator" ref="jbpmViewCreator" />
         <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
+        <property name="process" ref="casesJbpmProcessManager" />
     </bean>
     <bean id="jbpmProcessArtifactsParams" class="com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean" scope="request" />
     
