@@ -3,8 +3,6 @@ package com.idega.jbpm.identity;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.taskmgmt.def.AssignmentHandler;
 import org.jbpm.taskmgmt.def.Task;
@@ -16,6 +14,7 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.jbpm.data.ActorTaskBind;
+import com.idega.jbpm.data.dao.JbpmBindsDao;
 import com.idega.user.business.GroupBusiness;
 import com.idega.user.data.Group;
 import com.idega.util.CoreUtil;
@@ -24,6 +23,7 @@ import com.idega.webface.WFUtil;
 public class TaskAssignmentHandler implements AssignmentHandler {
 
 	private static final long serialVersionUID = 5029739971157745012L;
+	private JbpmBindsDao jbpmBindsDao;
 
 	public void assign(Assignable assignable, ExecutionContext executionContext)
 			throws Exception {
@@ -32,10 +32,8 @@ public class TaskAssignmentHandler implements AssignmentHandler {
 		
 		long taskId = task.getId();
 		
-		SessionFactory sessionFactory = (SessionFactory) WFUtil.getBeanInstance("idega_jbpmDSHibernateSessionFactory");
-		Session session = sessionFactory.getCurrentSession();
+		ActorTaskBind atb = getJbpmBindsDao().getActorTaskBind(taskId);
 		
-		ActorTaskBind atb = ActorTaskBind.getBinding(session, taskId);
 		if(atb != null) {
 			String type = atb.getActorType();
 			String actorId = atb.getActorId();
@@ -69,14 +67,15 @@ public class TaskAssignmentHandler implements AssignmentHandler {
 		}
 	}
 	
-	public SessionFactory sessionFactory;
-
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
+	public JbpmBindsDao getJbpmBindsDao() {
+		
+		if(jbpmBindsDao == null)
+			jbpmBindsDao = (JbpmBindsDao)WFUtil.getBeanInstance("jbpmBindsDao");
+		
+		return jbpmBindsDao;
 	}
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public void setJbpmBindsDao(JbpmBindsDao jbpmBindsDao) {
+		this.jbpmBindsDao = jbpmBindsDao;
 	}
-
 }

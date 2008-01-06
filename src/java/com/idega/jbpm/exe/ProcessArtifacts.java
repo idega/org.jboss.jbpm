@@ -10,10 +10,6 @@ import java.util.logging.Logger;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -22,6 +18,7 @@ import org.w3c.dom.Document;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
@@ -31,15 +28,14 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2007/12/06 13:26:17 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
-	private SessionFactory sessionFactory;
-	private JbpmConfiguration jbpmConfiguration;
 	private Process process;
+	private IdegaJbpmContext idegaJbpmContext;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 
@@ -94,18 +90,7 @@ public class ProcessArtifacts {
 		if(processInstanceId == null)
 			return null;
 	
-		SessionFactory sessionFactory = getSessionFactory();
-		
-		Transaction transaction = sessionFactory.getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		Session session = sessionFactory.getCurrentSession();
-		
-		ctx.setSession(session);
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
@@ -149,9 +134,6 @@ public class ProcessArtifacts {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
@@ -163,18 +145,7 @@ public class ProcessArtifacts {
 	
 	protected List<ProcessArtifact> getProcessInstanceArtifacts(Integer processInstanceId) {
 
-		SessionFactory sessionFactory = getSessionFactory();
-		
-		Transaction transaction = sessionFactory.getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		Session session = sessionFactory.getCurrentSession();
-		
-		ctx.setSession(session);
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
@@ -209,26 +180,7 @@ public class ProcessArtifacts {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
-	}
-
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
-
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
-
-	public JbpmConfiguration getJbpmConfiguration() {
-		return jbpmConfiguration;
-	}
-
-	public void setJbpmConfiguration(JbpmConfiguration jbpmConfiguration) {
-		this.jbpmConfiguration = jbpmConfiguration;
 	}
 
 	protected BuilderService getBuilderService() {
@@ -246,5 +198,13 @@ public class ProcessArtifacts {
 
 	public void setProcess(Process process) {
 		this.process = process;
+	}
+
+	public IdegaJbpmContext getIdegaJbpmContext() {
+		return idegaJbpmContext;
+	}
+
+	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+		this.idegaJbpmContext = idegaJbpmContext;
 	}
 }

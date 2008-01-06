@@ -4,10 +4,6 @@ import java.rmi.RemoteException;
 
 import javax.ejb.FinderException;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
@@ -17,7 +13,9 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.core.accesscontrol.data.ICRole;
+import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.data.ActorTaskBind;
+import com.idega.jbpm.data.dao.JbpmBindsDao;
 import com.idega.user.business.GroupBusiness;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Group;
@@ -26,76 +24,55 @@ import com.idega.util.CoreUtil;
 
 public class ActorTaskBinder {
 	
-	private JbpmConfiguration cfg;
-	private SessionFactory sessionFactory;
+	private JbpmBindsDao jbpmBindsDao;
+	private IdegaJbpmContext idegaJbpmContext;
 	
 	public String getBindingType(long taskId) {
 		
-		ActorTaskBind atb = ActorTaskBind.getBinding(getSessionFactory().getCurrentSession(), taskId);
-		
+		ActorTaskBind atb = getJbpmBindsDao().getActorTaskBind(taskId);
 		return atb == null ? null : atb.getActorType(); 
 	}
 	
-//	FIXME: so do you get task by it's id or name? you use parameter name as taskId, but call method getTask by name
 	public void bindActor(String processId, String taskId, String actorId, String actorType) {
 		
 		if(actorType == null || processId == null || taskId == null || actorType == null)
 			throw new IllegalArgumentException("Any of parameters cannot be null");
 		
-		Session session = getSessionFactory().getCurrentSession();
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(session);
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
 		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
 		
 		try {
-			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
+			ActorTaskBind bind = getJbpmBindsDao().getActorTaskBind(task.getId());
+			
 			if(bind == null) {
 				bind = new ActorTaskBind();
 				bind.setTaskId(task.getId());
 				bind.setActorId(actorId);
 				bind.setActorType(actorType);
-				session.save(bind);
+				getJbpmBindsDao().persist(bind);
 			} else {
 				bind.setActorId(actorId);
 				bind.setActorType(actorType);
 			}
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
-//	FIXME: so do you get task by it's id or name? you use parameter name as taskId, but call method getTask by name
 	public void bindUser(String processId, String taskId, String userId) {
 		
 		if(userId == null || processId == null || taskId == null)
 			throw new IllegalArgumentException("Any of parameters cannot be null");
 		
-		Session session = getSessionFactory().getCurrentSession();
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(session);
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
 		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
 		
 		try {
-			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
+			ActorTaskBind bind = getJbpmBindsDao().getActorTaskBind(task.getId());
 			
 			if(bind == null)
 				bind = new ActorTaskBind();
@@ -103,77 +80,54 @@ public class ActorTaskBinder {
 			bind.setTaskId(task.getId());
 			bind.setActorId(userId);
 			bind.setActorType(ActorTaskBind.USER);
-			session.save(bind);
+			getJbpmBindsDao().persist(bind);
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 
-//	FIXME: so do you get task by it's id or name? you use parameter name as taskId, but call method getTask by name
 	public void bindGroup(String processId, String taskId, String groupId) {
 		
 		if(groupId == null || processId == null || taskId == null)
 			throw new IllegalArgumentException("Any of parameters cannot be null");
 		
-		Session session = getSessionFactory().getCurrentSession();
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(session);
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
 		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
 		
 		try {
-			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
+			ActorTaskBind bind = getJbpmBindsDao().getActorTaskBind(task.getId());
+			
 			if(bind == null) {
 				bind = new ActorTaskBind();
 				bind.setTaskId(task.getId());
 				bind.setActorId(groupId);
 				bind.setActorType(ActorTaskBind.GROUP);
-				session.save(bind);
+				getJbpmBindsDao().persist(bind);
 			} else {
 				bind.setActorId(groupId);
 				bind.setActorType(ActorTaskBind.GROUP);
-				session.flush();
+				//TODO: check if this is needed getJbpmBindsDao().flush();
 			}
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
-//	FIXME: so do you get task by it's id or name? you use parameter name as taskId, but call method getTask by name
 	public void bindRole(String processId, String taskId, String roleId) {
 		
 		if(roleId == null || processId == null || taskId == null)
 			throw new IllegalArgumentException("Any of parameters cannot be null");
 		
-		Session session = getSessionFactory().getCurrentSession();
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(session);
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(Long.parseLong(processId));
 		Task task = pd.getTaskMgmtDefinition().getTask(taskId);
 		
 		try {
-			ActorTaskBind bind = ActorTaskBind.getBinding(session, task.getId());
+			ActorTaskBind bind = getJbpmBindsDao().getActorTaskBind(task.getId());
 			
 			if(bind == null)
 				bind = new ActorTaskBind();
@@ -181,17 +135,14 @@ public class ActorTaskBinder {
 			bind.setTaskId(task.getId());
 			bind.setActorId(roleId);
 			bind.setActorType(ActorTaskBind.ROLE);
-			session.save(bind);
+			getJbpmBindsDao().persist(bind);
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 	public ActorTaskBind getActor(long taskId) {
-		return ActorTaskBind.getBinding(getSessionFactory().getCurrentSession(), taskId);
+		return getJbpmBindsDao().getActorTaskBind(taskId);
 	}
 	
 	public String getActorName(String actorId, String actorType) {
@@ -243,19 +194,20 @@ public class ActorTaskBinder {
 			throw new IBORuntimeException(ile);
 		}
 	}
-	
-	public void setJbpmConfiguration(JbpmConfiguration cfg) {
-		this.cfg = cfg;
-	}
-	
-	public JbpmConfiguration getJbpmConfiguration() {
-		return cfg;
+
+	public IdegaJbpmContext getIdegaJbpmContext() {
+		return idegaJbpmContext;
 	}
 
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
+	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+		this.idegaJbpmContext = idegaJbpmContext;
 	}
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+
+	public JbpmBindsDao getJbpmBindsDao() {
+		return jbpmBindsDao;
+	}
+
+	public void setJbpmBindsDao(JbpmBindsDao jbpmBindsDao) {
+		this.jbpmBindsDao = jbpmBindsDao;
 	}
 }

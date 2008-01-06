@@ -11,9 +11,6 @@ import java.util.StringTokenizer;
 
 import javax.faces.model.SelectItem;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.context.def.VariableAccess;
 import org.jbpm.graph.def.ProcessDefinition;
@@ -24,54 +21,30 @@ import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
 import com.idega.builder.bean.AdvancedProperty;
+import com.idega.jbpm.IdegaJbpmContext;
 
 public class JbpmProcessBusinessBean {
 	
 	public static final String BEAN_ID = "jbpmProcessBusiness";
 	
-	private SessionFactory sessionFactory;
-	
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
+	private IdegaJbpmContext idegaJbpmContext;
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
-	
 	public void deleteProcessDefinition(Long processId) {
-		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ctx.getGraphSession().deleteProcessDefinition(processId);
 		} finally {
 			
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 		
 	}
 
 	public List<ProcessDefinition> getProcessList() {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			@SuppressWarnings("unchecked")
@@ -82,9 +55,6 @@ public class JbpmProcessBusinessBean {
 		} finally {
 			
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
@@ -97,14 +67,7 @@ public class JbpmProcessBusinessBean {
 	
 	public Set<String> getProcessVariables(Long processId, boolean qualified) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
@@ -134,9 +97,6 @@ public class JbpmProcessBusinessBean {
 			return variables;
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 		
 	}
@@ -146,14 +106,7 @@ public class JbpmProcessBusinessBean {
 		if(processId == null)
 			return null;
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
@@ -185,23 +138,13 @@ public class JbpmProcessBusinessBean {
 			return variables;
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 		
 	}
 	
 	public Set<String> getProcessVariablesByDatatype(Long processId, String datatype) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
@@ -229,9 +172,6 @@ public class JbpmProcessBusinessBean {
 			return variables;
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 		
 	}
@@ -253,14 +193,7 @@ public class JbpmProcessBusinessBean {
 	
 	public ProcessDefinition getProcessDefinition(Long processId) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			long id = new Long(processId).longValue();
@@ -268,22 +201,12 @@ public class JbpmProcessBusinessBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 	public List<ProcessInstance> getProcessInstances(Long processDefinitionId) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			@SuppressWarnings("unchecked")
@@ -299,22 +222,12 @@ public class JbpmProcessBusinessBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 	public void addTaskVariable(Long processId, String taskName, String datatype, String variableName) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
@@ -334,22 +247,12 @@ public class JbpmProcessBusinessBean {
 			}
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 	public List<String> getTaskTransitions(Long processId, String taskName) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			
@@ -366,22 +269,12 @@ public class JbpmProcessBusinessBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 	public Map<String, List<String>> getTaskVariables(Long processId, String taskName) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
@@ -405,23 +298,12 @@ public class JbpmProcessBusinessBean {
 			return variables;
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
-		
 	}
 	
 	public List<String> getTaskVariablesByDatatype(Long processId, String taskName, String datatype) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
@@ -445,23 +327,12 @@ public class JbpmProcessBusinessBean {
 			return variables;
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
-		
 	}
 	
 	public Task getProcessTask(Long processId, String taskName) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
@@ -469,22 +340,12 @@ public class JbpmProcessBusinessBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 	public List<Task> getProcessDefinitionTasks(ProcessDefinition pd) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		List<Task> result = new ArrayList<Task>();
 		try {
@@ -497,22 +358,12 @@ public class JbpmProcessBusinessBean {
 			return result;
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 	public List<Task> getProcessDefinitionTasks(Long processId) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		List<Task> result = new ArrayList<Task>();
 		try {
@@ -528,23 +379,13 @@ public class JbpmProcessBusinessBean {
 			return result;
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 //	FIXME: fix warnings - use generics
 	public List getProcessDefinitionTasks(Long processId, boolean forDWR) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		List result = new ArrayList();
 		try {
@@ -566,19 +407,14 @@ public class JbpmProcessBusinessBean {
 			return result;
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
-	private JbpmConfiguration cfg;
-	
-	public void setJbpmConfiguration(JbpmConfiguration cfg) {
-		this.cfg = cfg;
+	public IdegaJbpmContext getIdegaJbpmContext() {
+		return idegaJbpmContext;
 	}
-	
-	public JbpmConfiguration getJbpmConfiguration() {
-		return cfg;
+
+	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+		this.idegaJbpmContext = idegaJbpmContext;
 	}
 }

@@ -2,7 +2,6 @@ package com.idega.jbpm.data;
 
 
 import java.io.Serializable;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,14 +12,11 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/11/28 12:45:19 $ by $Author: alexis $
+ * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
  */
 @Entity
 @Table(name="PROCESS_VIEW_BIND")
@@ -121,48 +117,5 @@ public class ProcessViewByActor implements Serializable {
 
 	public void setViewerType(String viewerType) {
 		this.viewerType = viewerType;
-	}
-	
-	public static ProcessViewByActor getByViewerType(Session session, String viewerType, String viewType, Long processDefinition) {
-		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			return (ProcessViewByActor) session.getNamedQuery(GET_BY_VIEWER_TYPE_QUERY_NAME)
-			.setString(viewerTypeParam, viewerType)
-			.setString(viewTypeParam, viewType)
-			.setLong(processDefinitionIdParam, processDefinition)
-			.uniqueResult();
-			
-		} finally {
-			
-			if(!transactionWasActive)
-				transaction.commit();
-		}
-	}
-	
-	public static List getByViewType(Session session, String viewType, Long processDefinition) {
-		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			return session.getNamedQuery(GET_BY_VIEW_TYPE_QUERY_NAME)
-			.setString(viewTypeParam, viewType)
-			.setLong(processDefinitionIdParam, processDefinition)
-			.list();
-			
-		} finally {
-			
-			if(!transactionWasActive)
-				transaction.commit();
-		}
 	}
 }

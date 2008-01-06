@@ -7,22 +7,20 @@ import java.util.List;
 
 import javax.faces.model.SelectItem;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
+import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewToTask;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2007/10/21 21:19:20 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
  */
 public class ProcessMgmtMockupBean {
 	
@@ -34,18 +32,18 @@ public class ProcessMgmtMockupBean {
 	private String taskInstanceId;
 	private ViewToTask viewToTask;
 	private String formId;
-	private SessionFactory sessionFactory;
+	private IdegaJbpmContext idegaJbpmContext;
+
+	public IdegaJbpmContext getIdegaJbpmContext() {
+		return idegaJbpmContext;
+	}
+
+	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+		this.idegaJbpmContext = idegaJbpmContext;
+	}
 
 	public String getProcessInstanceId() {
 		return processInstanceId;
-	}
-
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
-
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
 	}
 
 	public void setProcessInstanceId(String processInstanceId) {
@@ -73,14 +71,7 @@ public class ProcessMgmtMockupBean {
 		processes.clear();
 		processes.add(new SelectItem("", "You choose"));
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			
@@ -94,9 +85,6 @@ public class ProcessMgmtMockupBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
@@ -110,14 +98,7 @@ public class ProcessMgmtMockupBean {
 		
 		long pid = Long.parseLong(getProcessId());
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			@SuppressWarnings("unchecked")
@@ -130,9 +111,6 @@ public class ProcessMgmtMockupBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
@@ -146,14 +124,7 @@ public class ProcessMgmtMockupBean {
 		
 		long piid = Long.parseLong(getProcessInstanceId());
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			
@@ -168,22 +139,9 @@ public class ProcessMgmtMockupBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 
-	private JbpmConfiguration jbpmConfiguration;
-
-	public JbpmConfiguration getJbpmConfiguration() {
-		return jbpmConfiguration;
-	}
-
-	public void setJbpmConfiguration(JbpmConfiguration jbpmConfiguration) {
-		this.jbpmConfiguration = jbpmConfiguration;
-	}
-	
 	public void newProcessInstance() {
 		
 		if(getProcessId() == null || getProcessId().equals(""))
@@ -191,14 +149,7 @@ public class ProcessMgmtMockupBean {
 		
 		long pid = Long.parseLong(getProcessId());
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			
@@ -209,9 +160,6 @@ public class ProcessMgmtMockupBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
@@ -222,14 +170,7 @@ public class ProcessMgmtMockupBean {
 		
 		long tid = Long.parseLong(getTaskInstanceId());
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			TaskInstance ti = ctx.getTaskInstance(tid);
@@ -241,9 +182,6 @@ public class ProcessMgmtMockupBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 
@@ -278,14 +216,7 @@ public class ProcessMgmtMockupBean {
 		
 		long tid = Long.parseLong(getTaskInstanceId());
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			TaskInstance ti = ctx.getTaskInstance(tid);
@@ -293,9 +224,6 @@ public class ProcessMgmtMockupBean {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 }

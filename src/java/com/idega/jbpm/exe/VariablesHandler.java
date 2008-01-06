@@ -5,36 +5,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.context.def.VariableAccess;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
+import com.idega.jbpm.IdegaJbpmContext;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2007/12/04 14:06:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
  */
 public class VariablesHandler {
 
-	private JbpmConfiguration jbpmConfiguration;
-	private SessionFactory sessionFactory;
+	private IdegaJbpmContext idegaJbpmContext;
 	
 	public void submitVariables(Map<String, Object> variables, long taskInstanceId) {
 
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			if(variables == null || variables.isEmpty())
@@ -61,22 +52,12 @@ public class VariablesHandler {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 	public Map<String, Object> populateVariables(long taskInstanceId) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
@@ -88,22 +69,12 @@ public class VariablesHandler {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 	
 	public Map<String, Object> populateVariablesFromProcess(long processInstanceId) {
 		
-		Transaction transaction = getSessionFactory().getCurrentSession().getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		JbpmContext ctx = getJbpmConfiguration().createJbpmContext();
-		ctx.setSession(getSessionFactory().getCurrentSession());
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessInstance pi = ctx.getProcessInstance(processInstanceId);
@@ -123,25 +94,14 @@ public class VariablesHandler {
 			
 		} finally {
 			ctx.close();
-			
-			if(!transactionWasActive)
-				transaction.commit();
 		}
 	}
 
-	public JbpmConfiguration getJbpmConfiguration() {
-		return jbpmConfiguration;
+	public IdegaJbpmContext getIdegaJbpmContext() {
+		return idegaJbpmContext;
 	}
 
-	public void setJbpmConfiguration(JbpmConfiguration jbpmConfiguration) {
-		this.jbpmConfiguration = jbpmConfiguration;
-	}
-
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
-
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+		this.idegaJbpmContext = idegaJbpmContext;
 	}
 }

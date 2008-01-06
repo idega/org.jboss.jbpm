@@ -2,7 +2,6 @@ package com.idega.jbpm.data;
 
 
 import java.io.Serializable;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,15 +12,11 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.jbpm.taskmgmt.def.Task;
-
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2007/12/04 18:49:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
  */
 @Entity
 @Table(name="VIEW_TASK_BINDINGS")
@@ -101,115 +96,5 @@ public class ViewTaskBind implements Serializable {
 
 	public void setViewType(String viewType) {
 		this.viewType = viewType;
-	}
-	
-	public static ViewTaskBind getViewTaskBind(Session session, long taskId, String viewType) {
-	
-//		FIXME: retrieve ViewTaskBind by using taskId and viewType as the composite PK
-		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			@SuppressWarnings("unchecked")
-			List<ViewTaskBind> binds = session.getNamedQuery(GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME)
-			.setLong(taskIdParam, taskId)
-			.setString(viewTypeParam, viewType)
-			.list();
-			
-			return binds.isEmpty() ? null : binds.iterator().next();
-			
-		} finally {
-			if(!transactionWasActive)
-				transaction.commit();
-		}
-	}
-	
-	public static List<ViewTaskBind> getViewTaskBindsByTaskId(Session session, long taskId) {
-		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			@SuppressWarnings("unchecked")
-			List<ViewTaskBind> binds = session.getNamedQuery(getViewTaskBindsByTaskId)
-			.setLong(taskIdParam, taskId)
-			.list();
-			
-			return binds;
-			
-		} finally {
-			if(!transactionWasActive)
-				transaction.commit();
-		}
-	}
-	
-	public static ViewTaskBind getViewTaskBindByView(Session session, String viewId, String viewType) {
-		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			
-			return (ViewTaskBind) session.getNamedQuery(GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME)
-			.setString(viewIdParam, viewId)
-			.setString(viewTypeParam, viewType)
-			.uniqueResult();
-			
-		} finally {
-			if(!transactionWasActive)
-				transaction.commit();
-		}
-	}
-	
-	public static List<ViewTaskBind> getViewTaskBindsByTasksIds(Session session, List<Long> taskIds) {
-		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			@SuppressWarnings("unchecked")
-			List<ViewTaskBind> viewTaskBinds = session.getNamedQuery(GET_VIEW_TASK_BINDS_BY_TASKS_IDS)
-			.setParameterList(tasksIdsParam, taskIds)
-			.list();
-			
-			return viewTaskBinds;
-			
-		} finally {
-			if(!transactionWasActive)
-				transaction.commit();
-		}
-	}
-
-	public Task getTask(Session session) {
-		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			return (Task)session.getNamedQuery(GET_VIEW_TASK)
-			.setString(viewTypeParam, getViewType())
-			.setLong(taskIdParam, getTaskId())
-			.uniqueResult();
-			
-		} finally {
-			if(!transactionWasActive)
-				transaction.commit();
-		}
 	}
 }

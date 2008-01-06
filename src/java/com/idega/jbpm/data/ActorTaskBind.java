@@ -12,9 +12,6 @@ import javax.persistence.NamedQueries;
 
 import javax.persistence.Table;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-
 @Entity
 @Table(name="ACTOR_TASK_BINDINGS")
 @NamedQueries(
@@ -80,45 +77,5 @@ public class ActorTaskBind implements Serializable {
 
 	public void setActorType(String actorType) {
 		this.actorType = actorType;
-	}
-	
-//	FIXME: why is this needed if taskId describes record uniquely? (@see method getBinding(Session session, long taskId))
-	public static ActorTaskBind getBinding(Session session, long taskId, String actorType) {
-		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			return (ActorTaskBind) session.getNamedQuery(GET_UNIQUE_BY_TASK_ID_AND_ACTOR_TYPE_QUERY_NAME)
-			.setLong(taskIdParam, taskId)
-			.setString(actorTypeParam, actorType)
-			.uniqueResult();
-			
-		} finally {
-			if(!transactionWasActive)
-				transaction.commit();
-		}
-	}
-	
-	public static ActorTaskBind getBinding(Session session, long taskId) {
-		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			return (ActorTaskBind) session.getNamedQuery(GET_UNIQUE_BY_TASK_ID_QUERY_NAME)
-			.setLong(taskIdParam, taskId)
-			.uniqueResult();
-			
-		} finally {
-			if(!transactionWasActive)
-				transaction.commit();
-		}
 	}
 }

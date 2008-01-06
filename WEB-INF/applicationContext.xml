@@ -1,47 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
 
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 	<bean id="defaultJbpmConfiguration" class="org.jbpm.JbpmConfiguration" factory-method="getInstance" scope="singleton">
 		<constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
 	</bean>
-	<bean id="idega_jbpmDSHibernateSessionFactory" class="com.idega.hibernate.HibernateUtil" factory-method="getSessionFactory" scope="singleton">
-		<constructor-arg value="com/idega/jbpm/idega.jbpm.hibernate.cfg.xml" />
-	</bean>
+	<!--
+    <bean id="idega_jbpmDSHibernateSessionFactory" class="com.idega.hibernate.HibernateUtil" factory-method="getSessionFactory" scope="singleton">
+        <constructor-arg value="com/idega/jbpm/idega.jbpm.hibernate.cfg.xml" />
+    </bean> 
+     -->
+    
 	<bean id="jbpmProcessBusiness" class="com.idega.jbpm.business.JbpmProcessBusinessBean" scope="singleton">
-		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
-        <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
+        <property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
 	<bean id="jbpmProcessVariablesHandler" class="com.idega.jbpm.exe.VariablesHandler" scope="singleton">
-		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
-        <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
+		<property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
 	<bean id="actorToTaskBinder" class="com.idega.jbpm.def.ActorTaskBinder" scope="singleton">
-		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
-		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
+        <property name="jbpmBindsDao" ref="jbpmBindsDao" />
+        <property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
 	<bean id="idegaDeployProcess" class="com.idega.jbpm.presentation.beans.DeployProcess" scope="request">
-		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
-        <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
+		<property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
 	<bean id="actorBindingManager" class="com.idega.jbpm.presentation.beans.ActorBindingViewBean" scope="session">
 		<property name="actorToTaskBinder" ref="actorToTaskBinder" />
 		<property name="jbpmProcessBusiness" ref="jbpmProcessBusiness" />
 	</bean>
 	<bean id="processMgmtMockup" class="com.idega.jbpm.presentation.beans.ProcessMgmtMockupBean" scope="session">
-		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
+        <property name="idegaJbpmContext" ref="idegaJbpmContext" />
 		<property name="viewToTask" ref="process_xforms_viewToTask" />
-        <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 	</bean>
     
-    <!-- TODO: remove this -->
-    <bean id="jbpmProcessArtifacts" class="com.idega.jbpm.exe.ProcessArtifacts" scope="session">
-    
-        <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
-        <property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
-        <property name="process" ref="casesJbpmProcessManager" />
-    </bean>
     <bean id="jbpmProcessArtifactsParams" class="com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean" scope="request" />
-    
     <bean id="jbpmViewCreator" class="com.idega.jbpm.def.ViewCreator" scope="singleton" />
+    <bean id="jbpmBindsDao" class="com.idega.jbpm.data.dao.impl.JbpmBindsDaoImpl" scope="singleton" />
+    <bean id="processViewDao" class="com.idega.jbpm.data.dao.impl.ProcessViewDaoImpl" scope="singleton" />
+
+    <bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
+        <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
+        <property name="entityManagerFactory" ref="entityManagerFactory" />
+    </bean>
 </beans>
