@@ -3,6 +3,9 @@
 	<name>org.jboss.jbpm</name>
 	<comment>The JBoss business process and workflow engine</comment>
 	<projects>
+		<project>com.idega.block.form</project>
+		<project>com.idega.hibernate</project>
+		<project>is.idega.idegaweb.egov.cases</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -15,8 +18,14 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>org.springframework.ide.eclipse.core.springbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
+		<nature>org.springframework.ide.eclipse.core.springnature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.maven.ide.eclipse.maven2Nature</nature>
 	</natures>
