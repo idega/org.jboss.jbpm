@@ -13,11 +13,11 @@ import javax.persistence.NamedQueries;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="ACTOR_TASK_BINDINGS")
+@Table(name="BPM_ACTOR_TASK_BINDINGS")
 @NamedQueries(
 		{
-			@NamedQuery(name="actorTaskBind.getUniqueByTaskIdAndActorType", query="from ActorTaskBind ATB where ATB.taskId = :taskId and ATB.actorType = :actorType"),
-			@NamedQuery(name="actorTaskBind.getUniqueByTaskId", query="from ActorTaskBind ATB where ATB.taskId = :taskId")
+			@NamedQuery(name=ActorTaskBind.GET_UNIQUE_BY_TASK_ID_AND_ACTOR_TYPE_QUERY_NAME, query="from ActorTaskBind ATB where ATB.taskId = :"+ActorTaskBind.taskIdParam+" and ATB.actorType = :"+ActorTaskBind.actorTypeParam),
+			@NamedQuery(name=ActorTaskBind.GET_UNIQUE_BY_TASK_ID_QUERY_NAME, query="from ActorTaskBind ATB where ATB.taskId = :"+ActorTaskBind.taskIdParam)
 		}		
 )
 public class ActorTaskBind implements Serializable {

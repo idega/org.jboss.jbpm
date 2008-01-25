@@ -14,16 +14,20 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/25 15:24:26 $ by $Author: civilis $
  */
+
+//TODO: remove
+/*
 @Entity
-@Table(name="PROCESS_VIEW_BIND")
+@Table(name="BPM_PROCESS_VIEW_BIND")
 @NamedQueries({
 		@NamedQuery(name="processViewByActor.getByViewerType", query="from ProcessViewByActor PVA where PVA.viewerType = :viewerType and viewType = :viewType and processDefinitionId = :processDefinitionId"),
 		@NamedQuery(name="processViewByActor.getByViewType", query="from ProcessViewByActor PVA where PVA.viewType = :viewType and processDefinitionId = :processDefinitionId")
 })
+*/
 public class ProcessViewByActor implements Serializable {
 	
 	private static final long serialVersionUID = -4151166970366065468L;
@@ -38,26 +42,26 @@ public class ProcessViewByActor implements Serializable {
 	public static final String VIEWER_TYPE_CASE_HANDLERS = "HANDLERS";
 	public static final String VIEWER_TYPE_OTHERS = "OTHERS";
 	
-	@Id @GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name="bind_id", nullable=false)
+//	@Id @GeneratedValue(strategy = GenerationType.AUTO)
+//	@Column(name="bind_id", nullable=false)
     private Long bindId;
 	
-	@Column(name="process_definition_id", nullable=false)
+	//@Column(name="process_definition_id", nullable=false)
 	private Long processDefinitionId;
 	
-	@Column(name="view_identifier", nullable=false)
+	//@Column(name="view_identifier", nullable=false)
 	private String viewIdentifier;
 	
-	@Column(name="view_type", nullable=false)
+	//@Column(name="view_type", nullable=false)
 	private String viewType;
 	
-	@Column(name="actor_id")
+	//@Column(name="actor_id")
 	private String actorId;
 	
-	@Column(name="actor_type")
+	//@Column(name="actor_type")
 	private String actorType;
 	
-	@Column(name="viewer_type", nullable=false)
+	//@Column(name="viewer_type", nullable=false)
 	private String viewerType;
 	
 	public ProcessViewByActor() { }

@@ -14,26 +14,26 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/25 15:24:25 $ by $Author: civilis $
  */
 @Entity
-@Table(name="VIEW_TASK_BINDINGS")
+@Table(name="BPM_VIEW_TASK_BINDINGS")
 @NamedQueries(
 		{
-			@NamedQuery(name="viewTaskBind.getUniqueByTaskIdAndViewType", query="from ViewTaskBind VTB where VTB.taskId = :taskId and viewType = :viewType"),
-			@NamedQuery(name="viewTaskBind.getViewTaskBindsByTaskId", query="from ViewTaskBind VTB where VTB.taskId = :taskId"),
-			@NamedQuery(name="viewTaskBind.getViewTaskBindsByTasksIds", query="from ViewTaskBind VTB where VTB.taskId in (:tasksIds)"),
-			@NamedQuery(name="viewTaskBind.getViewTaskBindByView", query="from ViewTaskBind VTB where VTB.viewIdentifier = :viewIdentifier and viewType = :viewType"),
-			@NamedQuery(name="viewTaskBind.getViewTask", query="select TASK from org.jbpm.taskmgmt.def.Task TASK, ViewTaskBind VTB where TASK.id = VTB.taskId and VTB.taskId = :taskId and VTB.viewType = :viewType")
+			@NamedQuery(name=ViewTaskBind.GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME, query="from ViewTaskBind VTB where VTB.taskId = :"+ViewTaskBind.taskIdParam+" and viewType = :"+ViewTaskBind.viewTypeParam),
+			@NamedQuery(name=ViewTaskBind.getViewTaskBindsByTaskId, query="from ViewTaskBind VTB where VTB.taskId = :"+ViewTaskBind.taskIdParam),
+			@NamedQuery(name=ViewTaskBind.GET_VIEW_TASK_BINDS_BY_TASKS_IDS, query="from ViewTaskBind VTB where VTB.taskId in (:"+ViewTaskBind.tasksIdsParam+")"),
+			@NamedQuery(name=ViewTaskBind.GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME, query="from ViewTaskBind VTB where VTB.viewIdentifier = :"+ViewTaskBind.viewIdParam+" and viewType = :"+ViewTaskBind.viewTypeParam),
+			@NamedQuery(name=ViewTaskBind.GET_VIEW_TASK, query="select TASK from org.jbpm.taskmgmt.def.Task TASK, ViewTaskBind VTB where TASK.id = VTB.taskId and VTB.taskId = :"+ViewTaskBind.taskIdParam+" and VTB.viewType = :"+ViewTaskBind.viewTypeParam)
 		}
 )
 public class ViewTaskBind implements Serializable {
 	
 	public static final String GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME = "viewTaskBind.getUniqueByTaskIdAndViewType";
 	public static final String getViewTaskBindsByTaskId = "viewTaskBind.getViewTaskBindsByTaskId";
-	public static final String GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME = "viewTaskBind.getUniqueByTaskIdAndViewType";
+	public static final String GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME = "viewTaskBind.getViewTaskBindByView";
 	public static final String GET_VIEW_TASK_BINDS_BY_TASKS_IDS = "viewTaskBind.getViewTaskBindsByTasksIds";
 	public static final String GET_VIEW_TASK = "viewTaskBind.getViewTask";
 	
@@ -41,8 +41,6 @@ public class ViewTaskBind implements Serializable {
 	public static final String tasksIdsParam = "tasksIds";
 	public static final String viewTypeParam = "viewType";
 	public static final String viewIdParam = "viewIdentifier";
-	
-//	supposedly add versioning (hibernate versioning)
 	
 	private static final long serialVersionUID = -1604232647212632303L;
 
@@ -59,10 +57,6 @@ public class ViewTaskBind implements Serializable {
 	@Column(name="view_type", nullable=false)
 	private String viewType;
 
-//	@ManyToOne
-//	@JoinColumn(name="ID_")
-//	private Task task;
-	
 	public ViewTaskBind() { }
 
 	public Long getBindId() {

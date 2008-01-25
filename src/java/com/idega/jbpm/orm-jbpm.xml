@@ -6,6 +6,6 @@
 
     <entity class="com.idega.jbpm.data.ViewTaskBind" />
     <entity class="com.idega.jbpm.data.ActorTaskBind" />
-    <entity class="com.idega.jbpm.data.ProcessViewByActor" />
+    <entity class="com.idega.jbpm.data.ManagersTypeProcessDefinitionBind" />
         
 </entity-mappings>

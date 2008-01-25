@@ -19,7 +19,7 @@
 		<property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
 	<bean id="actorToTaskBinder" class="com.idega.jbpm.def.ActorTaskBinder" scope="singleton">
-        <property name="jbpmBindsDao" ref="jbpmBindsDao" />
+        <property name="jbpmBindsDao" ref="bpmBindsDAO" />
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
 	<bean id="idegaDeployProcess" class="com.idega.jbpm.presentation.beans.DeployProcess" scope="request">
@@ -36,11 +36,17 @@
     
     <bean id="jbpmProcessArtifactsParams" class="com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean" scope="request" />
     <bean id="jbpmViewCreator" class="com.idega.jbpm.def.ViewCreator" scope="singleton" />
-    <bean id="jbpmBindsDao" class="com.idega.jbpm.data.dao.impl.JbpmBindsDaoImpl" scope="singleton" />
+    <bean id="bpmBindsDAO" class="com.idega.jbpm.data.dao.impl.BpmBindsDAOImpl" scope="singleton" />
+    <!--  
     <bean id="processViewDao" class="com.idega.jbpm.data.dao.impl.ProcessViewDaoImpl" scope="singleton" />
+    -->
 
     <bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
         <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
         <property name="entityManagerFactory" ref="entityManagerFactory" />
+    </bean>
+    
+    <bean id="bpmFactory" class="com.idega.jbpm.exe.impl.BPMFactoryImpl" scope="singleton">
+        <property name="bindsDAO" ref="bpmBindsDAO" />
     </bean>
 </beans>

@@ -6,16 +6,17 @@ import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.jbpm.data.ActorTaskBind;
+import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.ViewTaskBind;
-import com.idega.jbpm.data.dao.JbpmBindsDao;
+import com.idega.jbpm.data.dao.BpmBindsDAO;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/01/06 17:02:58 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/25 15:24:26 $ by $Author: civilis $
  */
-public class JbpmBindsDaoImpl extends GenericDaoImpl implements JbpmBindsDao {
+public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 
 	public ActorTaskBind getActorTaskBind(long taskId, String actorType) {
 		
@@ -76,6 +77,15 @@ public class JbpmBindsDaoImpl extends GenericDaoImpl implements JbpmBindsDao {
 		return (Task)getEntityManager().createNamedQuery(ViewTaskBind.GET_VIEW_TASK)
 		.setParameter(ViewTaskBind.viewTypeParam, viewTaskBind.getViewType())
 		.setParameter(ViewTaskBind.taskIdParam, viewTaskBind.getTaskId())
+		.getSingleResult();
+	}
+	
+	public ManagersTypeProcessDefinitionBind getManagersTypeProcDefBind(long processDefinitionId) {
+		
+		return 
+		(ManagersTypeProcessDefinitionBind)
+		getEntityManager().createNamedQuery(ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId)
+		.setParameter(ManagersTypeProcessDefinitionBind.processDefinitionIdParam, processDefinitionId)
 		.getSingleResult();
 	}
 }

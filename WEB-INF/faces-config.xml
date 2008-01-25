@@ -33,22 +33,30 @@
 >
 <faces-config>
   <component>
-    <component-type>ProcessViewer</component-type>
-    <component-class>com.idega.jbpm.presentation.ProcessViewer</component-class>
+    <component-type>BPMTaskViewer</component-type>
+    <component-class>com.idega.jbpm.presentation.BPMTaskViewer</component-class>
     <property>
       <display-name>Process definition ID</display-name>
       <property-name>processDefinitionId</property-name>
       <property-class>java.lang.String</property-class>
     </property>
+    <!--  
     <property>
       <display-name>Process instance ID</display-name>
       <property-name>processInstanceId</property-name>
       <property-class>java.lang.String</property-class>
     </property>
+    
     <property>
       <display-name>Process</display-name>
       <property-name>process</property-name>
       <property-class>com.idega.jbpm.exe.Process</property-class>
+    </property>
+    -->
+    <property>
+      <display-name>BPMFactory</display-name>
+      <property-name>bpmFactory</property-name>
+      <property-class>com.idega.jbpm.exe.BPMFactory</property-class>
     </property>
     <component-extension>
       <idegaweb-info>

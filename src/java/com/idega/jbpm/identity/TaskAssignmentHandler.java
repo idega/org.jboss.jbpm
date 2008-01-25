@@ -14,7 +14,7 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.jbpm.data.ActorTaskBind;
-import com.idega.jbpm.data.dao.JbpmBindsDao;
+import com.idega.jbpm.data.dao.BpmBindsDAO;
 import com.idega.user.business.GroupBusiness;
 import com.idega.user.data.Group;
 import com.idega.util.CoreUtil;
@@ -23,7 +23,7 @@ import com.idega.webface.WFUtil;
 public class TaskAssignmentHandler implements AssignmentHandler {
 
 	private static final long serialVersionUID = 5029739971157745012L;
-	private JbpmBindsDao jbpmBindsDao;
+	private BpmBindsDAO jbpmBindsDao;
 
 	public void assign(Assignable assignable, ExecutionContext executionContext)
 			throws Exception {
@@ -67,15 +67,15 @@ public class TaskAssignmentHandler implements AssignmentHandler {
 		}
 	}
 	
-	public JbpmBindsDao getJbpmBindsDao() {
+	public BpmBindsDAO getJbpmBindsDao() {
 		
 		if(jbpmBindsDao == null)
-			jbpmBindsDao = (JbpmBindsDao)WFUtil.getBeanInstance("jbpmBindsDao");
+			jbpmBindsDao = (BpmBindsDAO)WFUtil.getBeanInstance("jbpmBindsDao");
 		
 		return jbpmBindsDao;
 	}
 
-	public void setJbpmBindsDao(JbpmBindsDao jbpmBindsDao) {
+	public void setJbpmBindsDao(BpmBindsDAO jbpmBindsDao) {
 		this.jbpmBindsDao = jbpmBindsDao;
 	}
 }

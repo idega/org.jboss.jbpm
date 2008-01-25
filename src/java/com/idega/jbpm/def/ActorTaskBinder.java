@@ -15,7 +15,7 @@ import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.core.accesscontrol.data.ICRole;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.data.ActorTaskBind;
-import com.idega.jbpm.data.dao.JbpmBindsDao;
+import com.idega.jbpm.data.dao.BpmBindsDAO;
 import com.idega.user.business.GroupBusiness;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Group;
@@ -24,7 +24,7 @@ import com.idega.util.CoreUtil;
 
 public class ActorTaskBinder {
 	
-	private JbpmBindsDao jbpmBindsDao;
+	private BpmBindsDAO jbpmBindsDao;
 	private IdegaJbpmContext idegaJbpmContext;
 	
 	public String getBindingType(long taskId) {
@@ -203,11 +203,11 @@ public class ActorTaskBinder {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 
-	public JbpmBindsDao getJbpmBindsDao() {
+	public BpmBindsDAO getJbpmBindsDao() {
 		return jbpmBindsDao;
 	}
 
-	public void setJbpmBindsDao(JbpmBindsDao jbpmBindsDao) {
+	public void setJbpmBindsDao(BpmBindsDAO jbpmBindsDao) {
 		this.jbpmBindsDao = jbpmBindsDao;
 	}
 }

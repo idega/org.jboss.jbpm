@@ -28,13 +28,13 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/25 15:24:25 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
-	private Process process;
+	private BPMFactory bpmFactory;
 	private IdegaJbpmContext idegaJbpmContext;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
@@ -139,8 +139,18 @@ public class ProcessArtifacts {
 	
 	public org.jdom.Document getViewDisplay(Long taskInstanceId) {
 
-		UIComponent viewUIComponent = getProcess().getViewManager().loadTaskInstanceView(FacesContext.getCurrentInstance(), taskInstanceId).getViewForDisplay();
-		return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+		
+			long processDefinitionId = ctx.getTaskInstance(taskInstanceId).getProcessInstance().getProcessDefinition().getId();
+			
+			UIComponent viewUIComponent = getBpmFactory().getViewManager(processDefinitionId).loadTaskInstanceView(FacesContext.getCurrentInstance(), taskInstanceId).getViewForDisplay();
+			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
+			
+		} finally {
+			ctx.close();
+		}
 	}
 	
 	protected List<ProcessArtifact> getProcessInstanceArtifacts(Integer processInstanceId) {
@@ -192,19 +202,19 @@ public class ProcessArtifacts {
 		}
 	}
 
-	public Process getProcess() {
-		return process;
-	}
-
-	public void setProcess(Process process) {
-		this.process = process;
-	}
-
 	public IdegaJbpmContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
 	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
+	}
+
+	public BPMFactory getBpmFactory() {
+		return bpmFactory;
+	}
+
+	public void setBpmFactory(BPMFactory bpmFactory) {
+		this.bpmFactory = bpmFactory;
 	}
 }

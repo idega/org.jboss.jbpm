@@ -6,9 +6,9 @@ import javax.faces.component.UIComponent;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2007/12/05 10:36:31 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/25 15:24:26 $ by $Author: civilis $
  */
 public interface View {
 
@@ -20,10 +20,12 @@ public interface View {
 	
 	public abstract UIComponent getViewForDisplay();
 	
-	public abstract void populate(Map<String, Object> variables);
-	
 	public abstract boolean isSubmitable();
 	public abstract void setSubmitable(boolean submitable);
 	
-	public abstract void addParameters(Map<String, String> parameters);
+	public abstract void populateVariables(Map<String, Object> variables);
+	public abstract void populateParameters(Map<String, String> parameters);
+	
+	public abstract Map<String, Object> resolveVariables();
+	public abstract Map<String, String> resolveParameters();
 }

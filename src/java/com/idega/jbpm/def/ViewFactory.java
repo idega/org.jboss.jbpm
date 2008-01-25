@@ -2,9 +2,9 @@ package com.idega.jbpm.def;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2007/12/06 20:32:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/25 15:24:26 $ by $Author: civilis $
  */
 public interface ViewFactory {
 
@@ -13,4 +13,6 @@ public interface ViewFactory {
 	public abstract View getViewNoLoad(String viewIdentifier);
 	
 	public abstract View getView(String viewIdentifier, boolean submitable);
+	
+	public abstract String getBeanIdentifier();
 }
