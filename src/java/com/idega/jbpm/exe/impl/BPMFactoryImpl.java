@@ -25,9 +25,9 @@ import com.idega.jbpm.exe.ViewManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/01/25 15:24:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/26 09:46:42 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationListener, ApplicationContextAware {
 	
@@ -49,12 +49,12 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 		return getManagersCreator(processDefinitionId).getViewManager();
 	}
 	
-	public View getView(long taskId) {
+	public View getView(long taskId, boolean submitable) {
 
-		return getView(taskId, null);
+		return getView(taskId, submitable, null);
 	}
 	
-	public View getView(long taskId, List<String> preferredTypes) {
+	public View getView(long taskId, boolean submitable, List<String> preferredTypes) {
 		
 		List<ViewTaskBind> binds = getBindsDAO().getViewTaskBindsByTaskId(taskId);
 		
@@ -104,7 +104,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 			throw new IllegalStateException("No View Factory registered for view type resolved: "+viewTaskBind+", task id: "+taskId);
 		}
 		
-		return viewFactory.getViewNoLoad(viewTaskBind.getViewIdentifier());
+		return viewFactory.getView(viewTaskBind.getViewIdentifier(), submitable);
 	}
 	
 	protected BPMManagersFactory getManagersCreator(long processDefinitionId) {
