@@ -49,4 +49,5 @@
     <bean id="bpmFactory" class="com.idega.jbpm.exe.impl.BPMFactoryImpl" scope="singleton">
         <property name="bindsDAO" ref="bpmBindsDAO" />
     </bean>
+    
 </beans>
