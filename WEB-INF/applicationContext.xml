@@ -6,12 +6,6 @@
 	<bean id="defaultJbpmConfiguration" class="org.jbpm.JbpmConfiguration" factory-method="getInstance" scope="singleton">
 		<constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
 	</bean>
-	<!--
-    <bean id="idega_jbpmDSHibernateSessionFactory" class="com.idega.hibernate.HibernateUtil" factory-method="getSessionFactory" scope="singleton">
-        <constructor-arg value="com/idega/jbpm/idega.jbpm.hibernate.cfg.xml" />
-    </bean> 
-     -->
-    
 	<bean id="jbpmProcessBusiness" class="com.idega.jbpm.business.JbpmProcessBusinessBean" scope="singleton">
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
@@ -35,11 +29,10 @@
 	</bean>
     
     <bean id="jbpmProcessArtifactsParams" class="com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean" scope="request" />
-    <bean id="jbpmViewCreator" class="com.idega.jbpm.def.ViewCreator" scope="singleton" />
-    <bean id="bpmBindsDAO" class="com.idega.jbpm.data.dao.impl.BpmBindsDAOImpl" scope="singleton" />
     <!--  
-    <bean id="processViewDao" class="com.idega.jbpm.data.dao.impl.ProcessViewDaoImpl" scope="singleton" />
+    <bean id="jbpmViewCreator" class="com.idega.jbpm.def.ViewCreator" scope="singleton" />
     -->
+    <bean id="bpmBindsDAO" class="com.idega.jbpm.data.dao.impl.BpmBindsDAOImpl" scope="singleton" />
 
     <bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
         <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />

@@ -12,15 +12,15 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/01/26 09:46:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/28 07:43:40 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_MANAGERS_PROCDEF_BINDINGS")
 @NamedQueries(
 		{
-			@NamedQuery(name=ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId, query="from ManagersTypeProcessDefinitionBind MTPDB where MTPDB.process_definition_id = :"+ManagersTypeProcessDefinitionBind.processDefinitionIdParam)
+			@NamedQuery(name=ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId, query="from ManagersTypeProcessDefinitionBind MTPDB where MTPDB.processDefinitionId = :"+ManagersTypeProcessDefinitionBind.processDefinitionIdParam)
 		}
 )
 public class ManagersTypeProcessDefinitionBind implements Serializable {

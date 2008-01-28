@@ -14,9 +14,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/01/25 15:24:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/28 07:43:40 $ by $Author: civilis $
  */
 
 //TODO: remove
@@ -28,7 +28,7 @@ import javax.persistence.Table;
 		@NamedQuery(name="processViewByActor.getByViewType", query="from ProcessViewByActor PVA where PVA.viewType = :viewType and processDefinitionId = :processDefinitionId")
 })
 */
-public class ProcessViewByActor implements Serializable {
+public class Remove_ProcessViewByActor implements Serializable {
 	
 	private static final long serialVersionUID = -4151166970366065468L;
 	
@@ -64,7 +64,7 @@ public class ProcessViewByActor implements Serializable {
 	//@Column(name="viewer_type", nullable=false)
 	private String viewerType;
 	
-	public ProcessViewByActor() { }
+	public Remove_ProcessViewByActor() { }
 
 	public Long getBindId() {
 		return bindId;
