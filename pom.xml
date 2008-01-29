@@ -11,7 +11,7 @@
   <groupId>com.idega.block.addon</groupId>
   <artifactId>org.jboss.jbpm</artifactId>
   <name>JBoss jBPM Integration</name>
-  <version>4.0.0</version>
+  <version>4.0.1-SNAPSHOT</version>
   <inceptionYear>2007</inceptionYear>
   <description>The JBoss business process and workflow engine. See http://docs.jboss.com/jbpm/v3/userguide/deployment.html</description>
   <scm>
@@ -21,7 +21,6 @@
     -->
     <connection>scm:cvs:ext:civilis@code.idega.com:/idega/cvs:com.idega.block.addon/org.jboss.jbpm/</connection>
     <developerConnection>scm:cvs:ext:civilis@code.idega.com:/idega/cvs:com.idega.block.addon/org.jboss.jbpm/</developerConnection>
-    <tag>com_idega_block_addon_super-4_0_0</tag>
   </scm>
   <developers>
     <developer>
