@@ -21,6 +21,7 @@
     -->
     <connection>scm:cvs:ext:civilis@code.idega.com:/idega/cvs:com.idega.block.addon/org.jboss.jbpm/</connection>
     <developerConnection>scm:cvs:ext:civilis@code.idega.com:/idega/cvs:com.idega.block.addon/org.jboss.jbpm/</developerConnection>
+    <tag>com_idega_block_addon_super-4_0_0</tag>
   </scm>
   <developers>
     <developer>
