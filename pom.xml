@@ -4,12 +4,12 @@
   <parent>
   	<groupId>com.idega.block.addon</groupId>
   	<artifactId>com.idega.block.addon</artifactId>
-  	<version>4.0.2-SNAPSHOT</version>
+  	<version>4.0.2</version>
   </parent>
   <packaging>jar</packaging>
   <groupId>com.idega.block.addon</groupId>
   <artifactId>org.jboss.jbpm</artifactId>
-  <version>4.0.2-SNAPSHOT</version>
+  <version>4.0.2</version>
   <name>JBoss jBPM Integration</name>
   <inceptionYear>2007</inceptionYear>
   <description>The JBoss business process and workflow engine. See http://docs.jboss.com/jbpm/v3/userguide/deployment.html</description>
@@ -20,6 +20,7 @@
     -->
     <connection>scm:cvs:ext:${user.name}@code.idega.com:/idega/cvs:${groupId}/${artifactId}/</connection>
     <developerConnection>scm:cvs:ext:${user.name}@code.idega.com:/idega/cvs:${groupId}/${artifactId}/</developerConnection>
+    <tag>com_idega_block_addon_super-4_0_2</tag>
   </scm>
   <developers>
     <developer>
