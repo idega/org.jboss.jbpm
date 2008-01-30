@@ -14,9 +14,9 @@ import com.idega.jbpm.IdegaJbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/01/27 13:11:36 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/30 14:33:51 $ by $Author: civilis $
  */
 public class ProcessBundleManager {
 
@@ -31,8 +31,15 @@ public class ProcessBundleManager {
 		this.viewToTaskBinder = viewToTaskBinder;
 	}
 
+	/**
+	 * 
+	 * @param processBundle bundle to create process bundle from. i.e. all the resources, like process definition and views
+	 * @param processDefinitionName - optional
+	 * @return process definition id, of the created bundle
+	 * @throws IOException
+	 */
 	public long createBundle(ProcessBundle processBundle,
-			String processDefinitionName) throws IOException, Exception {
+			String processDefinitionName) throws IOException {
 
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 
@@ -62,16 +69,8 @@ public class ProcessBundleManager {
 						getViewToTaskBinder().bind(view, task);
 					}
 				}
-
-				// specific
-				// CasesJbpmBind bind = new CasesJbpmBind();
-				// bind.setCasesCategoryId(caseCategoryId);
-				// bind.setCasesTypeId(caseTypeId);
-				// bind.setProcDefId(pd.getId());
-				// bind.setInitTaskName(initTaskName);
-
-				// getCasesJbpmDao().persist(bind);
-				// -
+				
+				processBundle.configure(pd);
 
 			} catch (Exception e) {
 
