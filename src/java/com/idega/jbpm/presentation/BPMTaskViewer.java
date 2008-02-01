@@ -19,13 +19,16 @@ import com.idega.util.CoreConstants;
  * TODO: move this to jbpm module
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/01/25 15:24:25 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/01 12:19:45 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
 	public static final String COMPONENT_TYPE = "BPMTaskViewer";
+	private static final String idegaJbpmContextBeanId = "idegaJbpmContext";
+	private static final String bpmFactoryBeanId = "bpmFactory";
+	
 	
 	public static final String PROCESS_DEFINITION_PROPERTY = "processDefinitionId";
 //	public static final String PROCESS_INSTANCE_PROPERTY = "processInstanceId";
@@ -134,7 +137,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 	
 	private UIComponent loadViewerFromTaskInstance(FacesContext context, String taskInstanceId) {
 		
-		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		JbpmContext ctx = getIdegaJbpmContext(context).createJbpmContext();
 		
 		try {
 			long tskInstId = Long.parseLong(taskInstanceId);
@@ -235,6 +238,10 @@ public class BPMTaskViewer extends IWBaseComponent {
 		if(bpmFactory == null) {
 			
 			bpmFactory = getValueBinding(BMPFACTORY_PROPERTY) != null ? (BPMFactory)getValueBinding(BMPFACTORY_PROPERTY).getValue(context) : null;
+			
+			if(bpmFactory == null)
+				bpmFactory = (BPMFactory)getBeanInstance(bpmFactoryBeanId);
+			
 			setBpmFactory(bpmFactory);
 		}
 		
@@ -255,6 +262,10 @@ public class BPMTaskViewer extends IWBaseComponent {
 		if(ctx == null) {
 			
 			ctx = getValueBinding(idegaJbpmContext_PROPERTY) != null ? (IdegaJbpmContext)getValueBinding(idegaJbpmContext_PROPERTY).getValue(context) : null;
+			
+			if(ctx == null)
+				ctx = (IdegaJbpmContext)getBeanInstance(idegaJbpmContextBeanId);
+			
 			setIdegaJbpmContext(ctx);
 		}
 		

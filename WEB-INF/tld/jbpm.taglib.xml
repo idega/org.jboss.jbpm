@@ -7,17 +7,19 @@
 
 	<namespace>http://xmlns.idega.com/org.jboss.jbpm</namespace>
 	
+	<!--  
 	<tag>
 		<tag-name>deployProcess</tag-name>
 		<component>
             <component-type>DeployProcess</component-type>
         </component>
 	</tag>
+	-->
     
     <tag>
-        <tag-name>processViewer</tag-name>
+        <tag-name>BPMTaskViewer</tag-name>
         <component>
-            <component-type>ProcessViewer</component-type>
+            <component-type>BPMTaskViewer</component-type>
         </component>
     </tag>
 	
