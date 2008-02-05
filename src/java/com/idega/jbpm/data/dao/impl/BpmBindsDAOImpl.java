@@ -2,6 +2,7 @@ package com.idega.jbpm.data.dao.impl;
 
 import java.util.List;
 
+import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.core.persistence.impl.GenericDaoImpl;
@@ -12,9 +13,9 @@ import com.idega.jbpm.data.dao.BpmBindsDAO;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/01/25 15:24:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/05 19:33:12 $ by $Author: civilis $
  */
 public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 
@@ -87,5 +88,14 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		getEntityManager().createNamedQuery(ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId)
 		.setParameter(ManagersTypeProcessDefinitionBind.processDefinitionIdParam, processDefinitionId)
 		.getSingleResult();
+	}
+	
+	public List<ProcessDefinition> getAllManagersTypeProcDefs() {
+	
+		@SuppressWarnings("unchecked")
+		List<ProcessDefinition> all = getEntityManager().createNamedQuery(ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getAllProcDefs)
+		.getResultList();
+		
+		return all;
 	}
 }

@@ -12,15 +12,16 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/01/28 07:43:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/05 19:33:12 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_MANAGERS_PROCDEF_BINDINGS")
 @NamedQueries(
 		{
-			@NamedQuery(name=ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId, query="from ManagersTypeProcessDefinitionBind MTPDB where MTPDB.processDefinitionId = :"+ManagersTypeProcessDefinitionBind.processDefinitionIdParam)
+			@NamedQuery(name=ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId, query="from ManagersTypeProcessDefinitionBind MTPDB where MTPDB.processDefinitionId = :"+ManagersTypeProcessDefinitionBind.processDefinitionIdParam),
+			@NamedQuery(name=ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getAllProcDefs, query="select PD from org.jbpm.graph.def.ProcessDefinition PD, ManagersTypeProcessDefinitionBind MTPDB where PD.id = MTPDB.processDefinitionId")
 		}
 )
 public class ManagersTypeProcessDefinitionBind implements Serializable {
@@ -28,6 +29,7 @@ public class ManagersTypeProcessDefinitionBind implements Serializable {
 	private static final long serialVersionUID = 9123064367761595198L;
 	
 	public static final String managersTypeProcessDefinitionBind_getByProcessDefinitionId = "managersTypeProcessDefinitionBind.getByProcessDefinitionId";
+	public static final String managersTypeProcessDefinitionBind_getAllProcDefs = "managersTypeProcessDefinitionBind.getAllWProcDef";
 	public static final String processDefinitionIdParam = "processDefinitionId";
 
 //	TODO: process definition id should point to ProcessDefinition table. Managers type should point to BPM_MANAGERS_TYPES table (doesn't exist)
