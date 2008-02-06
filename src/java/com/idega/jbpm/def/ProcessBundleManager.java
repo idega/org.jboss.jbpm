@@ -11,16 +11,20 @@ import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
+import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/01/30 14:33:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/06 11:49:49 $ by $Author: civilis $
  */
 public class ProcessBundleManager {
 
 	private ViewToTask viewToTaskBinder;
+	private BpmBindsDAO bpmBindsDAO;
 	private IdegaJbpmContext idegaJbpmContext;
 
 	public ViewToTask getViewToTaskBinder() {
@@ -41,6 +45,11 @@ public class ProcessBundleManager {
 	public long createBundle(ProcessBundle processBundle,
 			String processDefinitionName) throws IOException {
 
+		String managersType = processBundle.getManagersType();
+		
+		if(managersType == null || CoreConstants.EMPTY.equals(managersType))
+			throw new IllegalArgumentException("No managers type in process bundle provided: "+processBundle.getClass().getName());
+		
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 
 		try {
@@ -70,6 +79,11 @@ public class ProcessBundleManager {
 					}
 				}
 				
+				ManagersTypeProcessDefinitionBind mtpdb = new ManagersTypeProcessDefinitionBind();
+				mtpdb.setManagersType(managersType);
+				mtpdb.setProcessDefinitionId(pd.getId());
+				getBpmBindsDAO().persist(mtpdb);
+				
 				processBundle.configure(pd);
 
 			} catch (Exception e) {
@@ -95,5 +109,13 @@ public class ProcessBundleManager {
 
 	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
+	}
+
+	public BpmBindsDAO getBpmBindsDAO() {
+		return bpmBindsDAO;
+	}
+
+	public void setBpmBindsDAO(BpmBindsDAO bpmBindsDAO) {
+		this.bpmBindsDAO = bpmBindsDAO;
 	}
 }

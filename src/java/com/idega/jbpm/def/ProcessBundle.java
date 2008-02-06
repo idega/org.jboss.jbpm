@@ -7,9 +7,9 @@ import org.jbpm.graph.def.ProcessDefinition;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/01/30 14:33:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/06 11:49:49 $ by $Author: civilis $
  */
 public interface ProcessBundle {
 
@@ -32,4 +32,6 @@ public interface ProcessBundle {
 	 * @param pd - process definition
 	 */
 	public abstract void configure(ProcessDefinition pd);
+	
+	public abstract String getManagersType();
 }
