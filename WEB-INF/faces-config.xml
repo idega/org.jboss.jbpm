@@ -45,5 +45,11 @@
       <property-name>bpmFactory</property-name>
       <property-class>com.idega.jbpm.exe.BPMFactory</property-class>
     </property>
+    <component-extension>
+      <idegaweb-info>
+        <builder-visible>true</builder-visible>
+        <object-type>jsf.uicomponent</object-type>
+      </idegaweb-info>
+    </component-extension>
   </component>
 </faces-config>

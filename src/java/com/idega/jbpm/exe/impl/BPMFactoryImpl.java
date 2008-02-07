@@ -25,9 +25,9 @@ import com.idega.jbpm.exe.ViewManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/01/26 09:46:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:58:43 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationListener, ApplicationContextAware {
 	
@@ -83,16 +83,17 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 			viewTaskBind = binds.get(0);
 		
 		ViewFactory viewFactory;
+		String viewType = viewTaskBind.getViewType();
 		
-		if(viewTypeFactoryBeanIdentifier.containsKey(viewTaskBind)) {
-			viewFactory = (ViewFactory)getApplicationContext().getBean(viewTypeFactoryBeanIdentifier.get(viewTaskBind));
+		if(getViewTypeFactoryBeanIdentifier().containsKey(viewType)) {
+			viewFactory = (ViewFactory)getApplicationContext().getBean(getViewTypeFactoryBeanIdentifier().get(viewType));
 			
-		} else if(viewTypeFactoryClass.containsKey(viewTaskBind)) {
+		} else if(getViewTypeFactoryClass().containsKey(viewType)) {
 			
 			Object viewFactoryClass = null;
 			
 			try {
-				viewFactoryClass = creatorTypeCreatorClass.get(viewTaskBind.getViewType());
+				viewFactoryClass = getViewTypeFactoryClass().get(viewType);
 				@SuppressWarnings("unchecked")
 				Class<ViewFactory> clazz = (Class<ViewFactory>)viewFactoryClass;
 				viewFactory = clazz.newInstance();
@@ -117,10 +118,10 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 		
 		BPMManagersFactory creator;
 		
-		if(creatorTypeCreatorBeanIdentifier.containsKey(managersType)) {
+		if(getCreatorTypeCreatorBeanIdentifier().containsKey(managersType)) {
 			creator = (BPMManagersFactory)getApplicationContext().getBean(creatorTypeCreatorBeanIdentifier.get(managersType));
 			
-		} else if(creatorTypeCreatorClass.containsKey(managersType)) {
+		} else if(getCreatorTypeCreatorClass().containsKey(managersType)) {
 			
 			Object creatorClass = null;
 			

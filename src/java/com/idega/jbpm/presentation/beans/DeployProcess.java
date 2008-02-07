@@ -14,9 +14,9 @@ import com.idega.jbpm.IdegaJbpmContext;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:58:42 $ by $Author: civilis $
  *
  */
 public class DeployProcess {
@@ -53,8 +53,7 @@ public class DeployProcess {
 //			TODO: display err msg				
 			
 		} finally {
-			if(ctx != null)
-				ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 

@@ -17,9 +17,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/02/06 11:49:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:58:16 $ by $Author: civilis $
  */
 public class ProcessBundleManager {
 
@@ -51,6 +51,7 @@ public class ProcessBundleManager {
 			throw new IllegalArgumentException("No managers type in process bundle provided: "+processBundle.getClass().getName());
 		
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		System.out.println("creating bundle ........");
 
 		try {
 
@@ -71,11 +72,16 @@ public class ProcessBundleManager {
 
 					List<ViewResource> viewResources = processBundle
 							.getViewResources(task.getName());
+					
+					if(viewResources != null) {
+					
+						for (ViewResource viewResource : viewResources) {
 
-					for (ViewResource viewResource : viewResources) {
-
-						View view = viewResource.store();
-						getViewToTaskBinder().bind(view, task);
+							View view = viewResource.store();
+							getViewToTaskBinder().bind(view, task);
+						}
+					} else {
+						Logger.getLogger(getClass().getName()).log(Level.WARNING, "No view resources resolved for task: "+task.getId());
 					}
 				}
 				
@@ -99,7 +105,7 @@ public class ProcessBundleManager {
 
 		} finally {
 
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 

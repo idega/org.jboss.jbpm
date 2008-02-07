@@ -15,9 +15,9 @@ import com.idega.jbpm.IdegaJbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:58:43 $ by $Author: civilis $
  */
 public class VariablesHandler {
 
@@ -51,7 +51,7 @@ public class VariablesHandler {
 			ti.getTask().getTaskController().submitParameters(ti);
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -68,7 +68,7 @@ public class VariablesHandler {
 			return variables;
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -93,7 +93,7 @@ public class VariablesHandler {
 			return variables;
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 

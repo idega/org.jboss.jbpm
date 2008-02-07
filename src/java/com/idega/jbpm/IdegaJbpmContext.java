@@ -8,9 +8,9 @@ import org.jbpm.JbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/01/06 17:02:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:58:16 $ by $Author: civilis $
  */
 public class IdegaJbpmContext {
 	
@@ -27,10 +27,25 @@ public class IdegaJbpmContext {
 	
 	public JbpmContext createJbpmContext() {
 		
-		JbpmContext context = getJbpmConfiguration().createJbpmContext();
+		JbpmConfiguration cfg = getJbpmConfiguration();
+		JbpmContext context;
+		
+		synchronized (cfg) {
+		
+			context = cfg.createJbpmContext();
+		}
+		
 		Session hibernateSession = (Session)getEntityManagerFactory().createEntityManager().getDelegate();
 		context.setSession(hibernateSession);
+		hibernateSession.getTransaction().begin();
+		
 		return context;
+	}
+	
+	public void closeAndCommit(JbpmContext ctx) {
+	
+		ctx.getSession().getTransaction().commit();
+		ctx.close();
 	}
 
 	public EntityManagerFactory getEntityManagerFactory() {

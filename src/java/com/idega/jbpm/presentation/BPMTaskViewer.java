@@ -19,9 +19,9 @@ import com.idega.util.CoreConstants;
  * TODO: move this to jbpm module
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/02/01 12:19:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:58:42 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -146,7 +146,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 			return initView.getViewForDisplay();
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	

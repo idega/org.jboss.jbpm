@@ -28,9 +28,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/01/25 15:24:25 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:58:43 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -133,7 +133,7 @@ public class ProcessArtifacts {
 			}
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -149,7 +149,7 @@ public class ProcessArtifacts {
 			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -189,7 +189,7 @@ public class ProcessArtifacts {
 			return artifacts;
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 

@@ -18,9 +18,9 @@ import com.idega.jbpm.def.ViewToTask;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/01/06 17:02:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:58:42 $ by $Author: civilis $
  */
 public class ProcessMgmtMockupBean {
 	
@@ -84,7 +84,7 @@ public class ProcessMgmtMockupBean {
 			return processes;
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -110,7 +110,7 @@ public class ProcessMgmtMockupBean {
 			return processInstances;
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -138,7 +138,7 @@ public class ProcessMgmtMockupBean {
 			return taskInstances;
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 
@@ -159,7 +159,7 @@ public class ProcessMgmtMockupBean {
 			pi.getRootToken().signal();
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -181,7 +181,7 @@ public class ProcessMgmtMockupBean {
 			}
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 
@@ -223,7 +223,7 @@ public class ProcessMgmtMockupBean {
 			ti.end();
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 }

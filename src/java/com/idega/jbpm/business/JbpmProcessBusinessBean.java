@@ -37,7 +37,7 @@ public class JbpmProcessBusinessBean {
 			ctx.getGraphSession().deleteProcessDefinition(processId);
 		} finally {
 			
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 		
 	}
@@ -54,7 +54,7 @@ public class JbpmProcessBusinessBean {
 			
 		} finally {
 			
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -96,7 +96,7 @@ public class JbpmProcessBusinessBean {
 			}
 			return variables;
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 		
 	}
@@ -137,7 +137,7 @@ public class JbpmProcessBusinessBean {
 			}
 			return variables;
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 		
 	}
@@ -171,7 +171,7 @@ public class JbpmProcessBusinessBean {
 			}
 			return variables;
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 		
 	}
@@ -200,7 +200,7 @@ public class JbpmProcessBusinessBean {
 			return ctx.getGraphSession().getProcessDefinition(id);
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -221,7 +221,7 @@ public class JbpmProcessBusinessBean {
 			return instances;
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -246,7 +246,7 @@ public class JbpmProcessBusinessBean {
 				task.setTaskController(controller);
 			}
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -268,7 +268,7 @@ public class JbpmProcessBusinessBean {
 			return result;
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -297,7 +297,7 @@ public class JbpmProcessBusinessBean {
 			}
 			return variables;
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -326,7 +326,7 @@ public class JbpmProcessBusinessBean {
 			}
 			return variables;
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -339,7 +339,7 @@ public class JbpmProcessBusinessBean {
 			return pd.getTaskMgmtDefinition().getTask(taskName);
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -357,7 +357,7 @@ public class JbpmProcessBusinessBean {
 			}
 			return result;
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -406,7 +406,7 @@ public class JbpmProcessBusinessBean {
 			}
 			return result;
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	

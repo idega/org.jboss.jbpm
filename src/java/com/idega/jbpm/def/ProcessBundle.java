@@ -7,9 +7,9 @@ import org.jbpm.graph.def.ProcessDefinition;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/02/06 11:49:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:58:16 $ by $Author: civilis $
  */
 public interface ProcessBundle {
 
@@ -28,6 +28,8 @@ public interface ProcessBundle {
 	public abstract List<ViewResource> getViewResources(String taskName) throws IOException;
 	
 	/**
+	 * One of the main responsibilities is to set the start task
+	 * 
 	 * could add specific info, or configurations for process definition created
 	 * @param pd - process definition
 	 */

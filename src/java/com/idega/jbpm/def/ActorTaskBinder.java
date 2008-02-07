@@ -57,7 +57,7 @@ public class ActorTaskBinder {
 				bind.setActorType(actorType);
 			}
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -83,7 +83,7 @@ public class ActorTaskBinder {
 			getJbpmBindsDao().persist(bind);
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 
@@ -112,7 +112,7 @@ public class ActorTaskBinder {
 				//TODO: check if this is needed getJbpmBindsDao().flush();
 			}
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
@@ -137,7 +137,7 @@ public class ActorTaskBinder {
 			bind.setActorType(ActorTaskBind.ROLE);
 			getJbpmBindsDao().persist(bind);
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
