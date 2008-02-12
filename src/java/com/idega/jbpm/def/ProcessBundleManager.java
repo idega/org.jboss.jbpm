@@ -17,9 +17,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/02/07 13:58:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/12 14:35:32 $ by $Author: civilis $
  */
 public class ProcessBundleManager {
 
@@ -51,7 +51,6 @@ public class ProcessBundleManager {
 			throw new IllegalArgumentException("No managers type in process bundle provided: "+processBundle.getClass().getName());
 		
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
-		System.out.println("creating bundle ........");
 
 		try {
 

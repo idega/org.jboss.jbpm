@@ -13,7 +13,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="BPM_ACTOR_TASK_BINDINGS")
+@Table(name="BPM_ACTOR_TASK")
 @NamedQueries(
 		{
 			@NamedQuery(name=ActorTaskBind.GET_UNIQUE_BY_TASK_ID_AND_ACTOR_TYPE_QUERY_NAME, query="from ActorTaskBind ATB where ATB.taskId = :"+ActorTaskBind.taskIdParam+" and ATB.actorType = :"+ActorTaskBind.actorTypeParam),

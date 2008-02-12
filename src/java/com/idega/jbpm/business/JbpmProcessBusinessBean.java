@@ -378,7 +378,7 @@ public class JbpmProcessBusinessBean {
 			}
 			return result;
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	

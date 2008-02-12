@@ -12,12 +12,12 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/02/05 19:33:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/12 14:35:32 $ by $Author: civilis $
  */
 @Entity
-@Table(name="BPM_MANAGERS_PROCDEF_BINDINGS")
+@Table(name="BPM_MANAGERS_PROCDEF")
 @NamedQueries(
 		{
 			@NamedQuery(name=ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId, query="from ManagersTypeProcessDefinitionBind MTPDB where MTPDB.processDefinitionId = :"+ManagersTypeProcessDefinitionBind.processDefinitionIdParam),
