@@ -1,3 +1,4 @@
+
 package com.idega.jbpm.exe;
 
 import java.rmi.RemoteException;
@@ -28,9 +29,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/02/07 13:58:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/14 15:52:04 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -39,7 +40,7 @@ public class ProcessArtifacts {
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 
-	public Document getProcessArtifactsList(ProcessArtifactsParamsBean params) {
+	public Document getProcessDocumentsList(ProcessArtifactsParamsBean params) {
 		
 		Integer processInstanceId = params.getPiId();
 		

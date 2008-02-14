@@ -25,7 +25,7 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector, proc
             },
             
             datatype: "xml", 
-            height: 250, 
+            height: 250,
             colNames:['Nr','Task name', 'Submitted date'], 
             colModel:[ 
                 {name:'id',index:'id'},
