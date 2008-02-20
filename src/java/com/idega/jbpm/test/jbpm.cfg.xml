@@ -1,0 +1,30 @@
+<jbpm-configuration>
+
+  <!-- 
+    The default configurations can be found in org/jbpm/default.jbpm.cfg.xml 
+    Those configurations can be overwritten by putting this file called 
+    jbpm.cfg.xml on the root of the classpath and put in the customized values.
+  -->
+  
+    <!--  
+	<string name='resource.hibernate.cfg.xml' value='com/idega/jbpm/jbpm.hibernate.cfg.xml' />
+    -->
+    
+	<jbpm-context>
+	<!--  	
+		<service name="persistence">
+	      <factory>
+	        <bean class="org.jbpm.persistence.db.DbPersistenceServiceFactory">
+	          <field name="isCurrentSessionEnabled"><true /></field>
+	          <field name="isTransactionEnabled"><false /></field>
+	        </bean>
+	      </factory>
+	    </service>
+	    -->
+        <service name="tx" factory="org.jbpm.tx.TxServiceFactory" />
+        <service name="message" factory="org.jbpm.msg.db.DbMessageServiceFactory" />
+        <service name="scheduler" factory="org.jbpm.scheduler.db.DbSchedulerServiceFactory" />
+        <service name="logging" factory="org.jbpm.logging.db.DbLoggingServiceFactory" />
+        <service name="authentication" factory="org.jbpm.security.authentication.DefaultAuthenticationServiceFactory" />
+    </jbpm-context>
+</jbpm-configuration>

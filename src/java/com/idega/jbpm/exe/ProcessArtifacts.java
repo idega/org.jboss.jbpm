@@ -29,9 +29,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/02/14 15:52:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/20 14:38:43 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -44,6 +44,7 @@ public class ProcessArtifacts {
 		
 		Integer processInstanceId = params.getPiId();
 		
+//		TODO: don't return null, but empty doc instead
 		if(processInstanceId == null)
 			return null;
 		
