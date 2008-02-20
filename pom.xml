@@ -58,15 +58,21 @@
       <artifactId>com.idega.hibernate</artifactId>
     </dependency>
     <dependency>
-      <groupId>jbpm</groupId>
+      <groupId>org.jbpm</groupId>
       <artifactId>jbpm-jpdl</artifactId>
-      <version>${jbpm-jbpm-jpdl-version}</version>
+      <version>3.2.2</version>
       <type>jar</type>
+	  <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+    	  <artifactId>commons-logging</artifactId>
+		</exclusion>
+	  </exclusions>
     </dependency>
     <dependency>
-      <groupId>jbpm</groupId>
+      <groupId>org.jbpm</groupId>
       <artifactId>jbpm-identity</artifactId>
-      <version>3.2.1</version>
+      <version>3.2.2</version>
       <type>jar</type>
     </dependency>
    	<dependency>
