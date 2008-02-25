@@ -15,9 +15,9 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/02/20 14:38:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/25 16:17:28 $ by $Author: civilis $
  *
  */
 public class Mockup {
@@ -89,7 +89,7 @@ public class Mockup {
 			Collection<TaskInstance> tis = pi.getTaskMgmtInstance().getTaskInstances();
 			
 			for (TaskInstance taskInstance : tis) {
-				
+
 				if(!taskInstance.hasEnded() && taskInstance.getName().equals("Submit comment")) {
 					taskInstance.end("submitComment");
 					System.out.println(">>>>ended: "+taskInstance.getToken());

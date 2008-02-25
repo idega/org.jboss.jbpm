@@ -6,28 +6,41 @@ import com.idega.jbpm.def.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/01/26 09:46:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/25 16:17:28 $ by $Author: civilis $
  */
 public interface BPMFactory {
-	
+
 	/**
 	 * 
-	 * @param taskInstanceId
-	 * @param viewTypes - optional. Declares the ordered list to look for views
-	 * @return Finds first init task of process definition and returns View Manager for it.
+	 * @param processDefinitionId
+	 * @return View manager bound to process definition
 	 */
 	public abstract ViewManager getViewManager(long processDefinitionId);
 	
 	/**
 	 * 
-	 * @param viewType
-	 * @return If no viewType is provided, the default process manager would be returned (not implemented yet)
+	 * @param processDefinitionId
+	 * @return View manager bound to process definition
 	 */
 	public abstract ProcessManager getProcessManager(long processDefinitionId);
 	
+	/**
+	 * @see javadoc for getView(long taskId, boolean submitable, List<String> preferredTypes);
+	 * @param taskId
+	 * @param submitable
+	 * @return
+	 */
 	public abstract View getView(long taskId, boolean submitable);
 	
+	/**
+	 * Finds viewTaskBind by taskId provided, and finds ViewFactory by preferred types in order given, if any provided
+	 * Uses the ViewFactory resolved for creating View for view identifier resolved in viewTaskBind
+	 * @param taskId
+	 * @param submitable - should the view be able to be submitted (e.g. for html forms, the submit button could be disabled or hidden)
+	 * @param preferredTypes - if null, the behavior is the same as calling getView(taskId, submitable)
+	 * @return
+	 */
 	public abstract View getView(long taskId, boolean submitable, List<String> preferredTypes);
 }

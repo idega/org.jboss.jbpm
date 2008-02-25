@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
+import javax.faces.el.ValueBinding;
 
 import org.jbpm.JbpmContext;
 
@@ -19,9 +20,9 @@ import com.idega.util.CoreConstants;
  * TODO: move this to jbpm module
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/02/07 13:58:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/25 16:17:28 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -42,7 +43,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 	
 	private String processDefinitionId;
 //	private String processInstanceId;
-	private String taskInstanceId;
+	private Long taskInstanceId;
 //	private boolean processView = false;
 	
 	private BPMFactory bpmFactory;
@@ -90,7 +91,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		
 		String processDefinitionId = getProcessDefinitionId(context);
 //		String processInstanceId = getProcessInstanceId(context);
-		String taskInstanceId = getTaskInstanceId(context);
+		Long taskInstanceId = getTaskInstanceId(context);
 		
 		UIComponent viewer = null;
 		
@@ -135,14 +136,13 @@ public class BPMTaskViewer extends IWBaseComponent {
 	 */
 	
 	
-	private UIComponent loadViewerFromTaskInstance(FacesContext context, String taskInstanceId) {
+	private UIComponent loadViewerFromTaskInstance(FacesContext context, Long taskInstanceId) {
 		
 		JbpmContext ctx = getIdegaJbpmContext(context).createJbpmContext();
 		
 		try {
-			long tskInstId = Long.parseLong(taskInstanceId);
-			long pdId = ctx.getTaskInstance(tskInstId).getProcessInstance().getProcessDefinition().getId();
-			View initView = getBpmFactory(context).getViewManager(pdId).loadTaskInstanceView(context, tskInstId);
+			long pdId = ctx.getTaskInstance(taskInstanceId).getProcessInstance().getProcessDefinition().getId();
+			View initView = getBpmFactory(context).getViewManager(pdId).loadTaskInstanceView(context, taskInstanceId);
 			return initView.getViewForDisplay();
 			
 		} finally {
@@ -206,26 +206,32 @@ public class BPMTaskViewer extends IWBaseComponent {
 	}
 	*/
 
-	public String getTaskInstanceId() {
-		return taskInstanceId;
-	}
-	
-	public String getTaskInstanceId(FacesContext context) {
+	public Long getTaskInstanceId(FacesContext context) {
 
-		String taskInstanceId = getTaskInstanceId();
+		Long taskInstanceId = getTaskInstanceId();
 		
 		if(taskInstanceId == null) {
 			
-			taskInstanceId = getValueBinding(TASK_INSTANCE_PROPERTY) != null ? (String)getValueBinding(TASK_INSTANCE_PROPERTY).getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get(TASK_INSTANCE_PROPERTY);
-			taskInstanceId = CoreConstants.EMPTY.equals(taskInstanceId) ? null : taskInstanceId;
+			ValueBinding binding = getValueBinding(TASK_INSTANCE_PROPERTY);
+			
+			
+			if(binding != null && binding.getValue(context) != null)
+				taskInstanceId = (Long)binding.getValue(context);
+			
+			else if(context.getExternalContext().getRequestParameterMap().containsKey(TASK_INSTANCE_PROPERTY)) {
+				
+				Object val = context.getExternalContext().getRequestParameterMap().get(TASK_INSTANCE_PROPERTY);
+				
+				if(val instanceof Long)
+					taskInstanceId = (Long)val;
+				else if((val instanceof String) && !CoreConstants.EMPTY.equals(val))
+					taskInstanceId = new Long((String)val);
+			}
+			
 			setTaskInstanceId(taskInstanceId);
 		}
-		
-		return taskInstanceId;
-	}
 
-	public void setTaskInstanceId(String taskInstanceId) {
-		this.taskInstanceId = taskInstanceId;
+		return taskInstanceId;
 	}
 
 	public BPMFactory getBpmFactory() {
@@ -298,5 +304,13 @@ public class BPMTaskViewer extends IWBaseComponent {
 	public void setProcessDefinitionId(String processDefinitionId) {
 		
 		this.processDefinitionId = processDefinitionId;
+	}
+
+	public Long getTaskInstanceId() {
+		return taskInstanceId;
+	}
+
+	public void setTaskInstanceId(Long taskInstanceId) {
+		this.taskInstanceId = taskInstanceId;
 	}
 }
