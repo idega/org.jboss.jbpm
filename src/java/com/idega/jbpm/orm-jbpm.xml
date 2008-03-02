@@ -7,5 +7,7 @@
     <entity class="com.idega.jbpm.data.ViewTaskBind" />
     <entity class="com.idega.jbpm.data.ActorTaskBind" />
     <entity class="com.idega.jbpm.data.ManagersTypeProcessDefinitionBind" />
+    <entity class="com.idega.jbpm.data.ProcessRoleNativeIdentityBind" />
+    <entity class="com.idega.jbpm.data.NativeIdentityBind" />
         
 </entity-mappings>

@@ -2,8 +2,7 @@
 
 <process-definition
   xmlns=""  name="nestSomeProcess">
-   <swimlane name="x"></swimlane>
-   <swimlane name="b"></swimlane>
+   
    <start-state name="start">
       <transition name="" to="submitNewCase"></transition>
    </start-state>
@@ -27,6 +26,15 @@
             <variable name="string:plaintiffArgumentation" access="read,write,required"></variable>
             <variable name="files:plaintiffDocuments"></variable>
          </controller>
+         
+         <assignment class="com.idega.jbpm.test.MamaAssignmentHandler" name="x">
+            <expression>
+                {taskAssignment: {roles: {role: [
+                   {roleName: "handler", accesses: {access: [read, write]}},
+                   {roleName: "owner", accesses: {access: [read, write]}} 
+                ]} }}
+            </expression>
+         </assignment>
       </task>
       <transition name="" to="sendNewCaseMessages"></transition>
    </task-node>
@@ -34,6 +42,7 @@
       <transition name="" to="fork1"></transition>
    </node>
    <task-node name="submitMessageToPlaintiff">
+      <task name="task1"></task>
       <transition name="" to="submitAdditionalInformation"></transition>
    </task-node>
    <task-node name="submitAdditionalInformation">

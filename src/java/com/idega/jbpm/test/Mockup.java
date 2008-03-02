@@ -3,7 +3,6 @@ package com.idega.jbpm.test;
 import java.io.FileInputStream;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.jbpm.JbpmConfiguration;
@@ -15,12 +14,12 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/02/25 16:17:28 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/02 18:32:29 $ by $Author: civilis $
  *
  */
-public class Mockup {
+public class Mockup  {
 	
 	public static final String plaintiffVarName = "string:plaintiffFirstName";
 	
@@ -46,8 +45,12 @@ public class Mockup {
 			pi.signal();
 			System.out.println(">Signaling");
 			
-			printCompletedTaskInstances(pi);
+			//pi.getTaskMgmtInstance().getTaskMgmtDefinition().addTask(task)
+
 			printIncompletedTaskInstances(pi);
+			
+			if(true)
+				return;
 
 			System.out.println(">Submiting");
 			@SuppressWarnings("unchecked")
@@ -106,6 +109,7 @@ public class Mockup {
 				
 				if(taskInstance.getName().equals("Case Overview")) {
 					System.out.println("ending case overview last");
+					//taskInstance.getTask().setas
 					taskInstance.end("addComment");
 //					taskInstance.getSwimlaneInstance().getSwimlane()
 					break;

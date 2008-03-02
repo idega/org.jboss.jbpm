@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process-diagram name="nestSomeProcess" width="968" height="562">
+<process-diagram name="nestSomeProcess" width="1027" height="613">
   <node name="start" x="5" y="16" width="104" height="32">
     <transition name="">
       <label x="5" y="-10"/>
@@ -11,36 +11,34 @@
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="sendNewCaseMessages" x="38" y="204" width="140" height="40">
+  <node name="sendNewCaseMessages" x="0" y="0" width="140" height="40">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="submitMessageToPlaintiff" x="46" y="328" width="140" height="40">
-    <transition name="">
-      <label x="5" y="-10"/>
-      <bendpoint w1="101" h1="-15" w2="-17" h2="361"/>
-    </transition>
-  </node>
-  <node name="submitAdditionalInformation" x="199" y="97" width="-1" height="40">
+  <node name="submitMessageToPlaintiff" x="0" y="0" width="140" height="40">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="additionalInformationEnd" x="423" y="93" width="148" height="40"/>
-  <node name="submitRuling" x="228" y="343" width="112" height="25">
-    <transition name="">
-      <label x="5" y="-10"/>
-      <bendpoint w1="236" h1="-103" w2="-128" h2="139"/>
-    </transition>
-  </node>
-  <node name="sendRulingMessages" x="636" y="206" width="136" height="27">
+  <node name="submitAdditionalInformation" x="0" y="0" width="140" height="40">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="processEnd" x="862" y="299" width="105" height="29"/>
-  <node name="fork1" x="72" y="256" width="57" height="25">
+  <node name="additionalInformationEnd" x="0" y="0" width="140" height="40"/>
+  <node name="submitRuling" x="0" y="0" width="140" height="40">
+    <transition name="">
+      <label x="5" y="-10"/>
+    </transition>
+  </node>
+  <node name="sendRulingMessages" x="0" y="0" width="140" height="40">
+    <transition name="">
+      <label x="5" y="-10"/>
+    </transition>
+  </node>
+  <node name="processEnd" x="0" y="0" width="140" height="40"/>
+  <node name="fork1" x="0" y="0" width="200" height="25">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>
