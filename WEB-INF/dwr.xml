@@ -6,12 +6,10 @@
 	    	<param name="managedBeanName" value="actorBindingManager"/>
 	    	<param name="class" value="com.idega.jbpm.presentation.beans.ActorBindingViewBean"/>
     	</create>
-    	<!--  
   		<create creator="jsf" javascript="JbpmBusiness" scope="application">
 	    	<param name="managedBeanName" value="jbpmProcessBusiness"/>
 	    	<param name="class" value="com.idega.jbpm.business.JbpmProcessBusinessBean"/>
     	</create>
-    	-->
         <create creator="jsf" javascript="BPMProcessAssets">
             <param name="managedBeanName" value="BPMProcessAssets" />
             <param name="class" value="com.idega.jbpm.exe.ProcessArtifacts" />
