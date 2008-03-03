@@ -4,7 +4,6 @@ package com.idega.jbpm.data;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,9 +15,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/03 12:43:17 $ by $Author: alexis $
+ * Last modified: $Date: 2008/03/03 21:14:32 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROLE_NIDENTITY")
@@ -34,10 +33,10 @@ public class ProcessRoleNativeIdentityBind implements Serializable {
 	private String processRoleName;
 	
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name="actor_id")
+	@Column(name="actor_id", nullable=false)
 	private Long actorId;
 	
-    @OneToMany(mappedBy=NativeIdentityBind.processRoleNativeIdentityProp,cascade={CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(mappedBy=NativeIdentityBind.processRoleNativeIdentityProp)
 	private List<NativeIdentityBind> nativeIdentities;
 
 	public String getProcessRoleName() {

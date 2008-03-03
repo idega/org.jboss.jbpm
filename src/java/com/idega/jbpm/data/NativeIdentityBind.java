@@ -18,9 +18,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/03 12:43:18 $ by $Author: alexis $
+ * Last modified: $Date: 2008/03/03 21:14:33 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_NATIVE_IDENTITY")
@@ -42,7 +42,7 @@ public class NativeIdentityBind implements Serializable {
 	}
 	
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name="id")
+	@Column(name="id_")
 	private Long id;
 
 	@Column(name="identity_id", nullable=false)
@@ -52,7 +52,7 @@ public class NativeIdentityBind implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private IdentityType identityType;
 
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne(cascade={CascadeType.ALL})
     @JoinColumn(name="prole_nidentity_fk")
 	private ProcessRoleNativeIdentityBind processRoleNativeIdentity;
 

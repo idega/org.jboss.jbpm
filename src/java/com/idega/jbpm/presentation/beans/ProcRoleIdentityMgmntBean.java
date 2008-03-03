@@ -13,9 +13,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/03 12:34:56 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/03 21:14:30 $ by $Author: civilis $
  */
 public class ProcRoleIdentityMgmntBean implements Serializable {
 	
@@ -86,7 +86,7 @@ public class ProcRoleIdentityMgmntBean implements Serializable {
 			return;
 		}
 		
-		System.out.println("creating new process role");
+		System.out.println("creating new process role: "+getNewRoleName());
 		ProcessRoleNativeIdentityBind bind = new ProcessRoleNativeIdentityBind();
 		bind.setProcessRoleName(getNewRoleName());
 		
