@@ -3,6 +3,7 @@ package com.idega.jbpm.data;
 
 import java.io.Serializable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -17,9 +18,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/02 18:32:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/03 12:43:18 $ by $Author: alexis $
  */
 @Entity
 @Table(name="BPM_NATIVE_IDENTITY")
@@ -51,7 +52,7 @@ public class NativeIdentityBind implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private IdentityType identityType;
 
-	@ManyToOne
+	@ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="prole_nidentity_fk")
 	private ProcessRoleNativeIdentityBind processRoleNativeIdentity;
 
