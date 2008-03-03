@@ -22,5 +22,10 @@
             <component-type>BPMTaskViewer</component-type>
         </component>
     </tag>
-	
+    <tag>
+        <tag-name>BPMIdentityMgmnt</tag-name>
+        <component>
+            <component-type>com.idega.UIBPMIdentityMgmnt</component-type>
+        </component>
+    </tag>
 </facelet-taglib>

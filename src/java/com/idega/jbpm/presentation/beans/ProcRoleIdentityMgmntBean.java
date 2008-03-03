@@ -1,35 +1,109 @@
 package com.idega.jbpm.presentation.beans;
 
 import java.io.Serializable;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
-import javax.ejb.FinderException;
 import javax.faces.model.SelectItem;
 
-import org.jbpm.graph.def.ProcessDefinition;
-import org.jbpm.taskmgmt.def.Task;
+import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
+import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.util.CoreConstants;
 
-import com.idega.builder.bean.AdvancedProperty;
-import com.idega.business.IBOLookup;
-import com.idega.business.IBOLookupException;
-import com.idega.business.IBORuntimeException;
-import com.idega.core.accesscontrol.business.AccessController;
-import com.idega.core.accesscontrol.data.ICRole;
-import com.idega.jbpm.business.JbpmProcessBusinessBean;
-import com.idega.jbpm.data.ActorTaskBind;
-import com.idega.jbpm.def.ActorTaskBinder;
-import com.idega.user.business.GroupBusiness;
-import com.idega.user.business.UserBusiness;
-import com.idega.user.data.Group;
-import com.idega.user.data.User;
-import com.idega.util.CoreUtil;
 
-public class ActorBindingViewBean implements Serializable {
+/**
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.1 $
+ *
+ * Last modified: $Date: 2008/03/03 12:34:56 $ by $Author: civilis $
+ */
+public class ProcRoleIdentityMgmntBean implements Serializable {
 	
+	private static final long serialVersionUID = 2948950108387833369L;
+	private Long roleActorId;
+	private List<String> nativeGroupIds;
+	private String newRoleName;
+	List<SelectItem> rolesItems;
+	List<SelectItem> groupsItems;
+	
+	private BpmBindsDAO bpmBindsDAO;
+	
+	public BpmBindsDAO getBpmBindsDAO() {
+		return bpmBindsDAO;
+	}
+
+	public void setBpmBindsDAO(BpmBindsDAO bpmBindsDAO) {
+		this.bpmBindsDAO = bpmBindsDAO;
+	}
+
+	public String getNewRoleName() {
+		return newRoleName;
+	}
+
+	public void setNewRoleName(String newRoleName) {
+		this.newRoleName = newRoleName;
+	}
+
+	public List<SelectItem> getRoles() {
+		
+		if(rolesItems == null) {
+		
+			rolesItems = new ArrayList<SelectItem>();
+		}
+		
+		return rolesItems;
+		//SelectItem item = new SelectItem(new Long(1), "Handler role");
+	}
+	
+	public List<SelectItem> getNativeGroups() {
+		
+		if(groupsItems == null) {
+			
+			groupsItems = new ArrayList<SelectItem>();
+		}
+		
+		return groupsItems;
+	}
+
+	public Long getRoleActorId() {
+		return roleActorId;
+	}
+
+	public void setRoleActorId(Long roleActorId) {
+		this.roleActorId = roleActorId;
+	}
+
+	public void attGrpsToRole() {
+		
+		System.out.println("attaching groups to role");
+	}
+	
+	public void createProcessRole() {
+		
+		if(getNewRoleName() == null || CoreConstants.EMPTY.equals(getNewRoleName())) {
+			
+			System.out.println("add err msg");
+			return;
+		}
+		
+		System.out.println("creating new process role");
+		ProcessRoleNativeIdentityBind bind = new ProcessRoleNativeIdentityBind();
+		bind.setProcessRoleName(getNewRoleName());
+		
+		getBpmBindsDAO().persist(bind);
+		
+		System.out.println("add succ msg");
+	}
+
+	public List<String> getNativeGroupIds() {
+		return nativeGroupIds;
+	}
+
+	public void setNativeGroupIds(List<String> nativeGroupIds) {
+		this.nativeGroupIds = nativeGroupIds;
+	}
+	
+	/*
 	private String actorType;
 	private String[] actorId;
 	private List actors = new ArrayList();
@@ -244,5 +318,5 @@ public class ActorBindingViewBean implements Serializable {
 	public void setActorToTaskBinder(ActorTaskBinder actorToTaskBinder) {
 		this.actorToTaskBinder = actorToTaskBinder;
 	}
-
+*/
 }

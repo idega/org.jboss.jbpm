@@ -52,4 +52,14 @@
       </idegaweb-info>
     </component-extension>
   </component>
+  <component>
+    <component-type>com.idega.UIBPMIdentityMgmnt</component-type>
+    <component-class>com.idega.jbpm.presentation.UIBPMIdentityMgmnt</component-class>
+    <component-extension>
+      <idegaweb-info>
+        <builder-visible>true</builder-visible>
+        <object-type>jsf.uicomponent</object-type>
+      </idegaweb-info>
+    </component-extension>
+  </component>
 </faces-config>

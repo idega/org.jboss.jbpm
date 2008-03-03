@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.OneToMany;
@@ -13,9 +15,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/02 18:32:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/03 12:34:57 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROLE_NIDENTITY")
@@ -30,7 +32,7 @@ public class ProcessRoleNativeIdentityBind implements Serializable {
 	@Column(name="role_name", nullable=false)
 	private String processRoleName;
 	
-	@Id
+	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="actor_id")
 	private Long actorId;
 	

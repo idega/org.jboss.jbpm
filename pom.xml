@@ -136,5 +136,9 @@
       <version>${stax-stax-api-version}</version>
       <type>jar</type>
     </dependency>
+    <dependency>
+      <groupId>com.idega.block.platform</groupId>
+      <artifactId>com.idega.facelets</artifactId>
+    </dependency>
   </dependencies>
 </project>

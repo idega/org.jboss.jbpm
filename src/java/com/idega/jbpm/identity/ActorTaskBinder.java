@@ -1,4 +1,4 @@
-package com.idega.jbpm.def;
+package com.idega.jbpm.identity;
 
 import java.rmi.RemoteException;
 

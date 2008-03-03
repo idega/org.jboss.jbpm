@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<div
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:t="http://myfaces.apache.org/tomahawk"
+        xmlns:f="http://java.sun.com/jsf/core"
+>
+
+<!--  
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
+	xmlns:t="http://myfaces.apache.org/tomahawk"
+	xmlns:f="http://java.sun.com/jsf/core"
+	
+>
+
+<ws:page 	id="xformsWorkflow"
+			showFunctionMenu="true"
+			javascripturls="/idegaweb/bundles/com.idega.block.web2.0.bundle/resources/javascript/mootools/1.11/mootools-all.js,
+							/dwr/engine.js,
+							/dwr/util.js,
+							/dwr/interface/JbpmBusiness.js,
+							/dwr/interface/XFormsProcess.js,
+							/dwr/interface/ActorManager.js,
+							/idegaweb/bundles/com.idega.formbuilder.bundle/resources/javascript/xforms_process.js"
+			stylesheeturls="/idegaweb/bundles/com.idega.formbuilder.bundle/resources/style/xforms_process.css">
+-->
+		
+		<div>
+			<h1>BPM Identity Management</h1>
+			<div>
+				<div>
+					<label for="processRoleSelector">Select process role</label>
+					<h:selectOneMenu id="processRoleSelector" value="#{BPMRoleIdentityMgmnt.roleActorId}">
+						<f:selectItems value="#{BPMRoleIdentityMgmnt.roles}" />
+					</h:selectOneMenu>
+				</div>
+				<div>
+					<label for="groupSelector">Choose group(s)</label>
+					<h:selectManyMenu id="groupSelector" value="#{BPMRoleIdentityMgmnt.nativeGroupIds}">
+						<f:selectItems value="#{BPMRoleIdentityMgmnt.nativeGroups}" />
+					</h:selectManyMenu>
+				</div>
+				<div>
+                    <h:commandButton value="Attach groups to process role" action="#{BPMRoleIdentityMgmnt.attGrpsToRole}" />
+                </div>
+			</div>
+			<div>
+                <div>
+                    <label for="processRoleCreator">New process role</label>
+                    <h:inputText id="processRoleCreator" value="#{BPMRoleIdentityMgmnt.newRoleName}" />
+                </div>
+                <div>
+                    <h:commandButton value="Create process role" action="#{BPMRoleIdentityMgmnt.createProcessRole}" />
+                </div>
+            </div>
+		</div>
+</div>

@@ -12,16 +12,22 @@
 	<bean id="jbpmProcessVariablesHandler" class="com.idega.jbpm.exe.VariablesHandler" scope="singleton">
 		<property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
-	<bean id="actorToTaskBinder" class="com.idega.jbpm.def.ActorTaskBinder" scope="singleton">
-        <property name="jbpmBindsDao" ref="bpmBindsDAO" />
-        <property name="idegaJbpmContext" ref="idegaJbpmContext" />
-	</bean>
 	<bean id="idegaDeployProcess" class="com.idega.jbpm.presentation.beans.DeployProcess" scope="request">
 		<property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
-	<bean id="actorBindingManager" class="com.idega.jbpm.presentation.beans.ActorBindingViewBean" scope="session">
+	
+	<!--  
+    <bean id="actorToTaskBinder" class="com.idega.jbpm.identity.ActorTaskBinder" scope="singleton">
+        <property name="jbpmBindsDao" ref="bpmBindsDAO" />
+        <property name="idegaJbpmContext" ref="idegaJbpmContext" />
+    </bean>
+    -->
+	<bean id="BPMRoleIdentityMgmnt" class="com.idega.jbpm.presentation.beans.ProcRoleIdentityMgmntBean" scope="request">
+	   <property name="bpmBindsDAO" ref="bpmBindsDAO" />
+	   <!--  
 		<property name="actorToTaskBinder" ref="actorToTaskBinder" />
 		<property name="jbpmProcessBusiness" ref="jbpmProcessBusiness" />
+		-->
 	</bean>
 	<bean id="processMgmtMockup" class="com.idega.jbpm.presentation.beans.ProcessMgmtMockupBean" scope="session">
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
