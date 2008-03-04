@@ -22,7 +22,7 @@
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
     </bean>
     -->
-	<bean id="BPMRoleIdentityMgmnt" class="com.idega.jbpm.presentation.beans.ProcRoleIdentityMgmntBean" scope="request">
+	<bean id="BPMRoleIdentityMgmnt" class="com.idega.jbpm.presentation.beans.IdentityMgmntBean" scope="request">
 	   <property name="bpmBindsDAO" ref="bpmBindsDAO" />
 	   <!--  
 		<property name="actorToTaskBinder" ref="actorToTaskBinder" />

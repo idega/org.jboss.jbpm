@@ -6,46 +6,26 @@
         xmlns:t="http://myfaces.apache.org/tomahawk"
         xmlns:f="http://java.sun.com/jsf/core"
 >
-
 <!--  
-<html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
-    xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
-	xmlns:t="http://myfaces.apache.org/tomahawk"
-	xmlns:f="http://java.sun.com/jsf/core"
-	
->
-
-<ws:page 	id="xformsWorkflow"
-			showFunctionMenu="true"
-			javascripturls="/idegaweb/bundles/com.idega.block.web2.0.bundle/resources/javascript/mootools/1.11/mootools-all.js,
-							/dwr/engine.js,
-							/dwr/util.js,
-							/dwr/interface/JbpmBusiness.js,
-							/dwr/interface/XFormsProcess.js,
-							/dwr/interface/ActorManager.js,
-							/idegaweb/bundles/com.idega.formbuilder.bundle/resources/javascript/xforms_process.js"
-			stylesheeturls="/idegaweb/bundles/com.idega.formbuilder.bundle/resources/style/xforms_process.css">
+		<t:saveState id="storeBPMRoleIdentityMgmntState" value="#{BPMRoleIdentityMgmnt}"/>
 -->
-		
 		<div>
-			<h1>BPM Identity Management</h1>
+			<h1>BPM Identity Management x</h1>
 			<div>
 				<div>
 					<label for="processRoleSelector">Select process role</label>
-					<h:selectOneMenu id="processRoleSelector" value="#{BPMRoleIdentityMgmnt.roleActorId}">
+					<h:selectOneListbox id="processRoleSelector" value="#{BPMRoleIdentityMgmnt.selectedRoleActorId}" size="5">
 						<f:selectItems value="#{BPMRoleIdentityMgmnt.roles}" />
-					</h:selectOneMenu>
+					</h:selectOneListbox>
 				</div>
 				<div>
 					<label for="groupSelector">Choose group(s)</label>
-					<h:selectManyMenu id="groupSelector" value="#{BPMRoleIdentityMgmnt.nativeGroupIds}">
+					<h:selectManyListbox id="groupSelector" value="#{BPMRoleIdentityMgmnt.selectedNativeGroupIds}" size="5">
 						<f:selectItems value="#{BPMRoleIdentityMgmnt.nativeGroups}" />
-					</h:selectManyMenu>
+					</h:selectManyListbox>
 				</div>
 				<div>
-                    <h:commandButton value="Attach groups to process role" action="#{BPMRoleIdentityMgmnt.attGrpsToRole}" />
+    				<h:commandButton value="Attach groups to process role" action="#{BPMRoleIdentityMgmnt.addGrpsToRole}" />
                 </div>
 			</div>
 			<div>
@@ -54,7 +34,7 @@
                     <h:inputText id="processRoleCreator" value="#{BPMRoleIdentityMgmnt.newRoleName}" />
                 </div>
                 <div>
-                    <h:commandButton value="Create process role" action="#{BPMRoleIdentityMgmnt.createProcessRole}" />
+                <h:commandButton value="Create process role" action="#{BPMRoleIdentityMgmnt.createProcessRole}" />
                 </div>
             </div>
 		</div>

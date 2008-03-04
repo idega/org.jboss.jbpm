@@ -1,5 +1,6 @@
 package com.idega.jbpm.data.dao.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jbpm.graph.def.ProcessDefinition;
@@ -8,14 +9,17 @@ import org.jbpm.taskmgmt.def.Task;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.jbpm.data.ActorTaskBind;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
+import com.idega.jbpm.data.NativeIdentityBind;
+import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
 import com.idega.jbpm.data.ViewTaskBind;
+import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BpmBindsDAO;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/02/05 19:33:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/04 20:57:59 $ by $Author: civilis $
  */
 public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 
@@ -97,5 +101,58 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		.getResultList();
 		
 		return all;
+	}
+	
+	public List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds() {
+		
+		@SuppressWarnings("unchecked")
+		List<ProcessRoleNativeIdentityBind> all = getEntityManager().createNamedQuery(ProcessRoleNativeIdentityBind.getAll)
+		.getResultList();
+		
+		return all;
+	}
+	
+	public void addGrpsToRole(Long roleActorId, List<String> selectedGroupsIds) {
+		
+		ProcessRoleNativeIdentityBind roleIdentity = find(ProcessRoleNativeIdentityBind.class, roleActorId);
+		
+		List<NativeIdentityBind> nativeIdentities = new ArrayList<NativeIdentityBind>(selectedGroupsIds.size());
+		
+		for (String groupId : selectedGroupsIds) {
+		
+			NativeIdentityBind nativeIdentity = new NativeIdentityBind();
+			nativeIdentity.setIdentityId(groupId);
+			nativeIdentity.setIdentityType(IdentityType.GROUP);
+			nativeIdentity.setProcessRoleNativeIdentity(roleIdentity);
+			nativeIdentities.add(nativeIdentity);
+		}
+		
+		List<NativeIdentityBind> existingNativeIdentities = roleIdentity.getNativeIdentities();
+		List<Long> nativeIdentitiesToRemove = new ArrayList<Long>();
+		
+		if(existingNativeIdentities != null) {
+		
+			for (NativeIdentityBind existing : existingNativeIdentities) {
+				
+				if(nativeIdentities.contains(existing)) {
+					
+					nativeIdentities.remove(existing);
+					nativeIdentities.add(existing);
+				} else {
+					
+					nativeIdentitiesToRemove.add(existing.getId());
+				}
+			}
+		} else {
+			existingNativeIdentities = new ArrayList<NativeIdentityBind>();
+		}
+		
+		roleIdentity.setNativeIdentities(nativeIdentities);
+		merge(roleIdentity);
+		
+		if(!nativeIdentitiesToRemove.isEmpty())
+			getEntityManager().createNamedQuery(NativeIdentityBind.deleteByIds)
+				.setParameter(NativeIdentityBind.idsParam, nativeIdentitiesToRemove)
+				.executeUpdate();
 	}
 }

@@ -1,30 +1,42 @@
 package com.idega.jbpm.presentation.beans;
 
 import java.io.Serializable;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 
+import com.idega.business.IBOLookup;
+import com.idega.business.IBOLookupException;
+import com.idega.business.IBORuntimeException;
 import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
 import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.user.business.GroupBusiness;
+import com.idega.user.data.Group;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/03/03 21:14:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/04 20:57:59 $ by $Author: civilis $
  */
-public class ProcRoleIdentityMgmntBean implements Serializable {
+public class IdentityMgmntBean implements Serializable {
 	
 	private static final long serialVersionUID = 2948950108387833369L;
-	private Long roleActorId;
-	private List<String> nativeGroupIds;
+	private Long selectedRoleActorId;
+	private List<String> selectedNativeGroupIds;
 	private String newRoleName;
-	List<SelectItem> rolesItems;
-	List<SelectItem> groupsItems;
+	private List<SelectItem> rolesItems;
+	private List<SelectItem> groupsItems;
 	
 	private BpmBindsDAO bpmBindsDAO;
 	
@@ -47,12 +59,19 @@ public class ProcRoleIdentityMgmntBean implements Serializable {
 	public List<SelectItem> getRoles() {
 		
 		if(rolesItems == null) {
-		
+			
 			rolesItems = new ArrayList<SelectItem>();
+			
+			List<ProcessRoleNativeIdentityBind> binds = getBpmBindsDAO().getAllProcessRoleNativeIdentityBinds();
+			
+			for (ProcessRoleNativeIdentityBind bind : binds) {
+				
+				SelectItem item = new SelectItem(bind.getActorId(), bind.getProcessRoleName());
+				rolesItems.add(item);
+			}
 		}
 		
 		return rolesItems;
-		//SelectItem item = new SelectItem(new Long(1), "Handler role");
 	}
 	
 	public List<SelectItem> getNativeGroups() {
@@ -60,47 +79,80 @@ public class ProcRoleIdentityMgmntBean implements Serializable {
 		if(groupsItems == null) {
 			
 			groupsItems = new ArrayList<SelectItem>();
+			
+			try {
+				@SuppressWarnings("unchecked")
+				Collection<Group> groups = getGroupBusiness().getAllGroups();
+				
+				for (Group group : groups) {
+					
+					SelectItem item = new SelectItem(group.getPrimaryKey().toString(), group.getName());
+					groupsItems.add(item);
+				}
+				
+			} catch(RemoteException re) {
+				Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving all groups", re);
+			}
 		}
 		
 		return groupsItems;
 	}
 
-	public Long getRoleActorId() {
-		return roleActorId;
-	}
-
-	public void setRoleActorId(Long roleActorId) {
-		this.roleActorId = roleActorId;
-	}
-
-	public void attGrpsToRole() {
+	public void addGrpsToRole() {
 		
-		System.out.println("attaching groups to role");
+		Long roleActorId = getSelectedRoleActorId();
+		
+		getBpmBindsDAO().addGrpsToRole(roleActorId, getSelectedNativeGroupIds());
 	}
 	
 	public void createProcessRole() {
 		
 		if(getNewRoleName() == null || CoreConstants.EMPTY.equals(getNewRoleName())) {
 			
-			System.out.println("add err msg");
+			FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Provide process role name", null);
+			FacesContext.getCurrentInstance().addMessage(null, msg);
 			return;
 		}
 		
-		System.out.println("creating new process role: "+getNewRoleName());
 		ProcessRoleNativeIdentityBind bind = new ProcessRoleNativeIdentityBind();
 		bind.setProcessRoleName(getNewRoleName());
 		
 		getBpmBindsDAO().persist(bind);
+		rolesItems = null;
 		
-		System.out.println("add succ msg");
+		FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Process role name saveds", null);
+		FacesContext.getCurrentInstance().addMessage(null, msg);
 	}
 
-	public List<String> getNativeGroupIds() {
-		return nativeGroupIds;
+	public Long getSelectedRoleActorId() {
+		return selectedRoleActorId;
 	}
 
-	public void setNativeGroupIds(List<String> nativeGroupIds) {
-		this.nativeGroupIds = nativeGroupIds;
+	public void setSelectedRoleActorId(Long selectedRoleActorId) {
+		this.selectedRoleActorId = selectedRoleActorId;
+	}
+
+	public List<String> getSelectedNativeGroupIds() {
+		
+		if(selectedNativeGroupIds == null) {
+			
+			selectedNativeGroupIds = new ArrayList<String>();
+		}
+		
+		return selectedNativeGroupIds;
+	}
+
+	public void setSelectedNativeGroupIds(List<String> selectedNativeGroupIds) {
+		this.selectedNativeGroupIds = selectedNativeGroupIds;
+	}
+
+	protected GroupBusiness getGroupBusiness() {
+		try {
+			return (GroupBusiness)IBOLookup.getServiceInstance(CoreUtil.getIWContext(), GroupBusiness.class);
+		}
+		catch (IBOLookupException ile) {
+			throw new IBORuntimeException(ile);
+		}
 	}
 	
 	/*

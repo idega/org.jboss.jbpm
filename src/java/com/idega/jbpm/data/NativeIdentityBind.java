@@ -14,24 +14,28 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/03 21:14:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/04 20:57:59 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_NATIVE_IDENTITY")
 @NamedQueries(
 		{
+			@NamedQuery(name=NativeIdentityBind.deleteByIds, query="delete from NativeIdentityBind b where b.id in (:"+NativeIdentityBind.idsParam+")")
 		}
 )
 public class NativeIdentityBind implements Serializable {
 
 	private static final long serialVersionUID = 4739344819567695492L;
-	
+
+	public static final String idsParam = "ids";
+	public static final String deleteByIds = "NativeIdentityBind.deleteByIds";
 	public static final String processRoleNativeIdentityProp = "processRoleNativeIdentity";
 
 	public enum IdentityType {
@@ -52,8 +56,8 @@ public class NativeIdentityBind implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private IdentityType identityType;
 
-	@ManyToOne(cascade={CascadeType.ALL})
-    @JoinColumn(name="prole_nidentity_fk")
+	@ManyToOne(cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE})
+    @JoinColumn(name="prole_nidentity_fk", nullable=false)
 	private ProcessRoleNativeIdentityBind processRoleNativeIdentity;
 
 	public Long getId() {
@@ -91,5 +95,19 @@ public class NativeIdentityBind implements Serializable {
 
 	public static String getProcessRoleNativeIdentityProp() {
 		return processRoleNativeIdentityProp;
+	}
+	
+	@Override
+	public boolean equals(Object arg0) {
+		
+		if(super.equals(arg0))
+			return true;
+		
+		if(arg0 == null || !(arg0 instanceof NativeIdentityBind))
+			return false;
+		
+		NativeIdentityBind b = (NativeIdentityBind)arg0;
+		
+		return getIdentityId() == null || getIdentityType() == null ? false : getIdentityId().equals(b.getIdentityId()) && getIdentityType().equals(b.getIdentityType());
 	}
 }
