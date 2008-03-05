@@ -8,14 +8,15 @@ import org.jbpm.taskmgmt.def.Task;
 import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.data.ActorTaskBind;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
+import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
 import com.idega.jbpm.data.ViewTaskBind;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/04 20:57:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/05 21:11:52 $ by $Author: civilis $
  */
 public interface BpmBindsDAO extends GenericDao {
 
@@ -42,4 +43,8 @@ public interface BpmBindsDAO extends GenericDao {
 	public abstract List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds();
 	
 	public abstract void addGrpsToRole(Long roleActorId, List<String> selectedGroupsIds);
+	
+	public abstract List<NativeIdentityBind> getNativeIdentities(long processRoleIdentityId);
+	
+	public abstract List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds(List<String> rolesNames);
 }

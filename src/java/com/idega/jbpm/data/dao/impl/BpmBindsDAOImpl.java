@@ -17,9 +17,9 @@ import com.idega.jbpm.data.dao.BpmBindsDAO;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/04 20:57:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
  */
 public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 
@@ -112,6 +112,19 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		return all;
 	}
 	
+	public List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds(List<String> rolesNames) {
+		
+		if(rolesNames == null || rolesNames.isEmpty())
+			throw new IllegalArgumentException("Roles names should contain values");
+		
+		@SuppressWarnings("unchecked")
+		List<ProcessRoleNativeIdentityBind> all = getEntityManager().createNamedQuery(ProcessRoleNativeIdentityBind.getAllByRoleNames)
+		.setParameter(ProcessRoleNativeIdentityBind.processRoleNameProperty, rolesNames)
+		.getResultList();
+		
+		return all;
+	}
+	
 	public void addGrpsToRole(Long roleActorId, List<String> selectedGroupsIds) {
 		
 		ProcessRoleNativeIdentityBind roleIdentity = find(ProcessRoleNativeIdentityBind.class, roleActorId);
@@ -154,5 +167,15 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 			getEntityManager().createNamedQuery(NativeIdentityBind.deleteByIds)
 				.setParameter(NativeIdentityBind.idsParam, nativeIdentitiesToRemove)
 				.executeUpdate();
+	}
+	
+	public List<NativeIdentityBind> getNativeIdentities(long processRoleIdentityId) {
+		
+		@SuppressWarnings("unchecked")
+		List<NativeIdentityBind> binds = getEntityManager().createNamedQuery(NativeIdentityBind.getByProcIdentity)
+		.setParameter(NativeIdentityBind.procIdentityParam, processRoleIdentityId)
+		.getResultList();
+		
+		return binds;
 	}
 }

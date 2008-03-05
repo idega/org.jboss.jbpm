@@ -6,15 +6,13 @@
         xmlns:t="http://myfaces.apache.org/tomahawk"
         xmlns:f="http://java.sun.com/jsf/core"
 >
-<!--  
-		<t:saveState id="storeBPMRoleIdentityMgmntState" value="#{BPMRoleIdentityMgmnt}"/>
--->
+        <t:saveState id="storeBPMRoleIdentityMgmntState" value="#{BPMRoleIdentityMgmnt}"/>
 		<div>
-			<h1>BPM Identity Management x</h1>
+			<h1>BPM Identity Management</h1>
 			<div>
 				<div>
 					<label for="processRoleSelector">Select process role</label>
-					<h:selectOneListbox id="processRoleSelector" value="#{BPMRoleIdentityMgmnt.selectedRoleActorId}" size="5">
+					<h:selectOneListbox id="processRoleSelector" value="#{BPMRoleIdentityMgmnt.selectedRoleActorId}" size="5" onchange="this.form.submit();" valueChangeListener="#{BPMRoleIdentityMgmnt.selectedRoleActorIdChanged}">
 						<f:selectItems value="#{BPMRoleIdentityMgmnt.roles}" />
 					</h:selectOneListbox>
 				</div>

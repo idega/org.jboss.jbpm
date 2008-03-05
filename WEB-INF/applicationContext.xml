@@ -2,7 +2,7 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 	<bean id="defaultJbpmConfiguration" class="org.jbpm.JbpmConfiguration" factory-method="getInstance" scope="singleton">
 		<constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
 	</bean>
@@ -23,7 +23,9 @@
     </bean>
     -->
 	<bean id="BPMRoleIdentityMgmnt" class="com.idega.jbpm.presentation.beans.IdentityMgmntBean" scope="request">
+	<!--  
 	   <property name="bpmBindsDAO" ref="bpmBindsDAO" />
+	   -->
 	   <!--  
 		<property name="actorToTaskBinder" ref="actorToTaskBinder" />
 		<property name="jbpmProcessBusiness" ref="jbpmProcessBusiness" />
@@ -54,5 +56,13 @@
     <bean id="bpmFactory" class="com.idega.jbpm.exe.impl.BPMFactoryImpl" scope="singleton">
         <property name="bindsDAO" ref="bpmBindsDAO" />
     </bean>
+    
+    <bean id="bpmRolesAssiger" class="com.idega.jbpm.identity.RolesAssiger" scope="singleton">
+        <property name="bpmBindsDAO" ref="bpmBindsDAO" />
+    </bean>
+    
+    <bean id="bpmIdentityAuthorizationAspect" class="com.idega.jbpm.identity.authorization.IdentityAuthorizationAspect" scope="singleton" />
+    <bean id="bpmPointcuts" class="com.idega.jbpm.business.BPMPointcuts" scope="singleton" />
+    
     
 </beans>

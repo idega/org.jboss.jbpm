@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process-diagram name="nestSomeProcess" width="1027" height="613">
+<process-diagram name="nestSomeProcess" width="805" height="608">
   <node name="start" x="5" y="16" width="104" height="32">
     <transition name="">
       <label x="5" y="-10"/>
@@ -11,34 +11,34 @@
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="sendNewCaseMessages" x="0" y="0" width="140" height="40">
+  <node name="sendNewCaseMessages" x="19" y="241" width="140" height="40">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="submitMessageToPlaintiff" x="0" y="0" width="140" height="40">
+  <node name="submitMessageToPlaintiff" x="32" y="193" width="140" height="40">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="submitAdditionalInformation" x="0" y="0" width="140" height="40">
+  <node name="submitAdditionalInformation" x="363" y="382" width="140" height="40">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="additionalInformationEnd" x="0" y="0" width="140" height="40"/>
-  <node name="submitRuling" x="0" y="0" width="140" height="40">
+  <node name="additionalInformationEnd" x="24" y="344" width="140" height="40"/>
+  <node name="submitRuling" x="187" y="205" width="140" height="40">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="sendRulingMessages" x="0" y="0" width="140" height="40">
+  <node name="sendRulingMessages" x="166" y="365" width="140" height="40">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>
   </node>
-  <node name="processEnd" x="0" y="0" width="140" height="40"/>
-  <node name="fork1" x="0" y="0" width="200" height="25">
+  <node name="processEnd" x="425" y="165" width="140" height="40"/>
+  <node name="fork1" x="431" y="246" width="200" height="25">
     <transition name="">
       <label x="5" y="-10"/>
     </transition>

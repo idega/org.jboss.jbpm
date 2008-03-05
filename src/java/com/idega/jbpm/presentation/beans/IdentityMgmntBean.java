@@ -10,24 +10,28 @@ import java.util.logging.Logger;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseId;
+import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
+import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
 import com.idega.jbpm.data.dao.BpmBindsDAO;
 import com.idega.user.business.GroupBusiness;
 import com.idega.user.data.Group;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
+import com.idega.webface.WFUtil;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/04 20:57:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
  */
 public class IdentityMgmntBean implements Serializable {
 	
@@ -38,14 +42,8 @@ public class IdentityMgmntBean implements Serializable {
 	private List<SelectItem> rolesItems;
 	private List<SelectItem> groupsItems;
 	
-	private BpmBindsDAO bpmBindsDAO;
-	
 	public BpmBindsDAO getBpmBindsDAO() {
-		return bpmBindsDAO;
-	}
-
-	public void setBpmBindsDAO(BpmBindsDAO bpmBindsDAO) {
-		this.bpmBindsDAO = bpmBindsDAO;
+		return (BpmBindsDAO)WFUtil.getBeanInstance("bpmBindsDAO");
 	}
 
 	public String getNewRoleName() {
@@ -101,8 +99,11 @@ public class IdentityMgmntBean implements Serializable {
 	public void addGrpsToRole() {
 		
 		Long roleActorId = getSelectedRoleActorId();
-		
 		getBpmBindsDAO().addGrpsToRole(roleActorId, getSelectedNativeGroupIds());
+		
+		if(selectedNativeGroupIds != null)
+			selectedNativeGroupIds.clear();
+		///selectedNativeGroupIds = null;
 	}
 	
 	public void createProcessRole() {
@@ -131,12 +132,38 @@ public class IdentityMgmntBean implements Serializable {
 	public void setSelectedRoleActorId(Long selectedRoleActorId) {
 		this.selectedRoleActorId = selectedRoleActorId;
 	}
+	
+	public void selectedRoleActorIdChanged(ValueChangeEvent event) {
+		
+		PhaseId phaseId = event.getPhaseId();
+		
+		if (phaseId.equals(PhaseId.ANY_PHASE)) {
+			
+			event.setPhaseId(PhaseId.UPDATE_MODEL_VALUES);
+			event.queue();
+			
+		} else if (phaseId.equals(PhaseId.UPDATE_MODEL_VALUES)) {
+			
+			System.out.println("event.getNewValue(): "+event.getNewValue());
+			System.out.println("event.getOldValue(): "+event.getOldValue());
+			if(selectedNativeGroupIds != null && event.getNewValue() != null && event.getOldValue() != null && !event.getNewValue().equals(event.getOldValue()))
+				selectedNativeGroupIds.clear();
+			
+			selectedRoleActorId = (Long)event.getNewValue();
+		}
+	}
 
 	public List<String> getSelectedNativeGroupIds() {
 		
-		if(selectedNativeGroupIds == null) {
-			
+		if(selectedNativeGroupIds == null)
 			selectedNativeGroupIds = new ArrayList<String>();
+		
+		if(selectedNativeGroupIds.isEmpty() && getSelectedRoleActorId() != null) {
+			
+			List<NativeIdentityBind> binds = getBpmBindsDAO().getNativeIdentities(getSelectedRoleActorId());
+			
+			for (NativeIdentityBind bind : binds)
+				selectedNativeGroupIds.add(bind.getIdentityId());
 		}
 		
 		return selectedNativeGroupIds;

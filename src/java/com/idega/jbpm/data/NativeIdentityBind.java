@@ -19,23 +19,26 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/04 20:57:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_NATIVE_IDENTITY")
 @NamedQueries(
 		{
-			@NamedQuery(name=NativeIdentityBind.deleteByIds, query="delete from NativeIdentityBind b where b.id in (:"+NativeIdentityBind.idsParam+")")
+			@NamedQuery(name=NativeIdentityBind.deleteByIds, query="delete from NativeIdentityBind b where b.id in (:"+NativeIdentityBind.idsParam+")"),
+			@NamedQuery(name=NativeIdentityBind.getByProcIdentity, query="from NativeIdentityBind b where b.processRoleNativeIdentity."+ProcessRoleNativeIdentityBind.actorIdProperty+" = :"+NativeIdentityBind.procIdentityParam)
 		}
 )
 public class NativeIdentityBind implements Serializable {
 
 	private static final long serialVersionUID = 4739344819567695492L;
 
+	public static final String procIdentityParam = "procIdentity";
 	public static final String idsParam = "ids";
 	public static final String deleteByIds = "NativeIdentityBind.deleteByIds";
+	public static final String getByProcIdentity = "NativeIdentityBind.getByProcIdentity";
 	public static final String processRoleNativeIdentityProp = "processRoleNativeIdentity";
 
 	public enum IdentityType {

@@ -1,4 +1,3 @@
-
 package com.idega.jbpm.exe;
 
 import java.rmi.RemoteException;
@@ -29,9 +28,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/02/20 14:38:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
