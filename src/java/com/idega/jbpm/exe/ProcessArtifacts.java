@@ -28,9 +28,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/06 11:55:03 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -146,7 +146,7 @@ public class ProcessArtifacts {
 		
 			long processDefinitionId = ctx.getTaskInstance(taskInstanceId).getProcessInstance().getProcessDefinition().getId();
 			
-			UIComponent viewUIComponent = getBpmFactory().getViewManager(processDefinitionId).loadTaskInstanceView(FacesContext.getCurrentInstance(), taskInstanceId).getViewForDisplay();
+			UIComponent viewUIComponent = getBpmFactory().getViewManager(processDefinitionId).loadTaskInstanceView(taskInstanceId, FacesContext.getCurrentInstance()).getViewForDisplay();
 			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
 			
 		} finally {

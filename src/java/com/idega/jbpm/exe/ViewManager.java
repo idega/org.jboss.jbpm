@@ -5,13 +5,13 @@ import com.idega.jbpm.def.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/01/25 15:24:25 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/06 11:55:03 $ by $Author: civilis $
  */
 public interface ViewManager {
 
-	public abstract View loadInitView(FacesContext context, Long processDefinitionId, int initiatorId);
+	public abstract View loadInitView(long processDefinitionId, int initiatorId, FacesContext context);
 
-	public abstract View loadTaskInstanceView(FacesContext context, Long taskInstanceId);
+	public abstract View loadTaskInstanceView(long taskInstanceId, FacesContext context);
 }

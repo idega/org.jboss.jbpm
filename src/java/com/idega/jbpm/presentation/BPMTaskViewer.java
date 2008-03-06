@@ -18,9 +18,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/03 12:34:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/06 11:55:03 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -119,7 +119,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		int initiatorId = IWContext.getIWContext(context).getCurrentUserId();
 		long pdId = Long.parseLong(processDefinitionId);
 		
-		View initView = getBpmFactory(context).getViewManager(pdId).loadInitView(context, pdId, initiatorId);
+		View initView = getBpmFactory(context).getViewManager(pdId).loadInitView(pdId, initiatorId, context);
 		return initView.getViewForDisplay();
 	}
 
@@ -140,7 +140,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		
 		try {
 			long pdId = ctx.getTaskInstance(taskInstanceId).getProcessInstance().getProcessDefinition().getId();
-			View initView = getBpmFactory(context).getViewManager(pdId).loadTaskInstanceView(context, taskInstanceId);
+			View initView = getBpmFactory(context).getViewManager(pdId).loadTaskInstanceView(taskInstanceId, context);
 			return initView.getViewForDisplay();
 			
 		} finally {

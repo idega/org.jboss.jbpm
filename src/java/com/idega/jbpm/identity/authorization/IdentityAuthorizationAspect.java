@@ -1,22 +1,33 @@
 package com.idega.jbpm.identity.authorization;
 
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+
+import com.idega.jbpm.business.BPMPointcuts;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/06 11:55:03 $ by $Author: civilis $
  */
 @Aspect
 public class IdentityAuthorizationAspect {
 	
-	@Before("com.idega.jbpm.business.BPMPointcuts.startProcessAtProcessManager() && args(processDefinitionId, ..)")
+
+	/*
+	@Before(BPMPointcuts.startProcessAtProcessManager+" && args(processDefinitionId, ..)")
 	public void checkPermissionToStartProcess(JoinPoint p, long processDefinitionId) {
-		
-		System.out.println("in aspect, advising for process def: "+processDefinitionId);
+
+//		TODO: permitting everyone to start process
+	}
+	*/
+	
+	@Before("("+BPMPointcuts.loadTaskInstanceViewAtViewManager+" || "+BPMPointcuts.submitProcessAtProcessManager+") && args(taskInstanceId, ..)")
+	public void checkPermissionToTaskInstance(long taskInstanceId) {
+
+		//System.out.println("checking if current user has access to task instance for: "+taskInstanceId);
+		System.out.println("checking if current user has access to task instance for: "+taskInstanceId);
 	}
 }
