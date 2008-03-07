@@ -1,5 +1,6 @@
 package com.idega.jbpm.data.dao;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.jbpm.graph.def.ProcessDefinition;
@@ -14,9 +15,9 @@ import com.idega.jbpm.data.ViewTaskBind;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/05 21:11:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/07 16:18:19 $ by $Author: civilis $
  */
 public interface BpmBindsDAO extends GenericDao {
 
@@ -28,11 +29,9 @@ public interface BpmBindsDAO extends GenericDao {
 
 	public abstract List<ViewTaskBind> getViewTaskBindsByTaskId(long taskId);
 
-	public abstract ViewTaskBind getViewTaskBindByView(String viewId,
-			String viewType);
+	public abstract ViewTaskBind getViewTaskBindByView(String viewId, String viewType);
 
-	public abstract List<ViewTaskBind> getViewTaskBindsByTasksIds(
-			List<Long> taskIds);
+	public abstract List<ViewTaskBind> getViewTaskBindsByTasksIds(Collection<Long> taskIds);
 
 	public abstract Task getTaskFromViewTaskBind(ViewTaskBind viewTaskBind);
 	
@@ -42,9 +41,11 @@ public interface BpmBindsDAO extends GenericDao {
 	
 	public abstract List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds();
 	
-	public abstract void addGrpsToRole(Long roleActorId, List<String> selectedGroupsIds);
+	public abstract void addGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds);
 	
 	public abstract List<NativeIdentityBind> getNativeIdentities(long processRoleIdentityId);
 	
-	public abstract List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds(List<String> rolesNames);
+	public abstract List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds(Collection<String> rolesNames);
+	
+	public abstract List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBindsByActors(Collection<String> actorIds);
 }

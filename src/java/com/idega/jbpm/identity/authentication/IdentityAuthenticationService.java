@@ -1,6 +1,10 @@
 package com.idega.jbpm.identity.authentication;
 
+import javax.faces.context.FacesContext;
+
 import org.jbpm.security.AuthenticationService;
+
+import com.idega.presentation.IWContext;
 
 public class IdentityAuthenticationService implements AuthenticationService {
 
@@ -8,7 +12,9 @@ public class IdentityAuthenticationService implements AuthenticationService {
 
 	public String getActorId() {
 		
-		return "actor_id";
+		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+		String currentUserId = String.valueOf(iwc.getCurrentUserId());
+		return currentUserId;
 	}
 
 	public void close() { }

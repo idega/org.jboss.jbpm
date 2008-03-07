@@ -1,6 +1,7 @@
 package com.idega.jbpm.data.dao.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.jbpm.graph.def.ProcessDefinition;
@@ -17,9 +18,9 @@ import com.idega.jbpm.data.dao.BpmBindsDAO;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/07 16:18:19 $ by $Author: civilis $
  */
 public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 
@@ -67,7 +68,7 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		.getSingleResult();
 	}
 	
-	public List<ViewTaskBind> getViewTaskBindsByTasksIds(List<Long> taskIds) {
+	public List<ViewTaskBind> getViewTaskBindsByTasksIds(Collection<Long> taskIds) {
 		
 		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> viewTaskBinds = getEntityManager().createNamedQuery(ViewTaskBind.GET_VIEW_TASK_BINDS_BY_TASKS_IDS)
@@ -112,7 +113,7 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		return all;
 	}
 	
-	public List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds(List<String> rolesNames) {
+	public List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds(Collection<String> rolesNames) {
 		
 		if(rolesNames == null || rolesNames.isEmpty())
 			throw new IllegalArgumentException("Roles names should contain values");
@@ -125,7 +126,20 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		return all;
 	}
 	
-	public void addGrpsToRole(Long roleActorId, List<String> selectedGroupsIds) {
+	public List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBindsByActors(Collection<String> actorIds) {
+		
+		if(actorIds == null || actorIds.isEmpty())
+			throw new IllegalArgumentException("ActorIds should contain values");
+		
+		@SuppressWarnings("unchecked")
+		List<ProcessRoleNativeIdentityBind> all = getEntityManager().createNamedQuery(ProcessRoleNativeIdentityBind.getAllByActorIds)
+		.setParameter(ProcessRoleNativeIdentityBind.actorIdProperty, actorIds)
+		.getResultList();
+		
+		return all;
+	}
+	
+	public void addGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds) {
 		
 		ProcessRoleNativeIdentityBind roleIdentity = find(ProcessRoleNativeIdentityBind.class, roleActorId);
 		
