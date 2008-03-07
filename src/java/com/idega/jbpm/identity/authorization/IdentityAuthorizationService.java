@@ -1,42 +1,45 @@
-/*
- * JBoss, Home of Professional Open Source
- * Copyright 2005, JBoss Inc., and individual contributors as indicated
- * by the @authors tag. See the copyright.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- */
 package com.idega.jbpm.identity.authorization;
 
 import java.security.AccessControlException;
 import java.security.Permission;
 
+import org.jbpm.security.AuthenticationService;
 import org.jbpm.security.AuthorizationService;
 
+import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
+
+/**
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.2 $
+ *
+ * Last modified: $Date: 2008/03/07 13:26:41 $ by $Author: civilis $
+ */
 public class IdentityAuthorizationService implements AuthorizationService {
 
-  private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -7496842155073961922L;
+	
+	private AuthenticationService authenticationService;
 
-  public void checkPermission(Permission permission) throws AccessControlException {
-    // String actorId = SecurityHelper.getAuthenticatedActorId();
-    // TODO check if the actor has the proper permissions in the 
-    // identity component
-	  System.out.println("check permissaion : "+permission);
-  }
+	public void checkPermission(Permission perm) throws AccessControlException {
 
-  public void close() {
-  }
+		if(!(perm instanceof BPMTaskAccessPermission))
+			throw new IllegalArgumentException("Only permissions implementing "+BPMTaskAccessPermission.class.getName()+" supported");
+		
+		BPMTaskAccessPermission permission = (BPMTaskAccessPermission)perm;
+		
+		String loggedInActorId = getAuthenticationService().getActorId();
+		
+		System.out.println("checking permission ....... for: "+loggedInActorId);
+		System.out.println("permission: "+permission.getAccesses());
+	}
+
+	public void close() { }
+
+	public AuthenticationService getAuthenticationService() {
+		return authenticationService;
+	}
+
+	public void setAuthenticationService(AuthenticationService authenticationService) {
+		this.authenticationService = authenticationService;
+	}
 }

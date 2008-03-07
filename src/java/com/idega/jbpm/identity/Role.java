@@ -2,14 +2,14 @@ package com.idega.jbpm.identity;
 
 import java.util.List;
 
-import com.idega.jbpm.identity.RolesAssiger.Access;
+import com.idega.jbpm.identity.permission.Access;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/07 13:26:41 $ by $Author: civilis $
  */
 public class Role {
 	

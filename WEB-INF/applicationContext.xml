@@ -3,6 +3,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+        
 	<bean id="defaultJbpmConfiguration" class="org.jbpm.JbpmConfiguration" factory-method="getInstance" scope="singleton">
 		<constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
 	</bean>
@@ -16,21 +17,8 @@
 		<property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
 	
-	<!--  
-    <bean id="actorToTaskBinder" class="com.idega.jbpm.identity.ActorTaskBinder" scope="singleton">
-        <property name="jbpmBindsDao" ref="bpmBindsDAO" />
-        <property name="idegaJbpmContext" ref="idegaJbpmContext" />
-    </bean>
-    -->
-	<bean id="BPMRoleIdentityMgmnt" class="com.idega.jbpm.presentation.beans.IdentityMgmntBean" scope="request">
-	<!--  
-	   <property name="bpmBindsDAO" ref="bpmBindsDAO" />
-	   -->
-	   <!--  
-		<property name="actorToTaskBinder" ref="actorToTaskBinder" />
-		<property name="jbpmProcessBusiness" ref="jbpmProcessBusiness" />
-		-->
-	</bean>
+	<bean id="BPMRoleIdentityMgmnt" class="com.idega.jbpm.presentation.beans.IdentityMgmntBean" scope="request" />
+	
 	<bean id="processMgmtMockup" class="com.idega.jbpm.presentation.beans.ProcessMgmtMockupBean" scope="session">
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
 		<property name="viewToTask" ref="process_xforms_viewToTask" />
@@ -43,9 +31,7 @@
     <bean id="BPMProcessAssets" class="com.idega.jbpm.exe.ProcessArtifacts" scope="singleton">
     	<property name="idegaJbpmContext" ref="idegaJbpmContext" />
     </bean>
-    <!--  
-    <bean id="jbpmViewCreator" class="com.idega.jbpm.def.ViewCreator" scope="singleton" />
-    -->
+    
     <bean id="bpmBindsDAO" class="com.idega.jbpm.data.dao.impl.BpmBindsDAOImpl" scope="singleton" />
 
     <bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
@@ -61,8 +47,15 @@
         <property name="bpmBindsDAO" ref="bpmBindsDAO" />
     </bean>
     
-    <bean id="bpmIdentityAuthorizationAspect" class="com.idega.jbpm.identity.authorization.IdentityAuthorizationAspect" scope="singleton" />
+    <bean id="bpmIdentityAuthorizationAspect" class="com.idega.jbpm.identity.authorization.IdentityAuthorizationAspect" scope="singleton" >
+        <property name="bpmBindsDAO" ref="bpmBindsDAO" />
+        <property name="idegaJbpmContext" ref="idegaJbpmContext" />
+        <property name="authorizationService" ref="identityAuthorizationService" />
+    </bean>
     <bean id="bpmPointcuts" class="com.idega.jbpm.business.BPMPointcuts" scope="singleton" />
-    
+    <bean id="identityAuthorizationService" class="com.idega.jbpm.identity.authorization.IdentityAuthorizationService" scope="singleton">
+        <property name="authenticationService" ref="identityAuthenticationService" />
+    </bean>
+    <bean id="identityAuthenticationService" class="com.idega.jbpm.identity.authentication.IdentityAuthenticationService" scope="singleton" />
     
 </beans>

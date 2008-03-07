@@ -6,7 +6,7 @@ import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.identity.assignment.ExpressionAssignmentHandler;
 import org.jbpm.taskmgmt.exe.Assignable;
 
-import com.idega.jbpm.identity.RolesAssiger.Access;
+import com.idega.jbpm.identity.permission.Access;
 import com.idega.webface.WFUtil;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
@@ -24,9 +24,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/07 13:26:41 $ by $Author: civilis $
  */
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	
