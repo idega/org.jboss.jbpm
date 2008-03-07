@@ -2,11 +2,14 @@ package com.idega.jbpm.identity.authorization;
 
 import java.security.AccessControlException;
 import java.security.Permission;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import org.jbpm.security.AuthenticationService;
 import org.jbpm.security.AuthorizationService;
+import org.jbpm.taskmgmt.exe.PooledActor;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
@@ -15,9 +18,9 @@ import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/07 16:18:19 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/07 17:00:44 $ by $Author: civilis $
  */
 public class IdentityAuthorizationService implements AuthorizationService {
 
@@ -45,19 +48,26 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		} else {
 
 			@SuppressWarnings("unchecked")
-			Set<String> pooledActors = taskInstance.getPooledActors();
+			Set<PooledActor> pooledActors = taskInstance.getPooledActors();
 			
-			if(!pooledActors.isEmpty()) {
+			if(pooledActors.isEmpty()) {
 				throw new AccessControlException("You shall not pass. Pooled actors set was empty, for taskInstanceId: "+taskInstance.getId());
 				
 			} else {
 
-				checkPermissionInPooledActors(loggedInActorId, pooledActors, !taskInstance.hasEnded());
+				Collection<Long> pooledActorsIds = new ArrayList<Long>(pooledActors.size());
+				
+				for (PooledActor pooledActor : pooledActors) {
+					
+					Long actorId = new Long(pooledActor.getActorId());
+					pooledActorsIds.add(actorId);
+				}
+				checkPermissionInPooledActors(loggedInActorId, pooledActorsIds, !taskInstance.hasEnded());
 			}
 		}
 	}
 	
-	protected void checkPermissionInPooledActors(String actorId, Set<String> pooledActors, boolean write) throws AccessControlException {
+	protected void checkPermissionInPooledActors(String actorId, Collection<Long> pooledActors, boolean write) throws AccessControlException {
 	
 		List<ProcessRoleNativeIdentityBind> assignedRolesIdentities = getBpmBindsDAO().getAllProcessRoleNativeIdentityBindsByActors(pooledActors);
 		

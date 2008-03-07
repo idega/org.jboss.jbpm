@@ -18,9 +18,9 @@ import com.idega.jbpm.data.dao.BpmBindsDAO;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/07 16:18:19 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/07 17:00:44 $ by $Author: civilis $
  */
 public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 
@@ -126,7 +126,7 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		return all;
 	}
 	
-	public List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBindsByActors(Collection<String> actorIds) {
+	public List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBindsByActors(Collection<Long> actorIds) {
 		
 		if(actorIds == null || actorIds.isEmpty())
 			throw new IllegalArgumentException("ActorIds should contain values");
