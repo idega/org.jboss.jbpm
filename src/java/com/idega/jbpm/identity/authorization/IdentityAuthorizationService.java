@@ -11,6 +11,9 @@ import org.jbpm.security.AuthenticationService;
 import org.jbpm.security.AuthorizationService;
 import org.jbpm.taskmgmt.exe.PooledActor;
 import org.jbpm.taskmgmt.exe.TaskInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
 import com.idega.jbpm.data.dao.BpmBindsDAO;
@@ -18,10 +21,12 @@ import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/07 17:00:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/08 10:02:44 $ by $Author: civilis $
  */
+@Scope("singleton")
+@Service
 public class IdentityAuthorizationService implements AuthorizationService {
 
 	private static final long serialVersionUID = -7496842155073961922L;
@@ -83,6 +88,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		return authenticationService;
 	}
 
+	@Autowired
 	public void setAuthenticationService(AuthenticationService authenticationService) {
 		this.authenticationService = authenticationService;
 	}
@@ -91,6 +97,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		return bpmBindsDAO;
 	}
 
+	@Autowired
 	public void setBpmBindsDAO(BpmBindsDAO bpmBindsDAO) {
 		this.bpmBindsDAO = bpmBindsDAO;
 	}

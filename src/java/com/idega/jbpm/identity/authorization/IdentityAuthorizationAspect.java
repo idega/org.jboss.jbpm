@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.Before;
 import org.jbpm.JbpmContext;
 import org.jbpm.security.AuthorizationService;
 import org.jbpm.taskmgmt.exe.TaskInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.business.BPMPointcuts;
@@ -18,9 +19,9 @@ import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/07 13:26:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/08 10:02:44 $ by $Author: civilis $
  */
 @Aspect
 public class IdentityAuthorizationAspect {
@@ -88,6 +89,7 @@ public class IdentityAuthorizationAspect {
 		return authorizationService;
 	}
 
+	@Autowired
 	public void setAuthorizationService(AuthorizationService authorizationService) {
 		this.authorizationService = authorizationService;
 	}

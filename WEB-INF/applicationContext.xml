@@ -50,13 +50,6 @@
     <bean id="bpmIdentityAuthorizationAspect" class="com.idega.jbpm.identity.authorization.IdentityAuthorizationAspect" scope="singleton" >
         <property name="bpmBindsDAO" ref="bpmBindsDAO" />
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
-        <property name="authorizationService" ref="identityAuthorizationService" />
     </bean>
     <bean id="bpmPointcuts" class="com.idega.jbpm.business.BPMPointcuts" scope="singleton" />
-    <bean id="identityAuthorizationService" class="com.idega.jbpm.identity.authorization.IdentityAuthorizationService" scope="singleton">
-        <property name="authenticationService" ref="identityAuthenticationService" />
-        <property name="bpmBindsDAO" ref="bpmBindsDAO" />
-    </bean>
-    <bean id="identityAuthenticationService" class="com.idega.jbpm.identity.authentication.IdentityAuthenticationService" scope="singleton" />
-    
 </beans>
