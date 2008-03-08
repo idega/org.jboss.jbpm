@@ -1,11 +1,14 @@
 package com.idega.jbpm.identity.authorization;
 
+import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import javax.faces.context.FacesContext;
 
 import org.jbpm.security.AuthenticationService;
 import org.jbpm.security.AuthorizationService;
@@ -15,15 +18,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.idega.business.IBOLookup;
+import com.idega.business.IBOLookupException;
+import com.idega.business.IBORuntimeException;
+import com.idega.data.IDORuntimeException;
+import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
+import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
+import com.idega.presentation.IWContext;
+import com.idega.user.business.UserBusiness;
+import com.idega.user.data.Group;
+import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/08 10:02:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/08 14:53:42 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -67,21 +81,65 @@ public class IdentityAuthorizationService implements AuthorizationService {
 					Long actorId = new Long(pooledActor.getActorId());
 					pooledActorsIds.add(actorId);
 				}
-				checkPermissionInPooledActors(loggedInActorId, pooledActorsIds, !taskInstance.hasEnded());
+				checkPermissionInPooledActors(new Integer(loggedInActorId), pooledActorsIds, !taskInstance.hasEnded());
 			}
 		}
 	}
 	
-	protected void checkPermissionInPooledActors(String actorId, Collection<Long> pooledActors, boolean write) throws AccessControlException {
+	protected void checkPermissionInPooledActors(int userId, Collection<Long> pooledActors, boolean write) throws AccessControlException {
 	
-		List<ProcessRoleNativeIdentityBind> assignedRolesIdentities = getBpmBindsDAO().getAllProcessRoleNativeIdentityBindsByActors(pooledActors);
+		if(IWContext.getIWContext(FacesContext.getCurrentInstance()).isSuperAdmin())
+			return;
 		
-		for (ProcessRoleNativeIdentityBind assignedRoleIdentity : assignedRolesIdentities) {
-			
-			System.out.println("assignedRoleIdentity: "+assignedRoleIdentity);
-		}
-	}
+		List<ProcessRoleNativeIdentityBind> assignedRolesIdentities = getBpmBindsDAO().getAllProcessRoleNativeIdentityBindsByActors(pooledActors);
+		ArrayList<Long> filteredRolesIdentities = new ArrayList<Long>(assignedRolesIdentities.size());
+		
+		//IdentityTypeObj o = new IdentityTypeObj(IdentityType.GROUP);
+		//ArrayListMultimap<IdentityType, ArrayList<ProcessRoleNativeIdentityBind>> sortedAndFilteredIdentities = new ArrayListMultimap<IdentityType, ArrayList<ProcessRoleNativeIdentityBind>>(3, 10);
 
+		for (ProcessRoleNativeIdentityBind assignedRoleIdentity : assignedRolesIdentities) {
+ 
+			if(assignedRoleIdentity.hasAccess(Access.read) && (!write || assignedRoleIdentity.hasAccess(Access.write)) || true) {
+				
+				filteredRolesIdentities.add(assignedRoleIdentity.getActorId());
+			}
+		}
+		
+		if(!filteredRolesIdentities.isEmpty()) {
+
+//			check for groups:
+			List<NativeIdentityBind> nativeIdentities = getBpmBindsDAO().getNativeIdentities(filteredRolesIdentities, IdentityType.GROUP);
+			
+			if(!nativeIdentities.isEmpty()) {
+				
+				try {
+					UserBusiness ub = getUserBusiness();
+					@SuppressWarnings("unchecked")
+					Collection<Group> userGroups = ub.getUserGroups(userId);
+					
+					for (Group group : userGroups) {
+					
+						String groupId = group.getPrimaryKey().toString();
+						
+						for (NativeIdentityBind nativeIdentity : nativeIdentities) {
+							
+							if(nativeIdentity.getIdentityId().equals(groupId))
+								return;
+						}
+					}
+					
+				} catch (RemoteException e) {
+					throw new IDORuntimeException(e);
+				}
+			}
+
+//			check for roles
+//			check for users
+		}
+		
+		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+"). Write: "+write);
+	}
+	
 	public void close() { }
 
 	public AuthenticationService getAuthenticationService() {
@@ -100,5 +158,14 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	@Autowired
 	public void setBpmBindsDAO(BpmBindsDAO bpmBindsDAO) {
 		this.bpmBindsDAO = bpmBindsDAO;
+	}
+	
+	protected UserBusiness getUserBusiness() {
+		try {
+			return (UserBusiness) IBOLookup.getServiceInstance(CoreUtil.getIWContext(), UserBusiness.class);
+		}
+		catch (IBOLookupException ile) {
+			throw new IBORuntimeException(ile);
+		}
 	}
 }

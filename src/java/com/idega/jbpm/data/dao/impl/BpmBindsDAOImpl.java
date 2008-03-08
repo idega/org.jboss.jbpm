@@ -18,9 +18,9 @@ import com.idega.jbpm.data.dao.BpmBindsDAO;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/07 17:00:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/08 14:53:42 $ by $Author: civilis $
  */
 public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 
@@ -188,6 +188,17 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		@SuppressWarnings("unchecked")
 		List<NativeIdentityBind> binds = getEntityManager().createNamedQuery(NativeIdentityBind.getByProcIdentity)
 		.setParameter(NativeIdentityBind.procIdentityParam, processRoleIdentityId)
+		.getResultList();
+		
+		return binds;
+	}
+	
+	public List<NativeIdentityBind> getNativeIdentities(List<Long> actorsIds, IdentityType identityType) {
+
+		@SuppressWarnings("unchecked")
+		List<NativeIdentityBind> binds = getEntityManager().createNamedQuery(NativeIdentityBind.getByTypesAndProceIdentities)
+		.setParameter(NativeIdentityBind.identityTypeProperty, identityType)
+		.setParameter(ProcessRoleNativeIdentityBind.actorIdProperty, actorsIds)
 		.getResultList();
 		
 		return binds;

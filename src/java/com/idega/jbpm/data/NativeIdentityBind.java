@@ -1,6 +1,5 @@
 package com.idega.jbpm.data;
 
-
 import java.io.Serializable;
 
 import javax.persistence.CascadeType;
@@ -19,16 +18,17 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/08 14:53:43 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_NATIVE_IDENTITY")
 @NamedQueries(
 		{
 			@NamedQuery(name=NativeIdentityBind.deleteByIds, query="delete from NativeIdentityBind b where b.id in (:"+NativeIdentityBind.idsParam+")"),
-			@NamedQuery(name=NativeIdentityBind.getByProcIdentity, query="from NativeIdentityBind b where b.processRoleNativeIdentity."+ProcessRoleNativeIdentityBind.actorIdProperty+" = :"+NativeIdentityBind.procIdentityParam)
+			@NamedQuery(name=NativeIdentityBind.getByProcIdentity, query="from NativeIdentityBind b where b.processRoleNativeIdentity."+ProcessRoleNativeIdentityBind.actorIdProperty+" = :"+NativeIdentityBind.procIdentityParam),
+			@NamedQuery(name=NativeIdentityBind.getByTypesAndProceIdentities, query="select ni from NativeIdentityBind ni, com.idega.jbpm.data.ProcessRoleNativeIdentityBind prni where ni.processRoleNativeIdentity = prni and ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty+" and prni."+ProcessRoleNativeIdentityBind.actorIdProperty+" in (:"+ProcessRoleNativeIdentityBind.actorIdProperty+")")
 		}
 )
 public class NativeIdentityBind implements Serializable {
@@ -36,11 +36,12 @@ public class NativeIdentityBind implements Serializable {
 	private static final long serialVersionUID = 4739344819567695492L;
 
 	public static final String procIdentityParam = "procIdentity";
+	
 	public static final String idsParam = "ids";
 	public static final String deleteByIds = "NativeIdentityBind.deleteByIds";
 	public static final String getByProcIdentity = "NativeIdentityBind.getByProcIdentity";
-	public static final String processRoleNativeIdentityProp = "processRoleNativeIdentity";
-
+	public static final String getByTypesAndProceIdentities = "NativeIdentityBind.getByTypesAndProceIdentities";
+	
 	public enum IdentityType {
 		
 		USER,
@@ -55,10 +56,12 @@ public class NativeIdentityBind implements Serializable {
 	@Column(name="identity_id", nullable=false)
 	private String identityId;
 
+	public static final String identityTypeProperty = "identityType";
 	@Column(name="identity_type", nullable=false)
 	@Enumerated(EnumType.STRING)
 	private IdentityType identityType;
 
+	public static final String processRoleNativeIdentityProperty = "processRoleNativeIdentity";
 	@ManyToOne(cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE})
     @JoinColumn(name="prole_nidentity_fk", nullable=false)
 	private ProcessRoleNativeIdentityBind processRoleNativeIdentity;
@@ -97,7 +100,7 @@ public class NativeIdentityBind implements Serializable {
 	}
 
 	public static String getProcessRoleNativeIdentityProp() {
-		return processRoleNativeIdentityProp;
+		return processRoleNativeIdentityProperty;
 	}
 	
 	@Override

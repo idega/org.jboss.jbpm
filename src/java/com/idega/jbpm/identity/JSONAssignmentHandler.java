@@ -24,9 +24,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/03/07 13:26:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/08 14:53:43 $ by $Author: civilis $
  */
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	
@@ -41,7 +41,6 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 
 	public void assign(Assignable assignable, ExecutionContext executionContext) {
 
-		System.out.println("assigning w/ json");
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
 		xstream.alias(taskAssignment, TaskAssignment.class);
 		xstream.alias(role, Role.class);

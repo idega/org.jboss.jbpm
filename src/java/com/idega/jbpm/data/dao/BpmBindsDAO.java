@@ -12,12 +12,13 @@ import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
 import com.idega.jbpm.data.ViewTaskBind;
+import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/07 17:00:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/08 14:53:43 $ by $Author: civilis $
  */
 public interface BpmBindsDAO extends GenericDao {
 
@@ -48,4 +49,6 @@ public interface BpmBindsDAO extends GenericDao {
 	public abstract List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBinds(Collection<String> rolesNames);
 	
 	public abstract List<ProcessRoleNativeIdentityBind> getAllProcessRoleNativeIdentityBindsByActors(Collection<Long> actorIds);
+	
+	public abstract List<NativeIdentityBind> getNativeIdentities(List<Long> actorsIds, IdentityType identityType);
 }

@@ -22,9 +22,9 @@ import com.idega.jbpm.identity.permission.Access;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/03/07 16:18:19 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/08 14:53:42 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROLE_NIDENTITY")
@@ -42,12 +42,12 @@ public class ProcessRoleNativeIdentityBind implements Serializable {
 	public static final String getAll = "ProcessRoleNativeIdentityBind.getAll";
 	public static final String getAllByRoleNames = "ProcessRoleNativeIdentityBind.getAllByRoleNames";
 	public static final String getAllByActorIds = "ProcessRoleNativeIdentityBind.getAllByActorIds";
-	public static final String actorIdProperty = "actorId";
-	public static final String processRoleNameProperty = "processRoleName";
 	
+	public static final String processRoleNameProperty = "processRoleName";
 	@Column(name="role_name", nullable=false, unique=true)
 	private String processRoleName;
 	
+	public static final String actorIdProperty = "actorId";
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="actor_id", nullable=false)
 	private Long actorId;
@@ -60,7 +60,7 @@ public class ProcessRoleNativeIdentityBind implements Serializable {
 	
 //	TODO: add possibility to specify accesses for specific process definition. Those accesses would be override general accesses contained in this entity.
 	
-    @OneToMany(mappedBy=NativeIdentityBind.processRoleNativeIdentityProp, cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy=NativeIdentityBind.processRoleNativeIdentityProperty, cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
 	private List<NativeIdentityBind> nativeIdentities;
 
 	public String getProcessRoleName() {
@@ -88,7 +88,7 @@ public class ProcessRoleNativeIdentityBind implements Serializable {
 	}
 
 	protected Boolean getHasReadAccess() {
-		return hasReadAccess;
+		return hasReadAccess == null ? false : hasReadAccess;
 	}
 
 	protected void setHasReadAccess(Boolean hasReadAccess) {
@@ -96,7 +96,7 @@ public class ProcessRoleNativeIdentityBind implements Serializable {
 	}
 
 	protected Boolean getHasWriteAccess() {
-		return hasWriteAccess;
+		return hasWriteAccess == null ? false : hasWriteAccess;
 	}
 
 	protected void setHasWriteAccess(Boolean hasWriteAccess) {
