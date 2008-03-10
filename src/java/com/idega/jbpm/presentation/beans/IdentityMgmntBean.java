@@ -18,7 +18,7 @@ import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
+import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.dao.BpmBindsDAO;
 import com.idega.user.business.GroupBusiness;
 import com.idega.user.data.Group;
@@ -29,9 +29,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/05 21:11:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/10 19:32:47 $ by $Author: civilis $
  */
 public class IdentityMgmntBean implements Serializable {
 	
@@ -60,9 +60,9 @@ public class IdentityMgmntBean implements Serializable {
 			
 			rolesItems = new ArrayList<SelectItem>();
 			
-			List<ProcessRoleNativeIdentityBind> binds = getBpmBindsDAO().getAllProcessRoleNativeIdentityBinds();
+			List<ProcessRole> binds = getBpmBindsDAO().getAllProcessRoleNativeIdentityBinds();
 			
-			for (ProcessRoleNativeIdentityBind bind : binds) {
+			for (ProcessRole bind : binds) {
 				
 				SelectItem item = new SelectItem(bind.getActorId(), bind.getProcessRoleName());
 				rolesItems.add(item);
@@ -115,7 +115,7 @@ public class IdentityMgmntBean implements Serializable {
 			return;
 		}
 		
-		ProcessRoleNativeIdentityBind bind = new ProcessRoleNativeIdentityBind();
+		ProcessRole bind = new ProcessRole();
 		bind.setProcessRoleName(getNewRoleName());
 		
 		getBpmBindsDAO().persist(bind);

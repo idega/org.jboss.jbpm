@@ -12,6 +12,7 @@ import javax.faces.context.FacesContext;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.w3c.dom.Document;
 
@@ -28,9 +29,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  *
- * Last modified: $Date: 2008/03/06 11:55:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/10 19:32:48 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -103,7 +104,20 @@ public class ProcessArtifacts {
 //			each token -> get tasks processInstance.findAllTokens()
 			
 			@SuppressWarnings("unchecked")
+			List<Token> tokens = processInstance.findAllTokens();
+			
+			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> tasks = processInstance.getTaskMgmtInstance().getUnfinishedTasks(processInstance.getRootToken());
+			
+			for (Token token : tokens) {
+				
+				if(!token.equals(processInstance.getRootToken())) {
+			
+					@SuppressWarnings("unchecked")
+					Collection<TaskInstance> tsks = processInstance.getTaskMgmtInstance().getUnfinishedTasks(token);
+					tasks.addAll(tsks);
+				}
+			}
 			
 			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 

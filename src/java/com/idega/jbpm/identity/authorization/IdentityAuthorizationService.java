@@ -23,7 +23,8 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.data.IDORuntimeException;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRoleNativeIdentityBind;
+import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.TaskInstanceAccess;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BpmBindsDAO;
 import com.idega.jbpm.identity.permission.Access;
@@ -35,9 +36,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/08 14:53:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/10 19:32:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -65,6 +66,10 @@ public class IdentityAuthorizationService implements AuthorizationService {
 				throw new AccessControlException("You shall not pass. Logged in actor id doesn't match the assigned actor id. Assigned: "+taskInstance.getActorId()+", taskInstanceId: "+taskInstance.getId());
 			
 		} else {
+			
+//			super admin always gets an access
+			if(IWContext.getIWContext(FacesContext.getCurrentInstance()).isSuperAdmin())
+				return;
 
 			@SuppressWarnings("unchecked")
 			Set<PooledActor> pooledActors = taskInstance.getPooledActors();
@@ -81,27 +86,33 @@ public class IdentityAuthorizationService implements AuthorizationService {
 					Long actorId = new Long(pooledActor.getActorId());
 					pooledActorsIds.add(actorId);
 				}
-				checkPermissionInPooledActors(new Integer(loggedInActorId), pooledActorsIds, !taskInstance.hasEnded());
+				checkPermissionInPooledActors(new Integer(loggedInActorId), pooledActorsIds, taskInstance);
 			}
 		}
 	}
 	
-	protected void checkPermissionInPooledActors(int userId, Collection<Long> pooledActors, boolean write) throws AccessControlException {
+	protected void checkPermissionInPooledActors(int userId, Collection<Long> pooledActors, TaskInstance taskInstance) throws AccessControlException {
 	
-		if(IWContext.getIWContext(FacesContext.getCurrentInstance()).isSuperAdmin())
-			return;
-		
-		List<ProcessRoleNativeIdentityBind> assignedRolesIdentities = getBpmBindsDAO().getAllProcessRoleNativeIdentityBindsByActors(pooledActors);
+		List<ProcessRole> assignedRolesIdentities = getBpmBindsDAO().getProcessRoles(pooledActors, taskInstance.getId());
 		ArrayList<Long> filteredRolesIdentities = new ArrayList<Long>(assignedRolesIdentities.size());
 		
-		//IdentityTypeObj o = new IdentityTypeObj(IdentityType.GROUP);
-		//ArrayListMultimap<IdentityType, ArrayList<ProcessRoleNativeIdentityBind>> sortedAndFilteredIdentities = new ArrayListMultimap<IdentityType, ArrayList<ProcessRoleNativeIdentityBind>>(3, 10);
+		boolean writeAccessNeeded = !taskInstance.hasEnded();
+		
+		for (ProcessRole assignedRoleIdentity : assignedRolesIdentities) {
 
-		for (ProcessRoleNativeIdentityBind assignedRoleIdentity : assignedRolesIdentities) {
- 
-			if(assignedRoleIdentity.hasAccess(Access.read) && (!write || assignedRoleIdentity.hasAccess(Access.write)) || true) {
+			List<TaskInstanceAccess> accesses = assignedRoleIdentity.getTaskInstanceAccesses();
+			
+			for (TaskInstanceAccess tiAccess : accesses) {
 				
-				filteredRolesIdentities.add(assignedRoleIdentity.getActorId());
+				if(tiAccess.getTaskInstanceId() == taskInstance.getId()) {
+			
+					if(tiAccess.hasAccess(Access.read) && (!writeAccessNeeded || tiAccess.hasAccess(Access.write))) {
+				
+						filteredRolesIdentities.add(assignedRoleIdentity.getActorId());
+					}
+					
+					break;
+				}
 			}
 		}
 		
@@ -137,7 +148,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 //			check for users
 		}
 		
-		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+"). Write: "+write);
+		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+"). Write access needed: "+writeAccessNeeded);
 	}
 	
 	public void close() { }

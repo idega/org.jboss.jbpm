@@ -5,6 +5,7 @@ import java.util.List;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.identity.assignment.ExpressionAssignmentHandler;
 import org.jbpm.taskmgmt.exe.Assignable;
+import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.webface.WFUtil;
@@ -24,9 +25,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/03/08 14:53:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/10 19:32:47 $ by $Author: civilis $
  */
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	
@@ -41,6 +42,11 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 
 	public void assign(Assignable assignable, ExecutionContext executionContext) {
 
+		if(!(assignable instanceof TaskInstance))
+			throw new IllegalArgumentException("Only TaskInstance is accepted for assignable");
+		
+		TaskInstance taskInstance = (TaskInstance)assignable;
+		
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
 		xstream.alias(taskAssignment, TaskAssignment.class);
 		xstream.alias(role, Role.class);
@@ -51,7 +57,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		List<Role> roles = assignmentExp.roles;
 		
 		RolesAssiger rolesAssigner = getRolesAssigner();
-		rolesAssigner.assign(assignable, roles);
+		rolesAssigner.assign(taskInstance, roles);
 	}
 	
 	protected RolesAssiger getRolesAssigner() {
