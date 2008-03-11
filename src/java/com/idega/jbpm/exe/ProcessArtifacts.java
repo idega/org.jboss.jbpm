@@ -29,9 +29,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2008/03/10 19:32:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -96,12 +96,8 @@ public class ProcessArtifacts {
 		
 		try {
 			IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
-//			FacesContext context = FacesContext.getCurrentInstance();
-//			int initiatorId = IWContext.getIWContext(context).getCurrentUserId();
 			
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
-			//TODO:
-//			each token -> get tasks processInstance.findAllTokens()
 			
 			@SuppressWarnings("unchecked")
 			List<Token> tokens = processInstance.findAllTokens();

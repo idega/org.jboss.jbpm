@@ -19,11 +19,11 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/03/10 19:32:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
  */
-public interface BpmBindsDAO extends GenericDao {
+public interface BPMDAO extends GenericDao {
 
 	public abstract ActorTaskBind getActorTaskBind(long taskId, String actorType);
 
@@ -45,7 +45,7 @@ public interface BpmBindsDAO extends GenericDao {
 	
 	public abstract List<ProcessRole> getAllProcessRoleNativeIdentityBinds();
 	
-	public abstract void addGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds);
+	public abstract void updateAddGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds);
 	
 	public abstract List<NativeIdentityBind> getNativeIdentities(long processRoleIdentityId);
 	
@@ -57,7 +57,7 @@ public interface BpmBindsDAO extends GenericDao {
 	
 	public abstract List<NativeIdentityBind> getNativeIdentities(List<Long> actorsIds, IdentityType identityType);
 	
-	public abstract Collection<String> assignTaskAccesses(long taskInstanceId, Map<Role, ProcessRole> proles);
+	public abstract Collection<String> updateAssignTaskAccesses(long taskInstanceId, Map<Role, ProcessRole> proles);
 	
-	public abstract Collection<String> createPRolesAndAssignTaskAccesses(TaskInstance taskInstance, List<Role> proles);
+	public abstract Collection<String> updateCreatePRolesAndAssignTaskAccesses(TaskInstance taskInstance, List<Role> proles);
 }

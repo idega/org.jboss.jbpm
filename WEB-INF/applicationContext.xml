@@ -32,23 +32,16 @@
     	<property name="idegaJbpmContext" ref="idegaJbpmContext" />
     </bean>
     
-    <bean id="bpmBindsDAO" class="com.idega.jbpm.data.dao.impl.BpmBindsDAOImpl" scope="singleton" />
-
     <bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
         <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
         <property name="entityManagerFactory" ref="entityManagerFactory" />
     </bean>
     
-    <bean id="bpmFactory" class="com.idega.jbpm.exe.impl.BPMFactoryImpl" scope="singleton">
-        <property name="bindsDAO" ref="bpmBindsDAO" />
-    </bean>
+    <bean id="bpmFactory" class="com.idega.jbpm.exe.impl.BPMFactoryImpl" scope="singleton" />
     
-    <bean id="bpmRolesAssiger" class="com.idega.jbpm.identity.RolesAssiger" scope="singleton">
-        <property name="bpmBindsDAO" ref="bpmBindsDAO" />
-    </bean>
+    <bean id="bpmRolesAssiger" class="com.idega.jbpm.identity.RolesAssiger" scope="singleton" />
     
     <bean id="bpmIdentityAuthorizationAspect" class="com.idega.jbpm.identity.authorization.IdentityAuthorizationAspect" scope="singleton" >
-        <property name="bpmBindsDAO" ref="bpmBindsDAO" />
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
     </bean>
     <bean id="bpmPointcuts" class="com.idega.jbpm.business.BPMPointcuts" scope="singleton" />

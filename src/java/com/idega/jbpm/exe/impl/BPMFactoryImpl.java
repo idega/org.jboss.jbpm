@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
@@ -14,7 +15,7 @@ import org.springframework.context.ApplicationListener;
 
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.ViewTaskBind;
-import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.def.impl.ViewFactoryPluggedInEvent;
@@ -25,9 +26,9 @@ import com.idega.jbpm.exe.ViewManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/02/07 13:58:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationListener, ApplicationContextAware {
 	
@@ -37,7 +38,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 	private Map<String, String> viewTypeFactoryBeanIdentifier;
 	private Map<String, Object> viewTypeFactoryClass;
 	
-	private BpmBindsDAO bindsDAO;
+	private BPMDAO bindsDAO;
 	
 	public ProcessManager getProcessManager(long processDefinitionId) {
 
@@ -213,11 +214,12 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 		return creatorTypeCreatorClass;
 	}
 
-	public BpmBindsDAO getBindsDAO() {
+	public BPMDAO getBindsDAO() {
 		return bindsDAO;
 	}
 
-	public void setBindsDAO(BpmBindsDAO bindsDAO) {
+	@Autowired
+	public void setBindsDAO(BPMDAO bindsDAO) {
 		this.bindsDAO = bindsDAO;
 	}
 

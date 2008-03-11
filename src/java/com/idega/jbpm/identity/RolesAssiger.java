@@ -8,26 +8,28 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jbpm.taskmgmt.exe.TaskInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.jbpm.data.ProcessRole;
-import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.jbpm.data.dao.BPMDAO;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/03/10 19:32:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:58 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
-	private BpmBindsDAO bpmBindsDAO;
+	private BPMDAO bpmBindsDAO;
 
-	public BpmBindsDAO getBpmBindsDAO() {
+	public BPMDAO getBpmBindsDAO() {
 		return bpmBindsDAO;
 	}
 
-	public void setBpmBindsDAO(BpmBindsDAO bpmBindsDAO) {
+	@Autowired
+	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
 		this.bpmBindsDAO = bpmBindsDAO;
 	}
 
@@ -53,7 +55,7 @@ public class RolesAssiger {
 		
 		if(processRoles == null || processRoles.isEmpty()) {
 			
-			actorIds = getBpmBindsDAO().createPRolesAndAssignTaskAccesses(taskInstance, roles);
+			actorIds = getBpmBindsDAO().updateCreatePRolesAndAssignTaskAccesses(taskInstance, roles);
 			
 		} else {
 			
@@ -65,7 +67,7 @@ public class RolesAssiger {
 					proles.put(rolz.get(processRole.getProcessRoleName()), processRole);
 			}
 			
-			actorIds = getBpmBindsDAO().assignTaskAccesses(taskInstance.getId(), proles);
+			actorIds = getBpmBindsDAO().updateAssignTaskAccesses(taskInstance.getId(), proles);
 			
 			if(processRoles.size() < roles.size()) {
 				
@@ -89,7 +91,7 @@ public class RolesAssiger {
 						rolesToCreate.add(role);
 				}
 				
-				Collection<String> actorIds2 = getBpmBindsDAO().createPRolesAndAssignTaskAccesses(taskInstance, rolesToCreate);
+				Collection<String> actorIds2 = getBpmBindsDAO().updateCreatePRolesAndAssignTaskAccesses(taskInstance, rolesToCreate);
 				actorIds.addAll(actorIds2);
 			}
 		}

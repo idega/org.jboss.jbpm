@@ -19,7 +19,7 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
-import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.user.business.GroupBusiness;
 import com.idega.user.data.Group;
 import com.idega.util.CoreConstants;
@@ -29,9 +29,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/10 19:32:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
  */
 public class IdentityMgmntBean implements Serializable {
 	
@@ -42,8 +42,8 @@ public class IdentityMgmntBean implements Serializable {
 	private List<SelectItem> rolesItems;
 	private List<SelectItem> groupsItems;
 	
-	public BpmBindsDAO getBpmBindsDAO() {
-		return (BpmBindsDAO)WFUtil.getBeanInstance("bpmBindsDAO");
+	public BPMDAO getBpmBindsDAO() {
+		return (BPMDAO)WFUtil.getBeanInstance("bpmBindsDAO");
 	}
 
 	public String getNewRoleName() {
@@ -99,7 +99,7 @@ public class IdentityMgmntBean implements Serializable {
 	public void addGrpsToRole() {
 		
 		Long roleActorId = getSelectedRoleActorId();
-		getBpmBindsDAO().addGrpsToRole(roleActorId, getSelectedNativeGroupIds());
+		getBpmBindsDAO().updateAddGrpsToRole(roleActorId, getSelectedNativeGroupIds());
 		
 		if(selectedNativeGroupIds != null)
 			selectedNativeGroupIds.clear();

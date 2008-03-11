@@ -13,21 +13,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.business.BPMPointcuts;
-import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/08 10:02:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
  */
 @Aspect
 public class IdentityAuthorizationAspect {
 
 	private IdegaJbpmContext idegaJbpmContext;
-	private BpmBindsDAO bpmBindsDAO;
+	private BPMDAO bpmBindsDAO;
 	private AuthorizationService authorizationService;
 
 	/*
@@ -77,11 +77,12 @@ public class IdentityAuthorizationAspect {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 
-	public BpmBindsDAO getBpmBindsDAO() {
+	public BPMDAO getBpmBindsDAO() {
 		return bpmBindsDAO;
 	}
 
-	public void setBpmBindsDAO(BpmBindsDAO bpmBindsDAO) {
+	@Autowired
+	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
 		this.bpmBindsDAO = bpmBindsDAO;
 	}
 

@@ -9,22 +9,23 @@ import java.util.logging.Logger;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
-import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/02/12 14:35:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
  */
 public class ProcessBundleManager {
 
 	private ViewToTask viewToTaskBinder;
-	private BpmBindsDAO bpmBindsDAO;
+	private BPMDAO bpmBindsDAO;
 	private IdegaJbpmContext idegaJbpmContext;
 
 	public ViewToTask getViewToTaskBinder() {
@@ -116,11 +117,12 @@ public class ProcessBundleManager {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 
-	public BpmBindsDAO getBpmBindsDAO() {
+	public BPMDAO getBpmBindsDAO() {
 		return bpmBindsDAO;
 	}
 
-	public void setBpmBindsDAO(BpmBindsDAO bpmBindsDAO) {
+	@Autowired
+	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
 		this.bpmBindsDAO = bpmBindsDAO;
 	}
 }

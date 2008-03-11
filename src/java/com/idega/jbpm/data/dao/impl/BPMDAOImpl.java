@@ -12,6 +12,9 @@ import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.exe.TaskInstance;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.jbpm.data.ActorTaskBind;
@@ -21,17 +24,20 @@ import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.TaskInstanceAccess;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
-import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.permission.Access;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/03/10 19:32:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
  */
-public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
+@Scope("singleton")
+@Repository("bpmBindsDAO")
+@Transactional(readOnly=true)
+public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	public ActorTaskBind getActorTaskBind(long taskId, String actorType) {
 		
@@ -162,9 +168,8 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		return all;
 	}
 	
-	
-	
-	public void addGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds) {
+	@Transactional(readOnly = false)
+	public void updateAddGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds) {
 		
 		ProcessRole roleIdentity = find(ProcessRole.class, roleActorId);
 		
@@ -229,7 +234,8 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		return binds;
 	}
 	
-	public Collection<String> assignTaskAccesses(long taskInstanceId, Map<Role, ProcessRole> proles) {
+	@Transactional(readOnly = false)
+	public Collection<String> updateAssignTaskAccesses(long taskInstanceId, Map<Role, ProcessRole> proles) {
 		
 		HashSet<String> actorIds = new HashSet<String>(proles.size());
 		
@@ -250,7 +256,8 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 		return actorIds;
 	}
 	
-	public Collection<String> createPRolesAndAssignTaskAccesses(TaskInstance taskInstance, List<Role> proles) {
+	@Transactional(readOnly = false)
+	public Collection<String> updateCreatePRolesAndAssignTaskAccesses(TaskInstance taskInstance, List<Role> proles) {
 
 		try {
 			
@@ -268,7 +275,7 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 				
 				roleToAssign.clear();
 				roleToAssign.put(role, prole);
-				assignTaskAccesses(taskInstance.getId(), roleToAssign);
+				updateAssignTaskAccesses(taskInstance.getId(), roleToAssign);
 				
 				actorIds.add(prole.getActorId().toString());
 			}
@@ -279,6 +286,5 @@ public class BpmBindsDAOImpl extends GenericDaoImpl implements BpmBindsDAO {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-		
 	}
 }

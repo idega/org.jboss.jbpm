@@ -1,7 +1,10 @@
 package com.idega.jbpm.presentation;
 
 import java.io.IOException;
+import java.security.AccessControlException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
@@ -18,9 +21,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/06 11:55:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -142,6 +145,11 @@ public class BPMTaskViewer extends IWBaseComponent {
 			long pdId = ctx.getTaskInstance(taskInstanceId).getProcessInstance().getProcessDefinition().getId();
 			View initView = getBpmFactory(context).getViewManager(pdId).loadTaskInstanceView(taskInstanceId, context);
 			return initView.getViewForDisplay();
+		
+		} catch (AccessControlException e) {
+			
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "No access");
+			return null;
 			
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);

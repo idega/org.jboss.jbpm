@@ -17,6 +17,7 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -26,7 +27,7 @@ import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.TaskInstanceAccess;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
-import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
 import com.idega.presentation.IWContext;
@@ -36,18 +37,19 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/03/10 19:32:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
+@Transactional(readOnly=true)
 public class IdentityAuthorizationService implements AuthorizationService {
 
 	private static final long serialVersionUID = -7496842155073961922L;
 	
 	private AuthenticationService authenticationService;
-	private BpmBindsDAO bpmBindsDAO;
+	private BPMDAO bpmBindsDAO;
 
 	public void checkPermission(Permission perm) throws AccessControlException {
 
@@ -162,12 +164,12 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		this.authenticationService = authenticationService;
 	}
 
-	public BpmBindsDAO getBpmBindsDAO() {
+	public BPMDAO getBpmBindsDAO() {
 		return bpmBindsDAO;
 	}
 
 	@Autowired
-	public void setBpmBindsDAO(BpmBindsDAO bpmBindsDAO) {
+	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
 		this.bpmBindsDAO = bpmBindsDAO;
 	}
 	
