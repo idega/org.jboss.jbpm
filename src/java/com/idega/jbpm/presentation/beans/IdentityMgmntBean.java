@@ -20,6 +20,7 @@ import com.idega.business.IBORuntimeException;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.identity.RolesManager;
 import com.idega.user.business.GroupBusiness;
 import com.idega.user.data.Group;
 import com.idega.util.CoreConstants;
@@ -28,10 +29,13 @@ import com.idega.webface.WFUtil;
 
 
 /**
+ * 
+ * TODO: move roles related stuff to RolesManager
+ * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
  */
 public class IdentityMgmntBean implements Serializable {
 	
@@ -44,6 +48,10 @@ public class IdentityMgmntBean implements Serializable {
 	
 	public BPMDAO getBpmBindsDAO() {
 		return (BPMDAO)WFUtil.getBeanInstance("bpmBindsDAO");
+	}
+	
+	public RolesManager getRolesManager() {
+		return (RolesManager)WFUtil.getBeanInstance("bpmRolesManager");
 	}
 
 	public String getNewRoleName() {
@@ -98,12 +106,11 @@ public class IdentityMgmntBean implements Serializable {
 
 	public void addGrpsToRole() {
 		
-		Long roleActorId = getSelectedRoleActorId();
-		getBpmBindsDAO().updateAddGrpsToRole(roleActorId, getSelectedNativeGroupIds());
+		if(getSelectedRoleActorId() != null && !getSelectedNativeGroupIds().isEmpty())
+			getBpmBindsDAO().updateAddGrpsToRole(getSelectedRoleActorId(), getSelectedNativeGroupIds());
 		
 		if(selectedNativeGroupIds != null)
 			selectedNativeGroupIds.clear();
-		///selectedNativeGroupIds = null;
 	}
 	
 	public void createProcessRole() {
@@ -144,8 +151,6 @@ public class IdentityMgmntBean implements Serializable {
 			
 		} else if (phaseId.equals(PhaseId.UPDATE_MODEL_VALUES)) {
 			
-			System.out.println("event.getNewValue(): "+event.getNewValue());
-			System.out.println("event.getOldValue(): "+event.getOldValue());
 			if(selectedNativeGroupIds != null && event.getNewValue() != null && event.getOldValue() != null && !event.getNewValue().equals(event.getOldValue()))
 				selectedNativeGroupIds.clear();
 			

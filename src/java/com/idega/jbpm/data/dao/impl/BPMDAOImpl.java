@@ -2,16 +2,13 @@ package com.idega.jbpm.data.dao.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.jbpm.graph.def.ProcessDefinition;
-import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
-import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,9 +27,9 @@ import com.idega.jbpm.identity.permission.Access;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -128,15 +125,27 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return all;
 	}
 	
-	public List<ProcessRole> getAllProcessRoleNativeIdentityBinds(Collection<String> rolesNames) {
+	@SuppressWarnings("unchecked")
+	public List<ProcessRole> getProcessRolesByRolesNames(Collection<String> rolesNames, Long processInstanceId) {
 		
 		if(rolesNames == null || rolesNames.isEmpty())
 			throw new IllegalArgumentException("Roles names should contain values");
 		
-		@SuppressWarnings("unchecked")
-		List<ProcessRole> all = getEntityManager().createNamedQuery(ProcessRole.getAllByRoleNames)
-		.setParameter(ProcessRole.processRoleNameProperty, rolesNames)
-		.getResultList();
+		List<ProcessRole> all;
+		
+		if(processInstanceId == null) {
+			
+			all = getEntityManager().createNamedQuery(ProcessRole.getAllByRoleNamesAndPIIdIsNull)
+			.setParameter(ProcessRole.processRoleNameProperty, rolesNames)
+			.getResultList();
+			
+		} else {
+		
+			all = getEntityManager().createNamedQuery(ProcessRole.getAllByRoleNamesAndPIId)
+			.setParameter(ProcessRole.processRoleNameProperty, rolesNames)
+			.setParameter(ProcessRole.processInstanceIdProperty, processInstanceId)
+			.getResultList();
+		}
 		
 		return all;
 	}
@@ -257,34 +266,15 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	@Transactional(readOnly = false)
-	public Collection<String> updateCreatePRolesAndAssignTaskAccesses(TaskInstance taskInstance, List<Role> proles) {
-
-		try {
+	public void updateCreateProcessRoles(Collection<String> rolesNames, Long processInstanceId) {
+		
+		for (String roleName : rolesNames) {
 			
-			ProcessInstance pi = taskInstance.getProcessInstance();
-			HashMap<Role, ProcessRole> roleToAssign = new HashMap<Role, ProcessRole>(1);
-			List<String> actorIds = new ArrayList<String>(proles.size());
+			ProcessRole prole = new ProcessRole();
+			prole.setProcessRoleName(roleName);
+			prole.setProcessInstanceId(processInstanceId);
 			
-			for (Role role : proles) {
-				
-				ProcessRole prole = new ProcessRole();
-				prole.setProcessRoleName(role.getRoleName());
-				prole.setProcessInstanceId(pi.getId());
-				
-				persist(prole);
-				
-				roleToAssign.clear();
-				roleToAssign.put(role, prole);
-				updateAssignTaskAccesses(taskInstance.getId(), roleToAssign);
-				
-				actorIds.add(prole.getActorId().toString());
-			}
-			
-			return actorIds;
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
+			persist(prole);
 		}
 	}
 }

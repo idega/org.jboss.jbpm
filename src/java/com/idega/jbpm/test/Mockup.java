@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jbpm.JbpmConfiguration;
-import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -14,25 +12,25 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/02 18:32:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
  *
  */
 public class Mockup  {
 	
 	public static final String plaintiffVarName = "string:plaintiffFirstName";
 	
-	
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args) {
 		
 		try {
 			//JbpmConfiguration cfg = JbpmConfiguration.getInstance();
 			
 			
-			JbpmConfiguration cfg = JbpmConfiguration.parseInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/jbpm.cfg.xml"));
+			///JbpmConfiguration cfg = JbpmConfiguration.parseInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/jbpm.cfg.xml"));
 			
-			JbpmContext ctx = cfg.createJbpmContext();
+			//JbpmContext ctx = cfg.createJbpmContext();
 			
 			ProcessDefinition pd = ProcessDefinition.parseXmlInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/processdefinition.xml"));
 			

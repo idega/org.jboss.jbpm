@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
-import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.data.ActorTaskBind;
@@ -19,9 +18,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 20:14:27 $ by $Author: civilis $
  */
 public interface BPMDAO extends GenericDao {
 
@@ -49,7 +48,7 @@ public interface BPMDAO extends GenericDao {
 	
 	public abstract List<NativeIdentityBind> getNativeIdentities(long processRoleIdentityId);
 	
-	public abstract List<ProcessRole> getAllProcessRoleNativeIdentityBinds(Collection<String> rolesNames);
+	public abstract List<ProcessRole> getProcessRolesByRolesNames(Collection<String> rolesNames, Long processInstanceId);
 	
 	public abstract List<ProcessRole> getProcessRoles(Collection<Long> actorIds);
 	
@@ -59,5 +58,5 @@ public interface BPMDAO extends GenericDao {
 	
 	public abstract Collection<String> updateAssignTaskAccesses(long taskInstanceId, Map<Role, ProcessRole> proles);
 	
-	public abstract Collection<String> updateCreatePRolesAndAssignTaskAccesses(TaskInstance taskInstance, List<Role> proles);
+	public abstract void updateCreateProcessRoles(Collection<String> rolesNames, Long processInstanceId);
 }

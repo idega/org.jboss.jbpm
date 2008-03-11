@@ -1,7 +1,6 @@
 package com.idega.jbpm.identity;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -16,22 +15,14 @@ import com.idega.jbpm.data.dao.BPMDAO;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/03/11 12:16:58 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
 	private BPMDAO bpmBindsDAO;
-
-	public BPMDAO getBpmBindsDAO() {
-		return bpmBindsDAO;
-	}
-
-	@Autowired
-	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
-		this.bpmBindsDAO = bpmBindsDAO;
-	}
+	private RolesManager rolesManager;
 
 	public void assign(TaskInstance taskInstance, List<Role> roles) {
 		
@@ -43,59 +34,42 @@ public class RolesAssiger {
 		
 		HashMap<String, Role> rolz = new HashMap<String, Role>(roles.size());
 		
-		for (Role role : roles) {
-			
+		for (Role role : roles)
 			rolz.put(role.getRoleName(), role);
-		}
 		
-		List<ProcessRole> processRoles = getBpmBindsDAO().getAllProcessRoleNativeIdentityBinds(rolz.keySet());
+		List<ProcessRole> processRoles = getRolesManager().createRolesByProcessInstance(rolz, taskInstance.getProcessInstance().getId());
+		getRolesManager().assignTaskAccesses(taskInstance.getId(), processRoles, rolz);
 		
-		Collection<String> actorIds;
-		Long processInstanceId = taskInstance.getProcessInstance().getId();
+//		TODO: assign identity to specific roles (owner)
 		
-		if(processRoles == null || processRoles.isEmpty()) {
-			
-			actorIds = getBpmBindsDAO().updateCreatePRolesAndAssignTaskAccesses(taskInstance, roles);
-			
-		} else {
-			
-			HashMap<Role, ProcessRole> proles = new HashMap<Role, ProcessRole>(processRoles.size());
-			
-			for (ProcessRole processRole : processRoles) {
-				
-				if(processInstanceId.equals(processRole.getProcessInstanceId()) || !proles.containsKey(processRole.getProcessRoleName()))
-					proles.put(rolz.get(processRole.getProcessRoleName()), processRole);
-			}
-			
-			actorIds = getBpmBindsDAO().updateAssignTaskAccesses(taskInstance.getId(), proles);
-			
-			if(processRoles.size() < roles.size()) {
-				
-//				There are some roles that are not put in ProcessRoles table
-				
-				ArrayList<Role> rolesToCreate = new ArrayList<Role>(roles.size() - processRoles.size());
-				
-				for (Role role : roles) {
-					
-					boolean takeIt = true;
-					
-					for (ProcessRole prole : processRoles) {
-						
-						if(role.getRoleName().equals(prole.getProcessRoleName())) {
-							takeIt = false;
-							break;
-						}
-					}
-					
-					if(takeIt)
-						rolesToCreate.add(role);
-				}
-				
-				Collection<String> actorIds2 = getBpmBindsDAO().updateCreatePRolesAndAssignTaskAccesses(taskInstance, rolesToCreate);
-				actorIds.addAll(actorIds2);
-			}
-		}
+		setPooledActors(taskInstance, processRoles);
+	}
+	
+	private void setPooledActors(TaskInstance taskInstance, List<ProcessRole> processRoles) {
+		
+		ArrayList<String> actorIds = new ArrayList<String>(processRoles.size());
+		
+		for (ProcessRole role : processRoles)
+			actorIds.add(role.getActorId().toString());
 		
 		taskInstance.setPooledActors(actorIds.toArray(new String[] {}));
+	}
+	
+	public BPMDAO getBpmBindsDAO() {
+		return bpmBindsDAO;
+	}
+
+	@Autowired
+	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
+		this.bpmBindsDAO = bpmBindsDAO;
+	}
+	
+	public RolesManager getRolesManager() {
+		return rolesManager;
+	}
+
+	@Autowired
+	public void setRolesManager(RolesManager rolesManager) {
+		this.rolesManager = rolesManager;
 	}
 }
