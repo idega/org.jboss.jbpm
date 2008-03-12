@@ -1,13 +1,14 @@
 package com.idega.jbpm.exe.impl;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.context.def.VariableAccess;
-import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,9 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/12 15:43:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 20:43:43 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -29,7 +30,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 
 	private IdegaJbpmContext idegaJbpmContext;
 	
-	public void submitVariables(Map<String, Object> variables, long taskInstanceId) {
+	public void submitVariables(Map<String, Object> variables, long taskInstanceId, boolean validate) {
 
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
@@ -42,20 +43,29 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			TaskController tiController = ti.getTask().getTaskController();
 			
 			if(tiController == null)
-//				no variables perhaps?
+//				this occurs when no variables defined in the controller
 				return;
 			
-			@SuppressWarnings("unchecked")
-			List<VariableAccess> variableAccesses = tiController.getVariableAccesses();
+			if(validate) {
 			
-			for (VariableAccess variableAccess : variableAccesses)
-				if(!variableAccess.isWritable() && variables.containsKey(variableAccess.getVariableName()))
-					variables.remove(variableAccess.getVariableName());
+				@SuppressWarnings("unchecked")
+				List<VariableAccess> variableAccesses = tiController.getVariableAccesses();
+				
+				for (VariableAccess variableAccess : variableAccesses) {
+					
+					if(variableAccess.getAccess().isRequired() && !variables.containsKey(variableAccess.getVariableName()))
+						throw new RuntimeException("Required variable ("+variableAccess.getVariableName()+") not submitted.");
+					
+					if(!variableAccess.isWritable() && variables.containsKey(variableAccess.getVariableName())) {
+						
+						Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to submit read-only variable ("+variableAccess.getVariableName()+"), ignoring.");
+						variables.remove(variableAccess.getVariableName());
+					}
+				}
+			}
 			
-//			TODO: remove variables, that don't exist in process definition
-
 			ti.setVariables(variables);
-			ti.getTask().getTaskController().submitParameters(ti);
+			tiController.submitParameters(ti);
 			
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
@@ -70,40 +80,38 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
 			
 			@SuppressWarnings("unchecked")
-			Map<String, Object> variables = (Map<String, Object>)ti.getVariables();
+			Map<String, Object> localVariables = ti.getVariablesLocally();
 			
-			return variables;
+			@SuppressWarnings("unchecked")
+			Map<String, Object> globalVariables = ti.getVariables();
+			
+			HashMap<String, Object> variables = new HashMap<String, Object>(globalVariables);
+			
+//			readonly
+			if(ti.hasEnded()) {
+				
+//				override with local ones
+				variables.putAll(localVariables);
+				
+				return variables;
+				
+			} else {
+				
+				for (Entry<String, Object> entry : localVariables.entrySet()) {
+				
+//					override with existing local values
+					if(entry.getValue() != null)
+						variables.put(entry.getKey(), entry.getValue());
+				}
+				
+				return variables;
+			}
 			
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 	
-	public Map<String, Object> populateVariablesFromProcess(long processInstanceId) {
-		
-		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
-		
-		try {
-			ProcessInstance pi = ctx.getProcessInstance(processInstanceId);
-			
-			@SuppressWarnings("unchecked")
-			Collection<TaskInstance> taskInstances = pi.getTaskMgmtInstance().getTaskInstances();
-			Map<String, Object> variables = new HashMap<String, Object>();
-			
-			for (TaskInstance taskInstance : taskInstances) {
-
-				@SuppressWarnings("unchecked")
-				Map<String, Object> taskInstanceVariables = (Map<String, Object>)taskInstance.getVariables();
-				variables.putAll(taskInstanceVariables);
-			}
-			
-			return variables;
-			
-		} finally {
-			getIdegaJbpmContext().closeAndCommit(ctx);
-		}
-	}
-
 	public IdegaJbpmContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
