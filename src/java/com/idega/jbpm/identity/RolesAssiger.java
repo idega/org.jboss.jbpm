@@ -6,18 +6,21 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.faces.context.FacesContext;
+
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.presentation.IWContext;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 12:41:57 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
@@ -38,9 +41,14 @@ public class RolesAssiger {
 			rolz.put(role.getRoleName(), role);
 		
 		List<ProcessRole> processRoles = getRolesManager().createRolesByProcessInstance(rolz, taskInstance.getProcessInstance().getId());
-		getRolesManager().assignTaskAccesses(taskInstance.getId(), processRoles, rolz);
 		
-//		TODO: assign identity to specific roles (owner)
+		if(taskInstance.isStartTaskInstance()) {
+			
+			Integer userId = IWContext.getIWContext(FacesContext.getCurrentInstance()).getCurrentUserId();
+			getRolesManager().assignTaskAccesses(taskInstance.getId(), processRoles, rolz, userId);
+			
+		} else
+			getRolesManager().assignTaskAccesses(taskInstance.getId(), processRoles, rolz, null);
 		
 		setPooledActors(taskInstance, processRoles);
 	}

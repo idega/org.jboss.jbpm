@@ -27,9 +27,9 @@ import com.idega.jbpm.identity.permission.Access;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/12 11:43:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 12:41:57 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -244,20 +244,32 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	@Transactional(readOnly = false)
-	public Collection<String> updateAssignTaskAccesses(long taskInstanceId, Map<Role, ProcessRole> proles) {
+	public Collection<String> updateAssignTaskAccesses(long taskInstanceId, Map<Role, ProcessRole> proles, Integer userIdentityId) {
 		
 		HashSet<String> actorIds = new HashSet<String>(proles.size());
 		
 		for (Entry<Role, ProcessRole> entry : proles.entrySet()) {
 			
+			ProcessRole role = (ProcessRole)merge(entry.getValue());
+			
 			TaskInstanceAccess tiAccess = new TaskInstanceAccess();
-			tiAccess.setProcessRole((ProcessRole)merge(entry.getValue()));
+			tiAccess.setProcessRole(role);
 			tiAccess.setTaskInstanceId(taskInstanceId);
 			
 			for (Access access : entry.getKey().getAccesses())
 				tiAccess.addAccess(access);
 			
 			persist(tiAccess);
+			
+			if(!entry.getKey().isGeneral() && userIdentityId != null) {
+				
+				NativeIdentityBind userIdentity = new NativeIdentityBind();
+				userIdentity.setIdentityId(userIdentityId.toString());
+				userIdentity.setIdentityType(IdentityType.USER);
+				userIdentity.setProcessRole(role);
+				
+				persist(userIdentity);
+			}
 			
 			actorIds.add(entry.getValue().getActorId().toString());
 		}

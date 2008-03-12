@@ -18,9 +18,9 @@ import com.idega.jbpm.data.dao.BPMDAO;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/03/12 11:43:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 12:41:57 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -46,7 +46,7 @@ public class RolesManagerImpl implements RolesManager {
 		return processRoles;
 	}
 	
-	public void assignTaskAccesses(long taskInstanceId, List<ProcessRole> processRoles, Map<String, Role> roles) {
+	public void assignTaskAccesses(long taskInstanceId, List<ProcessRole> processRoles, Map<String, Role> roles, Integer assignToSpecificUser) {
 		
 		HashMap<Role, ProcessRole> proles = new HashMap<Role, ProcessRole>(processRoles.size());
 		
@@ -55,7 +55,7 @@ public class RolesManagerImpl implements RolesManager {
 			proles.put(roles.get(processRole.getProcessRoleName()), processRole);
 		}
 		
-		getBpmDAO().updateAssignTaskAccesses(taskInstanceId, proles);
+		getBpmDAO().updateAssignTaskAccesses(taskInstanceId, proles, assignToSpecificUser);
 	}
 	
 	public void addGroupsToRoles(Long actorId, Collection<String> groupsIds, Long processInstanceId, Long processDefinitionId) {

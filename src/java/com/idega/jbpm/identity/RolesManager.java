@@ -9,9 +9,9 @@ import com.idega.jbpm.data.ProcessRole;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/03/12 11:43:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 12:41:57 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -19,7 +19,7 @@ public interface RolesManager {
 			Map<String, Role> roles, long processInstanceId);
 
 	public abstract void assignTaskAccesses(long taskInstanceId,
-			List<ProcessRole> processRoles, Map<String, Role> roles);
+			List<ProcessRole> processRoles, Map<String, Role> roles, Integer assignToSpecificUser);
 
 	public abstract void addGroupsToRoles(Long actorId, Collection<String> groupsIds, Long processInstanceId, Long processDefinitionId);
 	
