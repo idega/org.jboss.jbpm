@@ -2,10 +2,7 @@ package com.idega.jbpm.data.dao.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
@@ -18,18 +15,15 @@ import com.idega.jbpm.data.ActorTaskBind;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
-import com.idega.jbpm.data.TaskInstanceAccess;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.jbpm.identity.Role;
-import com.idega.jbpm.identity.permission.Access;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/12 12:41:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 15:43:03 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -163,20 +157,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return all;
 	}
 	
-	public List<ProcessRole> getProcessRoles(Collection<Long> actorIds, long taskInstanceId) {
-		
-		if(actorIds == null || actorIds.isEmpty())
-			throw new IllegalArgumentException("ActorIds should contain values");
-		
-		@SuppressWarnings("unchecked")
-		List<ProcessRole> all = getEntityManager().createNamedQuery(ProcessRole.getAssignedToTaskInstances)
-		.setParameter(ProcessRole.actorIdProperty, actorIds)
-		.setParameter(TaskInstanceAccess.taskInstanceIdProperty, taskInstanceId)
-		.getResultList();
-		
-		return all;
-	}
-	
 	@Transactional(readOnly = false)
 	public void updateAddGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds) {
 		
@@ -241,40 +221,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		.getResultList();
 		
 		return binds;
-	}
-	
-	@Transactional(readOnly = false)
-	public Collection<String> updateAssignTaskAccesses(long taskInstanceId, Map<Role, ProcessRole> proles, Integer userIdentityId) {
-		
-		HashSet<String> actorIds = new HashSet<String>(proles.size());
-		
-		for (Entry<Role, ProcessRole> entry : proles.entrySet()) {
-			
-			ProcessRole role = (ProcessRole)merge(entry.getValue());
-			
-			TaskInstanceAccess tiAccess = new TaskInstanceAccess();
-			tiAccess.setProcessRole(role);
-			tiAccess.setTaskInstanceId(taskInstanceId);
-			
-			for (Access access : entry.getKey().getAccesses())
-				tiAccess.addAccess(access);
-			
-			persist(tiAccess);
-			
-			if(!entry.getKey().isGeneral() && userIdentityId != null) {
-				
-				NativeIdentityBind userIdentity = new NativeIdentityBind();
-				userIdentity.setIdentityId(userIdentityId.toString());
-				userIdentity.setIdentityType(IdentityType.USER);
-				userIdentity.setProcessRole(role);
-				
-				persist(userIdentity);
-			}
-			
-			actorIds.add(entry.getValue().getActorId().toString());
-		}
-		
-		return actorIds;
 	}
 	
 	@Transactional(readOnly = false)

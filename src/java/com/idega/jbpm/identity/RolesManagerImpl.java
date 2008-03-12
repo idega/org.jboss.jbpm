@@ -2,7 +2,6 @@ package com.idega.jbpm.identity;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -11,16 +10,19 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/03/12 12:41:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 15:43:02 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -46,16 +48,20 @@ public class RolesManagerImpl implements RolesManager {
 		return processRoles;
 	}
 	
-	public void assignTaskAccesses(long taskInstanceId, List<ProcessRole> processRoles, Map<String, Role> roles, Integer assignToSpecificUser) {
-		
-		HashMap<Role, ProcessRole> proles = new HashMap<Role, ProcessRole>(processRoles.size());
-		
-		for (ProcessRole processRole : processRoles) {
+	@Transactional(readOnly=false)
+	public void createIdentitiesForRoles(List<ProcessRole> processRoles, int userId) {
+
+		for (ProcessRole role : processRoles) {
 			
-			proles.put(roles.get(processRole.getProcessRoleName()), processRole);
+			if(!Role.isGeneral(role.getProcessRoleName())) {
+			
+				NativeIdentityBind nidentity = new NativeIdentityBind();
+				nidentity.setIdentityId(String.valueOf(userId));
+				nidentity.setIdentityType(IdentityType.USER);
+				nidentity.setProcessRole((ProcessRole)getBpmDAO().merge(role));
+				getBpmDAO().persist(nidentity);
+			}
 		}
-		
-		getBpmDAO().updateAssignTaskAccesses(taskInstanceId, proles, assignToSpecificUser);
 	}
 	
 	public void addGroupsToRoles(Long actorId, Collection<String> groupsIds, Long processInstanceId, Long processDefinitionId) {

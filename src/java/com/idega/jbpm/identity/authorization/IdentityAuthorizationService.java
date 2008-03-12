@@ -26,9 +26,10 @@ import com.idega.business.IBORuntimeException;
 import com.idega.data.IDORuntimeException;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
-import com.idega.jbpm.data.TaskInstanceAccess;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.identity.JSONExpHandler;
+import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
 import com.idega.presentation.IWContext;
@@ -38,9 +39,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/03/12 11:43:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 15:43:03 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -96,7 +97,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	
 	protected List<NativeIdentityBind> resolveCandidates(Collection<Long> pooledActors, TaskInstance taskInstance) {
 		
-		List<ProcessRole> roles = getBpmBindsDAO().getProcessRoles(pooledActors, taskInstance.getId());
+		List<ProcessRole> roles = getBpmBindsDAO().getProcessRoles(pooledActors);
 		HashSet<String> genRoleNamesToCheck = new HashSet<String>(roles.size());
 		
 		ArrayList<NativeIdentityBind> candidates = new ArrayList<NativeIdentityBind>();
@@ -133,18 +134,18 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	
 	protected boolean isRoleSatisfiesPermission(ProcessRole role, TaskInstance taskInstance) {
 		
-		List<TaskInstanceAccess> accesses = role.getTaskInstanceAccesses();
+		String jsonExp = taskInstance.getTask().getAssignmentDelegation().getConfiguration();
 		
+		List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
 		boolean writeAccessNeeded = !taskInstance.hasEnded();
 		
-		for (TaskInstanceAccess tiAccess : accesses) {
-			
-			if(tiAccess.getTaskInstanceId() == taskInstance.getId()) {
-		
-				if(tiAccess.hasAccess(Access.read) && (!writeAccessNeeded || tiAccess.hasAccess(Access.write))) {
-			
+		for (Role confRole : roles) {
+
+			if(confRole.getRoleName().equals(role.getProcessRoleName())) {
+				
+				if(confRole.getAccesses().contains(Access.read) && (!writeAccessNeeded || confRole.getAccesses().contains(Access.write)))
 					return true;
-				} else
+				else
 					return false;
 			}
 		}

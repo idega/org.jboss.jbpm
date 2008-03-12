@@ -10,9 +10,6 @@
 	<bean id="jbpmProcessBusiness" class="com.idega.jbpm.business.JbpmProcessBusinessBean" scope="singleton">
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
-	<bean id="jbpmProcessVariablesHandler" class="com.idega.jbpm.exe.VariablesHandler" scope="singleton">
-		<property name="idegaJbpmContext" ref="idegaJbpmContext" />
-	</bean>
 	<bean id="idegaDeployProcess" class="com.idega.jbpm.presentation.beans.DeployProcess" scope="request">
 		<property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>

@@ -18,9 +18,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/12 11:43:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 15:43:02 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
@@ -29,8 +29,7 @@ import javax.persistence.Table;
 			@NamedQuery(name=ProcessRole.getAllGeneral, query="from ProcessRole pr where pr."+ProcessRole.processInstanceIdProperty+" is null"),
 			@NamedQuery(name=ProcessRole.getAllByRoleNamesAndPIId, query="from ProcessRole b where b."+ProcessRole.processRoleNameProperty+" in(:"+ProcessRole.processRoleNameProperty+") and b."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty),
 			@NamedQuery(name=ProcessRole.getAllByRoleNamesAndPIIdIsNull, query="from ProcessRole b where b."+ProcessRole.processRoleNameProperty+" in(:"+ProcessRole.processRoleNameProperty+") and b."+ProcessRole.processInstanceIdProperty+" is null"),
-			@NamedQuery(name=ProcessRole.getAllByActorIds, query="from ProcessRole b where b."+ProcessRole.actorIdProperty+" in(:"+ProcessRole.actorIdProperty+")"),
-			@NamedQuery(name=ProcessRole.getAssignedToTaskInstances, query="select b from ProcessRole b, com.idega.jbpm.data.TaskInstanceAccess tia where b."+ProcessRole.actorIdProperty+" in(:"+ProcessRole.actorIdProperty+") and tia."+TaskInstanceAccess.taskInstanceIdProperty+" = :"+TaskInstanceAccess.taskInstanceIdProperty+" and tia."+TaskInstanceAccess.processRoleProperty+" = b")
+			@NamedQuery(name=ProcessRole.getAllByActorIds, query="from ProcessRole b where b."+ProcessRole.actorIdProperty+" in(:"+ProcessRole.actorIdProperty+")")
 		}
 )
 public class ProcessRole implements Serializable {
@@ -42,7 +41,6 @@ public class ProcessRole implements Serializable {
 	public static final String getAllByRoleNamesAndPIIdIsNull = "ProcessRoleNativeIdentityBind.getAllByRoleNamesAndPIIdIsNull";
 	
 	public static final String getAllByActorIds = "ProcessRoleNativeIdentityBind.getAllByActorIds";
-	public static final String getAssignedToTaskInstances = "ProcessRoleNativeIdentityBind.getAssignedToTaskInstances";
 	
 	public static final String processRoleNameProperty = "processRoleName";
 	@Column(name="role_name", nullable=false)
@@ -60,9 +58,6 @@ public class ProcessRole implements Serializable {
     @OneToMany(mappedBy=NativeIdentityBind.processRoleProperty, cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
 	private List<NativeIdentityBind> nativeIdentities;
     
-    @OneToMany(mappedBy=TaskInstanceAccess.processRoleProperty, cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
-	private List<TaskInstanceAccess> taskInstanceAccesses;
-
 	public String getProcessRoleName() {
 		return processRoleName;
 	}
@@ -85,15 +80,6 @@ public class ProcessRole implements Serializable {
 
 	public void setNativeIdentities(List<NativeIdentityBind> nativeIdentities) {
 		this.nativeIdentities = nativeIdentities;
-	}
-
-	public List<TaskInstanceAccess> getTaskInstanceAccesses() {
-		return taskInstanceAccesses;
-	}
-
-	public void setTaskInstanceAccesses(
-			List<TaskInstanceAccess> taskInstanceAccesses) {
-		this.taskInstanceAccesses = taskInstanceAccesses;
 	}
 
 	public Long getProcessInstanceId() {

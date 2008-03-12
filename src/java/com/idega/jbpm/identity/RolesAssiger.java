@@ -18,9 +18,9 @@ import com.idega.presentation.IWContext;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/03/12 12:41:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 15:43:02 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
@@ -45,10 +45,8 @@ public class RolesAssiger {
 		if(taskInstance.isStartTaskInstance()) {
 			
 			Integer userId = IWContext.getIWContext(FacesContext.getCurrentInstance()).getCurrentUserId();
-			getRolesManager().assignTaskAccesses(taskInstance.getId(), processRoles, rolz, userId);
-			
-		} else
-			getRolesManager().assignTaskAccesses(taskInstance.getId(), processRoles, rolz, null);
+			getRolesManager().createIdentitiesForRoles(processRoles, userId);
+		}
 		
 		setPooledActors(taskInstance, processRoles);
 	}
