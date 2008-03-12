@@ -1,5 +1,6 @@
 package com.idega.jbpm.identity;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,9 +18,9 @@ import com.idega.jbpm.data.dao.BPMDAO;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 11:43:54 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -64,6 +65,20 @@ public class RolesManagerImpl implements RolesManager {
 			getBpmDAO().updateAddGrpsToRole(actorId, groupsIds);
 		} else
 			throw new UnsupportedOperationException("processInstanceId: "+processInstanceId+", processDefinitionId: "+processDefinitionId+". Assignment for general roles implemented only");
+	}
+	
+	public List<ProcessRole> getGeneralRoles() {
+		
+		List<ProcessRole> roles = getBpmDAO().getAllGeneralProcessRoles();
+		ArrayList<ProcessRole> genRoles = new ArrayList<ProcessRole>(roles.size());
+		
+		for (ProcessRole processRole : roles) {
+			
+			if(Role.isGeneral(processRole.getProcessRoleName()))
+				genRoles.add(processRole);
+		}
+		
+		return genRoles;
 	}
 	
 //	TODO: check if noone else tries to create roles for this piId at the same time

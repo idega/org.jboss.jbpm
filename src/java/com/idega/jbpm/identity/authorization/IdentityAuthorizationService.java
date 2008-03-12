@@ -5,6 +5,7 @@ import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -37,9 +38,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 11:43:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -93,8 +94,110 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		}
 	}
 	
+	protected List<NativeIdentityBind> resolveCandidates(Collection<Long> pooledActors, TaskInstance taskInstance) {
+		
+		List<ProcessRole> roles = getBpmBindsDAO().getProcessRoles(pooledActors, taskInstance.getId());
+		HashSet<String> genRoleNamesToCheck = new HashSet<String>(roles.size());
+		
+		ArrayList<NativeIdentityBind> candidates = new ArrayList<NativeIdentityBind>();
+		
+//		first check amongst assigned to task instance (bound to process instance)
+		for (ProcessRole processRole : roles) {
+			
+			if(isRoleSatisfiesPermission(processRole, taskInstance)) {
+			
+				if(processRole.getNativeIdentities().isEmpty()) {
+					
+					genRoleNamesToCheck.add(processRole.getProcessRoleName());
+					
+				} else {
+					
+					candidates.addAll(processRole.getNativeIdentities());
+				}
+			}
+		}
+		
+//		checking amongst general roles
+		if(!genRoleNamesToCheck.isEmpty()) {
+			
+			roles = getBpmBindsDAO().getProcessRolesByRolesNames(genRoleNamesToCheck, null);
+			
+			for (ProcessRole processRole : roles) {
+
+				candidates.addAll(processRole.getNativeIdentities());
+			}
+		}
+		
+		return candidates;
+	}
+	
+	protected boolean isRoleSatisfiesPermission(ProcessRole role, TaskInstance taskInstance) {
+		
+		List<TaskInstanceAccess> accesses = role.getTaskInstanceAccesses();
+		
+		boolean writeAccessNeeded = !taskInstance.hasEnded();
+		
+		for (TaskInstanceAccess tiAccess : accesses) {
+			
+			if(tiAccess.getTaskInstanceId() == taskInstance.getId()) {
+		
+				if(tiAccess.hasAccess(Access.read) && (!writeAccessNeeded || tiAccess.hasAccess(Access.write))) {
+			
+					return true;
+				} else
+					return false;
+			}
+		}
+		
+		return false;
+	}
+	
+	protected boolean fallsInGroups(int userId, List<NativeIdentityBind> nativeIdentities) {
+	
+		try {
+			UserBusiness ub = getUserBusiness();
+			@SuppressWarnings("unchecked")
+			Collection<Group> userGroups = ub.getUserGroups(userId);
+			
+			for (Group group : userGroups) {
+			
+				String groupId = group.getPrimaryKey().toString();
+				
+				for (NativeIdentityBind nativeIdentity : nativeIdentities) {
+					
+					if(nativeIdentity.getIdentityType() == IdentityType.GROUP && nativeIdentity.getIdentityId().equals(groupId))
+						return true;
+				}
+			}
+			
+			return false;
+			
+		} catch (RemoteException e) {
+			throw new IDORuntimeException(e);
+		}
+	}
+	
 	protected void checkPermissionInPooledActors(int userId, Collection<Long> pooledActors, TaskInstance taskInstance) throws AccessControlException {
 	
+
+		List<NativeIdentityBind> nativeIdentities = resolveCandidates(pooledActors, taskInstance);
+
+//		check for groups:
+		if(!nativeIdentities.isEmpty()) {
+			
+			if(fallsInGroups(userId, nativeIdentities))
+				return;
+		}
+		
+//		check for roles
+//		check for users
+	
+		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+").");
+		
+		/*
+		if(true)
+			return;
+		
 		List<ProcessRole> assignedRolesIdentities = getBpmBindsDAO().getProcessRoles(pooledActors, taskInstance.getId());
 		ArrayList<Long> filteredRolesIdentities = new ArrayList<Long>(assignedRolesIdentities.size());
 		
@@ -151,6 +254,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		}
 		
 		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+"). Write access needed: "+writeAccessNeeded);
+		*/
 	}
 	
 	public void close() { }

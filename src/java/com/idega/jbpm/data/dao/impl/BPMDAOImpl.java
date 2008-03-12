@@ -27,9 +27,9 @@ import com.idega.jbpm.identity.permission.Access;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 11:43:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -116,10 +116,10 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return all;
 	}
 	
-	public List<ProcessRole> getAllProcessRoleNativeIdentityBinds() {
+	public List<ProcessRole> getAllGeneralProcessRoles() {
 		
 		@SuppressWarnings("unchecked")
-		List<ProcessRole> all = getEntityManager().createNamedQuery(ProcessRole.getAll)
+		List<ProcessRole> all = getEntityManager().createNamedQuery(ProcessRole.getAllGeneral)
 		.getResultList();
 		
 		return all;

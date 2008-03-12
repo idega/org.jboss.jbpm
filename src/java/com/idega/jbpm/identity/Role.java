@@ -8,9 +8,9 @@ import com.idega.jbpm.identity.permission.Access;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 11:43:55 $ by $Author: civilis $
  */
 public class Role {
 	
@@ -44,5 +44,9 @@ public class Role {
 	 */
 	public boolean isGeneral() {
 		return !specificRoles.contains(getRoleName());
+	}
+	
+	public static boolean isGeneral(String roleName) {
+		return !specificRoles.contains(roleName);
 	}
 }

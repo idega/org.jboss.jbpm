@@ -33,9 +33,9 @@ import com.idega.webface.WFUtil;
  * TODO: move roles related stuff to RolesManager
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 11:43:54 $ by $Author: civilis $
  */
 public class IdentityMgmntBean implements Serializable {
 	
@@ -68,9 +68,9 @@ public class IdentityMgmntBean implements Serializable {
 			
 			rolesItems = new ArrayList<SelectItem>();
 			
-			List<ProcessRole> binds = getBpmBindsDAO().getAllProcessRoleNativeIdentityBinds();
+			List<ProcessRole> genRoles = getRolesManager().getGeneralRoles();
 			
-			for (ProcessRole bind : binds) {
+			for (ProcessRole bind : genRoles) {
 				
 				SelectItem item = new SelectItem(bind.getActorId(), bind.getProcessRoleName());
 				rolesItems.add(item);

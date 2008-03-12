@@ -18,15 +18,15 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/12 11:43:54 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
 @NamedQueries(
 		{
-			@NamedQuery(name=ProcessRole.getAll, query="from ProcessRole"),
+			@NamedQuery(name=ProcessRole.getAllGeneral, query="from ProcessRole pr where pr."+ProcessRole.processInstanceIdProperty+" is null"),
 			@NamedQuery(name=ProcessRole.getAllByRoleNamesAndPIId, query="from ProcessRole b where b."+ProcessRole.processRoleNameProperty+" in(:"+ProcessRole.processRoleNameProperty+") and b."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty),
 			@NamedQuery(name=ProcessRole.getAllByRoleNamesAndPIIdIsNull, query="from ProcessRole b where b."+ProcessRole.processRoleNameProperty+" in(:"+ProcessRole.processRoleNameProperty+") and b."+ProcessRole.processInstanceIdProperty+" is null"),
 			@NamedQuery(name=ProcessRole.getAllByActorIds, query="from ProcessRole b where b."+ProcessRole.actorIdProperty+" in(:"+ProcessRole.actorIdProperty+")"),
@@ -37,7 +37,7 @@ public class ProcessRole implements Serializable {
 
 	private static final long serialVersionUID = 4739344819567695492L;
 	
-	public static final String getAll = "ProcessRoleNativeIdentityBind.getAll";
+	public static final String getAllGeneral = "ProcessRoleNativeIdentityBind.getAllGeneral";
 	public static final String getAllByRoleNamesAndPIId = "ProcessRoleNativeIdentityBind.getAllByRoleNamesAndPIId";
 	public static final String getAllByRoleNamesAndPIIdIsNull = "ProcessRoleNativeIdentityBind.getAllByRoleNamesAndPIIdIsNull";
 	
