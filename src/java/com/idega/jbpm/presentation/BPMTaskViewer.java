@@ -21,9 +21,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/13 17:00:38 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -31,49 +31,19 @@ public class BPMTaskViewer extends IWBaseComponent {
 	private static final String idegaJbpmContextBeanId = "idegaJbpmContext";
 	private static final String bpmFactoryBeanId = "bpmFactory";
 	
-	
 	public static final String PROCESS_DEFINITION_PROPERTY = "processDefinitionId";
-//	public static final String PROCESS_INSTANCE_PROPERTY = "processInstanceId";
 	public static final String TASK_INSTANCE_PROPERTY = "taskInstanceId";
 	public static final String BMPFACTORY_PROPERTY = "bpmFactory";
 	public static final String idegaJbpmContext_PROPERTY = "idegaJbpmContext";
 	
-//	public static final String PROCESS_VIEW_PROPERTY = "processView";
-	
 	private static final String VIEWER_FACET = "viewer";
 	
 	private String processDefinitionId;
-//	private String processInstanceId;
 	private Long taskInstanceId;
-//	private boolean processView = false;
 	
 	private BPMFactory bpmFactory;
 	private IdegaJbpmContext idegaJbpmContext;
     
-//	public String getProcessInstanceId() {
-//		
-//		return processInstanceId;
-//	}
-//	
-//	public String getProcessInstanceId(FacesContext context) {
-//
-//		String processInstanceId = getProcessInstanceId();
-//		
-//		if(processInstanceId == null) {
-//			
-//			processInstanceId = getValueBinding(PROCESS_INSTANCE_PROPERTY) != null ? (String)getValueBinding(PROCESS_INSTANCE_PROPERTY).getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get(PROCESS_INSTANCE_PROPERTY);
-//			processInstanceId = CoreConstants.EMPTY.equals(processInstanceId) ? null : processInstanceId;
-//			setProcessInstanceId(processInstanceId);
-//		}
-//		
-//		return processInstanceId;
-//	}
-//
-//	public void setProcessInstanceId(String processInstanceId) {
-//		
-//		this.processInstanceId = processInstanceId;
-//	}
-
 	public BPMTaskViewer() {
 		
 		super();
@@ -91,20 +61,12 @@ public class BPMTaskViewer extends IWBaseComponent {
 		super.encodeBegin(context);
 		
 		String processDefinitionId = getProcessDefinitionId(context);
-//		String processInstanceId = getProcessInstanceId(context);
 		Long taskInstanceId = getTaskInstanceId(context);
 		
 		UIComponent viewer = null;
 		
 		if(processDefinitionId != null)
 			viewer = loadViewerFromDefinition(context, processDefinitionId);
-		/*
-		else if(processInstanceId != null && isProcessView(context))
-			throw new UnsupportedOperationException("TODO: implement");
-			//viewer = loadFormViewerForProcessView(context, processInstanceId);
-		else if(processInstanceId != null)
-			viewer = loadViewerFromInstance(context, processInstanceId);
-		*/
 		else if(taskInstanceId != null)
 			viewer = loadViewerFromTaskInstance(context, taskInstanceId);
 		
@@ -126,17 +88,6 @@ public class BPMTaskViewer extends IWBaseComponent {
 		return initView.getViewForDisplay();
 	}
 
-	/*
-	 * private UIComponent loadViewerFromInstance(FacesContext context, String processInstanceId) {
-
-//		TODO: get task instance id to display
-		View initView = getProcess(context).getViewManager().loadTaskInstanceView(context, null);
-		return initView.getViewForDisplay();
-	}
-	 
-	 */
-	
-	
 	private UIComponent loadViewerFromTaskInstance(FacesContext context, Long taskInstanceId) {
 		
 		JbpmContext ctx = getIdegaJbpmContext(context).createJbpmContext();
@@ -156,16 +107,6 @@ public class BPMTaskViewer extends IWBaseComponent {
 		}
 	}
 	
-//	private FormViewer loadFormViewerForProcessView(FacesContext context, String processInstanceId) {
-//
-//		Document xformsDoc = getFormManager(context).loadProcessViewForm(context, Long.parseLong(processInstanceId), IWContext.getIWContext(context).getCurrentUserId());
-//		
-//		FormViewer formviewer = new FormViewer();
-//		formviewer.setRendered(true);
-//		formviewer.setXFormsDocument(xformsDoc);
-//		return formviewer;
-//	}
-	
 	@Override
 	public void encodeChildren(FacesContext context) throws IOException {
 		
@@ -178,39 +119,6 @@ public class BPMTaskViewer extends IWBaseComponent {
 		if(viewer != null)
 			renderChild(context, viewer);
 	}
-
-//	public boolean isProcessView() {
-//		return processView;
-//	}
-//
-//	public void setProcessView(boolean processView) {
-//		this.processView = processView;
-//	}
-	
-	/*
-	public boolean isProcessView(FacesContext context) {
-
-		boolean isProcessView = isProcessView();
-		
-		if(!isProcessView) {
-			
-			if(getValueBinding(PROCESS_VIEW_PROPERTY) != null) {
-				
-				isProcessView = (Boolean)getValueBinding(PROCESS_VIEW_PROPERTY).getValue(context);
-			} else {
-				Object requestParam = context.getExternalContext().getRequestParameterMap().get(PROCESS_VIEW_PROPERTY);
-				
-				if(requestParam instanceof Boolean)
-					isProcessView = (Boolean)isProcessView;
-				else
-					isProcessView = "1".equals(requestParam);
-			}
-			setProcessView(isProcessView);
-		}
-		
-		return isProcessView;
-	}
-	*/
 
 	public Long getTaskInstanceId(FacesContext context) {
 

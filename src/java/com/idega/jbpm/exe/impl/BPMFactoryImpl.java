@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jbpm.JbpmContext;
+import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -13,6 +15,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 
+import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -26,9 +29,9 @@ import com.idega.jbpm.exe.ViewManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/13 17:00:39 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationListener, ApplicationContextAware {
 	
@@ -39,6 +42,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 	private Map<String, Object> viewTypeFactoryClass;
 	
 	private BPMDAO bindsDAO;
+	private IdegaJbpmContext idegaJbpmContext;
 	
 	public ProcessManager getProcessManager(long processDefinitionId) {
 
@@ -237,5 +241,29 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 			viewTypeFactoryClass = new HashMap<String, Object>();
 		
 		return viewTypeFactoryClass;
+	}
+
+	public ProcessManager getProcessManagerByTaskInstanceId(long taskInstanceId) {
+		
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			
+			TaskInstance taskInstance = ctx.getTaskInstance(taskInstanceId);
+			long pdId = taskInstance.getProcessInstance().getProcessDefinition().getId();
+			return getProcessManager(pdId);
+			
+		} finally {
+			ctx.close();
+		}
+	}
+
+	public IdegaJbpmContext getIdegaJbpmContext() {
+		return idegaJbpmContext;
+	}
+
+	@Autowired
+	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+		this.idegaJbpmContext = idegaJbpmContext;
 	}
 }

@@ -6,9 +6,9 @@ import com.idega.jbpm.def.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/02/25 16:17:28 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/13 17:00:38 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
@@ -25,6 +25,13 @@ public interface BPMFactory {
 	 * @return View manager bound to process definition
 	 */
 	public abstract ProcessManager getProcessManager(long processDefinitionId);
+	
+	/**
+	 * 
+	 * @param taskInstanceId
+	 * @return View manager bound to process definition found by taskInstanceId
+	 */
+	public abstract ProcessManager getProcessManagerByTaskInstanceId(long taskInstanceId);
 	
 	/**
 	 * @see javadoc for getView(long taskId, boolean submitable, List<String> preferredTypes);

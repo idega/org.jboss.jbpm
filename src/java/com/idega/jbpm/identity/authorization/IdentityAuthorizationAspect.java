@@ -19,9 +19,9 @@ import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/13 17:00:38 $ by $Author: civilis $
  */
 @Aspect
 public class IdentityAuthorizationAspect {
@@ -51,7 +51,7 @@ public class IdentityAuthorizationAspect {
 				
 				if(taskInstance.getActorId() != null) {
 					
-					Logger.getLogger(getClass().getName()).log(Level.WARNING, "Task instance has aneded, but it is still assigned to actorId, fixing this now. Task instance id: "+taskInstance.getId());
+					Logger.getLogger(getClass().getName()).log(Level.WARNING, "Task instance has ended, but it is still assigned to actorId, fixing this now. Task instance id: "+taskInstance.getId());
 					taskInstance.setActorId(null);
 				}
 				
