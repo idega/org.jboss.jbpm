@@ -3,12 +3,13 @@ package com.idega.jbpm.exe;
 import java.util.List;
 
 import com.idega.jbpm.def.View;
+import com.idega.jbpm.identity.RolesManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/13 17:00:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/13 21:05:45 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
@@ -50,4 +51,6 @@ public interface BPMFactory {
 	 * @return
 	 */
 	public abstract View getView(long taskId, boolean submitable, List<String> preferredTypes);
+	
+	public abstract RolesManager getRolesManager();
 }

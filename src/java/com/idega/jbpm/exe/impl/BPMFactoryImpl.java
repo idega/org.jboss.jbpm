@@ -26,12 +26,13 @@ import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.BPMManagersFactory;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.ViewManager;
+import com.idega.jbpm.identity.RolesManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/13 17:00:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/13 21:05:45 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationListener, ApplicationContextAware {
 	
@@ -43,7 +44,10 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 	
 	private BPMDAO bindsDAO;
 	private IdegaJbpmContext idegaJbpmContext;
+	private RolesManager rolesManager;
 	
+	
+
 	public ProcessManager getProcessManager(long processDefinitionId) {
 
 		return getManagersCreator(processDefinitionId).getProcessManager();
@@ -254,7 +258,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 			return getProcessManager(pdId);
 			
 		} finally {
-			ctx.close();
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 
@@ -265,5 +269,14 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 	@Autowired
 	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
+	}
+
+	public RolesManager getRolesManager() {
+		return rolesManager;
+	}
+
+	@Autowired
+	public void setRolesManager(RolesManager rolesManager) {
+		this.rolesManager = rolesManager;
 	}
 }

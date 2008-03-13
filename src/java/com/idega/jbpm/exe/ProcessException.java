@@ -3,9 +3,9 @@ package com.idega.jbpm.exe;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/13 17:00:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/13 21:05:45 $ by $Author: civilis $
  */
 public class ProcessException extends RuntimeException {
 	
@@ -43,7 +43,7 @@ public class ProcessException extends RuntimeException {
         this.userFriendlyMessage = userFriendlyMessage;
     }
     
-    public String getMessageKey() {
+    public String getUserFriendlyMessage() {
     	return userFriendlyMessage;
 	}
 }
