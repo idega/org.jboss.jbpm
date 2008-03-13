@@ -20,9 +20,9 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/12 20:43:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/13 12:06:33 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -40,6 +40,9 @@ public class VariablesHandlerImpl implements VariablesHandler {
 
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
 			
+			if(ti.hasEnded())
+				throw new TaskInstanceVariablesException("Task instance has already ended");
+			
 			TaskController tiController = ti.getTask().getTaskController();
 			
 			if(tiController == null)
@@ -54,7 +57,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				for (VariableAccess variableAccess : variableAccesses) {
 					
 					if(variableAccess.getAccess().isRequired() && !variables.containsKey(variableAccess.getVariableName()))
-						throw new RuntimeException("Required variable ("+variableAccess.getVariableName()+") not submitted.");
+						throw new TaskInstanceVariablesException("Required variable ("+variableAccess.getVariableName()+") not submitted.");
 					
 					if(!variableAccess.isWritable() && variables.containsKey(variableAccess.getVariableName())) {
 						
@@ -119,5 +122,26 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	@Autowired
 	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
+	}
+	
+	public class TaskInstanceVariablesException extends RuntimeException {
+
+		private static final long serialVersionUID = -8063364513129734369L;
+		
+		public TaskInstanceVariablesException() {
+			super();
+	    }
+
+	    public TaskInstanceVariablesException(String s) {
+	        super(s);
+	    }
+
+	    public TaskInstanceVariablesException(String s, Throwable throwable) {
+	        super(s, throwable);
+	    }
+
+	    public TaskInstanceVariablesException(Throwable throwable) {
+	        super(throwable);
+	    }
 	}
 }
