@@ -39,9 +39,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/03/12 15:43:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/13 20:13:14 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -66,7 +66,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		
 		if(taskInstance.getActorId() != null) {
 			
-			if(!loggedInActorId.equals(taskInstance))
+			if(!loggedInActorId.equals(taskInstance.getActorId()))
 				throw new AccessControlException("You shall not pass. Logged in actor id doesn't match the assigned actor id. Assigned: "+taskInstance.getActorId()+", taskInstanceId: "+taskInstance.getId());
 			
 		} else {
