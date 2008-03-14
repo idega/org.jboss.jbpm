@@ -1,7 +1,5 @@
 package com.idega.jbpm.exe.impl;
 
-import java.util.Date;
-
 import org.jbpm.JbpmContext;
 import org.jbpm.security.AuthorizationService;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -16,9 +14,9 @@ import com.idega.jbpm.identity.RolesManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/13 21:05:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/14 10:42:29 $ by $Author: civilis $
  */
 public abstract class AbstractProcessManager implements ProcessManager {
 	
@@ -41,7 +39,8 @@ public abstract class AbstractProcessManager implements ProcessManager {
 			rolesManager.hasRightsToStartTask(taskInstanceId, userId);
 			
 			TaskInstance taskInstance = ctx.getTaskInstance(taskInstanceId);
-			taskInstance.setStart(new Date());
+			taskInstance.start();
+			
 			ctx.save(taskInstance);
 		
 		} catch (BPMAccessControlException e) {

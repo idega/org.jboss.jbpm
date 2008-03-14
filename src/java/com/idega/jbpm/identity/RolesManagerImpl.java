@@ -27,9 +27,9 @@ import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/03/13 21:05:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/14 10:42:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -155,12 +155,14 @@ public class RolesManagerImpl implements RolesManager {
 			if(taskInstance.getStart() != null || taskInstance.hasEnded())
 				throw new BPMAccessControlException("Task ("+taskInstanceId+") has already been started, or has already ended", "Task has already been started, or has already ended");
 			
-			if(taskInstance.getActorId() == null || !taskInstance.getActorId().equals(userId))
+			if(taskInstance.getActorId() == null || !taskInstance.getActorId().equals(String.valueOf(userId)))
 				throw new BPMAccessControlException("User ("+userId+") tried to start task, but not assigned to the user provided. Assigned: "+taskInstance.getActorId(), "User should be taken or assigned of the task first to start working on it");
 			
 			SubmitTaskParametersPermission permission = new SubmitTaskParametersPermission("taskInstance", null, taskInstance);
 			getAuthorizationService().checkPermission(permission);
 		
+		} catch (BPMAccessControlException e) {
+			throw e;
 		} catch (AccessControlException e) {
 			throw new BPMAccessControlException("User has no access to modify this task");
 			
@@ -180,11 +182,13 @@ public class RolesManagerImpl implements RolesManager {
 				throw new BPMAccessControlException("Task ("+taskInstanceId+") has already been started, or has already ended", "Task has been started by someone, or has ended.");
 			
 			if(taskInstance.getActorId() != null)
-				throw new BPMAccessControlException("Task ("+taskInstanceId+") is already assigned task to:"+taskInstance.getActorId(), "This task has been assigned already");
+				throw new BPMAccessControlException("Task ("+taskInstanceId+") is already assigned to: "+taskInstance.getActorId(), "This task has been assigned already");
 			
 			SubmitTaskParametersPermission permission = new SubmitTaskParametersPermission("taskInstance", null, taskInstance);
 			getAuthorizationService().checkPermission(permission);
 		
+		} catch (BPMAccessControlException e) {
+			throw e;
 		} catch (AccessControlException e) {
 			throw new BPMAccessControlException("User has no access to modify this task");
 			
