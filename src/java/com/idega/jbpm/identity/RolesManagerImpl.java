@@ -1,6 +1,7 @@
 package com.idega.jbpm.identity;
 
 import java.security.AccessControlException;
+import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,9 +28,9 @@ import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/03/14 10:42:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -168,6 +169,16 @@ public class RolesManagerImpl implements RolesManager {
 			
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
+	}
+	
+	public void checkPermission(Permission permission) throws BPMAccessControlException {
+		
+		try {
+			getAuthorizationService().checkPermission(permission);
+			
+		} catch (AccessControlException e) {
+			throw new BPMAccessControlException("No access");
 		}
 	}
 	

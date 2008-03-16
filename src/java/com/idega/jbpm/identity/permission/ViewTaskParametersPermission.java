@@ -9,15 +9,16 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/07 13:26:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
  */
 public class ViewTaskParametersPermission extends org.jbpm.security.permission.ViewTaskParametersPermission implements BPMTaskAccessPermission {
 
 	private static final long serialVersionUID = -1017268552995297206L;
 	private List<Access> accesses;
 	private TaskInstance taskInstance;
+	private Boolean checkOnlyInActorsPool;
 	
 	public ViewTaskParametersPermission(String name, String actions) {
 	    super(name, actions);
@@ -60,5 +61,13 @@ public class ViewTaskParametersPermission extends org.jbpm.security.permission.V
 	
 	public TaskInstance getTaskInstance() {
 		return taskInstance;
+	}
+	
+	public boolean getCheckOnlyInActorsPool() {
+		return checkOnlyInActorsPool == null ? false : checkOnlyInActorsPool;
+	}
+
+	public void setCheckOnlyInActorsPool(boolean checkOnlyInActorsPool) {
+		this.checkOnlyInActorsPool = checkOnlyInActorsPool;
 	}
 }

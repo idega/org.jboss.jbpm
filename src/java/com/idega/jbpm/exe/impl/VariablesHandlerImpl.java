@@ -3,12 +3,12 @@ package com.idega.jbpm.exe.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.context.def.VariableAccess;
+import org.jbpm.context.exe.VariableInstance;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +20,9 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/13 12:06:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -32,6 +32,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	
 	public void submitVariables(Map<String, Object> variables, long taskInstanceId, boolean validate) {
 
+		System.out.println("submitting variables for: "+taskInstanceId);
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
@@ -83,32 +84,33 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
 			
 			@SuppressWarnings("unchecked")
-			Map<String, Object> localVariables = ti.getVariablesLocally();
-			
-			@SuppressWarnings("unchecked")
-			Map<String, Object> globalVariables = ti.getVariables();
-			
-			HashMap<String, Object> variables = new HashMap<String, Object>(globalVariables);
+			Map<String, VariableInstance> variablesInstances = ti.getVariableInstances();
+			HashMap<String, Object> variables = new HashMap<String, Object>(variablesInstances.size());
 			
 //			readonly
 			if(ti.hasEnded()) {
 				
-//				override with local ones
-				variables.putAll(localVariables);
-				
-				return variables;
+				for (VariableInstance variableInstance : variablesInstances.values()) {
+					variables.put(variableInstance.getName(), variableInstance.getValue());
+				}
+					
 				
 			} else {
 				
-				for (Entry<String, Object> entry : localVariables.entrySet()) {
+				@SuppressWarnings("unchecked")
+				List<VariableAccess> accesses = ti.getTask().getTaskController().getVariableAccesses();
 				
-//					override with existing local values
-					if(entry.getValue() != null)
-						variables.put(entry.getKey(), entry.getValue());
+				for (VariableAccess access : accesses) {
+					
+					VariableInstance variableInstance = variablesInstances.get(access.getVariableName());
+					
+					if(!access.isWritable()) {
+						variables.put(access.getVariableName(), variableInstance.getValue());
+					}
 				}
-				
-				return variables;
 			}
+			
+			return variables;
 			
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);

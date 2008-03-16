@@ -5,16 +5,21 @@ import java.util.List;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/11/24 18:26:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
  */
 public class ProcessArtifactsListRow {
 
 	static final String alias = "row";
 	
 	static final String attributeId = "id";
+	static final String attributeStyleClass = "styleClass";
+	static final String attributeDisabledSelection = "disabledSelection";
+	private static final String trueValue = "true";
 	private String id;
+	private String styleClass;
+	private String disabledSelection;
 	
 	static final String implicitCells = "cells";
 	static final String implicitAkaCells = "cell";
@@ -31,5 +36,25 @@ public class ProcessArtifactsListRow {
 	}
 	public void addCell(String cellContent) {
 		getCells().add(cellContent);
+	}
+	public String getStyleClass() {
+		return styleClass;
+	}
+	public void setStyleClass(String styleClass) {
+		this.styleClass = styleClass;
+	}
+	
+	public void setDisabledSelection(boolean disabledSelection) {
+		this.disabledSelection = disabledSelection ? trueValue : null;
+	}
+	
+	public boolean isDisabledSelection() {
+		return trueValue.equals(disabledSelection);
+	}
+	protected String getDisabledSelection() {
+		return disabledSelection;
+	}
+	protected void setDisabledSelection(String disabledSelection) {
+		this.disabledSelection = disabledSelection;
 	}
 }

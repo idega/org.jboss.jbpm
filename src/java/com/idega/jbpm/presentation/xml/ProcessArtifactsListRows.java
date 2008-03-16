@@ -14,9 +14,9 @@ import com.thoughtworks.xstream.XStream;
  * see http://www.trirand.com/blog/?page_id=4
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/11/24 18:26:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
  */
 public class ProcessArtifactsListRows {
 
@@ -82,12 +82,13 @@ public class ProcessArtifactsListRows {
     	xstream.alias(ProcessArtifactsListRow.alias, ProcessArtifactsListRow.class);
     	
     	xstream.useAttributeFor(ProcessArtifactsListRow.class, ProcessArtifactsListRow.attributeId);
+    	xstream.useAttributeFor(ProcessArtifactsListRow.class, ProcessArtifactsListRow.attributeStyleClass);
+    	xstream.useAttributeFor(ProcessArtifactsListRow.class, ProcessArtifactsListRow.attributeDisabledSelection);
     	
     	xstream.addImplicitCollection(ProcessArtifactsListRows.class, ProcessArtifactsListRows.alias);
     	xstream.addImplicitCollection(ProcessArtifactsListRow.class, ProcessArtifactsListRow.implicitCells, ProcessArtifactsListRow.implicitAkaCells, String.class);
     	
     	ByteArrayOutputStream output = new ByteArrayOutputStream();
-    	//xstream.toXML(this, System.out);
     	xstream.toXML(this, output);
     	
     	
