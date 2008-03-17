@@ -39,9 +39,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  *
- * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/17 12:19:00 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
@@ -155,6 +155,9 @@ public class ProcessArtifacts {
 			String loggedInUserId = String.valueOf(iwc.getCurrentUserId());
 			
 			for (TaskInstance taskInstance : tasks) {
+				
+				if(taskInstance.getToken().hasEnded())
+					continue;
 				
 				try {
 					
