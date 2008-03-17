@@ -5,7 +5,6 @@
     version="1.0">
 
     <entity class="com.idega.jbpm.data.ViewTaskBind" />
-    <entity class="com.idega.jbpm.data.ActorTaskBind" />
     <entity class="com.idega.jbpm.data.ManagersTypeProcessDefinitionBind" />
     <entity class="com.idega.jbpm.data.NativeIdentityBind" />
     <entity class="com.idega.jbpm.data.ProcessRole" />

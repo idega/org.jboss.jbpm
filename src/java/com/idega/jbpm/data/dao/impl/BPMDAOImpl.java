@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.core.persistence.impl.GenericDaoImpl;
-import com.idega.jbpm.data.ActorTaskBind;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
@@ -21,30 +20,15 @@ import com.idega.jbpm.data.dao.BPMDAO;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/12 15:43:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/17 12:48:52 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
 @Transactional(readOnly=true)
 public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
-	public ActorTaskBind getActorTaskBind(long taskId, String actorType) {
-		
-		return (ActorTaskBind) getEntityManager().createNamedQuery(ActorTaskBind.GET_UNIQUE_BY_TASK_ID_AND_ACTOR_TYPE_QUERY_NAME)
-		.setParameter(ActorTaskBind.taskIdParam, taskId)
-		.setParameter(ActorTaskBind.actorTypeParam, actorType)
-		.getSingleResult();
-	}
-	
-	public ActorTaskBind getActorTaskBind(long taskId) {
-		
-		return (ActorTaskBind) getEntityManager().createNamedQuery(ActorTaskBind.GET_UNIQUE_BY_TASK_ID_QUERY_NAME)
-		.setParameter(ActorTaskBind.taskIdParam, taskId)
-		.getSingleResult();
-	}
-	
 	public ViewTaskBind getViewTaskBind(long taskId, String viewType) {
 		
 		@SuppressWarnings("unchecked")

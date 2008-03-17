@@ -7,7 +7,6 @@ import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.core.persistence.GenericDao;
-import com.idega.jbpm.data.ActorTaskBind;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
@@ -16,15 +15,11 @@ import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/12 15:43:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/17 12:48:52 $ by $Author: civilis $
  */
 public interface BPMDAO extends GenericDao {
-
-	public abstract ActorTaskBind getActorTaskBind(long taskId, String actorType);
-
-	public abstract ActorTaskBind getActorTaskBind(long taskId);
 
 	public abstract ViewTaskBind getViewTaskBind(long taskId, String viewType);
 
