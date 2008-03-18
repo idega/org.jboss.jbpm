@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jbpm.JbpmConfiguration;
+import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -12,12 +14,12 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/11 20:14:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/18 15:06:00 $ by $Author: civilis $
  *
  */
-public class Mockup  {
+public class Mockup {
 	
 	public static final String plaintiffVarName = "string:plaintiffFirstName";
 	
@@ -25,14 +27,22 @@ public class Mockup  {
 	public static void main(String[] args) {
 		
 		try {
-			//JbpmConfiguration cfg = JbpmConfiguration.getInstance();
 			
+			JbpmConfiguration jbpmConfiguration = 
+		           JbpmConfiguration.getInstance("com/idega/jbpm/test/jbpm.test.cfg.xml");
 			
-			///JbpmConfiguration cfg = JbpmConfiguration.parseInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/jbpm.cfg.xml"));
-			
-			//JbpmContext ctx = cfg.createJbpmContext();
+			JbpmContext ctx = jbpmConfiguration.createJbpmContext();
 			
 			ProcessDefinition pd = ProcessDefinition.parseXmlInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/processdefinition.xml"));
+			ProcessDefinition invitationPD = ProcessDefinition.parseXmlInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/participantInvitation/processdefinition.xml"));
+			
+			try {
+				
+				ctx.deployProcessDefinition(pd);
+				System.out.println("__deployed");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 			ProcessInstance pi = pd.createProcessInstance();
 			
@@ -181,5 +191,10 @@ public class Mockup  {
 			ti.getTask().getTaskController().submitParameters(ti);
 			ti.end();
 		}
+	}
+	
+	public void testStuff() {
+		
+		System.out.println("testing stuff");
 	}
 }
