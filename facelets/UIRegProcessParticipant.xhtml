@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<div
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:t="http://myfaces.apache.org/tomahawk"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
+        xmlns:l="http://xmlns.idega.com/com.idega.block.login"
+>
+    <h:form>
+        <t:saveState id="storeRegProcessParticipantBean" value="#{regProcessParticipantBean}"/>
+        <t:saveState id="storeRegProcessParticipantBean2" value="#{regProcessParticipantBean.tokenId}"/>
+        <fc:addResource resourcePath="#{web2bean.bundleURIToJQueryLib}" />
+        
+        <h1>Participate in process #{regProcessParticipantBean.processName}</h1>
+        
+        <div class="loginText">
+            <a href="#" onclick="jQuery('.registerForm').hide(); jQuery('.loginForm').show('fast');" class="loginLink">Login</a> if you already have an account.     
+        </div>
+        <div class="registerText">
+            <a href="#" onclick="jQuery('.loginForm').hide(); jQuery('.registerForm').show('fast')" class="registerLink">Register</a> otherwise.     
+        </div>
+        
+        <div class="loginForm" style="display: none;">
+            <l:login generateContainingForm="false" loginListener="#{regProcessParticipantBean}" />
+        </div>
+        <div class="registerForm" style="display: none;">
+            <l:register generateContainingForm="false" registerListener="#{regProcessParticipantBean}" />
+        </div>
+    </h:form>
+</div>

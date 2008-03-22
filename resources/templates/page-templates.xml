@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page-templates>
+	<page name="BPM Register Process Participant" type="bpm_registerProcessParticipant" iconfile="idegaweb/bundles/org.jboss.jbpm.bundle/resources/images/pageIcons/orbz-machine-16x16.png" templatefile="idegaweb/bundles/org.jboss.jbpm.bundle/resources/pages/idega_theme_bpm_registerProcessParticipant.xml"></page>
+</page-templates>

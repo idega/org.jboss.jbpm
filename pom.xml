@@ -62,6 +62,14 @@
       <artifactId>com.idega.springframework</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.idega.block.platform</groupId>
+      <artifactId>com.idega.facelets</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.idega.block.platform</groupId>
+      <artifactId>com.idega.block.login</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-jpdl</artifactId>
       <version>3.2.2</version>
@@ -140,9 +148,6 @@
       <version>${stax-stax-api-version}</version>
       <type>jar</type>
     </dependency>
-    <dependency>
-      <groupId>com.idega.block.platform</groupId>
-      <artifactId>com.idega.facelets</artifactId>
-    </dependency>
+    
   </dependencies>
 </project>
