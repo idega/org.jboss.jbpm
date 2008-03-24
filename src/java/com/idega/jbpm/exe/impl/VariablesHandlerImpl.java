@@ -20,9 +20,9 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 17:22:21 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -32,7 +32,6 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	
 	public void submitVariables(Map<String, Object> variables, long taskInstanceId, boolean validate) {
 
-		System.out.println("submitting variables for: "+taskInstanceId);
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {

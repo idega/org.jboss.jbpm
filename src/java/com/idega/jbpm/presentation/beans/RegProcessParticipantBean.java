@@ -14,15 +14,16 @@ import org.springframework.stereotype.Service;
 import com.idega.block.login.presentation.Login2.LoginListener;
 import com.idega.block.login.presentation.Register.RegisterListener;
 import com.idega.jbpm.process.business.SendParticipantInivtationMessageHandler;
+import com.idega.presentation.IWContext;
 import com.idega.webface.WFUtil;
 
 
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/22 10:25:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 17:23:21 $ by $Author: civilis $
  */
 @Scope("request")
 @Service("regProcessParticipantBean")
@@ -32,7 +33,15 @@ public class RegProcessParticipantBean implements Serializable, LoginListener, R
 	
 	private String processName;
 	private Long tokenId;
+	private String viewDisplayed;
+	private boolean afterRegSuccess = false;
 	
+	public String getViewDisplayed() {
+		return viewDisplayed;
+	}
+	public void setViewDisplayed(String viewDisplayed) {
+		this.viewDisplayed = viewDisplayed;
+	}
 	public String getProcessName() {
 		return processName;
 	}
@@ -40,6 +49,7 @@ public class RegProcessParticipantBean implements Serializable, LoginListener, R
 		
 		this.processName = processName;
 	}
+	
 	public Long getTokenId() {
 		
 		if(tokenId == null) {
@@ -49,6 +59,7 @@ public class RegProcessParticipantBean implements Serializable, LoginListener, R
 		
 		return tokenId;
 	}
+	
 	public void setTokenId(Long tokenId) {
 		this.tokenId = tokenId;
 	}
@@ -57,16 +68,16 @@ public class RegProcessParticipantBean implements Serializable, LoginListener, R
 	public void loginSuccess() {
 		
 		try {
-			
-			if(tokenId == null) {
+			if(getTokenId() == null) {
 				Logger.getLogger(getClass().getName()).log(Level.WARNING, "No token id");
 				return;
 			}
-			String redirectURL = getProcessParticipantRegistrationMgmntBean().getRedirectURL(getTokenId());
-			
-			System.out.println("redirectURL resolved: "+redirectURL);
 			
 			FacesContext context = FacesContext.getCurrentInstance();
+			ProcessParticipantRegistrationMgmntBean mgmtBean = getProcessParticipantRegistrationMgmntBean();
+			mgmtBean.participantUserLoggedIn(getTokenId(), IWContext.getIWContext(context).getCurrentUserId());
+			
+			String redirectURL = mgmtBean.getRedirectURL(getTokenId());
 			HttpServletResponse response = (HttpServletResponse)context.getExternalContext().getResponse();
 			response.sendRedirect(redirectURL);
 			
@@ -74,13 +85,19 @@ public class RegProcessParticipantBean implements Serializable, LoginListener, R
 			throw new RuntimeException(e);
 		}
 	}
+	
 	public void registerSuccess() {
-		
-		System.out.println("register success");
+		setAfterRegSuccess(true);
 	}
 	
 	public ProcessParticipantRegistrationMgmntBean getProcessParticipantRegistrationMgmntBean() {
 		
 		return (ProcessParticipantRegistrationMgmntBean)WFUtil.getBeanInstance(ProcessParticipantRegistrationMgmntBean.beanIdentifier);
+	}
+	public boolean isAfterRegSuccess() {
+		return afterRegSuccess;
+	}
+	public void setAfterRegSuccess(boolean afterRegSuccess) {
+		this.afterRegSuccess = afterRegSuccess;
 	}
 }

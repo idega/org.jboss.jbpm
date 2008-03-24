@@ -8,25 +8,46 @@
         xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
         xmlns:l="http://xmlns.idega.com/com.idega.block.login"
 >
+
     <h:form>
         <t:saveState id="storeRegProcessParticipantBean" value="#{regProcessParticipantBean}"/>
         <t:saveState id="storeRegProcessParticipantBean2" value="#{regProcessParticipantBean.tokenId}"/>
         <fc:addResource resourcePath="#{web2bean.bundleURIToJQueryLib}" />
+        <t:inputHidden id="viewDisplayed" value="#{regProcessParticipantBean.viewDisplayed}" forceId="true" />
+        
+        <script  type="text/javascript" >
+            <!--
+            jQuery(document).ready(function(){
+            
+                var viewDisplayed = jQuery('#viewDisplayed').val();
+                
+                if(viewDisplayed != null && viewDisplayed != "") {
+                     
+                    jQuery(viewDisplayed).show();
+                }
+            });
+			//-->
+			</script>
         
         <h1>Participate in process #{regProcessParticipantBean.processName}</h1>
         
-        <div class="loginText">
-            <a href="#" onclick="jQuery('.registerForm').hide(); jQuery('.loginForm').show('fast');" class="loginLink">Login</a> if you already have an account.     
-        </div>
-        <div class="registerText">
-            <a href="#" onclick="jQuery('.loginForm').hide(); jQuery('.registerForm').show('fast')" class="registerLink">Register</a> otherwise.     
-        </div>
+        <t:div rendered="#{regProcessParticipantBean.afterRegSuccess}" styleClass="loginText">
+            You may <a href="#" onclick="jQuery('.registerForm').hide(); jQuery('.loginForm').show('fast'); jQuery('#viewDisplayed').val('.loginForm');" class="loginLink">login</a> now with the registered login name.
+        </t:div>     
+        <t:div rendered="#{not regProcessParticipantBean.afterRegSuccess}" styleClass="loginText">
+            <a href="#" onclick="jQuery('.registerForm').hide(); jQuery('.loginForm').show('fast'); jQuery('#viewDisplayed').val('.loginForm');" class="loginLink">Login</a> if you already have an account.     
+        </t:div>
+        
+        <t:div rendered="#{not regProcessParticipantBean.afterRegSuccess}" styleClass="registerText">
+            <a href="#" onclick="jQuery('.loginForm').hide(); jQuery('.registerForm').show('fast'); jQuery('#viewDisplayed').val('.registerForm');" class="registerLink">Register</a> otherwise.
+        </t:div>
         
         <div class="loginForm" style="display: none;">
             <l:login generateContainingForm="false" loginListener="#{regProcessParticipantBean}" />
         </div>
-        <div class="registerForm" style="display: none;">
-            <l:register generateContainingForm="false" registerListener="#{regProcessParticipantBean}" />
-        </div>
+        
+        <t:div rendered="#{not regProcessParticipantBean.afterRegSuccess}" styleClass="registerForm" style="display: none;">
+            <l:register generateContainingForm="false" displayCloseButton="false" registerListener="#{regProcessParticipantBean}" />
+        </t:div>
     </h:form>
 </div>

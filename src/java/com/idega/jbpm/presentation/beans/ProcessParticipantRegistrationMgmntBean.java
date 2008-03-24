@@ -18,15 +18,16 @@ import com.idega.core.builder.data.ICPageHome;
 import com.idega.data.IDOLookup;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.process.business.AssignAccountToParticipantHandler;
 import com.idega.presentation.IWContext;
 import com.idega.util.URIUtil;
 
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/22 10:25:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 17:23:21 $ by $Author: civilis $
  */
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service(ProcessParticipantRegistrationMgmntBean.beanIdentifier)
@@ -107,7 +108,6 @@ public class ProcessParticipantRegistrationMgmntBean {
 	protected Collection<ICPage> getPages(String pageSubType) {
 		
 		try {
-		
 			ICPageHome home = (ICPageHome) IDOLookup.getHome(ICPage.class);
 			@SuppressWarnings("unchecked")
 			Collection<ICPage> icpages = home.findBySubType(pageSubType, false);
@@ -116,6 +116,20 @@ public class ProcessParticipantRegistrationMgmntBean {
 			
 		} catch (Exception e) {
 			throw new RuntimeException("Exception while resolving icpages by subType: "+pageSubType, e);
+		}
+	}
+	
+	public void participantUserLoggedIn(long tokenId, int userId) {
+		
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			Token token = ctx.getToken(tokenId);
+			token.getProcessInstance().getContextInstance().setVariable(AssignAccountToParticipantHandler.participantUserIdVarName, userId);
+			token.signal();
+			
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 	}
 }
