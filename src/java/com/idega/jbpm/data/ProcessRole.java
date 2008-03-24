@@ -7,6 +7,8 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,11 +18,13 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.idega.jbpm.identity.permission.RoleScope;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/12 15:43:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 19:49:29 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
@@ -34,8 +38,7 @@ import javax.persistence.Table;
 )
 public class ProcessRole implements Serializable {
 
-	private static final long serialVersionUID = 4739344819567695492L;
-	
+	private static final long serialVersionUID = -6790370272147776645L;
 	public static final String getAllGeneral = "ProcessRoleNativeIdentityBind.getAllGeneral";
 	public static final String getAllByRoleNamesAndPIId = "ProcessRoleNativeIdentityBind.getAllByRoleNamesAndPIId";
 	public static final String getAllByRoleNamesAndPIIdIsNull = "ProcessRoleNativeIdentityBind.getAllByRoleNamesAndPIIdIsNull";
@@ -54,6 +57,10 @@ public class ProcessRole implements Serializable {
 	public static final String processInstanceIdProperty = "processInstanceId";
     @Column(name="process_instance_id")
 	private Long processInstanceId;
+    
+    @Column(name="role_scope")
+    @Enumerated(EnumType.STRING)
+    private RoleScope roleScope;
 	
     @OneToMany(mappedBy=NativeIdentityBind.processRoleProperty, cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
 	private List<NativeIdentityBind> nativeIdentities;
@@ -88,5 +95,13 @@ public class ProcessRole implements Serializable {
 
 	public void setProcessInstanceId(Long processInstanceId) {
 		this.processInstanceId = processInstanceId;
+	}
+
+	public RoleScope getRoleScope() {
+		return roleScope == null ? RoleScope.PD : roleScope;
+	}
+
+	public void setRoleScope(RoleScope roleScope) {
+		this.roleScope = roleScope;
 	}
 }

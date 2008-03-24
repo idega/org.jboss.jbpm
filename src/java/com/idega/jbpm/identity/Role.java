@@ -1,29 +1,24 @@
 package com.idega.jbpm.identity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.idega.jbpm.identity.permission.Access;
+import com.idega.jbpm.identity.permission.RoleScope;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/03/12 11:43:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
  */
 public class Role {
-	
-	public static final String roleNameProperty = "roleName";
-	private static final List<String> specificRoles = new ArrayList<String>(1);
-	
-	static {
-		specificRoles.add("owner");
-	}
-	
+
 	private String roleName;
-	
+	private List<String> assignIdentities;
+	private RoleScope scope;
 	private List<Access> accesses;
+	
 	public String getRoleName() {
 		return roleName;
 	}
@@ -36,17 +31,25 @@ public class Role {
 	public void setAccesses(List<Access> accesses) {
 		this.accesses = accesses;
 	}
-	
-	/**
-	 * 
-	 * @return does this role pertain only to general or process definition scope roles. 
-	 * e.g. owner is not a general role, as the identity assignments make sense only for process instance scope (the owner user id)
-	 */
-	public boolean isGeneral() {
-		return !specificRoles.contains(getRoleName());
+	public List<String> getAssignIdentities() {
+		return assignIdentities;
+	}
+	public void setAssignIdentities(List<String> assignIdentities) {
+		this.assignIdentities = assignIdentities;
+	}
+	public RoleScope getScope() {
+		return scope == null ? RoleScope.PD : scope;
+	}
+	public void setScope(RoleScope scope) {
+		this.scope = scope;
 	}
 	
-	public static boolean isGeneral(String roleName) {
-		return !specificRoles.contains(roleName);
+	@Override
+	public boolean equals(Object arg0) {
+		
+		if(super.equals(arg0))
+			return true;
+		
+		return arg0 instanceof Role && ((Role)arg0).getRoleName().equals(getRoleName());
 	}
 }

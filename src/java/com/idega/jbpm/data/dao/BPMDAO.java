@@ -12,12 +12,13 @@ import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
+import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/17 12:48:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
  */
 public interface BPMDAO extends GenericDao {
 
@@ -45,7 +46,7 @@ public interface BPMDAO extends GenericDao {
 	
 	public abstract List<ProcessRole> getProcessRoles(Collection<Long> actorIds);
 	
-	public abstract List<NativeIdentityBind> getNativeIdentities(List<Long> actorsIds, IdentityType identityType);
+	public abstract List<NativeIdentityBind> getNativeIdentities(Collection<Long> actorsIds, IdentityType identityType);
 	
-	public abstract void updateCreateProcessRoles(Collection<String> rolesNames, Long processInstanceId);
+	public abstract void updateCreateProcessRoles(Collection<Role> rolesNames, Long processInstanceId);
 }

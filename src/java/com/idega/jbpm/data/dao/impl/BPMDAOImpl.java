@@ -17,12 +17,13 @@ import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/17 12:48:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -196,7 +197,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return binds;
 	}
 	
-	public List<NativeIdentityBind> getNativeIdentities(List<Long> actorsIds, IdentityType identityType) {
+	public List<NativeIdentityBind> getNativeIdentities(Collection<Long> actorsIds, IdentityType identityType) {
 
 		@SuppressWarnings("unchecked")
 		List<NativeIdentityBind> binds = getEntityManager().createNamedQuery(NativeIdentityBind.getByTypesAndProceIdentities)
@@ -208,13 +209,14 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	@Transactional(readOnly = false)
-	public void updateCreateProcessRoles(Collection<String> rolesNames, Long processInstanceId) {
+	public void updateCreateProcessRoles(Collection<Role> rolesNames, Long processInstanceId) {
 		
-		for (String roleName : rolesNames) {
+		for (Role role : rolesNames) {
 			
 			ProcessRole prole = new ProcessRole();
-			prole.setProcessRoleName(roleName);
+			prole.setProcessRoleName(role.getRoleName());
 			prole.setProcessInstanceId(processInstanceId);
+			prole.setRoleScope(role.getScope());
 			
 			persist(prole);
 		}

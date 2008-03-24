@@ -23,14 +23,15 @@ import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMAccessControlException;
+import com.idega.jbpm.identity.permission.RoleScope;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -42,14 +43,17 @@ public class RolesManagerImpl implements RolesManager {
 
 	public List<ProcessRole> createRolesByProcessInstance(Map<String, Role> roles, long processInstanceId) {
 		
-		List<ProcessRole> processRoles = findAndCreateProcessRoles(roles.keySet(), processInstanceId);
+		if(roles.isEmpty())
+			return new ArrayList<ProcessRole>(0);
 		
-		HashSet<String> genRolesToAdd = new HashSet<String>(roles.size());
+		List<ProcessRole> processRoles = findAndCreateProcessRoles(new HashSet<Role>(roles.values()), processInstanceId);
+		
+		HashSet<Role> genRolesToAdd = new HashSet<Role>(roles.size());
 		
 		for (Role role : roles.values()) {
 			
-			if(role.isGeneral())
-				genRolesToAdd.add(role.getRoleName());
+			if(role.getScope() == RoleScope.PD)
+				genRolesToAdd.add(role);
 		}
 		
 //		adding general process roles if needed
@@ -59,18 +63,39 @@ public class RolesManagerImpl implements RolesManager {
 	}
 	
 	@Transactional(readOnly=false)
-	public void createIdentitiesForRoles(List<ProcessRole> processRoles, int userId) {
+	public void createIdentitiesForRoles(List<Role> roles, String identityId, IdentityType identityType, long processInstanceId) {
+		
+		if(roles.isEmpty())
+			return;
 
+		HashSet<String> rolesNames = new HashSet<String>(roles.size());
+		
+		for (Role role : roles)
+			rolesNames.add(role.getRoleName());
+		
+		List<ProcessRole> processRoles = getBpmDAO().getProcessRolesByRolesNames(rolesNames, processInstanceId);
+		
 		for (ProcessRole role : processRoles) {
 			
-			if(!Role.isGeneral(role.getProcessRoleName())) {
+			List<NativeIdentityBind> identities = role.getNativeIdentities();
 			
-				NativeIdentityBind nidentity = new NativeIdentityBind();
-				nidentity.setIdentityId(String.valueOf(userId));
-				nidentity.setIdentityType(IdentityType.USER);
-				nidentity.setProcessRole((ProcessRole)getBpmDAO().merge(role));
-				getBpmDAO().persist(nidentity);
+			boolean contains = false;
+			
+			for (NativeIdentityBind nativeIdentityBind : identities) {
+				
+				if(identityType == nativeIdentityBind.getIdentityType() && identityId.equals(nativeIdentityBind.getIdentityId())) {
+					contains = true;
+				}
 			}
+			
+			if(contains)
+				continue;
+			
+			NativeIdentityBind nidentity = new NativeIdentityBind();
+			nidentity.setIdentityId(identityId);
+			nidentity.setIdentityType(identityType);
+			nidentity.setProcessRole((ProcessRole)getBpmDAO().merge(role));
+			getBpmDAO().persist(nidentity);
 		}
 	}
 	
@@ -90,7 +115,7 @@ public class RolesManagerImpl implements RolesManager {
 		
 		for (ProcessRole processRole : roles) {
 			
-			if(Role.isGeneral(processRole.getProcessRoleName()))
+			if(processRole.getRoleScope() != RoleScope.PI)
 				genRoles.add(processRole);
 		}
 		
@@ -98,10 +123,15 @@ public class RolesManagerImpl implements RolesManager {
 	}
 	
 //	TODO: check if noone else tries to create roles for this piId at the same time
-	protected List<ProcessRole> findAndCreateProcessRoles(Set<String> rolesNames, Long processInstanceId) {
+	protected List<ProcessRole> findAndCreateProcessRoles(Set<Role> roles, Long processInstanceId) {
+		
+		HashSet<String> rolesNames = new HashSet<String>(roles.size());
+		
+		for (Role role : roles)
+			rolesNames.add(role.getRoleName());
 		
 		List<ProcessRole> processRoles = getBpmDAO().getProcessRolesByRolesNames(rolesNames, processInstanceId);
-		Set<String> rolesToCreate = getNonExistentRoles(rolesNames, processRoles);
+		Set<Role> rolesToCreate = getNonExistentRoles(roles, processRoles);
 		
 		if(!rolesToCreate.isEmpty()) {
 			getBpmDAO().updateCreateProcessRoles(rolesToCreate, processInstanceId);
@@ -111,27 +141,27 @@ public class RolesManagerImpl implements RolesManager {
 		return processRoles;
 	}
 	
-	private Set<String> getNonExistentRoles(Set<String> rolesNames, List<ProcessRole> processRoles) {
+	private Set<Role> getNonExistentRoles(Set<Role> roles, List<ProcessRole> processRoles) {
 		
 		if(processRoles.isEmpty())
-			return rolesNames;
+			return roles;
 		
-		HashSet<String> rolesToCreate = new HashSet<String>(rolesNames.size());
+		HashSet<Role> rolesToCreate = new HashSet<Role>(roles.size());
 		
-		for (String roleName : rolesNames) {
+		for (Role role : roles) {
 		
 			boolean takeIt = true;
 			
-			for (ProcessRole role : processRoles) {
+			for (ProcessRole prole : processRoles) {
 				
-				if(role.getProcessRoleName().equals(roleName)) {
+				if(prole.getProcessRoleName().equals(role.getRoleName())) {
 					takeIt = false;
 					break;
 				}
 			}
 			
 			if(takeIt)
-				rolesToCreate.add(roleName);
+				rolesToCreate.add(role);
 		}
 		
 		return rolesToCreate;

@@ -12,17 +12,20 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.presentation.IWContext;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/03/12 15:43:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
  */
 public class RolesAssiger {
+	
+	private static final String ASSIGN_IDENTITY_CURRENT_USER = "current_user";
 	
 	private BPMDAO bpmBindsDAO;
 	private RolesManager rolesManager;
@@ -41,14 +44,40 @@ public class RolesAssiger {
 			rolz.put(role.getRoleName(), role);
 		
 		List<ProcessRole> processRoles = getRolesManager().createRolesByProcessInstance(rolz, taskInstance.getProcessInstance().getId());
+		setPooledActors(taskInstance, processRoles);
+	}
+	
+	public void createIdentitiesForRoles(TaskInstance taskInstance, List<Role> roles) {
 		
-		if(taskInstance.isStartTaskInstance()) {
+		if(roles == null || roles.isEmpty()) {
 			
-			Integer userId = IWContext.getIWContext(FacesContext.getCurrentInstance()).getCurrentUserId();
-			getRolesManager().createIdentitiesForRoles(processRoles, userId);
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "No roles for task instance: "+taskInstance.getId());
+			return;
 		}
 		
-		setPooledActors(taskInstance, processRoles);
+//		currently supporting only assigning to current user
+		Integer userId = IWContext.getIWContext(FacesContext.getCurrentInstance()).getCurrentUserId();
+		
+		ArrayList<Role> rolesToAssignIdentity = new ArrayList<Role>(roles.size());
+		
+		for (Role role : roles) {
+			
+			if(role.getAssignIdentities() != null) {
+				
+				for (String assignTo : role.getAssignIdentities()) {
+					
+					if(assignTo.equals(ASSIGN_IDENTITY_CURRENT_USER)) {
+						rolesToAssignIdentity.add(role);
+						break;
+					}
+				}
+			}
+		}
+		
+		if(!rolesToAssignIdentity.isEmpty()) {
+			
+			getRolesManager().createIdentitiesForRoles(rolesToAssignIdentity, String.valueOf(userId), IdentityType.USER, taskInstance.getProcessInstance().getId());
+		}
 	}
 	
 	private void setPooledActors(TaskInstance taskInstance, List<ProcessRole> processRoles) {

@@ -22,9 +22,9 @@ import com.idega.webface.WFUtil;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/03/12 15:43:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
  */
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	
@@ -43,6 +43,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		
 		RolesAssiger rolesAssigner = getRolesAssigner();
 		rolesAssigner.assign(taskInstance, roles);
+		rolesAssigner.createIdentitiesForRoles(taskInstance, roles);
 	}
 	
 	protected RolesAssiger getRolesAssigner() {
