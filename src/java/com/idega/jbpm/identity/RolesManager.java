@@ -12,9 +12,9 @@ import com.idega.jbpm.exe.BPMAccessControlException;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/25 10:35:57 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -25,7 +25,7 @@ public interface RolesManager {
 	
 	public abstract List<ProcessRole> getGeneralRoles();
 	
-	public abstract void createIdentitiesForRoles(List<Role> roles, String identityId, IdentityType identityType, long processInstanceId);
+	public abstract void createIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId);
 	
 	public abstract void hasRightsToStartTask(long taskInstanceId, int userId) throws BPMAccessControlException;
 	

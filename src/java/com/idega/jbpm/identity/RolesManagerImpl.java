@@ -29,9 +29,9 @@ import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/25 10:35:57 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -56,14 +56,17 @@ public class RolesManagerImpl implements RolesManager {
 				genRolesToAdd.add(role);
 		}
 		
-//		adding general process roles if needed
-		findAndCreateProcessRoles(genRolesToAdd, null);
+		if(!genRolesToAdd.isEmpty()) {
+
+//			adding general process roles if needed
+			findAndCreateProcessRoles(genRolesToAdd, null);
+		}
 		
 		return processRoles;
 	}
 	
 	@Transactional(readOnly=false)
-	public void createIdentitiesForRoles(List<Role> roles, String identityId, IdentityType identityType, long processInstanceId) {
+	public void createIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId) {
 		
 		if(roles.isEmpty())
 			return;
