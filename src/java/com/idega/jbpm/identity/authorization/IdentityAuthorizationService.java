@@ -39,9 +39,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/25 13:20:35 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -181,84 +181,35 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		}
 	}
 	
+	protected boolean fallsInUsers(int userId, List<NativeIdentityBind> nativeIdentities) {
+		
+		for (NativeIdentityBind nativeIdentity : nativeIdentities) {
+			
+			if(nativeIdentity.getIdentityType() == IdentityType.USER && nativeIdentity.getIdentityId().equals(String.valueOf(userId)))
+				return true;
+		}
+		
+		return false;
+	}
+	
 	protected void checkPermissionInPooledActors(int userId, Collection<Long> pooledActors, TaskInstance taskInstance) throws AccessControlException {
 	
-
 		List<NativeIdentityBind> nativeIdentities = resolveCandidates(pooledActors, taskInstance);
-
-//		check for groups:
+		
 		if(!nativeIdentities.isEmpty()) {
 			
-			if(fallsInGroups(userId, nativeIdentities))
+//			check for users
+			if(fallsInUsers(userId, nativeIdentities))
 				return;
-		}
-		
-//		check for roles
-//		check for users
-	
-		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+").");
-		
-		/*
-		if(true)
-			return;
-		
-		List<ProcessRole> assignedRolesIdentities = getBpmBindsDAO().getProcessRoles(pooledActors, taskInstance.getId());
-		ArrayList<Long> filteredRolesIdentities = new ArrayList<Long>(assignedRolesIdentities.size());
-		
-		boolean writeAccessNeeded = !taskInstance.hasEnded();
-		
-		for (ProcessRole assignedRoleIdentity : assignedRolesIdentities) {
-
-			List<TaskInstanceAccess> accesses = assignedRoleIdentity.getTaskInstanceAccesses();
-			
-			for (TaskInstanceAccess tiAccess : accesses) {
-				
-				if(tiAccess.getTaskInstanceId() == taskInstance.getId()) {
-			
-					if(tiAccess.hasAccess(Access.read) && (!writeAccessNeeded || tiAccess.hasAccess(Access.write))) {
-				
-						filteredRolesIdentities.add(assignedRoleIdentity.getActorId());
-					}
-					
-					break;
-				}
-			}
-		}
-		
-		if(!filteredRolesIdentities.isEmpty()) {
 
 //			check for groups:
-			List<NativeIdentityBind> nativeIdentities = getBpmBindsDAO().getNativeIdentities(filteredRolesIdentities, IdentityType.GROUP);
+			if(fallsInGroups(userId, nativeIdentities))
+				return;
 			
-			if(!nativeIdentities.isEmpty()) {
-				
-				try {
-					UserBusiness ub = getUserBusiness();
-					@SuppressWarnings("unchecked")
-					Collection<Group> userGroups = ub.getUserGroups(userId);
-					
-					for (Group group : userGroups) {
-					
-						String groupId = group.getPrimaryKey().toString();
-						
-						for (NativeIdentityBind nativeIdentity : nativeIdentities) {
-							
-							if(nativeIdentity.getIdentityId().equals(groupId))
-								return;
-						}
-					}
-					
-				} catch (RemoteException e) {
-					throw new IDORuntimeException(e);
-				}
-			}
-
 //			check for roles
-//			check for users
 		}
-		
-		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+"). Write access needed: "+writeAccessNeeded);
-		*/
+	
+		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+").");
 	}
 	
 	public void close() { }
