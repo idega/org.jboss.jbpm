@@ -70,6 +70,10 @@
       <artifactId>com.idega.block.login</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.idega.block.platform</groupId>
+      <artifactId>com.idega.slide</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-jpdl</artifactId>
       <version>3.2.2</version>

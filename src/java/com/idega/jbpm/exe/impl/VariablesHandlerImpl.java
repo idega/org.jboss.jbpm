@@ -20,15 +20,16 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/27 14:14:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 16:18:15 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
 public class VariablesHandlerImpl implements VariablesHandler {
 
 	private IdegaJbpmContext idegaJbpmContext;
+	private BinaryVariablesHandlerImpl binaryVariablesHandler;
 	
 	public void submitVariables(Map<String, Object> variables, long taskInstanceId, boolean validate) {
 
@@ -66,6 +67,8 @@ public class VariablesHandlerImpl implements VariablesHandler {
 					}
 				}
 			}
+			
+			variables = getBinaryVariablesHandler().storeBinaryVariables(String.valueOf(taskInstanceId), variables);
 			
 			ti.setVariables(variables);
 			tiController.submitParameters(ti);
@@ -143,5 +146,15 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	    public TaskInstanceVariablesException(Throwable throwable) {
 	        super(throwable);
 	    }
+	}
+
+	public BinaryVariablesHandlerImpl getBinaryVariablesHandler() {
+		return binaryVariablesHandler;
+	}
+
+	@Autowired
+	public void setBinaryVariablesHandler(
+			BinaryVariablesHandlerImpl binaryVariablesHandler) {
+		this.binaryVariablesHandler = binaryVariablesHandler;
 	}
 }
