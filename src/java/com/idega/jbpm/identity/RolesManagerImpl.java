@@ -29,9 +29,9 @@ import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- * Last modified: $Date: 2008/03/25 10:35:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 08:49:25 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -88,6 +88,7 @@ public class RolesManagerImpl implements RolesManager {
 				
 				if(identityType == nativeIdentityBind.getIdentityType() && identityId.equals(nativeIdentityBind.getIdentityId())) {
 					contains = true;
+					break;
 				}
 			}
 			

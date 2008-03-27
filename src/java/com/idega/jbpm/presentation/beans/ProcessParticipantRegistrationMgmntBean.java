@@ -25,9 +25,9 @@ import com.idega.util.URIUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/24 17:23:21 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 08:49:25 $ by $Author: civilis $
  */
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service(ProcessParticipantRegistrationMgmntBean.beanIdentifier)
@@ -126,7 +126,9 @@ public class ProcessParticipantRegistrationMgmntBean {
 		try {
 			Token token = ctx.getToken(tokenId);
 			token.getProcessInstance().getContextInstance().setVariable(AssignAccountToParticipantHandler.participantUserIdVarName, userId);
-			token.signal();
+			
+			if("waitingForAccountBoundEvent".equals(token.getNode().getName()))
+				token.signal();
 			
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);

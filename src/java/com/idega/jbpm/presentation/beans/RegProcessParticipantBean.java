@@ -21,9 +21,9 @@ import com.idega.webface.WFUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/24 17:23:21 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 08:49:25 $ by $Author: civilis $
  */
 @Scope("request")
 @Service("regProcessParticipantBean")
@@ -99,5 +99,10 @@ public class RegProcessParticipantBean implements Serializable, LoginListener, R
 	}
 	public void setAfterRegSuccess(boolean afterRegSuccess) {
 		this.afterRegSuccess = afterRegSuccess;
+	}
+	public boolean isLoggedIn() {
+		return IWContext.getIWContext(FacesContext.getCurrentInstance()).isLoggedOn();
+	}
+	public void setLoggedIn(boolean loggedIn) {
 	}
 }

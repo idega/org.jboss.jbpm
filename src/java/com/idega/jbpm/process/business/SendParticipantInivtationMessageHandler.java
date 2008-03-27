@@ -22,9 +22,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/22 10:25:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 08:49:25 $ by $Author: civilis $
  */
 public class SendParticipantInivtationMessageHandler implements ActionHandler {
 
@@ -65,11 +65,12 @@ public class SendParticipantInivtationMessageHandler implements ActionHandler {
 			message = CoreConstants.EMPTY;
 		}
 		
-		if(from == null || CoreConstants.EMPTY.equals(from)) {
-			from = "civilis@idega.com";
+		final IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+		
+		if(from == null || CoreConstants.EMPTY.equals(from) || !EmailValidator.getInstance().isValid(from)) {
+			from = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS);
 		}
 		
-		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		String host = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER);
 		
 		String fullUrl = composeFullUrl(iwc, ctx.getToken());
@@ -84,7 +85,7 @@ public class SendParticipantInivtationMessageHandler implements ActionHandler {
 		String serverURL = iwc.getServerURL();
 		String pageUri = getPageUri(iwc);
 		
-		URIUtil uriUtil = new URIUtil(pageUri);
+		final URIUtil uriUtil = new URIUtil(pageUri);
 		uriUtil.setParameter(tokenParam, String.valueOf(token.getId()));
 		pageUri = uriUtil.getUri();
 		
