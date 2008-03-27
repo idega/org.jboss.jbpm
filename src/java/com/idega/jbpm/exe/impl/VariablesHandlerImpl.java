@@ -20,9 +20,9 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/24 17:22:21 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 14:14:03 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -92,7 +92,6 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				for (VariableInstance variableInstance : variablesInstances.values()) {
 					variables.put(variableInstance.getName(), variableInstance.getValue());
 				}
-					
 				
 			} else {
 				

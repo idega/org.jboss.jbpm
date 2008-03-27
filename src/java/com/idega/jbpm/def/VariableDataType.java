@@ -6,38 +6,38 @@ import java.util.Set;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/11/14 13:11:08 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 14:14:03 $ by $Author: civilis $
  */
 public enum VariableDataType {
 
 	DATE {public String toString() { return date; }},
 	STRING {public String toString() { return string; }},
 	LIST {public String toString() { return list; }},
-	FILE {public String toString() { return file; }};
+	FILE {public String toString() { return file; }},
+	FILES {public String toString() { return files; }};
 	
-	private static final String date = "date";
-	private static final String string = "string";
-	private static final String list = "list";
-	private static final String file = "file";
+	private static final String date = 		"date";
+	private static final String string = 	"string";
+	private static final String list = 		"list";
+	private static final String file = 		"file";
+	private static final String files =  	"files";
 	
 	public static Set<String> getAllTypesInStrings() {
 		
 		return getAllDataTypesEnumsMappings().keySet();
 	}
 	
-	private static Map<String, VariableDataType> allDataTypesEnumsMappings;
+	final private static Map<String, VariableDataType> allDataTypesEnumsMappings = new HashMap<String, VariableDataType>();
 	
-	private synchronized static Map<String, VariableDataType> getAllDataTypesEnumsMappings() {
+	static {
 		
-		if(allDataTypesEnumsMappings == null) {
-			
-			allDataTypesEnumsMappings = new HashMap<String, VariableDataType>();
-			
-			for (VariableDataType type : values())
-				allDataTypesEnumsMappings.put(type.toString(), type);
-		}
+		for (VariableDataType type : values())
+			allDataTypesEnumsMappings.put(type.toString(), type);
+	}
+	
+	private static Map<String, VariableDataType> getAllDataTypesEnumsMappings() {
 		
 		return allDataTypesEnumsMappings;
 	}
