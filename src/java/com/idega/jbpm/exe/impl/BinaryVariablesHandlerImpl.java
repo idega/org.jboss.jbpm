@@ -1,9 +1,12 @@
 package com.idega.jbpm.exe.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -19,6 +22,7 @@ import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.jbpm.def.VariableDataType;
+import com.idega.jbpm.exe.BinaryVariablesHandler;
 import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
@@ -27,13 +31,13 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/27 16:18:15 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/28 10:48:01 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
-public class BinaryVariablesHandlerImpl {
+public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 	public Map<String, Object> storeBinaryVariables(Object identifier, Map<String, Object> variables) {
 		
@@ -77,11 +81,14 @@ public class BinaryVariablesHandlerImpl {
 							
 							@SuppressWarnings("unchecked")
 							Collection<File> afiles = (Collection<File>)files;
+							List<String> fileIdentifiers = new ArrayList<String>(afiles.size());
 
 							for (File file : afiles) {
 								String fileIdentifier = storeFile(iwc, identifier, file);
-								entry.setValue(fileIdentifier);
+								fileIdentifiers.add(fileIdentifier);
 							}
+							
+							entry.setValue(fileIdentifiers);
 							
 						} else {
 							entry.setValue(null);
@@ -111,7 +118,7 @@ public class BinaryVariablesHandlerImpl {
 		return path+CoreConstants.SLASH+fileName;
 	}
 	
-	public String storeFile(IWContext iwc, Object identifier, File file) {
+	protected String storeFile(IWContext iwc, Object identifier, File file) {
 		
 		String path = BPM_UPLOADED_FILES_PATH+identifier+"/files";
 		String fileName = file.getName();
@@ -128,24 +135,21 @@ public class BinaryVariablesHandlerImpl {
 				
 				while(!success) {
 				
-					path += (i++);
-					res = slideService.getWebdavExtendedResource(concPF(path, fileName), credentials);
+					String p = path + (i++);
+					res = slideService.getWebdavExtendedResource(concPF(p, fileName), credentials);
 					
-					if(!res.exists())
+					if(!res.exists()) {
+						path = p;
 						success = true;
+					}
 				}
 			}
 			
-			path = res.getPath();
-			System.out.println("path: "+path);
-			System.out.println("parent path: "+res.getParentPath());
+			FileInputStream is = new FileInputStream(file);
+			slideService.uploadFileAndCreateFoldersFromStringAsRoot(path+CoreConstants.SLASH, fileName, is, null, false);
+			is.close();
 			
-			InputStream is = null;
-			//slideService.uploadFileAndCreateFoldersFromStringAsRoot("path", "file_name", is, "text/xml", false);
-			
-			//String fileIdentifier = path +
-			
-			return path;
+			return concPF(path, fileName);
 			
 		} catch (Exception e) {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while storing binary variable. Path: "+path, e);
@@ -158,7 +162,7 @@ public class BinaryVariablesHandlerImpl {
 		return null;
 	}
 	
-	public InputStream getBinaryVariableContent(String variableValue) {
+	public InputStream getBinaryVariableContent(String fileIdentifier) {
 		
 		return null;
 	}

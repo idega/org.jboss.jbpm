@@ -10,7 +10,8 @@
 	<string name='resource.hibernate.cfg.xml' value='com/idega/jbpm/jbpm.hibernate.cfg.xml' />
     -->
     
-	<jbpm-context>	
+	<jbpm-context>
+	    	
 		<service name="persistence">
 	      <factory>
 	        <bean class="org.jbpm.persistence.db.DbPersistenceServiceFactory">
@@ -19,14 +20,13 @@
 	        </bean>
 	      </factory>
 	    </service>
+	    
         <service name="tx" factory="org.jbpm.tx.TxServiceFactory" />
         <service name="message" factory="org.jbpm.msg.db.DbMessageServiceFactory" />
         <service name="scheduler" factory="org.jbpm.scheduler.db.DbSchedulerServiceFactory" />
         <service name="logging" factory="org.jbpm.logging.db.DbLoggingServiceFactory" />
         <bean name="jbpm.sub.process.resolver" class="org.jbpm.graph.node.DbSubProcessResolver" />
-        <!--  
-        <service name="authentication" factory="com.idega.jbpm.identity.authentication.IWAuthenticationServiceFactory" />
-        <service name="authorization" factory="com.idega.jbpm.identity.authorization.IdentityAuthorizationServiceFactory" />
-        -->
     </jbpm-context>
+    
+    <string name="resource.varmapping" value="com/idega/jbpm/jbpm.varmapping.xml" />
 </jbpm-configuration>

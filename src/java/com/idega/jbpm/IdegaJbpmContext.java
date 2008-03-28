@@ -10,12 +10,13 @@ import org.jbpm.JbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/02/07 18:19:08 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/28 10:48:01 $ by $Author: civilis $
  */
 public class IdegaJbpmContext {
 	
+	public static final String beanIdentifier = "idegaJbpmContext";
 	private JbpmConfiguration jbpmConfiguration;
 	private EntityManagerFactory entityManagerFactory;
 	private ThreadLocal<Stack<Boolean>> doCommitStackLocal = new ThreadLocal<Stack<Boolean>>();

@@ -16,20 +16,21 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.exe.BinaryVariablesHandler;
 import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/03/27 16:18:15 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/28 10:48:01 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
 public class VariablesHandlerImpl implements VariablesHandler {
 
 	private IdegaJbpmContext idegaJbpmContext;
-	private BinaryVariablesHandlerImpl binaryVariablesHandler;
+	private BinaryVariablesHandler binaryVariablesHandler;
 	
 	public void submitVariables(Map<String, Object> variables, long taskInstanceId, boolean validate) {
 
@@ -148,13 +149,13 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	    }
 	}
 
-	public BinaryVariablesHandlerImpl getBinaryVariablesHandler() {
+	public BinaryVariablesHandler getBinaryVariablesHandler() {
 		return binaryVariablesHandler;
 	}
 
 	@Autowired
 	public void setBinaryVariablesHandler(
-			BinaryVariablesHandlerImpl binaryVariablesHandler) {
+			BinaryVariablesHandler binaryVariablesHandler) {
 		this.binaryVariablesHandler = binaryVariablesHandler;
 	}
 }
