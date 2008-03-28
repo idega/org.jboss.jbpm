@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -31,13 +30,16 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/28 10:48:01 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/28 12:11:00 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
 public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
+	
+	public static final String BPM_UPLOADED_FILES_PATH = "/files/bpm/uploadedFiles/";
+	public static final String STORAGE_TYPE = "slide";
 
 	public Map<String, Object> storeBinaryVariables(Object identifier, Map<String, Object> variables) {
 		
@@ -59,8 +61,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 				if(val instanceof File) {
 					
-					String fileIdentifier = storeFile(iwc, (String)identifier, (File)val);
-					entry.setValue(fileIdentifier);
+					BinaryVariable binaryVariable = storeFile(iwc, (String)identifier, (File)val);
+					entry.setValue(binaryVariable);
 					
 				} else {
 					entry.setValue(null);
@@ -81,14 +83,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 							
 							@SuppressWarnings("unchecked")
 							Collection<File> afiles = (Collection<File>)files;
-							List<String> fileIdentifiers = new ArrayList<String>(afiles.size());
+							ArrayList<BinaryVariable> binaryVariables = new ArrayList<BinaryVariable>(afiles.size());
 
 							for (File file : afiles) {
-								String fileIdentifier = storeFile(iwc, identifier, file);
-								fileIdentifiers.add(fileIdentifier);
+								BinaryVariable binaryVariable = storeFile(iwc, identifier, file);
+								binaryVariables.add(binaryVariable);
 							}
 							
-							entry.setValue(fileIdentifiers);
+							entry.setValue(binaryVariables);
 							
 						} else {
 							entry.setValue(null);
@@ -112,13 +114,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return VariableDataType.getByStringRepresentation(strRepr);
 	}
 	
-	public static final String BPM_UPLOADED_FILES_PATH = "/files/bpm/uploadedFiles/";
-	
 	private String concPF(String path, String fileName) {
 		return path+CoreConstants.SLASH+fileName;
 	}
 	
-	protected String storeFile(IWContext iwc, Object identifier, File file) {
+	protected BinaryVariable storeFile(IWContext iwc, Object identifier, File file) {
 		
 		String path = BPM_UPLOADED_FILES_PATH+identifier+"/files";
 		String fileName = file.getName();
@@ -149,7 +149,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			slideService.uploadFileAndCreateFoldersFromStringAsRoot(path+CoreConstants.SLASH, fileName, is, null, false);
 			is.close();
 			
-			return concPF(path, fileName);
+			BinaryVariableImpl binaryVariable = new BinaryVariableImpl();
+			binaryVariable.setFileName(fileName);
+			binaryVariable.setIdentifier(concPF(path, fileName));
+			binaryVariable.setStorageType(STORAGE_TYPE);
+			
+			return binaryVariable;
 			
 		} catch (Exception e) {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while storing binary variable. Path: "+path, e);
