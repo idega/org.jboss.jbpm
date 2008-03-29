@@ -10,7 +10,7 @@
 	<string name='resource.hibernate.cfg.xml' value='com/idega/jbpm/jbpm.hibernate.cfg.xml' />
     -->
     
-	<jbpm-context>
+	<jbpm-context name="idegaMain">
 	    	
 		<service name="persistence">
 	      <factory>
@@ -28,5 +28,12 @@
         <bean name="jbpm.sub.process.resolver" class="org.jbpm.graph.node.DbSubProcessResolver" />
     </jbpm-context>
     
+    <!--  
+    <string name="resource.converter" value="org/jbpm/db/hibernate/jbpm.converter.properties" />
+    -->
+    <string name="resource.converter" value="com/idega/jbpm/jbpm.converter.properties" />
     <string name="resource.varmapping" value="com/idega/jbpm/jbpm.varmapping.xml" />
+    
+    <bean   name="jbpm.task.instance.factory" class="org.jbpm.taskmgmt.impl.DefaultTaskInstanceFactoryImpl" singleton="true" />
+    <bean   name="jbpm.variable.resolver" class="org.jbpm.jpdl.el.impl.JbpmVariableResolver" singleton="true" />
 </jbpm-configuration>
