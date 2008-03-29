@@ -74,9 +74,10 @@
       <artifactId>com.idega.slide</artifactId>
     </dependency>
     <dependency>
+    <!-- dependency has some modifications, see idegaChanges.txt at jar -->
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-jpdl</artifactId>
-      <version>3.2.2</version>
+      <version>3.2.2-m1</version>
       <type>jar</type>
 	  <exclusions>
         <exclusion>

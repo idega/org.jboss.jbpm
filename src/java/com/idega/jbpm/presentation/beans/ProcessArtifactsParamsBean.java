@@ -2,9 +2,9 @@ package com.idega.jbpm.presentation.beans;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
  */
 public class ProcessArtifactsParamsBean {
 
@@ -13,6 +13,7 @@ public class ProcessArtifactsParamsBean {
 	private String sidx;
 	private String sord;
 	private Long piId;
+	private Long taskId;
 	
 	public Integer getPage() {
 		return page;
@@ -43,5 +44,11 @@ public class ProcessArtifactsParamsBean {
 	}
 	public void setPiId(Long piId) {
 		this.piId = piId;
+	}
+	public Long getTaskId() {
+		return taskId;
+	}
+	public void setTaskId(Long taskId) {
+		this.taskId = taskId;
 	}
 }

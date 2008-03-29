@@ -10,13 +10,14 @@ import org.jbpm.JbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/28 10:48:01 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
  */
 public class IdegaJbpmContext {
 	
 	public static final String beanIdentifier = "idegaJbpmContext";
+	private static final String mainJbpmContext = "idegaMain";
 	private JbpmConfiguration jbpmConfiguration;
 	private EntityManagerFactory entityManagerFactory;
 	private ThreadLocal<Stack<Boolean>> doCommitStackLocal = new ThreadLocal<Stack<Boolean>>();
@@ -52,7 +53,7 @@ public class IdegaJbpmContext {
 		if(current != null) {
 			context = current;
 		} else {
-			context = cfg.createJbpmContext();
+			context = cfg.createJbpmContext(mainJbpmContext);
 			Session hibernateSession = (Session)getEntityManagerFactory().createEntityManager().getDelegate();
 			context.setSession(hibernateSession);
 		}

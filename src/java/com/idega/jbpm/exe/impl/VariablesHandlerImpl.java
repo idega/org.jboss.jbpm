@@ -21,12 +21,12 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/03/28 10:48:01 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
  */
 @Scope("singleton")
-@Service
+@Service("bpmVariablesHandler")
 public class VariablesHandlerImpl implements VariablesHandler {
 
 	private IdegaJbpmContext idegaJbpmContext;
@@ -71,8 +71,13 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			
 			variables = getBinaryVariablesHandler().storeBinaryVariables(String.valueOf(taskInstanceId), variables);
 			
+			for (Object var : variables.values()) {
+				
+				System.out.println(var.getClass().getName());
+			}
+			
 			ti.setVariables(variables);
-			tiController.submitParameters(ti);
+			///tiController.submitParameters(ti);
 			
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
@@ -117,6 +122,12 @@ public class VariablesHandlerImpl implements VariablesHandler {
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
+	}
+	
+	public List<BinaryVariable> resolveBinaryVariables(long taskInstanceId) {
+	
+		Map<String, Object> variables = populateVariables(taskInstanceId);
+		return getBinaryVariablesHandler().resolveBinaryVariablesAsList(variables);
 	}
 	
 	public IdegaJbpmContext getIdegaJbpmContext() {

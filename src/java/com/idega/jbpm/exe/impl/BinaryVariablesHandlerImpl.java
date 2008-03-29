@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -30,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/28 12:11:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -91,6 +92,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 							}
 							
 							entry.setValue(binaryVariables);
+							//entry.setValue(!binaryVariables.isEmpty() ? binaryVariables.iterator().next() : null);
 							
 						} else {
 							entry.setValue(null);
@@ -153,6 +155,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			binaryVariable.setFileName(fileName);
 			binaryVariable.setIdentifier(concPF(path, fileName));
 			binaryVariable.setStorageType(STORAGE_TYPE);
+			binaryVariable.setContentLength(file.length());
 			
 			return binaryVariable;
 			
@@ -164,10 +167,62 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
 	public Map<String, Object> resolveBinaryVariables(Map<String, Object> variables) {
 	
+//		TODO: shouldn't even be needed
 		return null;
 	}
 	
-	public InputStream getBinaryVariableContent(String fileIdentifier) {
+	public List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables) {
+		
+		ArrayList<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>(5);
+		
+		for (Object varVal : variables.values()) {
+			
+			if(varVal == null)
+				continue;
+			
+			if(varVal instanceof BinaryVariable)
+				binaryVars.add((BinaryVariable)varVal);
+			else if(varVal instanceof Collection) {
+
+				@SuppressWarnings("unchecked")
+				Collection vals = (Collection)varVal;
+				
+				if(!vals.isEmpty() && vals.iterator().next() instanceof BinaryVariable) {
+					
+					for (Object object : vals) {
+						binaryVars.add((BinaryVariable)object);
+					}
+				}
+			}
+		}
+		
+		return binaryVars;
+	}
+	
+	public InputStream getBinaryVariableContent(BinaryVariable variable) {
+		
+		if(!STORAGE_TYPE.equals(variable.getStorageType()))
+			throw new IllegalArgumentException("Unsupported binary variable storage type: "+variable.getStorageType());
+		
+		try {
+			
+			IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+			IWSlideService slideService = getIWSlideService(iwc);
+			
+			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();
+			WebdavExtendedResource res = slideService.getWebdavExtendedResource(variable.getIdentifier(), credentials);
+			
+			if(!res.exists()) {
+				
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "No webdav resource found for path provided: "+variable.getIdentifier());
+				return null;
+			}
+			
+			return res.getMethodData();
+			
+		} catch (Exception e) {
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving binary variable. Path: "+variable.getIdentifier(), e);
+		}
 		
 		return null;
 	}
@@ -179,5 +234,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		} catch (IBOLookupException e) {
 			throw new IBORuntimeException(e);
 		}
+	}
+	
+	public BinaryVariable getBinaryVariable(long taskInstanceId, int variableHash) {
+		
+		return null;
 	}
 }

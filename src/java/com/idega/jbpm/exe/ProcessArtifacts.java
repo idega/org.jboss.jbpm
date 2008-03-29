@@ -25,6 +25,7 @@ import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.exe.impl.BinaryVariable;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
@@ -39,14 +40,15 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  *
- * Last modified: $Date: 2008/03/17 12:19:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
  */
 public class ProcessArtifacts {
 	
 	private BPMFactory bpmFactory;
 	private IdegaJbpmContext idegaJbpmContext;
+	private VariablesHandler variablesHandler;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 
@@ -310,5 +312,49 @@ public class ProcessArtifacts {
 		catch (IBOLookupException ile) {
 			throw new IBORuntimeException(ile);
 		}
+	}
+	
+	public Document getTaskAttachments(ProcessArtifactsParamsBean params) {
+		
+//		TODO: check permission to view task variables
+		
+		Long taskInstanceId = params.getTaskId();
+		
+		if(taskInstanceId == null)
+			return null;
+	
+		List<BinaryVariable> binaryVariables = getVariablesHandler().resolveBinaryVariables(taskInstanceId);
+		
+		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+
+		int size = binaryVariables.size();
+		rows.setTotal(size);
+		rows.setPage(size == 0 ? 0 : 1);
+		
+		for (BinaryVariable binaryVariable : binaryVariables) {
+			
+			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
+			rows.addRow(row);
+			String tidStr = String.valueOf(binaryVariable.getHash());
+			row.setId(tidStr);
+			row.addCell(binaryVariable.getFileName());
+		}
+		
+		try {
+			return rows.getDocument();
+			
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Exception while parsing rows", e);
+			return null;
+		}
+	}
+	
+	public VariablesHandler getVariablesHandler() {
+		return variablesHandler;
+	}
+
+	@Autowired
+	public void setVariablesHandler(VariablesHandler variablesHandler) {
+		this.variablesHandler = variablesHandler;
 	}
 }

@@ -1,13 +1,16 @@
 package com.idega.jbpm.exe;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
+
+import com.idega.jbpm.exe.impl.BinaryVariable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/28 10:48:01 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
  */
 public interface BinaryVariablesHandler {
 
@@ -21,8 +24,10 @@ public interface BinaryVariablesHandler {
 	public abstract Map<String, Object> storeBinaryVariables(Object identifier,
 			Map<String, Object> variables);
 
+	public abstract InputStream getBinaryVariableContent(BinaryVariable variable);
+	
 	public abstract Map<String, Object> resolveBinaryVariables(
 			Map<String, Object> variables);
-
-	public abstract InputStream getBinaryVariableContent(String fileIdentifier);
+	
+	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables);
 }

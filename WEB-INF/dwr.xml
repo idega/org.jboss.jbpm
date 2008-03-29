@@ -17,6 +17,7 @@
             <param name="class" value="com.idega.jbpm.exe.ProcessArtifacts" />
             <include method="getProcessDocumentsList" />
             <include method="getProcessTasksList" />
+            <include method="getTaskAttachments" />
             <!--  
             <include method="getViewDisplay" />
             -->
