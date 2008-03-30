@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/30 11:13:46 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -201,12 +201,19 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
 	public InputStream getBinaryVariableContent(BinaryVariable variable) {
 		
+		return getBinaryVariableContent(null, variable);
+	}
+	
+	public InputStream getBinaryVariableContent(IWContext iwc, BinaryVariable variable) {
+		
 		if(!STORAGE_TYPE.equals(variable.getStorageType()))
 			throw new IllegalArgumentException("Unsupported binary variable storage type: "+variable.getStorageType());
 		
 		try {
 			
-			IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+			if(iwc == null)
+				iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+			
 			IWSlideService slideService = getIWSlideService(iwc);
 			
 			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();

@@ -9,28 +9,33 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
+import com.idega.business.SpringBeanLookup;
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
 import com.idega.jbpm.exe.impl.BinaryVariable;
 import com.idega.presentation.IWContext;
-import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/30 11:13:46 $ by $Author: civilis $
  */
 public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 	private BinaryVariable binaryVariable;
+	private VariablesHandler variablesHandler;
+	private IWContext iwc;
 
 	public AttachmentWriter() {
 	}
 
 	public void init(HttpServletRequest req, IWContext iwc) {
+		
+		this.iwc = iwc;
 		
 		String taskInstanceIdSR = iwc.getParameter("taskInstanceId");
 		String variableHashSR = iwc.getParameter("varHash");
@@ -44,14 +49,17 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		Long taskInstanceId = new Long(taskInstanceIdSR);
 		Integer variableHash = new Integer(variableHashSR);
 		
-		binaryVariable = getBinVar(taskInstanceId, variableHash);
+		variablesHandler = getVariablesHandler(iwc.getServletContext());
+		
+		binaryVariable = getBinVar(variablesHandler, taskInstanceId, variableHash);
 		
 		if(binaryVariable == null) {
 			
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Failed to resolve binary variable for: \nTaskInstanceId: "+taskInstanceIdSR+", variableHash: "+variableHashSR);
 			return;
 		}
-		setAsDownload(iwc, binaryVariable.getFileName(), binaryVariable.getContentLength().intValue());
+		
+		setAsDownload(iwc, binaryVariable.getFileName(), binaryVariable.getContentLength() == null ? 0 : binaryVariable.getContentLength().intValue());
 	}
 
 	public String getMimeType() {
@@ -67,21 +75,27 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		if(binaryVariable == null)
 			return;
 		
-		InputStream is = getVariablesHandler().getBinaryVariablesHandler().getBinaryVariableContent(binaryVariable);
+		InputStream is = variablesHandler.getBinaryVariablesHandler().getBinaryVariableContent(iwc, binaryVariable);
+		
 		BufferedInputStream fis = new BufferedInputStream(is);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		while (fis.available() > 0) {
-			baos.write(fis.read());
+		
+		byte buffer[] = new byte[1024];
+		int noRead = 0;
+		noRead = fis.read(buffer, 0, 1024);
+		//Write out the stream to the file
+		while (noRead != -1) {
+			baos.write(buffer, 0, noRead);
+			noRead = fis.read(buffer, 0, 1024);
 		}
+		
 		baos.writeTo(out);
 		baos.flush();
 		baos.close();
 		fis.close();
 	}
 	
-	protected BinaryVariable getBinVar(long taskInstanceId, int binaryVariableHash) {
-		
-		VariablesHandler variablesHandler = getVariablesHandler();
+	protected BinaryVariable getBinVar(VariablesHandler variablesHandler, long taskInstanceId, int binaryVariableHash) {
 		
 		List<BinaryVariable> variables = variablesHandler.resolveBinaryVariables(taskInstanceId);
 		
@@ -96,8 +110,8 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		return null;
 	}
 	
-	public VariablesHandler getVariablesHandler() {
+	public VariablesHandler getVariablesHandler(ServletContext ctx) {
 		
-		return (VariablesHandler)WFUtil.getBeanInstance("bpmVariablesHandler");
+		return (VariablesHandler)SpringBeanLookup.getInstance().getSpringBean(ctx, "bpmVariablesHandler");
 	}
 }

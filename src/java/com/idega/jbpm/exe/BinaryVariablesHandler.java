@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.idega.jbpm.exe.impl.BinaryVariable;
+import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/30 11:13:46 $ by $Author: civilis $
  */
 public interface BinaryVariablesHandler {
 
@@ -25,6 +26,8 @@ public interface BinaryVariablesHandler {
 			Map<String, Object> variables);
 
 	public abstract InputStream getBinaryVariableContent(BinaryVariable variable);
+	
+	public abstract InputStream getBinaryVariableContent(IWContext iwc, BinaryVariable variable);
 	
 	public abstract Map<String, Object> resolveBinaryVariables(
 			Map<String, Object> variables);
