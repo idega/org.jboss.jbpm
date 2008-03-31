@@ -7,32 +7,38 @@
         xmlns:f="http://java.sun.com/jsf/core"
 >
         <t:saveState id="storeBPMRoleIdentityMgmntState" value="#{BPMRoleIdentityMgmnt}"/>
-		<div>
-			<h1>BPM Identity Management</h1>
-			<div>
-				<div>
+		<div class="bpmEgovIdentityMgmt">
+			<h3>BPM Assignments Management</h3>
+			<div class="generalRoleAssignment">
+				<div class="chooseRole">
 					<label for="processRoleSelector">Select process role</label>
 					<h:selectOneListbox id="processRoleSelector" value="#{BPMRoleIdentityMgmnt.selectedRoleActorId}" size="5" onchange="this.form.submit();" valueChangeListener="#{BPMRoleIdentityMgmnt.selectedRoleActorIdChanged}">
 						<f:selectItems value="#{BPMRoleIdentityMgmnt.roles}" />
 					</h:selectOneListbox>
 				</div>
-				<div>
+				<div class="assignButtons">
+				    <div>
+				        <h:commandButton value="&lt;&lt; Assign" action="#{BPMRoleIdentityMgmnt.addGrpsToRole}" />
+				    </div>
+                    <div>
+                    <h:commandButton value="Unassign &gt;&gt;" />
+                    </div>
+                    
+                </div>
+				<div class="chooseGroup">
 					<label for="groupSelector">Choose group(s)</label>
 					<h:selectManyListbox id="groupSelector" value="#{BPMRoleIdentityMgmnt.selectedNativeGroupIds}" size="5">
 						<f:selectItems value="#{BPMRoleIdentityMgmnt.nativeGroups}" />
 					</h:selectManyListbox>
 				</div>
-				<div>
-    				<h:commandButton value="Attach groups to process role" action="#{BPMRoleIdentityMgmnt.addGrpsToRole}" />
-                </div>
 			</div>
-			<div>
+			<div class="createRole">
                 <div>
                     <label for="processRoleCreator">New process role</label>
                     <h:inputText id="processRoleCreator" value="#{BPMRoleIdentityMgmnt.newRoleName}" />
                 </div>
                 <div>
-                <h:commandButton value="Create process role" action="#{BPMRoleIdentityMgmnt.createProcessRole}" />
+                    <h:commandButton value="Create process role" action="#{BPMRoleIdentityMgmnt.createProcessRole}" />
                 </div>
             </div>
 		</div>

@@ -1,0 +1,48 @@
+.bpmEgovIdentityMgmt h3 {
+	padding-left: 5px;
+}
+
+.bpmEgovIdentityMgmt .generalRoleAssignment, .bpmEgovIdentityMgmt .createRole {
+	  height: 160px;
+	  border: 1px black solid;
+	  padding: 15px;
+	  margin: 2px;
+}
+
+.bpmEgovIdentityMgmt .createRole {
+	height: auto;
+}
+
+.bpmEgovIdentityMgmt .generalRoleAssignment select {
+	width: 250px;
+	height: 120px;
+}
+
+.bpmEgovIdentityMgmt .chooseRole, .bpmEgovIdentityMgmt .chooseGroup {
+	float: left;
+}
+.bpmEgovIdentityMgmt .chooseRole label, .bpmEgovIdentityMgmt .chooseGroup label, .bpmEgovIdentityMgmt .createRole label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    padding-left: 5px;
+}
+
+.bpmEgovIdentityMgmt .createRole div {
+	display: inline;
+}
+
+.bpmEgovIdentityMgmt .assignButtons {
+	float: left;
+	padding-top: 20px;
+}
+
+.processManagement .createNew {
+	border: 1px black solid;
+	margin: 5px;
+	padding: 3px;
+}
+
+.processManagement .processName input, .processManagement .caseEntry select {
+	
+}
