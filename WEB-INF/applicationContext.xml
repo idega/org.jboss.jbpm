@@ -21,10 +21,6 @@
 		<property name="viewToTask" ref="process_xforms_viewToTask" />
 	</bean>
     
-    <!--  
-    <bean id="BPMProcessAssetsParams" class="com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean" scope="request" />
-    -->
-    
     <bean id="BPMProcessAssets" class="com.idega.jbpm.exe.ProcessArtifacts" scope="singleton">
     	<property name="idegaJbpmContext" ref="idegaJbpmContext" />
     </bean>

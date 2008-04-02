@@ -10,7 +10,10 @@ import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -18,23 +21,16 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- * Last modified: $Date: 2008/03/11 12:16:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/02 19:25:54 $ by $Author: civilis $
  */
+@Scope("prototype")
+@Service
 public class ProcessBundleManager {
 
-	private ViewToTask viewToTaskBinder;
 	private BPMDAO bpmBindsDAO;
 	private IdegaJbpmContext idegaJbpmContext;
-
-	public ViewToTask getViewToTaskBinder() {
-		return viewToTaskBinder;
-	}
-
-	public void setViewToTaskBinder(ViewToTask viewToTaskBinder) {
-		this.viewToTaskBinder = viewToTaskBinder;
-	}
 
 	/**
 	 * 
@@ -44,7 +40,7 @@ public class ProcessBundleManager {
 	 * @throws IOException
 	 */
 	public long createBundle(ProcessBundle processBundle,
-			String processDefinitionName) throws IOException {
+			String processDefinitionName, IWMainApplication iwma) throws IOException {
 
 		String managersType = processBundle.getManagersType();
 		
@@ -67,6 +63,8 @@ public class ProcessBundleManager {
 				@SuppressWarnings("unchecked")
 				Collection<Task> tasks = pd.getTaskMgmtDefinition().getTasks()
 						.values();
+				
+				ViewToTask viewToTaskBinder = processBundle.getViewToTaskBinder();
 
 				for (Task task : tasks) {
 
@@ -77,8 +75,8 @@ public class ProcessBundleManager {
 					
 						for (ViewResource viewResource : viewResources) {
 
-							View view = viewResource.store();
-							getViewToTaskBinder().bind(view, task);
+							View view = viewResource.store(iwma);
+							viewToTaskBinder.bind(view, task);
 						}
 					} else {
 						Logger.getLogger(getClass().getName()).log(Level.WARNING, "No view resources resolved for task: "+task.getId());
@@ -113,6 +111,7 @@ public class ProcessBundleManager {
 		return idegaJbpmContext;
 	}
 
+	@Autowired
 	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}

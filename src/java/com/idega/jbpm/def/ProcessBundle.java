@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.jbpm.graph.def.ProcessDefinition;
 
+import com.idega.idegaweb.IWBundle;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/02/07 13:58:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/02 19:25:54 $ by $Author: civilis $
  */
 public interface ProcessBundle {
 
@@ -36,4 +38,10 @@ public interface ProcessBundle {
 	public abstract void configure(ProcessDefinition pd);
 	
 	public abstract String getManagersType();
+	
+	public abstract ViewToTask getViewToTaskBinder();
+	
+	public abstract void setBundlePropertiesLocationWithinBundle(String bundlePropertiesLocationWithinBundle);
+	
+	public abstract void setBundle(IWBundle bundle);
 }
