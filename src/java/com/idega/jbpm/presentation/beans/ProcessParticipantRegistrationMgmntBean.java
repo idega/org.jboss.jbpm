@@ -25,9 +25,9 @@ import com.idega.util.URIUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/27 08:49:25 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/03 13:37:19 $ by $Author: civilis $
  */
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service(ProcessParticipantRegistrationMgmntBean.beanIdentifier)
@@ -35,7 +35,7 @@ public class ProcessParticipantRegistrationMgmntBean {
 	
 	public static final String beanIdentifier = "ProcessParticipantRegistrationMgmntBean";
 	public static final String redirectURLVariable = "string:participantInvitationRedirectURL";
-	public static final String egovBPMAssetsView = "egov_bpm_assetsView";
+	public static final String egovBPMAssetsView = "bpm_assets_view";
 	
 	
 	private IdegaJbpmContext idegaJbpmContext;
