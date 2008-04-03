@@ -21,9 +21,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- * Last modified: $Date: 2008/04/02 19:25:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/03 18:59:00 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -31,6 +31,12 @@ public class ProcessBundleManager {
 
 	private BPMDAO bpmBindsDAO;
 	private IdegaJbpmContext idegaJbpmContext;
+	
+	public long createBundle(ProcessBundle processBundle,
+			String processDefinitionName, IWMainApplication iwma) throws IOException {
+		
+		return createBundle(processBundle, processDefinitionName, iwma, null);
+	}
 
 	/**
 	 * 
@@ -40,7 +46,7 @@ public class ProcessBundleManager {
 	 * @throws IOException
 	 */
 	public long createBundle(ProcessBundle processBundle,
-			String processDefinitionName, IWMainApplication iwma) throws IOException {
+			String processDefinitionName, IWMainApplication iwma, Integer version) throws IOException {
 
 		String managersType = processBundle.getManagersType();
 		
@@ -55,7 +61,10 @@ public class ProcessBundleManager {
 
 			if (processDefinitionName != null)
 				pd.setName(processDefinitionName);
-
+			
+			if(version != null)
+				pd.setVersion(version);
+			
 			ctx.getGraphSession().deployProcessDefinition(pd);
 
 			try {
