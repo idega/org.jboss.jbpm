@@ -21,9 +21,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/04 21:49:52 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -179,7 +179,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		}
 		
 		roleIdentity.setNativeIdentities(nativeIdentities);
-		merge(roleIdentity);
+		getEntityManager().merge(roleIdentity);
 		
 		if(!nativeIdentitiesToRemove.isEmpty())
 			getEntityManager().createNamedQuery(NativeIdentityBind.deleteByIds)

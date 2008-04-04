@@ -37,12 +37,6 @@
 	padding-top: 20px;
 }
 
-.processManagement .createNew {
-	border: 1px black solid;
-	margin: 5px;
-	padding: 3px;
-}
-
-.processManagement .processName input, .processManagement .caseEntry select {
-	
+.processManagement .caseCatType, .processManagement .assignButtons, .processManagement .createdProcesses {
+	float: left;
 }
