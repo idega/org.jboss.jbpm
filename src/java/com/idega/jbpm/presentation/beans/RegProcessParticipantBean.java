@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import com.idega.block.login.presentation.Login2.LoginListener;
 import com.idega.block.login.presentation.Register.RegisterListener;
 import com.idega.jbpm.process.business.SendParticipantInivtationMessageHandler;
 import com.idega.presentation.IWContext;
@@ -21,13 +20,13 @@ import com.idega.webface.WFUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/04/03 13:37:19 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/06 14:33:35 $ by $Author: civilis $
  */
 @Scope("request")
 @Service("regProcessParticipantBean")
-public class RegProcessParticipantBean implements Serializable, LoginListener, RegisterListener {
+public class RegProcessParticipantBean implements Serializable, RegisterListener {
 
 	private static final long serialVersionUID = -8356636747899018641L;
 	
@@ -65,8 +64,7 @@ public class RegProcessParticipantBean implements Serializable, LoginListener, R
 	public void setTokenId(Long tokenId) {
 		this.tokenId = tokenId;
 	}
-	public void loginFailed() {
-	}
+	
 	public void loginSuccess() {
 		
 		try {
