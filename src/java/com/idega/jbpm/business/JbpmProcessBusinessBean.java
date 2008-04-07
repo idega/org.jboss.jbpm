@@ -16,6 +16,7 @@ import org.jbpm.context.def.VariableAccess;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.def.Transition;
 import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.graph.node.TaskNode;
 import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
@@ -258,13 +259,19 @@ public class JbpmProcessBusinessBean {
 			
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
 			Task task = pd.getTaskMgmtDefinition().getTask(taskName);
-			List<Transition> list = task.getTaskNode().getLeavingTransitions();
 			List<String> result = new ArrayList<String>();
-			for(Iterator<Transition> it = list.iterator(); it.hasNext(); ) {
-				Transition transition = it.next();
-				result.add(transition.getName());
+			if(task != null) {
+				TaskNode taskNode = task.getTaskNode();
+				if(taskNode != null) {
+					List<Transition> list = taskNode.getLeavingTransitions();
+					if(list != null) {
+						for(Iterator<Transition> it = list.iterator(); it.hasNext(); ) {
+							Transition transition = it.next();
+							result.add(transition.getName());
+						}
+					}
+				}
 			}
-			
 			return result;
 			
 		} finally {
