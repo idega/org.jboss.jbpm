@@ -23,10 +23,16 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>org.devzuz.q.maven.jdt.core.mavenIncrementalBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
-		<nature>org.springframework.ide.eclipse.core.springnature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
+		<nature>org.springframework.ide.eclipse.core.springnature</nature>
 		<nature>org.maven.ide.eclipse.maven2Nature</nature>
+		<nature>org.devzuz.q.maven.jdt.core.mavenNature</nature>
 	</natures>
 </projectDescription>

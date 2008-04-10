@@ -14,9 +14,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/02/12 14:35:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/10 01:20:26 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_VIEW_TASK")
@@ -26,7 +26,8 @@ import javax.persistence.Table;
 			@NamedQuery(name=ViewTaskBind.getViewTaskBindsByTaskId, query="from ViewTaskBind VTB where VTB.taskId = :"+ViewTaskBind.taskIdParam),
 			@NamedQuery(name=ViewTaskBind.GET_VIEW_TASK_BINDS_BY_TASKS_IDS, query="from ViewTaskBind VTB where VTB.taskId in (:"+ViewTaskBind.tasksIdsParam+")"),
 			@NamedQuery(name=ViewTaskBind.GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME, query="from ViewTaskBind VTB where VTB.viewIdentifier = :"+ViewTaskBind.viewIdParam+" and viewType = :"+ViewTaskBind.viewTypeParam),
-			@NamedQuery(name=ViewTaskBind.GET_VIEW_TASK, query="select TASK from org.jbpm.taskmgmt.def.Task TASK, ViewTaskBind VTB where TASK.id = VTB.taskId and VTB.taskId = :"+ViewTaskBind.taskIdParam+" and VTB.viewType = :"+ViewTaskBind.viewTypeParam)
+			@NamedQuery(name=ViewTaskBind.GET_VIEW_TASK, query="select TASK from org.jbpm.taskmgmt.def.Task TASK, ViewTaskBind VTB where VTB.taskId = :"+ViewTaskBind.taskIdParam+" and VTB.viewType = :"+ViewTaskBind.viewTypeParam+" and TASK.id = VTB."+ViewTaskBind.taskIdParam),
+			@NamedQuery(name=ViewTaskBind.GET_PROCESS_TASK_VIEW_INFO, query="select task, vtb."+ViewTaskBind.viewIdentifierProp+" from org.jbpm.graph.def.ProcessDefinition pd, org.jbpm.taskmgmt.def.Task task, ViewTaskBind vtb where pd.id in (:"+ViewTaskBind.processDefIdsParam+") and task.processDefinition = pd.id and vtb."+ViewTaskBind.taskIdProp+" = task.id and vtb."+ViewTaskBind.viewTypeProp+" = :"+ViewTaskBind.viewTypeProp)
 		}
 )
 public class ViewTaskBind implements Serializable {
@@ -36,7 +37,9 @@ public class ViewTaskBind implements Serializable {
 	public static final String GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME = "viewTaskBind.getViewTaskBindByView";
 	public static final String GET_VIEW_TASK_BINDS_BY_TASKS_IDS = "viewTaskBind.getViewTaskBindsByTasksIds";
 	public static final String GET_VIEW_TASK = "viewTaskBind.getViewTask";
+	public static final String GET_PROCESS_TASK_VIEW_INFO = "viewTaskBind.GET_PROCESS_TASK_VIEW_INFO";
 	
+	public static final String processDefIdsParam = "pdids";
 	public static final String taskIdParam = "taskId";
 	public static final String tasksIdsParam = "tasksIds";
 	public static final String viewTypeParam = "viewType";
@@ -48,12 +51,15 @@ public class ViewTaskBind implements Serializable {
 	@Column(name="bind_id", nullable=false)
     private Long bindId;
 	
+	public static final String taskIdProp = "taskId";
 	@Column(name="task_id", nullable=false)
 	private Long taskId;
 	
+	public static final String viewIdentifierProp = "viewIdentifier";
 	@Column(name="view_identifier", nullable=false)
 	private String viewIdentifier;
 	
+	public static final String viewTypeProp = "viewType";
 	@Column(name="view_type", nullable=false)
 	private String viewType;
 

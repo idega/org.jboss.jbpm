@@ -1,19 +1,22 @@
 package com.idega.jbpm.def;
 
+import java.util.Date;
 import java.util.Map;
 
 import javax.faces.component.UIComponent;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/01/25 15:24:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/10 01:20:26 $ by $Author: civilis $
  */
 public interface View {
 
 	public abstract void setViewId(String viewId);
 	public abstract String getViewId();
+	
+	public abstract String getDisplayName();
 	
 	public abstract void setViewType(String viewType);
 	public abstract String getViewType();
@@ -28,4 +31,6 @@ public interface View {
 	
 	public abstract Map<String, Object> resolveVariables();
 	public abstract Map<String, String> resolveParameters();
+	
+	public abstract Date getDateCreated();
 }

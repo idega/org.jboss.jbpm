@@ -21,9 +21,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/04/04 21:49:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/10 01:20:26 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -220,5 +220,19 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			
 			persist(prole);
 		}
+	}
+	
+	public List<Object[]> getProcessTasksViewsInfos(Collection<Long> processDefinitionsIds, String viewType) {
+		
+		if(processDefinitionsIds == null || processDefinitionsIds.isEmpty() || viewType == null)
+			return new ArrayList<Object[]>(0);
+		
+		@SuppressWarnings("unchecked")
+		List<Object[]> viewsInfos = getEntityManager().createNamedQuery(ViewTaskBind.GET_PROCESS_TASK_VIEW_INFO)
+		.setParameter(ViewTaskBind.processDefIdsParam, processDefinitionsIds)
+		.setParameter(ViewTaskBind.viewTypeProp, viewType)
+		.getResultList();
+		
+		return viewsInfos;
 	}
 }
