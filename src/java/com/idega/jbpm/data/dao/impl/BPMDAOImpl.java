@@ -21,9 +21,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/04/10 01:20:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -41,11 +41,32 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return binds.isEmpty() ? null : binds.iterator().next();
 	}
 	
+	public ViewTaskBind getViewTaskBindByTaskInstance(long taskInstanceId, String viewType) {
+		
+		@SuppressWarnings("unchecked")
+		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(ViewTaskBind.GET_UNIQUE_BY_TASK_INSTANCE_ID_AND_VIEW_TYPE_QUERY_NAME)
+		.setParameter(ViewTaskBind.taskInstanceIdProp, taskInstanceId)
+		.setParameter(ViewTaskBind.viewTypeParam, viewType)
+		.getResultList();
+
+		return binds.isEmpty() ? null : binds.iterator().next();
+	}
+	
 	public List<ViewTaskBind> getViewTaskBindsByTaskId(long taskId) {
 		
 		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(ViewTaskBind.getViewTaskBindsByTaskId)
 		.setParameter(ViewTaskBind.taskIdParam, taskId)
+		.getResultList();
+
+		return binds;
+	}
+	
+	public List<ViewTaskBind> getViewTaskBindsByTaskInstanceId(long taskInstanceId) {
+		
+		@SuppressWarnings("unchecked")
+		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(ViewTaskBind.getViewTaskBindsByTaskInstanceId)
+		.setParameter(ViewTaskBind.taskInstanceIdProp, taskInstanceId)
 		.getResultList();
 
 		return binds;

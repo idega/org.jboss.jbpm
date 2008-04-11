@@ -1,27 +1,21 @@
 package com.idega.jbpm.def;
 
-import java.util.Collection;
-
 import org.jbpm.taskmgmt.def.Task;
-
-import com.google.common.collect.Multimap;
+import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/04/10 01:20:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
  */
 public interface ViewToTask {
 
 	public abstract void bind(View view, Task task);
+	
+	public abstract void bind(View view, TaskInstance taskInstance);
 
-	public abstract View getView(long taskId);
-
-	public abstract Long getTask(String formId);
+	public abstract Long getTask(String viewId);
 
 	public abstract void unbind(String viewId);
-
-	public abstract Multimap<Long, TaskView> getAllViewsByProcessDefinitions(
-			Collection<Long> processDefinitionsIds);
 }

@@ -7,9 +7,9 @@ import com.idega.jbpm.identity.RolesManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/13 21:05:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
@@ -35,14 +35,6 @@ public interface BPMFactory {
 	public abstract ProcessManager getProcessManagerByTaskInstanceId(long taskInstanceId);
 	
 	/**
-	 * @see javadoc for getView(long taskId, boolean submitable, List<String> preferredTypes);
-	 * @param taskId
-	 * @param submitable
-	 * @return
-	 */
-	public abstract View getView(long taskId, boolean submitable);
-	
-	/**
 	 * Finds viewTaskBind by taskId provided, and finds ViewFactory by preferred types in order given, if any provided
 	 * Uses the ViewFactory resolved for creating View for view identifier resolved in viewTaskBind
 	 * @param taskId
@@ -50,7 +42,11 @@ public interface BPMFactory {
 	 * @param preferredTypes - if null, the behavior is the same as calling getView(taskId, submitable)
 	 * @return
 	 */
-	public abstract View getView(long taskId, boolean submitable, List<String> preferredTypes);
+	public abstract View getViewByTask(long taskId, boolean submitable, List<String> preferredTypes);
+	
+	public abstract View getViewByTaskInstance(long taskInstanceId, boolean submitable, List<String> preferredTypes);
+	
+	public abstract View takeView(long taskInstanceId, boolean submitable, List<String> preferredTypes);
 	
 	public abstract RolesManager getRolesManager();
 }

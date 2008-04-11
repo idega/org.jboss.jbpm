@@ -1,12 +1,16 @@
 package com.idega.jbpm.def;
 
+import java.util.Collection;
+
 import org.jbpm.taskmgmt.def.Task;
+
+import com.google.common.collect.Multimap;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/04/10 01:20:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
  */
 public interface ViewFactory {
 
@@ -17,4 +21,6 @@ public interface ViewFactory {
 	public abstract TaskView getTaskView(Task task);
 	
 	public abstract String getBeanIdentifier();
+	
+	public abstract Multimap<Long, TaskView> getAllViewsByProcessDefinitions(Collection<Long> processDefinitionsIds);
 }

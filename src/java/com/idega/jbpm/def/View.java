@@ -7,9 +7,9 @@ import javax.faces.component.UIComponent;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/04/10 01:20:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
  */
 public interface View {
 
@@ -33,4 +33,8 @@ public interface View {
 	public abstract Map<String, String> resolveParameters();
 	
 	public abstract Date getDateCreated();
+	
+	public abstract void takeView();
+	
+	public abstract ViewToTask getViewToTask();
 }

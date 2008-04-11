@@ -18,7 +18,6 @@
 	
 	<bean id="processMgmtMockup" class="com.idega.jbpm.presentation.beans.ProcessMgmtMockupBean" scope="session">
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
-		<property name="viewToTask" ref="process_xforms_viewToTask" />
 	</bean>
     
     <bean id="BPMProcessAssets" class="com.idega.jbpm.exe.ProcessArtifacts" scope="singleton">

@@ -12,8 +12,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
@@ -21,7 +19,6 @@ import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewFactory;
-import com.idega.jbpm.def.impl.ViewFactoryPluggedInEvent;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.BPMManagersFactory;
 import com.idega.jbpm.exe.ProcessManager;
@@ -30,24 +27,25 @@ import com.idega.jbpm.identity.RolesManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/13 21:05:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
  */
-public class BPMFactoryImpl implements BPMFactory, ApplicationListener, ApplicationContextAware {
+public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	
 	private ApplicationContext applicationContext;
-	private Map<String, String> creatorTypeCreatorBeanIdentifier;
-	private Map<String, Object> creatorTypeCreatorClass;
-	private Map<String, String> viewTypeFactoryBeanIdentifier;
-	private Map<String, Object> viewTypeFactoryClass;
+	private final Map<String, String> creatorTypeCreatorBeanIdentifier;
+	private final Map<String, String> viewTypeFactoryBeanIdentifier;
 	
 	private BPMDAO bindsDAO;
 	private IdegaJbpmContext idegaJbpmContext;
 	private RolesManager rolesManager;
 	
+	public BPMFactoryImpl() {
+		creatorTypeCreatorBeanIdentifier = new HashMap<String, String>(5);
+		viewTypeFactoryBeanIdentifier = new HashMap<String, String>(5);
+	}
 	
-
 	public ProcessManager getProcessManager(long processDefinitionId) {
 
 		return getManagersCreator(processDefinitionId).getProcessManager();
@@ -58,13 +56,30 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 		return getManagersCreator(processDefinitionId).getViewManager();
 	}
 	
-	public View getView(long taskId, boolean submitable) {
-
-		return getView(taskId, submitable, null);
+	public View takeView(long taskInstanceId, boolean submitable, List<String> preferredTypes) {
+		
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
+			
+			View view = getViewByTask(ti.getTask().getId(), submitable, preferredTypes);
+			
+			if(view != null) {
+				
+				view.takeView();
+				view.getViewToTask().bind(view, ti);
+			}
+			
+			return view;
+			
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
 	}
 	
-	public View getView(long taskId, boolean submitable, List<String> preferredTypes) {
-		
+	public View getViewByTask(long taskId, boolean submitable, List<String> preferredTypes) {
+	
 		List<ViewTaskBind> binds = getBindsDAO().getViewTaskBindsByTaskId(taskId);
 		
 		if(binds == null || binds.isEmpty()) {
@@ -72,15 +87,40 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 			return null;
 		}
 		
+		ViewTaskBind viewTaskBind = getPreferredViewTaskBind(binds, preferredTypes);
+		String viewType = viewTaskBind.getViewType();
+		
+		ViewFactory viewFactory = getViewFactory(viewType);
+		return viewFactory.getView(viewTaskBind.getViewIdentifier(), submitable);
+	}
+	
+	public View getViewByTaskInstance(long taskInstanceId, boolean submitable, List<String> preferredTypes) {
+		
+		List<ViewTaskBind> binds = getBindsDAO().getViewTaskBindsByTaskInstanceId(taskInstanceId);
+		
+		if(binds == null || binds.isEmpty()) {
+			Logger.getLogger(BPMFactory.class.getName()).log(Level.WARNING, "No view task bindings resolved for task intance. Task intance id: "+taskInstanceId);
+			return null;
+		}
+		
+		ViewTaskBind viewTaskBind = getPreferredViewTaskBind(binds, preferredTypes);
+		String viewType = viewTaskBind.getViewType();
+		
+		ViewFactory viewFactory = getViewFactory(viewType);
+		return viewFactory.getView(viewTaskBind.getViewIdentifier(), submitable);
+	}
+	
+	protected ViewTaskBind getPreferredViewTaskBind(List<ViewTaskBind> binds, List<String> preferredTypes) {
+		
 		ViewTaskBind viewTaskBind = null;
 		
 		if(preferredTypes != null) {
 			
-			for (String prefferedType : preferredTypes) {
+			for (String preferredType : preferredTypes) {
 				
 				for (ViewTaskBind bind : binds) {
 				
-					if(prefferedType.equals(bind.getViewType())) {
+					if(preferredType.equals(bind.getViewType())) {
 						viewTaskBind = bind;
 						break;
 					}
@@ -88,33 +128,24 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 			}
 		}
 		
-		if(viewTaskBind == null)
+		if(viewTaskBind == null && !binds.isEmpty())
 			viewTaskBind = binds.get(0);
 		
+		return viewTaskBind;
+	}
+	
+	protected ViewFactory getViewFactory(String viewType) {
+		
 		ViewFactory viewFactory;
-		String viewType = viewTaskBind.getViewType();
 		
 		if(getViewTypeFactoryBeanIdentifier().containsKey(viewType)) {
 			viewFactory = (ViewFactory)getApplicationContext().getBean(getViewTypeFactoryBeanIdentifier().get(viewType));
 			
-		} else if(getViewTypeFactoryClass().containsKey(viewType)) {
-			
-			Object viewFactoryClass = null;
-			
-			try {
-				viewFactoryClass = getViewTypeFactoryClass().get(viewType);
-				@SuppressWarnings("unchecked")
-				Class<ViewFactory> clazz = (Class<ViewFactory>)viewFactoryClass;
-				viewFactory = clazz.newInstance();
-				
-			} catch (Exception e) {
-				throw new RuntimeException("Exception while creating instance of View Factory for class: "+viewFactoryClass, e); 
-			}
 		} else {
-			throw new IllegalStateException("No View Factory registered for view type resolved: "+viewTaskBind+", task id: "+taskId);
+			throw new IllegalStateException("No View Factory registered for view type: "+viewType);
 		}
 		
-		return viewFactory.getView(viewTaskBind.getViewIdentifier(), submitable);
+		return viewFactory;
 	}
 	
 	protected BPMManagersFactory getManagersCreator(long processDefinitionId) {
@@ -130,19 +161,6 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 		if(getCreatorTypeCreatorBeanIdentifier().containsKey(managersType)) {
 			creator = (BPMManagersFactory)getApplicationContext().getBean(creatorTypeCreatorBeanIdentifier.get(managersType));
 			
-		} else if(getCreatorTypeCreatorClass().containsKey(managersType)) {
-			
-			Object creatorClass = null;
-			
-			try {
-				creatorClass = creatorTypeCreatorClass.get(managersType);
-				@SuppressWarnings("unchecked")
-				Class<BPMManagersFactory> clazz = (Class<BPMManagersFactory>)creatorClass;
-				creator = clazz.newInstance();
-				
-			} catch (Exception e) {
-				throw new RuntimeException("Exception while creating instance of creator for class: "+creatorClass, e); 
-			}
 		} else {
 			throw new IllegalStateException("No managers creator registered for type resolved: "+managersType+", process definition id: "+processDefinitionId);
 		}
@@ -162,39 +180,37 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 		return bind.getManagersType();
 	}
 	
-	public void onApplicationEvent(ApplicationEvent applicationEvent) {
+	@Autowired
+	public void setBPManagersFactories(List<BPMManagersFactory> bpmManagersFactories) {
 		
-		if(applicationEvent instanceof BPMManagersFactoryPluggedInEvent) {
-			
-			BPMManagersFactory managersFactory = ((BPMManagersFactoryPluggedInEvent)applicationEvent).getConcreteBPMManagersCreator();
-			
+		for (BPMManagersFactory managersFactory : bpmManagersFactories) {
+		
 			if(managersFactory.getManagersType() == null)
 				throw new IllegalArgumentException("Managers factory type not specified for factory: "+managersFactory);
 			
 			String beanIdentifier = managersFactory.getBeanIdentifier();
 			
-			if(beanIdentifier != null) {
-				
+			if(beanIdentifier == null) {
+				Logger.getLogger(BPMFactory.class.getName()).log(Level.WARNING, "No bean identifier provided for managers factory, ignoring. Managers factory: "+managersFactory.getClass().getName());
+			} else
 				getCreatorTypeCreatorBeanIdentifier().put(managersFactory.getManagersType(), beanIdentifier);
-				
-			} else {
-				getCreatorTypeCreatorClass().put(managersFactory.getManagersType(), managersFactory.getClass());
-				Logger.getLogger(BPMFactory.class.getName()).log(Level.WARNING, "No Concrete bpm managers creator type was explicitly provided. Skipping.");
-			}
-		} else if(applicationEvent instanceof ViewFactoryPluggedInEvent) {
-			
-			ViewFactory viewFactory = ((ViewFactoryPluggedInEvent)applicationEvent).getViewFactory();
+		}
+	}
+	
+	@Autowired
+	public void setViewsFactories(List<ViewFactory> viewsFactories) {
+		
+		for (ViewFactory viewFactory : viewsFactories) {
 			
 			if(viewFactory.getViewType() == null)
 				throw new IllegalArgumentException("View factory type not specified for factory: "+viewFactory);
 			
 			String beanIdentifier = viewFactory.getBeanIdentifier();
 			
-			if(beanIdentifier != null) {
+			if(beanIdentifier == null) {
+				Logger.getLogger(BPMFactory.class.getName()).log(Level.WARNING, "No bean identifier provided for view factory, ignoring. View factory: "+viewFactory.getClass().getName());
+			} else
 				getViewTypeFactoryBeanIdentifier().put(viewFactory.getViewType(), beanIdentifier);
-			} else {
-				getViewTypeFactoryClass().put(viewFactory.getViewType(), viewFactory.getClass());
-			}
 		}
 	}
 
@@ -208,18 +224,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 
 	protected Map<String, String> getCreatorTypeCreatorBeanIdentifier() {
 		
-		if(creatorTypeCreatorBeanIdentifier == null)
-			creatorTypeCreatorBeanIdentifier = new HashMap<String, String>();
-		
 		return creatorTypeCreatorBeanIdentifier;
-	}
-
-	protected Map<String, Object> getCreatorTypeCreatorClass() {
-		
-		if(creatorTypeCreatorClass == null)
-			creatorTypeCreatorClass = new HashMap<String, Object>(); 
-			
-		return creatorTypeCreatorClass;
 	}
 
 	public BPMDAO getBindsDAO() {
@@ -233,18 +238,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationListener, Applicat
 
 	public Map<String, String> getViewTypeFactoryBeanIdentifier() {
 		
-		if(viewTypeFactoryBeanIdentifier == null)
-			viewTypeFactoryBeanIdentifier = new HashMap<String, String>();
-		
 		return viewTypeFactoryBeanIdentifier;
-	}
-
-	public Map<String, Object> getViewTypeFactoryClass() {
-		
-		if(viewTypeFactoryClass == null)
-			viewTypeFactoryClass = new HashMap<String, Object>();
-		
-		return viewTypeFactoryClass;
 	}
 
 	public ProcessManager getProcessManagerByTaskInstanceId(long taskInstanceId) {

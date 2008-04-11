@@ -13,14 +13,13 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.jbpm.IdegaJbpmContext;
-import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewToTask;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/02/07 13:58:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
  */
 public class ProcessMgmtMockupBean {
 	
@@ -165,6 +164,7 @@ public class ProcessMgmtMockupBean {
 	
 	public void takeTask() {
 		
+		/*
 		if(getTaskInstanceId() == null || getTaskInstanceId().equals(""))
 			return;
 		
@@ -174,7 +174,7 @@ public class ProcessMgmtMockupBean {
 		
 		try {
 			TaskInstance ti = ctx.getTaskInstance(tid);
-			View view = getViewToTask().getView(ti.getTask().getId());
+			View view = getViewToTask().getViewByTask(ti.getTask().getId());
 			
 			if(view != null) {
 				setFormId(view.getViewId());
@@ -183,6 +183,7 @@ public class ProcessMgmtMockupBean {
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
+		*/
 	}
 
 	public ViewToTask getViewToTask() {

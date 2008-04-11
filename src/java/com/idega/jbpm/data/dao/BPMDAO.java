@@ -16,15 +16,19 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/04/10 01:20:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
  */
 public interface BPMDAO extends GenericDao {
 
 	public abstract ViewTaskBind getViewTaskBind(long taskId, String viewType);
+	
+	public abstract ViewTaskBind getViewTaskBindByTaskInstance(long taskInstanceId, String viewType);
 
 	public abstract List<ViewTaskBind> getViewTaskBindsByTaskId(long taskId);
+	
+	public abstract List<ViewTaskBind> getViewTaskBindsByTaskInstanceId(long taskInstanceId);
 
 	public abstract ViewTaskBind getViewTaskBindByView(String viewId, String viewType);
 
