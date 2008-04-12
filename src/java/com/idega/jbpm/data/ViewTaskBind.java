@@ -14,12 +14,12 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/12 01:54:21 $ by $Author: civilis $
  */
 @Entity
-@Table(name="BPM_VIEW_TASK")
+@Table(name="BPM_VIEWS_TASKS")
 @NamedQueries(
 		{
 			@NamedQuery(name=ViewTaskBind.GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME, query="from ViewTaskBind VTB where VTB."+ViewTaskBind.taskIdProp+" = :"+ViewTaskBind.taskIdParam+" and viewType = :"+ViewTaskBind.viewTypeParam),
