@@ -22,9 +22,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/27 08:49:25 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/14 23:02:37 $ by $Author: civilis $
  */
 public class SendParticipantInivtationMessageHandler implements ActionHandler {
 
@@ -68,10 +68,10 @@ public class SendParticipantInivtationMessageHandler implements ActionHandler {
 		final IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		
 		if(from == null || CoreConstants.EMPTY.equals(from) || !EmailValidator.getInstance().isValid(from)) {
-			from = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS);
+			from = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, "staff@idega.is");
 		}
 		
-		String host = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER);
+		String host = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER, "mail.idega.is");
 		
 		String fullUrl = composeFullUrl(iwc, ctx.getToken());
 		

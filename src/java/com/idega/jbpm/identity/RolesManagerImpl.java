@@ -4,6 +4,7 @@ import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +30,9 @@ import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- * Last modified: $Date: 2008/03/27 08:49:25 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/14 23:02:36 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -240,6 +241,37 @@ public class RolesManagerImpl implements RolesManager {
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
+	}
+	
+	@Transactional(readOnly=true)
+	public Map<String, List<NativeIdentityBind>> getIdentitiesForRoles(Collection<String> rolesNames, long processInstanceId) {
+
+		List<ProcessRole> roles = getBpmDAO().getProcessRolesByRolesNames(rolesNames, processInstanceId);
+		
+		HashMap<String, List<NativeIdentityBind>> identities = new HashMap<String, List<NativeIdentityBind>>(roles.size());
+		ArrayList<String> rolesNamesToCheckForGeneral = new ArrayList<String>(roles.size());
+		
+		for (ProcessRole processRole : roles) {
+			
+			if(!processRole.getNativeIdentities().isEmpty()) {
+				identities.put(processRole.getProcessRoleName(), processRole.getNativeIdentities());
+			} else {
+				rolesNamesToCheckForGeneral.add(processRole.getProcessRoleName());
+			}
+		}
+		
+		if(!rolesNamesToCheckForGeneral.isEmpty()) {
+		
+			roles = getBpmDAO().getProcessRolesByRolesNames(rolesNames, null);
+			
+			for (ProcessRole processRole : roles) {
+				
+				if(!processRole.getNativeIdentities().isEmpty())
+					identities.put(processRole.getProcessRoleName(), processRole.getNativeIdentities());
+			}
+		}
+		
+		return identities;
 	}
 	
 	public IdegaJbpmContext getIdegaJbpmContext() {
