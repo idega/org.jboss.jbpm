@@ -30,6 +30,8 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationStartedEvent;
 import com.idega.idegaweb.IWMainSlideStartedEvent;
 import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.data.AutoloadedProcessDefinition;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.def.ProcessBundle;
 import com.idega.jbpm.def.ProcessBundleManager;
 import com.idega.util.CoreConstants;
@@ -38,14 +40,15 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/04/03 18:59:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/17 23:58:33 $ by $Author: civilis $
  */
 public class ProcessDefinitionsAutoloader implements ApplicationListener, ApplicationContextAware {
 
 	private final Logger logger;
 	private ResourcePatternResolver resourcePatternResolver;
+	private BPMDAO BPMDAO;
 	private List<String> mappings;
 	private IdegaJbpmContext idegaJbpmContext;
 	private ApplicationContext appCtx;
@@ -253,21 +256,57 @@ public class ProcessDefinitionsAutoloader implements ApplicationListener, Applic
 	
 	protected boolean checkDeployProcessDefinition(JbpmContext ctx, ProcessDefinition processDefinition, boolean deploy) {
 
+		String pdName = processDefinition.getName();
+		
+		AutoloadedProcessDefinition apd;
+		
 		try {
-			String pdName = processDefinition.getName();
-			ProcessDefinition pd = ctx.getGraphSession().findLatestProcessDefinition(pdName);
+			apd = getBPMDAO().find(AutoloadedProcessDefinition.class, pdName);
+		} catch (Exception e) {
+			apd = null;
+		}
+		
+		if(apd == null) {
 			
-			if(pd != null) {
+			ProcessDefinition pd;
+		
+			try {
+				pd = ctx.getGraphSession().findLatestProcessDefinition(pdName);
 				
-				if(processDefinition.getVersion() <= pd.getVersion()) {
-				
-					getLogger().log(Level.INFO, "Found deployed process: "+pd.getName());
-					return false;
-				}
+			} catch (JbpmException e) {
+//				thrown when nothing found
+				pd = null;
 			}
 			
-		} catch (JbpmException e) {
-//			thrown when nothing found
+			if(pd != null) {
+				getLogger().log(Level.INFO, "Found explicitly deployed process: "+pd.getName());
+				return false;
+			} else {
+				
+				apd = new AutoloadedProcessDefinition();
+				apd.setProcessDefinitionName(pdName);
+				apd.setAutodeployPermitted(true);
+				apd.setAutoloadedVersion(processDefinition.getVersion());
+				
+				getBPMDAO().persist(apd);
+			}
+		} else {
+			
+			if(!apd.getAutodeployPermitted()) {
+				return false;
+				
+			} else {
+				
+				if(processDefinition.getVersion() <= apd.getAutoloadedVersion()) {
+					
+					getLogger().log(Level.INFO, "Found auto deployed process: "+pdName);
+					return false;
+				} else {
+					
+					apd.setAutoloadedVersion(processDefinition.getVersion());
+					getBPMDAO().merge(apd);
+				}
+			}
 		}
 		
 		if(deploy) {
@@ -318,5 +357,14 @@ public class ProcessDefinitionsAutoloader implements ApplicationListener, Applic
 	@Autowired
 	public void setProcessBundleManager(ProcessBundleManager processBundleManager) {
 		this.processBundleManager = processBundleManager;
+	}
+
+	public BPMDAO getBPMDAO() {
+		return BPMDAO;
+	}
+
+	@Autowired
+	public void setBPMDAO(BPMDAO bpmdao) {
+		BPMDAO = bpmdao;
 	}
 }

@@ -1,26 +1,21 @@
-.bpmEgovIdentityMgmt h3 {
-	padding-left: 5px;
-}
-
 .bpmEgovIdentityMgmt .generalRoleAssignment, .bpmEgovIdentityMgmt .createRole {
-	  height: 160px;
-	  border: 1px black solid;
-	  padding: 15px;
-	  margin: 2px;
+    height: 160px;
+    padding: 20px;
 }
 
 .bpmEgovIdentityMgmt .createRole {
-	height: auto;
+    height: auto;
 }
 
 .bpmEgovIdentityMgmt .generalRoleAssignment select {
-	width: 250px;
-	height: 120px;
+    width: 250px;
+    height: 150px;
 }
 
 .bpmEgovIdentityMgmt .chooseRole, .bpmEgovIdentityMgmt .chooseGroup {
-	float: left;
+    float: left;
 }
+
 .bpmEgovIdentityMgmt .chooseRole label, .bpmEgovIdentityMgmt .chooseGroup label, .bpmEgovIdentityMgmt .createRole label {
     display: block;
     font-size: 13px;
@@ -29,14 +24,56 @@
 }
 
 .bpmEgovIdentityMgmt .createRole div {
-	display: inline;
+    display: inline;
 }
 
 .bpmEgovIdentityMgmt .assignButtons {
-	float: left;
-	padding-top: 20px;
+    float: left;
+    padding-top: 55px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.bpmEgovIdentityMgmt .assignButtons input {
+    font-family: "Lucida Grande", "Lucida Sans", "Lucida Sans Unicode", Arial, Helvetica, sans-serif !important;
+    font-size: 14px !important;
+    background-color: #cef3cf;
+    border: 1px #b5e1b7 solid !important;
+    border-right-color: #80b082 !important;
+    border-bottom-color: #6e9870 !important;
+    border-left-color: #a9dcac !important;
+    padding: 4px 12px;
+    width: 120px;
+    text-align: center;
 }
 
 .processManagement .caseCatType, .processManagement .assignButtons, .processManagement .createdProcesses {
-	float: left;
+    float: left;
+} 
+
+/* Workspace override */
+.bpm .ws_main {
+    left: 5px !important;
+    right: 5px !important;
+    top: 85px !important;
+    bottom: 5px !important;
+    position: absolute;
+    background: #fff;
+    border: 1px #D7D7D7 solid;
+}
+
+.bpm .ws_main h3 {
+    line-height: 22px;
+    padding-top: 0pt;
+    padding-right: 8px;
+    padding-bottom: 0pt;
+    padding-left: 8px;
+    font-size: 12px;
+    font-family: "Lucida Grande","Lucida Sans","Lucida Sans Unicode",Arial,Helvetica,sans-serif;
+    font-weight: bold;
+    margin: 0;
+    background:transparent url(images/bg_titlebar.gif) top left repeat-x;
+    height:22px;
+    width:100%;
+    border-bottom: 1px #d7d7d7 solid;
 }
