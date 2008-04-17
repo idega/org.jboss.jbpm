@@ -22,11 +22,11 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/04/14 23:02:37 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/17 01:16:40 $ by $Author: civilis $
  */
-public class SendParticipantInivtationMessageHandler implements ActionHandler {
+public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -2378842409705431642L;
 	
@@ -37,9 +37,9 @@ public class SendParticipantInivtationMessageHandler implements ActionHandler {
 	private static final String egovBPMPageType = "bpm_registerProcessParticipant";
 	public static final String tokenParam = "bpmtkn";
 	
-	public SendParticipantInivtationMessageHandler() { }
+	public SendParticipantInvitationMessageHandler() { }
 	
-	public SendParticipantInivtationMessageHandler(String parm) { }
+	public SendParticipantInvitationMessageHandler(String parm) { }
 
 	
 	public void execute(ExecutionContext ctx) throws Exception {

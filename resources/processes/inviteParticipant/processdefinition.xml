@@ -7,7 +7,7 @@
    </start-state>
    <node name="sendInvitation">
       <event type="node-enter">
-         <action name="sendInvitationAction" class="com.idega.jbpm.process.business.SendParticipantInivtationMessageHandler" config-type="constructor"></action>
+         <action name="sendInvitationAction" class="com.idega.jbpm.process.business.SendParticipantInvitationMessageHandler" config-type="constructor"></action>
       </event>
       <transition name="" to="waitingForAccountBoundEvent"></transition>
    </node>

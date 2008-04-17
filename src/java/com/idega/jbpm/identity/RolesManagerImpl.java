@@ -30,9 +30,9 @@ import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- * Last modified: $Date: 2008/04/14 23:02:36 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/17 01:16:41 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -217,7 +217,7 @@ public class RolesManagerImpl implements RolesManager {
 		}
 	}
 	
-	public void hasRightsToAsssignTask(long taskInstanceId, int userId) throws BPMAccessControlException {
+	public void hasRightsToAssignTask(long taskInstanceId, int userId) throws BPMAccessControlException {
 		
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		

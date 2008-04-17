@@ -2,6 +2,6 @@
 
 <processes>
 
-    <processDefinition bundle="org.jboss.jbpm" uriWithinBundle="resources/processes/inviteParticipant/processdefinition.xml" autoload="true" version="2" />
+    <processDefinition bundle="org.jboss.jbpm" uriWithinBundle="resources/processes/inviteParticipant/processdefinition.xml" autoload="true" version="3" />
 
 </processes>

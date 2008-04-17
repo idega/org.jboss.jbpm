@@ -27,9 +27,9 @@ import com.idega.jbpm.identity.RolesManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/17 01:16:41 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	
@@ -180,7 +180,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 		return bind.getManagersType();
 	}
 	
-	@Autowired
+	@Autowired(required=false)
 	public void setBPManagersFactories(List<BPMManagersFactory> bpmManagersFactories) {
 		
 		for (BPMManagersFactory managersFactory : bpmManagersFactories) {
@@ -197,7 +197,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 		}
 	}
 	
-	@Autowired
+	@Autowired(required=false)
 	public void setViewsFactories(List<ViewFactory> viewsFactories) {
 		
 		for (ViewFactory viewFactory : viewsFactories) {

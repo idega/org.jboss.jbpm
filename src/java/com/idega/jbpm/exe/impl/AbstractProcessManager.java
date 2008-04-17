@@ -14,9 +14,9 @@ import com.idega.jbpm.identity.RolesManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/03/14 10:42:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/17 01:16:41 $ by $Author: civilis $
  */
 public abstract class AbstractProcessManager implements ProcessManager {
 	
@@ -57,7 +57,7 @@ public abstract class AbstractProcessManager implements ProcessManager {
 		
 		try {
 			RolesManager rolesManager = getBpmFactory().getRolesManager();
-			rolesManager.hasRightsToAsssignTask(taskInstanceId, assignToUserId);
+			rolesManager.hasRightsToAssignTask(taskInstanceId, assignToUserId);
 			
 			TaskInstance taskInstance = ctx.getTaskInstance(taskInstanceId);
 			taskInstance.setActorId(String.valueOf(assignToUserId));
