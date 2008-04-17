@@ -22,9 +22,9 @@ import com.idega.jbpm.identity.permission.RoleScope;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/24 19:49:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/17 01:52:44 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
@@ -51,7 +51,7 @@ public class ProcessRole implements Serializable {
 	
 	public static final String actorIdProperty = "actorId";
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name="actor_id", nullable=false)
+	@Column(name="actor_id")
 	private Long actorId;
 	
 	public static final String processInstanceIdProperty = "processInstanceId";

@@ -12,9 +12,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/02/12 14:35:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/17 01:52:44 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_MANAGERS_PROCDEF")
@@ -34,7 +34,7 @@ public class ManagersTypeProcessDefinitionBind implements Serializable {
 
 //	TODO: process definition id should point to ProcessDefinition table. Managers type should point to BPM_MANAGERS_TYPES table (doesn't exist)
 	@Id
-	@Column(name="process_definition_id", nullable=false)
+	@Column(name="process_definition_id")
     private Long processDefinitionId;
 	
 	@Column(name="managers_type", nullable=false)
