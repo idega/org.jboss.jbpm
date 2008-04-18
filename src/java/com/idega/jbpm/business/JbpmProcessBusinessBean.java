@@ -177,6 +177,39 @@ public class JbpmProcessBusinessBean {
 		
 	}
 	
+	public Set<String> getProcessVariablesByDatatypes(Long processId, Set<String> datatypes) {
+		
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			ProcessDefinition pd = getProcessDefinition(processId, ctx);
+			Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
+			Set<String> variables = new HashSet<String>();
+			for(Iterator<String> it = tasks.keySet().iterator(); it.hasNext(); ) {
+				String taskName = (String) it.next();
+				Task task = (Task) tasks.get(taskName);
+				TaskController controller = task.getTaskController();
+				if(controller == null) {
+					task.setTaskController(new TaskController());
+				}
+				List<VariableAccess> list = controller.getVariableAccesses();
+				for(Iterator<VariableAccess> it2 = list.iterator(); it2.hasNext(); ) {
+					VariableAccess va = (VariableAccess) it2.next();
+					String fullName = va.getVariableName();
+					StringTokenizer stk = new StringTokenizer(fullName, ":");
+					String type = stk.nextToken();
+					if(datatypes.contains(type)) {
+						variables.add(fullName);
+					}
+				}
+			}
+			return variables;
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
+		
+	}
+	
 	public ProcessDefinition getProcessDefinition(String processId, JbpmContext ctx) {
 		if(processId == null) {
 			return null;
