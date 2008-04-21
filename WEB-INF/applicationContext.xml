@@ -20,10 +20,6 @@
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
     
-    <bean id="BPMProcessAssets" class="com.idega.jbpm.exe.ProcessArtifacts" scope="singleton">
-    	<property name="idegaJbpmContext" ref="idegaJbpmContext" />
-    </bean>
-    
     <bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
         <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
         <property name="entityManagerFactory" ref="entityManagerFactory" />

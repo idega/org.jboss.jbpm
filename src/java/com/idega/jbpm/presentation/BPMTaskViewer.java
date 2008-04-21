@@ -21,9 +21,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/03/13 17:00:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -84,7 +84,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		int initiatorId = IWContext.getIWContext(context).getCurrentUserId();
 		long pdId = Long.parseLong(processDefinitionId);
 		
-		View initView = getBpmFactory(context).getViewManager(pdId).loadInitView(pdId, initiatorId, context);
+		View initView = getBpmFactory(context).getViewManager(pdId).loadInitView(pdId, initiatorId);
 		return initView.getViewForDisplay();
 	}
 
@@ -94,7 +94,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		
 		try {
 			long pdId = ctx.getTaskInstance(taskInstanceId).getProcessInstance().getProcessDefinition().getId();
-			View initView = getBpmFactory(context).getViewManager(pdId).loadTaskInstanceView(taskInstanceId, context);
+			View initView = getBpmFactory(context).getViewManager(pdId).loadTaskInstanceView(taskInstanceId);
 			return initView.getViewForDisplay();
 		
 		} catch (AccessControlException e) {

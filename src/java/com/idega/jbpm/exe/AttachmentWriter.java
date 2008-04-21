@@ -20,22 +20,19 @@ import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/30 11:13:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
  */
 public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 	private BinaryVariable binaryVariable;
 	private VariablesHandler variablesHandler;
-	private IWContext iwc;
 
 	public AttachmentWriter() {
 	}
 
 	public void init(HttpServletRequest req, IWContext iwc) {
-		
-		this.iwc = iwc;
 		
 		String taskInstanceIdSR = iwc.getParameter("taskInstanceId");
 		String variableHashSR = iwc.getParameter("varHash");
@@ -75,7 +72,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		if(binaryVariable == null)
 			return;
 		
-		InputStream is = variablesHandler.getBinaryVariablesHandler().getBinaryVariableContent(iwc, binaryVariable);
+		InputStream is = variablesHandler.getBinaryVariablesHandler().getBinaryVariableContent(binaryVariable);
 		
 		BufferedInputStream fis = new BufferedInputStream(is);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

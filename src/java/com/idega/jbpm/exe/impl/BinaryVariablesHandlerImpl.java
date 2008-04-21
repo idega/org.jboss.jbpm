@@ -12,8 +12,6 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.faces.context.FacesContext;
-
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -21,9 +19,9 @@ import org.springframework.stereotype.Service;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.def.VariableDataType;
 import com.idega.jbpm.exe.BinaryVariablesHandler;
-import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
@@ -31,9 +29,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/30 11:13:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -45,7 +43,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	public Map<String, Object> storeBinaryVariables(Object identifier, Map<String, Object> variables) {
 		
 		HashMap<String, Object> newVars = new HashMap<String, Object>(variables);
-		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		
 		for (Entry<String, Object> entry : newVars.entrySet()) {
 			
@@ -62,7 +59,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 				if(val instanceof File) {
 					
-					BinaryVariable binaryVariable = storeFile(iwc, (String)identifier, (File)val);
+					BinaryVariable binaryVariable = storeFile((String)identifier, (File)val);
 					entry.setValue(binaryVariable);
 					
 				} else {
@@ -87,7 +84,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 							ArrayList<BinaryVariable> binaryVariables = new ArrayList<BinaryVariable>(afiles.size());
 
 							for (File file : afiles) {
-								BinaryVariable binaryVariable = storeFile(iwc, identifier, file);
+								BinaryVariable binaryVariable = storeFile(identifier, file);
 								binaryVariables.add(binaryVariable);
 							}
 							
@@ -120,12 +117,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return path+CoreConstants.SLASH+fileName;
 	}
 	
-	protected BinaryVariable storeFile(IWContext iwc, Object identifier, File file) {
+	protected BinaryVariable storeFile(Object identifier, File file) {
 		
 		String path = BPM_UPLOADED_FILES_PATH+identifier+"/files";
 		String fileName = file.getName();
 		try {
-			IWSlideService slideService = getIWSlideService(iwc);
+			IWSlideService slideService = getIWSlideService();
 			
 			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();
 			WebdavExtendedResource res = slideService.getWebdavExtendedResource(concPF(path, fileName), credentials);
@@ -199,22 +196,22 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return binaryVars;
 	}
 	
-	public InputStream getBinaryVariableContent(BinaryVariable variable) {
-		
-		return getBinaryVariableContent(null, variable);
-	}
+//	public InputStream getBinaryVariableContent(BinaryVariable variable) {
+//		
+//		return getBinaryVariableContent(null, variable);
+//	}
 	
-	public InputStream getBinaryVariableContent(IWContext iwc, BinaryVariable variable) {
+	public InputStream getBinaryVariableContent(BinaryVariable variable) {
 		
 		if(!STORAGE_TYPE.equals(variable.getStorageType()))
 			throw new IllegalArgumentException("Unsupported binary variable storage type: "+variable.getStorageType());
 		
 		try {
 			
-			if(iwc == null)
-				iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+//			if(iwc == null)
+//				iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 			
-			IWSlideService slideService = getIWSlideService(iwc);
+			IWSlideService slideService = getIWSlideService();
 			
 			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();
 			WebdavExtendedResource res = slideService.getWebdavExtendedResource(variable.getIdentifier(), credentials);
@@ -234,10 +231,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return null;
 	}
 	
-	protected IWSlideService getIWSlideService(IWContext iwc) {
+	protected IWSlideService getIWSlideService() {
 		
 		try {
-			return (IWSlideService) IBOLookup.getServiceInstance(iwc, IWSlideService.class);
+			return (IWSlideService) IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), IWSlideService.class);
 		} catch (IBOLookupException e) {
 			throw new IBORuntimeException(e);
 		}

@@ -39,9 +39,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/03/25 13:20:35 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -54,6 +54,12 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	private BPMDAO bpmBindsDAO;
 
 	public void checkPermission(Permission perm) throws AccessControlException {
+		
+		FacesContext fctx = FacesContext.getCurrentInstance();
+		
+//		faces context == null when permission is called by the system (i.e. not the result of user navigation)
+		if(fctx == null)
+			return;
 
 		if(!(perm instanceof BPMTaskAccessPermission))
 			throw new IllegalArgumentException("Only permissions implementing "+BPMTaskAccessPermission.class.getName()+" supported");
@@ -61,7 +67,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		BPMTaskAccessPermission permission = (BPMTaskAccessPermission)perm;
 		
 		String loggedInActorId = getAuthenticationService().getActorId();
-
+		
 		TaskInstance taskInstance = permission.getTaskInstance();
 		
 		if(loggedInActorId.equals(taskInstance.getActorId()))
@@ -75,7 +81,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		} else {
 			
 //			super admin always gets an access
-			if(IWContext.getIWContext(FacesContext.getCurrentInstance()).isSuperAdmin())
+			if(IWContext.getIWContext(fctx).isSuperAdmin())
 				return;
 
 			@SuppressWarnings("unchecked")

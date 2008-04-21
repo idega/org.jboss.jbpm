@@ -16,6 +16,8 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
 import com.idega.business.IBOLookup;
@@ -40,27 +42,22 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  *
- * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
  */
+@Scope("singleton")
+@Service("BPMProcessAssets")
 public class ProcessArtifacts {
 	
 	private BPMFactory bpmFactory;
 	private IdegaJbpmContext idegaJbpmContext;
 	private VariablesHandler variablesHandler;
+	private ProcessArtifactsProvider processArtifactsProvider;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
-
-	public Document getProcessDocumentsList(ProcessArtifactsParamsBean params) {
-		
-		Long processInstanceId = params.getPiId();
-		
-//		TODO: don't return null, but empty doc instead
-		if(processInstanceId == null)
-			return null;
-		
-		Collection<TaskInstance> processDocuments = getSubmittedTaskInstances(processInstanceId);
+	
+	protected Document getDocumentsListDocument(Collection<TaskInstance> processDocuments) {
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
@@ -85,7 +82,7 @@ public class ProcessArtifacts {
 			rows.addRow(row);
 			String tidStr = String.valueOf(submittedDocument.getId());
 			row.setId(tidStr);
-			row.addCell(tidStr);
+			//row.addCell(tidStr);
 			row.addCell(submittedDocument.getName());
 			row.addCell(submittedDocument.getEnd() == null ? CoreConstants.EMPTY :
 				new IWTimestamp(submittedDocument.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
@@ -99,6 +96,19 @@ public class ProcessArtifacts {
 			logger.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
+	}
+
+	public Document getProcessDocumentsList(ProcessArtifactsParamsBean params) {
+		
+		Long processInstanceId = params.getPiId();
+		
+//		TODO: don't return null, but empty doc instead
+		if(processInstanceId == null)
+			return null;
+		
+		Collection<TaskInstance> processDocuments = getProcessArtifactsProvider().getSubmittedTaskInstances(processInstanceId);
+		
+		return getDocumentsListDocument(processDocuments);
 	}
 	
 	protected Permission getTaskSubmitPermission(boolean authPooledActorsOnly, TaskInstance taskInstance) {
@@ -202,7 +212,7 @@ public class ProcessArtifacts {
 				
 				String tidStr = String.valueOf(taskInstance.getId());
 				row.setId(tidStr);
-				row.addCell(tidStr);
+				//row.addCell(tidStr);
 				row.addCell(taskInstance.getName());
 				row.addCell(taskInstance.getCreate() == null ? CoreConstants.EMPTY :
 							new IWTimestamp(taskInstance.getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
@@ -230,6 +240,68 @@ public class ProcessArtifacts {
 		}
 	}
 	
+	public Document getTaskAttachments(ProcessArtifactsParamsBean params) {
+		
+//		TODO: check permission to view task variables
+		
+		Long taskInstanceId = params.getTaskId();
+		
+		if(taskInstanceId == null)
+			return null;
+		
+		List<BinaryVariable> binaryVariables = getProcessArtifactsProvider().getTaskAttachments(taskInstanceId);
+		
+		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+
+		int size = binaryVariables.size();
+		rows.setTotal(size);
+		rows.setPage(size == 0 ? 0 : 1);
+		
+		for (BinaryVariable binaryVariable : binaryVariables) {
+			
+			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
+			rows.addRow(row);
+			String tidStr = String.valueOf(binaryVariable.getHash());
+			row.setId(tidStr);
+			row.addCell(binaryVariable.getFileName());
+		}
+		
+		try {
+			return rows.getDocument();
+			
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Exception while parsing rows", e);
+			return null;
+		}
+	}
+	
+	public Document getProcessEmailsList(ProcessArtifactsParamsBean params) {
+		
+		Long processInstanceId = params.getPiId();
+		
+		if(processInstanceId == null)
+			return null;
+		
+		Collection<TaskInstance> processEmails = getProcessArtifactsProvider().getAttachedEmailsTaskInstances(processInstanceId);
+		
+		if(processEmails == null || processEmails.isEmpty()) {
+			
+			try {
+			
+				ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+				rows.setTotal(0);
+				rows.setPage(0);
+				
+				return rows.getDocument();
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Exception while parsing rows", e);
+				return null;
+			}
+			
+		} else		
+			return getDocumentsListDocument(processEmails);
+	}
+	
 	protected String getTaskStatus(TaskInstance taskInstance) {
 		
 		if(taskInstance.hasEnded())
@@ -247,7 +319,7 @@ public class ProcessArtifacts {
 		try {
 			long processDefinitionId = ctx.getTaskInstance(taskInstanceId).getProcessInstance().getProcessDefinition().getId();
 			
-			UIComponent viewUIComponent = getBpmFactory().getViewManager(processDefinitionId).loadTaskInstanceView(taskInstanceId, FacesContext.getCurrentInstance()).getViewForDisplay();
+			UIComponent viewUIComponent = getBpmFactory().getViewManager(processDefinitionId).loadTaskInstanceView(taskInstanceId).getViewForDisplay();
 			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
 			
 		} finally {
@@ -292,6 +364,7 @@ public class ProcessArtifacts {
 		return idegaJbpmContext;
 	}
 
+	@Autowired
 	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
@@ -314,41 +387,6 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	public Document getTaskAttachments(ProcessArtifactsParamsBean params) {
-		
-//		TODO: check permission to view task variables
-		
-		Long taskInstanceId = params.getTaskId();
-		
-		if(taskInstanceId == null)
-			return null;
-	
-		List<BinaryVariable> binaryVariables = getVariablesHandler().resolveBinaryVariables(taskInstanceId);
-		
-		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
-
-		int size = binaryVariables.size();
-		rows.setTotal(size);
-		rows.setPage(size == 0 ? 0 : 1);
-		
-		for (BinaryVariable binaryVariable : binaryVariables) {
-			
-			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
-			rows.addRow(row);
-			String tidStr = String.valueOf(binaryVariable.getHash());
-			row.setId(tidStr);
-			row.addCell(binaryVariable.getFileName());
-		}
-		
-		try {
-			return rows.getDocument();
-			
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Exception while parsing rows", e);
-			return null;
-		}
-	}
-	
 	public VariablesHandler getVariablesHandler() {
 		return variablesHandler;
 	}
@@ -356,5 +394,15 @@ public class ProcessArtifacts {
 	@Autowired
 	public void setVariablesHandler(VariablesHandler variablesHandler) {
 		this.variablesHandler = variablesHandler;
+	}
+
+	public ProcessArtifactsProvider getProcessArtifactsProvider() {
+		return processArtifactsProvider;
+	}
+
+	@Autowired
+	public void setProcessArtifactsProvider(
+			ProcessArtifactsProvider processArtifactsProvider) {
+		this.processArtifactsProvider = processArtifactsProvider;
 	}
 }

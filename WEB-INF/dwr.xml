@@ -18,6 +18,7 @@
             <include method="getProcessDocumentsList" />
             <include method="getProcessTasksList" />
             <include method="getTaskAttachments" />
+            <include method="getProcessEmailsList" />
             <!--  
             <include method="getViewDisplay" />
             -->

@@ -19,9 +19,9 @@ import com.idega.presentation.IWContext;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/21 05:13:44 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
@@ -55,8 +55,12 @@ public class RolesAssiger {
 			return;
 		}
 		
+		FacesContext fctx = FacesContext.getCurrentInstance();
+		if(fctx == null)
+			return;
+		
 //		currently supporting only assigning to current user
-		Integer userId = IWContext.getIWContext(FacesContext.getCurrentInstance()).getCurrentUserId();
+		Integer userId = IWContext.getIWContext(fctx).getCurrentUserId();
 		
 		ArrayList<Role> rolesToAssignIdentity = new ArrayList<Role>(roles.size());
 		
