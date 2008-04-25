@@ -52,8 +52,6 @@ public class HibernateLongIdMatcher implements JbpmTypeMatcher {
 	    try {
 	    	
 	    	if (jbpmContext!=null) {
-	    	      
-	    		  @SuppressWarnings("unchecked")
 	    	      Class valueClass = value.getClass();
 	    	      if (value instanceof HibernateProxy) {
 	    	        valueClass = valueClass.getSuperclass();

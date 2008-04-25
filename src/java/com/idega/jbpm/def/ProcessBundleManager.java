@@ -21,9 +21,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- * Last modified: $Date: 2008/04/03 18:59:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/25 00:05:25 $ by $Author: laddi $
  */
 @Scope("prototype")
 @Service
@@ -68,8 +68,6 @@ public class ProcessBundleManager {
 			ctx.getGraphSession().deployProcessDefinition(pd);
 
 			try {
-
-				@SuppressWarnings("unchecked")
 				Collection<Task> tasks = pd.getTaskMgmtDefinition().getTasks()
 						.values();
 				

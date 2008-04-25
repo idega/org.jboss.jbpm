@@ -10,9 +10,9 @@ import org.jbpm.JbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/25 00:05:25 $ by $Author: laddi $
  */
 public class IdegaJbpmContext {
 	
@@ -32,7 +32,7 @@ public class IdegaJbpmContext {
 	
 	protected Stack<Boolean> getDoCommitStack() {
 		
-		Stack<Boolean> stack = (Stack<Boolean>)doCommitStackLocal.get();
+		Stack<Boolean> stack = doCommitStackLocal.get();
 		
 	    if (stack == null) {
 	    	

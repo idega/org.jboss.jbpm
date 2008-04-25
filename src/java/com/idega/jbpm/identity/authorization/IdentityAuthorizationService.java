@@ -39,9 +39,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/25 00:05:26 $ by $Author: laddi $
  */
 @Scope("singleton")
 @Service
@@ -84,7 +84,6 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			if(IWContext.getIWContext(fctx).isSuperAdmin())
 				return;
 
-			@SuppressWarnings("unchecked")
 			Set<PooledActor> pooledActors = taskInstance.getPooledActors();
 			
 			if(pooledActors.isEmpty()) {
@@ -166,7 +165,6 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	
 		try {
 			UserBusiness ub = getUserBusiness();
-			@SuppressWarnings("unchecked")
 			Collection<Group> userGroups = ub.getUserGroups(userId);
 			
 			for (Group group : userGroups) {

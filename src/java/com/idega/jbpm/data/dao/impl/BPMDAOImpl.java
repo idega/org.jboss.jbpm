@@ -21,9 +21,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/25 00:05:25 $ by $Author: laddi $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -31,8 +31,6 @@ import com.idega.jbpm.identity.Role;
 public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	public ViewTaskBind getViewTaskBind(long taskId, String viewType) {
-		
-		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(ViewTaskBind.GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME)
 		.setParameter(ViewTaskBind.taskIdParam, taskId)
 		.setParameter(ViewTaskBind.viewTypeParam, viewType)
@@ -42,8 +40,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public ViewTaskBind getViewTaskBindByTaskInstance(long taskInstanceId, String viewType) {
-		
-		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(ViewTaskBind.GET_UNIQUE_BY_TASK_INSTANCE_ID_AND_VIEW_TYPE_QUERY_NAME)
 		.setParameter(ViewTaskBind.taskInstanceIdProp, taskInstanceId)
 		.setParameter(ViewTaskBind.viewTypeParam, viewType)
@@ -53,8 +49,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public List<ViewTaskBind> getViewTaskBindsByTaskId(long taskId) {
-		
-		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(ViewTaskBind.getViewTaskBindsByTaskId)
 		.setParameter(ViewTaskBind.taskIdParam, taskId)
 		.getResultList();
@@ -63,8 +57,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public List<ViewTaskBind> getViewTaskBindsByTaskInstanceId(long taskInstanceId) {
-		
-		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(ViewTaskBind.getViewTaskBindsByTaskInstanceId)
 		.setParameter(ViewTaskBind.taskInstanceIdProp, taskInstanceId)
 		.getResultList();
@@ -73,7 +65,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public ViewTaskBind getViewTaskBindByView(String viewId, String viewType) {
-		
 		return (ViewTaskBind)getEntityManager().createNamedQuery(ViewTaskBind.GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME)
 		.setParameter(ViewTaskBind.viewIdParam, viewId)
 		.setParameter(ViewTaskBind.viewTypeParam, viewType)
@@ -81,8 +72,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public List<ViewTaskBind> getViewTaskBindsByTasksIds(Collection<Long> taskIds) {
-		
-		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> viewTaskBinds = getEntityManager().createNamedQuery(ViewTaskBind.GET_VIEW_TASK_BINDS_BY_TASKS_IDS)
 		.setParameter(ViewTaskBind.tasksIdsParam, taskIds)
 		.getResultList();
@@ -91,7 +80,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 
 	public Task getTaskFromViewTaskBind(ViewTaskBind viewTaskBind) {
-		
 		return (Task)getEntityManager().createNamedQuery(ViewTaskBind.GET_VIEW_TASK)
 		.setParameter(ViewTaskBind.viewTypeParam, viewTaskBind.getViewType())
 		.setParameter(ViewTaskBind.taskIdParam, viewTaskBind.getTaskId())
@@ -99,7 +87,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public ManagersTypeProcessDefinitionBind getManagersTypeProcDefBind(long processDefinitionId) {
-		
 		return 
 		(ManagersTypeProcessDefinitionBind)
 		getEntityManager().createNamedQuery(ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId)
@@ -108,8 +95,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public List<ProcessDefinition> getAllManagersTypeProcDefs() {
-	
-		@SuppressWarnings("unchecked")
 		List<ProcessDefinition> all = getEntityManager().createNamedQuery(ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getAllProcDefs)
 		.getResultList();
 		
@@ -117,17 +102,13 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public List<ProcessRole> getAllGeneralProcessRoles() {
-		
-		@SuppressWarnings("unchecked")
 		List<ProcessRole> all = getEntityManager().createNamedQuery(ProcessRole.getAllGeneral)
 		.getResultList();
 		
 		return all;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public List<ProcessRole> getProcessRolesByRolesNames(Collection<String> rolesNames, Long processInstanceId) {
-		
 		if(rolesNames == null || rolesNames.isEmpty())
 			throw new IllegalArgumentException("Roles names should contain values");
 		
@@ -151,11 +132,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public List<ProcessRole> getProcessRoles(Collection<Long> actorIds) {
-		
 		if(actorIds == null || actorIds.isEmpty())
 			throw new IllegalArgumentException("ActorIds should contain values");
 		
-		@SuppressWarnings("unchecked")
 		List<ProcessRole> all = getEntityManager().createNamedQuery(ProcessRole.getAllByActorIds)
 		.setParameter(ProcessRole.actorIdProperty, actorIds)
 		.getResultList();
@@ -165,7 +144,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	
 	@Transactional(readOnly = false)
 	public void updateAddGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds) {
-		
 		ProcessRole roleIdentity = find(ProcessRole.class, roleActorId);
 		
 		List<NativeIdentityBind> nativeIdentities = new ArrayList<NativeIdentityBind>(selectedGroupsIds.size());
@@ -209,8 +187,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public List<NativeIdentityBind> getNativeIdentities(long processRoleIdentityId) {
-		
-		@SuppressWarnings("unchecked")
 		List<NativeIdentityBind> binds = getEntityManager().createNamedQuery(NativeIdentityBind.getByProcIdentity)
 		.setParameter(NativeIdentityBind.procIdentityParam, processRoleIdentityId)
 		.getResultList();
@@ -219,8 +195,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public List<NativeIdentityBind> getNativeIdentities(Collection<Long> actorsIds, IdentityType identityType) {
-
-		@SuppressWarnings("unchecked")
 		List<NativeIdentityBind> binds = getEntityManager().createNamedQuery(NativeIdentityBind.getByTypesAndProceIdentities)
 		.setParameter(NativeIdentityBind.identityTypeProperty, identityType)
 		.setParameter(ProcessRole.actorIdProperty, actorsIds)
@@ -231,7 +205,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	
 	@Transactional(readOnly = false)
 	public void updateCreateProcessRoles(Collection<Role> rolesNames, Long processInstanceId) {
-		
 		for (Role role : rolesNames) {
 			
 			ProcessRole prole = new ProcessRole();
@@ -244,11 +217,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 	
 	public List<Object[]> getProcessTasksViewsInfos(Collection<Long> processDefinitionsIds, String viewType) {
-		
 		if(processDefinitionsIds == null || processDefinitionsIds.isEmpty() || viewType == null)
 			return new ArrayList<Object[]>(0);
 		
-		@SuppressWarnings("unchecked")
 		List<Object[]> viewsInfos = getEntityManager().createNamedQuery(ViewTaskBind.GET_PROCESS_TASK_VIEW_INFO)
 		.setParameter(ViewTaskBind.processDefIdsParam, processDefinitionsIds)
 		.setParameter(ViewTaskBind.viewTypeProp, viewType)

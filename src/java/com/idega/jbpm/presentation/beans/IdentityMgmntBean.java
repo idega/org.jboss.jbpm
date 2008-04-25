@@ -30,9 +30,9 @@ import com.idega.webface.WFUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/03/22 10:25:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/25 00:05:25 $ by $Author: laddi $
  */
 public class IdentityMgmntBean implements Serializable {
 	
@@ -84,7 +84,6 @@ public class IdentityMgmntBean implements Serializable {
 			groupsItems = new ArrayList<SelectItem>();
 			
 			try {
-				@SuppressWarnings("unchecked")
 				Collection<Group> groups = getGroupBusiness().getAllGroups();
 				
 				for (Group group : groups) {

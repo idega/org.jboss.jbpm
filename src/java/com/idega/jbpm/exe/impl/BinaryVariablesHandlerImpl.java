@@ -29,9 +29,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/25 00:05:26 $ by $Author: laddi $
  */
 @Scope("singleton")
 @Service
@@ -40,6 +40,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	public static final String BPM_UPLOADED_FILES_PATH = "/files/bpm/uploadedFiles/";
 	public static final String STORAGE_TYPE = "slide";
 
+	@SuppressWarnings("cast")
 	public Map<String, Object> storeBinaryVariables(Object identifier, Map<String, Object> variables) {
 		
 		HashMap<String, Object> newVars = new HashMap<String, Object>(variables);
@@ -69,8 +70,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			} else if(dataType == VariableDataType.FILES) {
 				
 				if(val instanceof Collection) {
-					
-					@SuppressWarnings("unchecked")
 					Collection files = (Collection)val;
 					
 					if(files.isEmpty()) {
@@ -78,8 +77,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					} else {
 						
 						if(files.iterator().next() instanceof File) {
-							
-							@SuppressWarnings("unchecked")
 							Collection<File> afiles = (Collection<File>)files;
 							ArrayList<BinaryVariable> binaryVariables = new ArrayList<BinaryVariable>(afiles.size());
 
@@ -180,8 +177,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if(varVal instanceof BinaryVariable)
 				binaryVars.add((BinaryVariable)varVal);
 			else if(varVal instanceof Collection) {
-
-				@SuppressWarnings("unchecked")
 				Collection vals = (Collection)varVal;
 				
 				if(!vals.isEmpty() && vals.iterator().next() instanceof BinaryVariable) {

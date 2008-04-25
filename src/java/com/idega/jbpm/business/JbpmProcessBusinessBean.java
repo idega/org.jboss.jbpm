@@ -48,7 +48,6 @@ public class JbpmProcessBusinessBean {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
-			@SuppressWarnings("unchecked")
 			List<ProcessDefinition> processes = ctx.getGraphSession().findLatestProcessDefinitions();
 			
 			return processes;
@@ -75,21 +74,21 @@ public class JbpmProcessBusinessBean {
 			Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
 			Set<String> variables = new HashSet<String>();
 			for(Iterator<String> it = tasks.keySet().iterator(); it.hasNext(); ) {
-				String taskName = (String) it.next();
-				Task task = (Task) tasks.get(taskName);
+				String taskName = it.next();
+				Task task = tasks.get(taskName);
 				TaskController controller = task.getTaskController();
 				if(controller == null) {
 					task.setTaskController(new TaskController());
 				}
 				List<VariableAccess> list = controller.getVariableAccesses();
 				for(Iterator<VariableAccess> it2 = list.iterator(); it2.hasNext(); ) {
-					VariableAccess va = (VariableAccess) it2.next();
+					VariableAccess va = it2.next();
 					String fullName = va.getVariableName();
 					if(qualified) {
 						variables.add(fullName);
 					} else {
 						StringTokenizer stk = new StringTokenizer(fullName, ":");
-						String type = stk.nextToken();
+						/*String type =*/ stk.nextToken();
 						String name = stk.nextToken();
 						variables.add(name);
 					}
@@ -114,15 +113,15 @@ public class JbpmProcessBusinessBean {
 			Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
 			Map<String, Set<String>> variables = new HashMap<String, Set<String>>();
 			for(Iterator<String> it = tasks.keySet().iterator(); it.hasNext(); ) {
-				String taskName = (String) it.next();
-				Task task = (Task) tasks.get(taskName);
+				String taskName = it.next();
+				Task task = tasks.get(taskName);
 				TaskController controller = task.getTaskController();
 				if(controller == null) {
 					task.setTaskController(new TaskController());
 				}
 				List<VariableAccess> list = controller.getVariableAccesses();
 				for(Iterator<VariableAccess> it2 = list.iterator(); it2.hasNext(); ) {
-					VariableAccess va = (VariableAccess) it2.next();
+					VariableAccess va = it2.next();
 					String fullName = va.getVariableName();
 					StringTokenizer stk = new StringTokenizer(fullName, ":");
 					String type = stk.nextToken();
@@ -152,15 +151,15 @@ public class JbpmProcessBusinessBean {
 			Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
 			Set<String> variables = new HashSet<String>();
 			for(Iterator<String> it = tasks.keySet().iterator(); it.hasNext(); ) {
-				String taskName = (String) it.next();
-				Task task = (Task) tasks.get(taskName);
+				String taskName = it.next();
+				Task task = tasks.get(taskName);
 				TaskController controller = task.getTaskController();
 				if(controller == null) {
 					task.setTaskController(new TaskController());
 				}
 				List<VariableAccess> list = controller.getVariableAccesses();
 				for(Iterator<VariableAccess> it2 = list.iterator(); it2.hasNext(); ) {
-					VariableAccess va = (VariableAccess) it2.next();
+					VariableAccess va = it2.next();
 					String fullName = va.getVariableName();
 					StringTokenizer stk = new StringTokenizer(fullName, ":");
 					String type = stk.nextToken();
@@ -186,15 +185,15 @@ public class JbpmProcessBusinessBean {
 			Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
 			Set<String> variables = new HashSet<String>();
 			for(Iterator<String> it = tasks.keySet().iterator(); it.hasNext(); ) {
-				String taskName = (String) it.next();
-				Task task = (Task) tasks.get(taskName);
+				String taskName = it.next();
+				Task task = tasks.get(taskName);
 				TaskController controller = task.getTaskController();
 				if(controller == null) {
 					task.setTaskController(new TaskController());
 				}
 				List<VariableAccess> list = controller.getVariableAccesses();
 				for(Iterator<VariableAccess> it2 = list.iterator(); it2.hasNext(); ) {
-					VariableAccess va = (VariableAccess) it2.next();
+					VariableAccess va = it2.next();
 					String fullName = va.getVariableName();
 					StringTokenizer stk = new StringTokenizer(fullName, ":");
 					String type = stk.nextToken();
@@ -243,7 +242,6 @@ public class JbpmProcessBusinessBean {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
-			@SuppressWarnings("unchecked")
 			List<ProcessInstance> items = ctx.getGraphSession().findProcessInstances(processDefinitionId);
 			if (items == null)
 				return null;
