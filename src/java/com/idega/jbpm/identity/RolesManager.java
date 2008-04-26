@@ -3,28 +3,32 @@ package com.idega.jbpm.identity;
 import java.security.Permission;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
-import com.idega.jbpm.data.NativeIdentityBind;
+import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.taskmgmt.def.Task;
+
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.exe.BPMAccessControlException;
+import com.idega.user.data.User;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- * Last modified: $Date: 2008/04/17 01:16:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/26 02:48:30 $ by $Author: civilis $
  */
 public interface RolesManager {
 
-	public abstract List<ProcessRole> createRolesByProcessInstance(
-			Map<String, Role> roles, long processInstanceId);
-
-	public abstract void addGroupsToRoles(Long actorId, Collection<String> groupsIds, Long processInstanceId, Long processDefinitionId);
+//	public abstract List<ProcessRole> createRolesByProcessInstance(
+//			Map<String, Role> roles, long processInstanceId);
 	
-	public abstract List<ProcessRole> getGeneralRoles();
+	public abstract void createTaskRolesPermissionsPIScope(Task task, List<Role> roles, Long processInstanceId);
+	
+	public abstract void createTaskRolesPermissionsPDScope(Task task, List<Role> roles);
+
+	//public abstract void addGroupsToRoles(Long actorId, Collection<String> groupsIds, Long processInstanceId, Long processDefinitionId);
 	
 	public abstract void createIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId);
 	
@@ -34,5 +38,10 @@ public interface RolesManager {
 	
 	public abstract void checkPermission(Permission permission) throws BPMAccessControlException;
 	
-	public abstract Map<String, List<NativeIdentityBind>> getIdentitiesForRoles(Collection<String> rolesNames, long processInstanceId);
+	//public abstract Map<String, List<NativeIdentityBind>> getIdentitiesForRoles(Collection<String> rolesNames, long processInstanceId);
+	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi);
+	
+	public abstract List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles);
+	
+	public abstract List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId);
 }

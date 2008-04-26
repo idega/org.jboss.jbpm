@@ -1,13 +1,13 @@
 package com.idega.jbpm.identity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
 
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -19,9 +19,9 @@ import com.idega.presentation.IWContext;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- * Last modified: $Date: 2008/04/21 05:13:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/26 02:48:30 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
@@ -38,16 +38,26 @@ public class RolesAssiger {
 			return;
 		}
 		
-		HashMap<String, Role> rolz = new HashMap<String, Role>(roles.size());
+		ProcessInstance pi = taskInstance.getProcessInstance();
 		
-		for (Role role : roles)
-			rolz.put(role.getRoleName(), role);
-		
-		List<ProcessRole> processRoles = getRolesManager().createRolesByProcessInstance(rolz, taskInstance.getProcessInstance().getId());
+		List<ProcessRole> processRoles = getRolesManager().createProcessRoles(pi.getProcessDefinition().getName(), roles, pi.getId());
 		setPooledActors(taskInstance, processRoles);
 	}
 	
-	public void createIdentitiesForRoles(TaskInstance taskInstance, List<Role> roles) {
+	public void createRolesPermissions(TaskInstance taskInstance, List<Role> roles) {
+	
+		if(roles == null || roles.isEmpty()) {
+			
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "No roles for task instance: "+taskInstance.getId());
+			return;
+		}
+		
+		ProcessInstance pi = taskInstance.getProcessInstance();
+		
+		getRolesManager().createTaskRolesPermissionsPIScope(taskInstance.getTask(), roles, pi.getId());
+	}
+	
+	public void assignIdentities(TaskInstance taskInstance, List<Role> roles) {
 		
 		if(roles == null || roles.isEmpty()) {
 			

@@ -7,8 +7,6 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -18,30 +16,30 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.idega.jbpm.identity.permission.RoleScope;
-
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/04/17 01:52:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/26 02:48:33 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
 @NamedQueries(
 		{
-			@NamedQuery(name=ProcessRole.getAllGeneral, query="from ProcessRole pr where pr."+ProcessRole.processInstanceIdProperty+" is null"),
-			@NamedQuery(name=ProcessRole.getAllByRoleNamesAndPIId, query="from ProcessRole b where b."+ProcessRole.processRoleNameProperty+" in(:"+ProcessRole.processRoleNameProperty+") and b."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty),
+			@NamedQuery(name=ProcessRole.getSetByRoleNamesAndProcessNameAndPIIdIsNull, query="from ProcessRole pr where pr."+ProcessRole.processNameProperty+" = :"+ProcessRole.processNameProperty+" and pr."+ProcessRole.processRoleNameProperty+" in(:"+ProcessRole.processRoleNameProperty+") and pr."+ProcessRole.processInstanceIdProperty+" is null"),
+			@NamedQuery(name=ProcessRole.getSetByRoleNamesAndPIId, query="from ProcessRole b where b."+ProcessRole.processRoleNameProperty+" in(:"+ProcessRole.processRoleNameProperty+") and b."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty),
 			@NamedQuery(name=ProcessRole.getAllByRoleNamesAndPIIdIsNull, query="from ProcessRole b where b."+ProcessRole.processRoleNameProperty+" in(:"+ProcessRole.processRoleNameProperty+") and b."+ProcessRole.processInstanceIdProperty+" is null"),
 			@NamedQuery(name=ProcessRole.getAllByActorIds, query="from ProcessRole b where b."+ProcessRole.actorIdProperty+" in(:"+ProcessRole.actorIdProperty+")")
 		}
 )
 public class ProcessRole implements Serializable {
 
-	private static final long serialVersionUID = -6790370272147776645L;
+	private static final long serialVersionUID = -1167182554959904075L;
 	public static final String getAllGeneral = "ProcessRoleNativeIdentityBind.getAllGeneral";
-	public static final String getAllByRoleNamesAndPIId = "ProcessRoleNativeIdentityBind.getAllByRoleNamesAndPIId";
+	public static final String getSetByRoleNamesAndPIId = "ProcessRoleNativeIdentityBind.getSetByRoleNamesAndPIId";
 	public static final String getAllByRoleNamesAndPIIdIsNull = "ProcessRoleNativeIdentityBind.getAllByRoleNamesAndPIIdIsNull";
+	public static final String getSetByRoleNamesAndProcessNameAndPIIdIsNull = "ProcessRoleNativeIdentityBind.getSetByRoleNamesAndProcessNameAndPIIdIsNull";
+	
 	
 	public static final String getAllByActorIds = "ProcessRoleNativeIdentityBind.getAllByActorIds";
 	
@@ -58,12 +56,15 @@ public class ProcessRole implements Serializable {
     @Column(name="process_instance_id")
 	private Long processInstanceId;
     
-    @Column(name="role_scope")
-    @Enumerated(EnumType.STRING)
-    private RoleScope roleScope;
-	
+    public static final String processNameProperty = "processName";
+    @Column(name="process_name")
+	private String processName;
+    
     @OneToMany(mappedBy=NativeIdentityBind.processRoleProperty, cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
 	private List<NativeIdentityBind> nativeIdentities;
+    
+    @OneToMany(mappedBy=ActorPermissions.processRoleProperty, cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
+	private List<ActorPermissions> actorPermissions;
     
 	public String getProcessRoleName() {
 		return processRoleName;
@@ -97,11 +98,19 @@ public class ProcessRole implements Serializable {
 		this.processInstanceId = processInstanceId;
 	}
 
-	public RoleScope getRoleScope() {
-		return roleScope == null ? RoleScope.PD : roleScope;
+	public String getProcessName() {
+		return processName;
 	}
 
-	public void setRoleScope(RoleScope roleScope) {
-		this.roleScope = roleScope;
+	public void setProcessName(String processName) {
+		this.processName = processName;
+	}
+
+	public List<ActorPermissions> getActorPermissions() {
+		return actorPermissions;
+	}
+
+	public void setActorPermissions(List<ActorPermissions> actorPermissions) {
+		this.actorPermissions = actorPermissions;
 	}
 }

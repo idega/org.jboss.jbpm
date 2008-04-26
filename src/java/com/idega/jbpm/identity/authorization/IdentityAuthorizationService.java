@@ -5,7 +5,6 @@ import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -20,17 +19,19 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Join;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
+import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.data.IDORuntimeException;
+import com.idega.idegaweb.IWApplicationContext;
+import com.idega.idegaweb.IWMainApplication;
+import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.jbpm.identity.JSONExpHandler;
-import com.idega.jbpm.identity.Role;
-import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
 import com.idega.presentation.IWContext;
 import com.idega.user.business.UserBusiness;
@@ -39,9 +40,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/04/25 00:05:26 $ by $Author: laddi $
+ * Last modified: $Date: 2008/04/26 02:48:31 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -60,7 +61,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 //		faces context == null when permission is called by the system (i.e. not the result of user navigation)
 		if(fctx == null)
 			return;
-
+Join.join(":", "a", "b", "c");
 		if(!(perm instanceof BPMTaskAccessPermission))
 			throw new IllegalArgumentException("Only permissions implementing "+BPMTaskAccessPermission.class.getName()+" supported");
 		
@@ -84,6 +85,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			if(IWContext.getIWContext(fctx).isSuperAdmin())
 				return;
 
+			@SuppressWarnings("unchecked")
 			Set<PooledActor> pooledActors = taskInstance.getPooledActors();
 			
 			if(pooledActors.isEmpty()) {
@@ -103,6 +105,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		}
 	}
 	
+	/*
 	protected List<NativeIdentityBind> resolveCandidates(Collection<Long> pooledActors, TaskInstance taskInstance) {
 		
 		List<ProcessRole> roles = getBpmBindsDAO().getProcessRoles(pooledActors);
@@ -139,7 +142,9 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		
 		return candidates;
 	}
+	*/
 	
+	/*
 	protected boolean isRoleSatisfiesPermission(ProcessRole role, TaskInstance taskInstance) {
 		
 		String jsonExp = taskInstance.getTask().getAssignmentDelegation().getConfiguration();
@@ -160,11 +165,13 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		
 		return false;
 	}
+	*/
 	
 	protected boolean fallsInGroups(int userId, List<NativeIdentityBind> nativeIdentities) {
 	
 		try {
 			UserBusiness ub = getUserBusiness();
+			@SuppressWarnings("unchecked")
 			Collection<Group> userGroups = ub.getUserGroups(userId);
 			
 			for (Group group : userGroups) {
@@ -197,7 +204,65 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	}
 	
 	protected void checkPermissionInPooledActors(int userId, Collection<Long> pooledActors, TaskInstance taskInstance) throws AccessControlException {
+		
+		List<ProcessRole> roles = getBpmBindsDAO().getProcessRoles(pooledActors);
+		
+		boolean writeAccessNeeded = !taskInstance.hasEnded();
+		
+		try {
+			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+			UserBusiness userBusiness = getUserBusiness();
+			
+			@SuppressWarnings("unchecked")
+			Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
+			long taskId = taskInstance.getTask().getId();
+			
+			for (ProcessRole processRole : roles) {
+				
+				List<ActorPermissions> perms = processRole.getActorPermissions();
+				
+				if(perms != null) {
+					
+					for (ActorPermissions perm : perms) {
+						
+						if(perm.getReadPermission() && (!writeAccessNeeded || perm.getWritePermission()) &&
+								((perm.getTaskInstanceId() != null && perm.getTaskInstanceId().equals(taskInstance.getId())) || (perm.getTaskInstanceId() == null && perm.getTaskId().equals(taskId)))) {
+							
+							if(processRole.getProcessInstanceId() == null) {
+								
+								String roleName = processRole.getProcessRoleName();
+								
+								@SuppressWarnings("unchecked")
+								Collection<Group> grps = getAccessController().getAllGroupsForRoleKey(roleName, iwac);
+								
+								for (Group roleGrp : grps) {
+									
+									if(usrGrps.contains(roleGrp)) {
+										
+//										falls in group satisfying permission
+										return;
+									}
+								}
+								
+							} else {
+								
+								List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
+						
+								if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
+									return;
+							}
+						}
+					}
+				}
+			}
+			
+		} catch (RemoteException e) {
+			throw new RuntimeException(e);
+		}
+		
+		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+").");
 	
+/*
 		List<NativeIdentityBind> nativeIdentities = resolveCandidates(pooledActors, taskInstance);
 		
 		if(!nativeIdentities.isEmpty()) {
@@ -212,9 +277,21 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			
 //			check for roles
 		}
-	
-		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+").");
+*/		
 	}
+	
+/*
+	protected boolean fallsIn(int userId, List<NativeIdentityBind> nativeIdentities) {
+		
+		for (NativeIdentityBind nativeIdentity : nativeIdentities) {
+			
+			if(nativeIdentity.getIdentityType() == IdentityType.USER && nativeIdentity.getIdentityId().equals(String.valueOf(userId)))
+				return true;
+		}
+		
+		return false;
+	}
+	*/
 	
 	public void close() { }
 
@@ -243,5 +320,23 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		catch (IBOLookupException ile) {
 			throw new IBORuntimeException(ile);
 		}
+	}
+	
+	protected AccessController getAccessController() {
+		
+		return getIWMA().getAccessController();
+	}
+	
+	protected IWMainApplication getIWMA() {
+		
+		IWMainApplication iwma;
+		FacesContext fctx = FacesContext.getCurrentInstance();
+		
+		if(fctx == null)
+			iwma = IWMainApplication.getDefaultIWMainApplication();
+		else
+			iwma = IWMainApplication.getIWMainApplication(fctx);
+		
+		return iwma;
 	}
 }

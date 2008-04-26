@@ -1,8 +1,10 @@
 package com.idega.jbpm.def;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,13 +19,17 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.identity.JSONExpHandler;
+import com.idega.jbpm.identity.Role;
+import com.idega.jbpm.identity.RolesManager;
+import com.idega.jbpm.identity.permission.RoleScope;
 import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- * Last modified: $Date: 2008/04/25 00:05:25 $ by $Author: laddi $
+ * Last modified: $Date: 2008/04/26 02:48:33 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -31,6 +37,7 @@ public class ProcessBundleManager {
 
 	private BPMDAO bpmBindsDAO;
 	private IdegaJbpmContext idegaJbpmContext;
+	private RolesManager rolesManager;
 	
 	public long createBundle(ProcessBundle processBundle,
 			String processDefinitionName, IWMainApplication iwma) throws IOException {
@@ -68,6 +75,8 @@ public class ProcessBundleManager {
 			ctx.getGraphSession().deployProcessDefinition(pd);
 
 			try {
+
+				@SuppressWarnings("unchecked")
 				Collection<Task> tasks = pd.getTaskMgmtDefinition().getTasks()
 						.values();
 				
@@ -95,6 +104,9 @@ public class ProcessBundleManager {
 				mtpdb.setProcessDefinitionId(pd.getId());
 				getBpmBindsDAO().persist(mtpdb);
 				
+				createProcessRoles(pd);
+				createTasksPermissions(pd);
+				
 				processBundle.configure(pd);
 
 			} catch (Exception e) {
@@ -111,6 +123,43 @@ public class ProcessBundleManager {
 		} finally {
 
 			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
+	}
+	
+	protected void createProcessRoles(ProcessDefinition pd) {
+		
+		@SuppressWarnings("unchecked")
+		Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
+
+		ArrayList<Role> rolesToCreate = new ArrayList<Role>();
+		
+		for (Task task : tasks.values()) {
+			
+			String jsonExp = task.getAssignmentDelegation().getConfiguration();
+			
+			List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
+			
+			for (Role role : roles) {
+			
+				if(role.getScope() == RoleScope.PD)
+					rolesToCreate.add(role);
+			}
+		}
+		
+		getRolesManager().createProcessRoles(pd.getName(), rolesToCreate);
+	}
+	
+	protected void createTasksPermissions(ProcessDefinition pd) {
+		
+		@SuppressWarnings("unchecked")
+		Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
+
+		for (Task task : tasks.values()) {
+			
+			String jsonExp = task.getAssignmentDelegation().getConfiguration();
+			
+			List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
+			getRolesManager().createTaskRolesPermissionsPDScope(task, roles);
 		}
 	}
 
@@ -130,5 +179,14 @@ public class ProcessBundleManager {
 	@Autowired
 	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
 		this.bpmBindsDAO = bpmBindsDAO;
+	}
+	
+	public RolesManager getRolesManager() {
+		return rolesManager;
+	}
+
+	@Autowired
+	public void setRolesManager(RolesManager rolesManager) {
+		this.rolesManager = rolesManager;
 	}
 }

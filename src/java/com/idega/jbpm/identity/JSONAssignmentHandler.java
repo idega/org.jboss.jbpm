@@ -26,9 +26,9 @@ import com.idega.util.CoreConstants;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- * Last modified: $Date: 2008/04/21 05:13:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/26 02:48:30 $ by $Author: civilis $
  */
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	
@@ -49,11 +49,14 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		
 			TaskInstance taskInstance = (TaskInstance)assignable;
 			
+			System.out.println("json assignment. task name: "+taskInstance.getTask().getName());
+			
 			List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(exp);
 			
 			RolesAssiger rolesAssigner = getRolesAssigner();
 			rolesAssigner.assign(taskInstance, roles);
-			rolesAssigner.createIdentitiesForRoles(taskInstance, roles);
+			rolesAssigner.createRolesPermissions(taskInstance, roles);
+			rolesAssigner.assignIdentities(taskInstance, roles);
 		}
 	}
 	
@@ -61,7 +64,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		
 		if(exp.startsWith("variable(") && exp.endsWith(")")) {
 		
-			String variableName = exp.substring(9,exp.length()-1).trim();
+			String variableName = exp.substring(9, exp.length()-1).trim();
 			Object value = getVariable(variableName);
 		      
 			if(value == null || CoreConstants.EMPTY.equals(value)) {
@@ -84,6 +87,5 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	protected RolesAssiger getRolesAssigner() {
 		
 		return (RolesAssiger)SpringBeanLookup.getInstance().getSpringBean(IWMainApplication.getDefaultIWMainApplication().getServletContext(), rolesAssignerBeanIdentifier);
-		//return (RolesAssiger)WFUtil.getBeanInstance(rolesAssignerBeanIdentifier);
 	}
 }

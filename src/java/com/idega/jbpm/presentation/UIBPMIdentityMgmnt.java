@@ -15,9 +15,9 @@ import com.idega.presentation.IWBaseComponent;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/04/25 00:05:25 $ by $Author: laddi $
+ * Last modified: $Date: 2008/04/26 02:48:31 $ by $Author: civilis $
  *
  */
 public class UIBPMIdentityMgmnt extends IWBaseComponent {
@@ -27,6 +27,7 @@ public class UIBPMIdentityMgmnt extends IWBaseComponent {
 	private static final String containerFacet = "container";
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
 	

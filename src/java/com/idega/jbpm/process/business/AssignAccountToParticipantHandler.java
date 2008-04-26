@@ -1,9 +1,10 @@
 package com.idega.jbpm.process.business;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
+import org.jbpm.graph.exe.ProcessInstance;
 
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.identity.Role;
@@ -13,9 +14,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/25 10:35:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/26 02:48:33 $ by $Author: civilis $
  */
 public class AssignAccountToParticipantHandler implements ActionHandler {
 
@@ -40,13 +41,15 @@ public class AssignAccountToParticipantHandler implements ActionHandler {
 		role.setRoleName(roleName);
 		role.setScope(RoleScope.PI);
 		
-		HashMap<String, Role> rolz = new HashMap<String, Role>(1);
-		rolz.put(role.getRoleName(), role);
+		ArrayList<Role> rolz = new ArrayList<Role>(1);
+		rolz.add(role);
 		
-		long parentProcessInstanceId = ctx.getProcessInstance().getSuperProcessToken().getProcessInstance().getId();
+		ProcessInstance parentPI = ctx.getProcessInstance().getSuperProcessToken().getProcessInstance();
+		long parentProcessInstanceId = parentPI.getId();
 		
-		getRolesManager().createRolesByProcessInstance(rolz, parentProcessInstanceId);
-		getRolesManager().createIdentitiesForRoles(rolz.values(), String.valueOf(userId), IdentityType.USER, parentProcessInstanceId);
+		getRolesManager().createProcessRoles(parentPI.getProcessDefinition().getName(), rolz, parentProcessInstanceId);
+		//getRolesManager().createTaskRolesPermissionsPIScope(task, rolz, parentProcessInstanceId);
+		getRolesManager().createIdentitiesForRoles(rolz, String.valueOf(userId), IdentityType.USER, parentProcessInstanceId);
 	}
 	
 	protected RolesManager getRolesManager() {

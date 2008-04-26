@@ -18,9 +18,9 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/04/25 00:05:26 $ by $Author: laddi $
+ * Last modified: $Date: 2008/04/26 02:48:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -32,11 +32,14 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 	public static final String email_fetch_process_name = "fetchEmails";
 	
 	public Collection<TaskInstance> getAttachedEmailsTaskInstances(Long processInstanceId) {
+		
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
+			
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			
+			@SuppressWarnings("unchecked")
 			List<Token> tkns = processInstance.findAllTokens();
 			
 			for (Token tkn : tkns) {
@@ -44,6 +47,8 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 				ProcessInstance subPI = tkn.getSubProcessInstance();
 				
 				if(subPI != null && email_fetch_process_name.equals(subPI.getProcessDefinition().getName())) {
+					
+					@SuppressWarnings("unchecked")
 					Collection<TaskInstance> taskInstances = subPI.getTaskMgmtInstance().getTaskInstances();
 
 					for (Iterator<TaskInstance> iterator  = taskInstances.iterator(); iterator.hasNext();) {
@@ -71,6 +76,7 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		try {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			
+			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> taskInstances = processInstance.getTaskMgmtInstance().getTaskInstances();
 			
 			for (Iterator<TaskInstance> iterator  = taskInstances.iterator(); iterator.hasNext();) {

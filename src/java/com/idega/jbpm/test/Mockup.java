@@ -14,24 +14,27 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/04/25 00:05:26 $ by $Author: laddi $
+ * Last modified: $Date: 2008/04/26 02:48:32 $ by $Author: civilis $
  *
  */
 public class Mockup {
 	
 	public static final String plaintiffVarName = "string:plaintiffFirstName";
 	
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args) {
+		
 		try {
+			
 			JbpmConfiguration jbpmConfiguration = 
 		           JbpmConfiguration.getInstance("com/idega/jbpm/test/jbpm.test.cfg.xml");
 			
 			JbpmContext ctx = jbpmConfiguration.createJbpmContext();
 			
 			ProcessDefinition pd = ProcessDefinition.parseXmlInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/processdefinition.xml"));
-			/*ProcessDefinition invitationPD =*/ ProcessDefinition.parseXmlInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/participantInvitation/processdefinition.xml"));
+			ProcessDefinition invitationPD = ProcessDefinition.parseXmlInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/participantInvitation/processdefinition.xml"));
 			
 			try {
 				
@@ -58,6 +61,7 @@ public class Mockup {
 				return;
 
 			System.out.println(">Submiting");
+			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> taskInstances = pi.getTaskMgmtInstance().getUnfinishedTasks(pi.getRootToken());
 			
 			TaskInstance t1 = taskInstances.iterator().next();
@@ -71,6 +75,7 @@ public class Mockup {
 			printIncompletedTaskInstances(pi);
 			
 			System.out.println(">Submiting again .......");
+			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> taskInstances2 = pi.getTaskMgmtInstance().getUnfinishedTasks(pi.getRootToken());
 			TaskInstance t2 = taskInstances2.iterator().next();
 			vars = new HashMap<String, Object>();
@@ -91,6 +96,7 @@ public class Mockup {
 			printCompletedTaskInstances(pi);
 			printIncompletedTaskInstances(pi);
 			
+			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> tis = pi.getTaskMgmtInstance().getTaskInstances();
 			
 			for (TaskInstance taskInstance : tis) {
@@ -138,6 +144,7 @@ public class Mockup {
 		System.out.println("----------");
 		System.out.println(">>Incompleted task instances");
 		
+		@SuppressWarnings("unchecked")
 		Collection<TaskInstance> taskInstances = pi.getTaskMgmtInstance().getTaskInstances();
 		
 		if(taskInstances == null)
@@ -159,6 +166,7 @@ public class Mockup {
 		
 		System.out.println("tokens: "+pi.findAllTokens());
 		
+		@SuppressWarnings("unchecked")
 		Collection<TaskInstance> taskInstances = pi.getTaskMgmtInstance().getTaskInstances();
 		
 		if(taskInstances == null)

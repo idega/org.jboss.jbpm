@@ -14,7 +14,9 @@
 		<property name="idegaJbpmContext" ref="idegaJbpmContext" />
 	</bean>
 	
-	<bean id="BPMRoleIdentityMgmnt" class="com.idega.jbpm.presentation.beans.IdentityMgmntBean" scope="request" />
+	<!--  
+	<bean id="BPMRoleIdentityMgmnt" class="com.idega.jbpm.presentation.beans.Remove_IdentityMgmntBean" scope="request" />
+	-->
 	
 	<bean id="processMgmtMockup" class="com.idega.jbpm.presentation.beans.ProcessMgmtMockupBean" scope="session">
         <property name="idegaJbpmContext" ref="idegaJbpmContext" />

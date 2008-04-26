@@ -52,6 +52,7 @@ public class HibernateStringIdMatcher implements JbpmTypeMatcher {
 			
 			boolean matches = false;
 		    if (jbpmContext!=null) {
+		    	@SuppressWarnings("unchecked")
 		      Class valueClass = value.getClass();
 		      if (value instanceof HibernateProxy) {
 		        valueClass = valueClass.getSuperclass();
