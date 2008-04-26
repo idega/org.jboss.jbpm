@@ -47,9 +47,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- * Last modified: $Date: 2008/04/26 02:48:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/26 05:00:28 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -398,7 +398,7 @@ public class RolesManagerImpl implements RolesManager {
 			
 			getBpmDAO().persist(processRole);
 			processRoles.add(processRole);
-			ac.createRoleWithRoleKey(roleNameToCreate);
+			ac.checkIfRoleExistsInDataBaseAndCreateIfMissing(roleNameToCreate);
 		}
 		
 		if(piScopeRolesNamesToCreate != null && !piScopeRolesNamesToCreate.isEmpty()) {
