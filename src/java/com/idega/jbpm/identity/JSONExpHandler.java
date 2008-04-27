@@ -2,6 +2,7 @@ package com.idega.jbpm.identity;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.idega.jbpm.identity.permission.Access;
@@ -13,9 +14,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/03/12 15:43:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/27 01:54:23 $ by $Author: civilis $
  */
 public class JSONExpHandler {
 	
@@ -36,7 +37,7 @@ public class JSONExpHandler {
 			
 			if(lbi < 0 || rbi < 0) {
 				
-				Logger.getLogger(JSONExpHandler.class.getName(), "Expression provided does not contain json expression. Expression: "+expression);
+				Logger.getLogger(JSONExpHandler.class.getName()).log(Level.WARNING, "Expression provided does not contain json expression. Expression: "+expression);
 				return Collections.emptyList();
 			}
 				

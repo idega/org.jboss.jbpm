@@ -27,9 +27,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * 
- * Last modified: $Date: 2008/04/26 02:48:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/27 01:54:23 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -146,7 +146,8 @@ public class ProcessBundleManager {
 			}
 		}
 		
-		getRolesManager().createProcessRoles(pd.getName(), rolesToCreate);
+		if(!rolesToCreate.isEmpty())
+			getRolesManager().createProcessRoles(pd.getName(), rolesToCreate);
 	}
 	
 	protected void createTasksPermissions(ProcessDefinition pd) {
