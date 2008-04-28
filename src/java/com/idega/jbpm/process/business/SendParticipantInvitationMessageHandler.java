@@ -22,9 +22,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/04/27 22:12:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/28 22:03:26 $ by $Author: civilis $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -43,6 +43,9 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
 	
 	public void execute(ExecutionContext ctx) throws Exception {
+		
+		
+		System.out.println("_____________________ participant invitationexecute");
 
 		String recepientEmail = (String)ctx.getVariable(participantEmailVarName);
 		
