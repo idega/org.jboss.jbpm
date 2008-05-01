@@ -26,9 +26,9 @@ import com.idega.util.CoreConstants;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- * Last modified: $Date: 2008/04/26 02:48:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/01 15:39:08 $ by $Author: civilis $
  */
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	
@@ -48,8 +48,6 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		if(exp != null) {
 		
 			TaskInstance taskInstance = (TaskInstance)assignable;
-			
-			System.out.println("json assignment. task name: "+taskInstance.getTask().getName());
 			
 			List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(exp);
 			
