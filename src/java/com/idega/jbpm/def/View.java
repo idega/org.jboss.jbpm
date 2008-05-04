@@ -7,12 +7,15 @@ import javax.faces.component.UIComponent;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/04 18:12:27 $ by $Author: civilis $
  */
 public interface View {
 
+	public abstract void setTaskInstanceId(Long taskInstanceId);
+	public abstract Long getTaskInstanceId();
+	
 	public abstract void setViewId(String viewId);
 	public abstract String getViewId();
 	

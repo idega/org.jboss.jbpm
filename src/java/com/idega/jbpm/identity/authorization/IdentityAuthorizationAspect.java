@@ -4,6 +4,7 @@ import java.security.Permission;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.jbpm.JbpmContext;
@@ -14,14 +15,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.business.BPMPointcuts;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/03/13 17:00:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/04 18:12:27 $ by $Author: civilis $
  */
 @Aspect
 public class IdentityAuthorizationAspect {
@@ -38,8 +40,18 @@ public class IdentityAuthorizationAspect {
 	}
 	*/
 	
-	@Before("("+BPMPointcuts.loadTaskInstanceViewAtViewManager+" || "+BPMPointcuts.submitProcessAtProcessManager+") && args(taskInstanceId, ..)")
-	public void checkPermissionToTaskInstance(long taskInstanceId) {
+	@Before("("+BPMPointcuts.loadViewAtTaskInstanceW+" || "+BPMPointcuts.submitAtTaskInstanceW+")")
+	public void checkPermissionToTaskInstance(JoinPoint jp) {
+		
+		System.out.println("____________called check permission totask instance");
+		
+		Object jpThis = jp.getThis();
+		
+		if(!(jpThis instanceof TaskInstanceW))
+			throw new IllegalArgumentException("Only objects of "+TaskInstanceW.class.getName()+" supported, got: "+jpThis.getClass().getName());
+		
+		TaskInstanceW tiw = (TaskInstanceW)jpThis;
+		long taskInstanceId = tiw.getTaskInstanceId();
 
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 

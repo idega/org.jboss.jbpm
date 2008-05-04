@@ -22,14 +22,13 @@ import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.BPMManagersFactory;
 import com.idega.jbpm.exe.ProcessManager;
-import com.idega.jbpm.exe.ViewManager;
 import com.idega.jbpm.identity.RolesManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/04/17 01:16:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/04 18:12:27 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	
@@ -51,11 +50,6 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 		return getManagersCreator(processDefinitionId).getProcessManager();
 	}
 
-	public ViewManager getViewManager(long processDefinitionId) {
-		
-		return getManagersCreator(processDefinitionId).getViewManager();
-	}
-	
 	public View takeView(long taskInstanceId, boolean submitable, List<String> preferredTypes) {
 		
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();

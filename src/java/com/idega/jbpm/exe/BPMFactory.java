@@ -7,19 +7,12 @@ import com.idega.jbpm.identity.RolesManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/04 18:12:27 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
-	/**
-	 * 
-	 * @param processDefinitionId
-	 * @return View manager bound to process definition
-	 */
-	public abstract ViewManager getViewManager(long processDefinitionId);
-	
 	/**
 	 * 
 	 * @param processDefinitionId
