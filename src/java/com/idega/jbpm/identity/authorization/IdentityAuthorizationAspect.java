@@ -21,9 +21,9 @@ import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/05/04 18:12:27 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/05 12:17:03 $ by $Author: civilis $
  */
 @Aspect
 public class IdentityAuthorizationAspect {
@@ -42,8 +42,6 @@ public class IdentityAuthorizationAspect {
 	
 	@Before("("+BPMPointcuts.loadViewAtTaskInstanceW+" || "+BPMPointcuts.submitAtTaskInstanceW+")")
 	public void checkPermissionToTaskInstance(JoinPoint jp) {
-		
-		System.out.println("____________called check permission totask instance");
 		
 		Object jpThis = jp.getThis();
 		
