@@ -47,9 +47,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  * 
- * Last modified: $Date: 2008/04/26 05:00:28 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/05 16:28:10 $ by $Author: laddi $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -277,8 +277,6 @@ public class RolesManagerImpl implements RolesManager {
 		ArrayList<Group> allScopeGroups = new ArrayList<Group>();
 		
 		for (ProcessRole pr : pdScopeRoles) {
-
-			@SuppressWarnings("unchecked")
 			Collection<Group> pdScopeGroups = getAccessController().getAllGroupsForRoleKey(pr.getProcessRoleName(), iwac);
 			
 			if(pdScopeGroups != null)
@@ -290,8 +288,6 @@ public class RolesManagerImpl implements RolesManager {
 		
 		try {
 			for (Group group : allScopeGroups) {
-
-				@SuppressWarnings("unchecked")
 				Collection<User> users = userBusiness.getUsersInGroup(group);
 				
 				for (User user : users) {
@@ -323,8 +319,6 @@ public class RolesManagerImpl implements RolesManager {
 							allUsers.put(user.getPrimaryKey().toString(), user);
 							
 						} else if(identity.getIdentityType() == IdentityType.GROUP) {
-							
-							@SuppressWarnings("unchecked")
 							Collection<User> groupUsers = userBusiness.getUsersInGroup(new Integer(identity.getIdentityId()));
 							
 							for (User user : groupUsers)

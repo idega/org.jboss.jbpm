@@ -25,9 +25,9 @@ import com.idega.util.URIUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/04/26 02:48:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/05 16:22:39 $ by $Author: laddi $
  */
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service(ProcessParticipantRegistrationMgmntBean.beanIdentifier)
@@ -109,7 +109,6 @@ public class ProcessParticipantRegistrationMgmntBean {
 		
 		try {
 			ICPageHome home = (ICPageHome) IDOLookup.getHome(ICPage.class);
-			@SuppressWarnings("unchecked")
 			Collection<ICPage> icpages = home.findBySubType(pageSubType, false);
 			
 			return icpages;

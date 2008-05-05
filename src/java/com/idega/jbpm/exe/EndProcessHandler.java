@@ -11,9 +11,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/04/26 02:48:31 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/05 16:28:09 $ by $Author: laddi $
  */
 public class EndProcessHandler implements ActionHandler {
 
@@ -27,7 +27,6 @@ public class EndProcessHandler implements ActionHandler {
 	public void execute(ExecutionContext ctx) throws Exception {
 		ctx.getProcessInstance().end();
 		
-		@SuppressWarnings("unchecked")
 		List<Token> tokens = ctx.getProcessInstance().findAllTokens();
 		
 		for (Token token : tokens) {

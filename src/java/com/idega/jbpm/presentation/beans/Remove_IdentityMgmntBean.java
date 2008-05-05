@@ -1,38 +1,13 @@
 package com.idega.jbpm.presentation.beans;
 
 import java.io.Serializable;
-import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.faces.event.PhaseId;
-import javax.faces.event.ValueChangeEvent;
-import javax.faces.model.SelectItem;
-
-import com.idega.business.IBOLookup;
-import com.idega.business.IBOLookupException;
-import com.idega.business.IBORuntimeException;
-import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRole;
-import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.jbpm.identity.RolesManager;
-import com.idega.user.business.GroupBusiness;
-import com.idega.user.data.Group;
-import com.idega.util.CoreConstants;
-import com.idega.util.CoreUtil;
-import com.idega.webface.WFUtil;
 
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/04/26 02:48:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/05 16:21:54 $ by $Author: laddi $
  */
 public class Remove_IdentityMgmntBean implements Serializable {
 	

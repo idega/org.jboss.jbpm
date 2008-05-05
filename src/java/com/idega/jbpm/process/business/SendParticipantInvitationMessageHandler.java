@@ -22,9 +22,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/04/28 22:03:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/05 16:28:10 $ by $Author: laddi $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -141,7 +141,6 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 		try {
 		
 			ICPageHome home = (ICPageHome) IDOLookup.getHome(ICPage.class);
-			@SuppressWarnings("unchecked")
 			Collection<ICPage> icpages = home.findBySubType(pageSubType, false);
 			
 			return icpages;

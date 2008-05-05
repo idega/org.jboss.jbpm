@@ -42,9 +42,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $
+ * @version $Revision: 1.26 $
  *
- * Last modified: $Date: 2008/05/04 18:12:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/05 16:28:09 $ by $Author: laddi $
  */
 @Scope("singleton")
 @Service("BPMProcessAssets")
@@ -141,17 +141,12 @@ public class ProcessArtifacts {
 			
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			
-			@SuppressWarnings("unchecked")
 			List<Token> tokens = processInstance.findAllTokens();
 			
-			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> tasks = processInstance.getTaskMgmtInstance().getUnfinishedTasks(processInstance.getRootToken());
 			
 			for (Token token : tokens) {
-				
 				if(!token.equals(processInstance.getRootToken())) {
-			
-					@SuppressWarnings("unchecked")
 					Collection<TaskInstance> tsks = processInstance.getTaskMgmtInstance().getUnfinishedTasks(token);
 					tasks.addAll(tsks);
 				}
@@ -334,7 +329,6 @@ public class ProcessArtifacts {
 		try {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			
-			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> taskInstances = processInstance.getTaskMgmtInstance().getTaskInstances();
 			
 			for (Iterator<TaskInstance> iterator  = taskInstances.iterator(); iterator.hasNext();) {
