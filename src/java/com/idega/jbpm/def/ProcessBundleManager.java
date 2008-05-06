@@ -27,9 +27,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  * 
- * Last modified: $Date: 2008/05/05 16:28:08 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/06 21:42:49 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -75,6 +75,8 @@ public class ProcessBundleManager {
 			ctx.getGraphSession().deployProcessDefinition(pd);
 
 			try {
+
+				@SuppressWarnings("unchecked")
 				Collection<Task> tasks = pd.getTaskMgmtDefinition().getTasks()
 						.values();
 				
@@ -125,6 +127,8 @@ public class ProcessBundleManager {
 	}
 	
 	protected void createProcessRoles(ProcessDefinition pd) {
+		
+		@SuppressWarnings("unchecked")
 		Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
 
 		ArrayList<Role> rolesToCreate = new ArrayList<Role>();
@@ -147,6 +151,8 @@ public class ProcessBundleManager {
 	}
 	
 	protected void createTasksPermissions(ProcessDefinition pd) {
+		
+		@SuppressWarnings("unchecked")
 		Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
 
 		for (Task task : tasks.values()) {

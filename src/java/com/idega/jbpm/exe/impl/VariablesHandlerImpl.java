@@ -21,9 +21,9 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/05/05 16:28:10 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/06 21:41:36 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -52,6 +52,8 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				return;
 			
 			if(validate) {
+			
+				@SuppressWarnings("unchecked")
 				List<VariableAccess> variableAccesses = tiController.getVariableAccesses();
 				
 				for (VariableAccess variableAccess : variableAccesses) {
@@ -84,6 +86,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 		try {
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
 			
+			@SuppressWarnings("unchecked")
 			Map<String, VariableInstance> variablesInstances = ti.getVariableInstances();
 			HashMap<String, Object> variables = new HashMap<String, Object>(variablesInstances.size());
 			
@@ -95,6 +98,8 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				}
 				
 			} else {
+				
+				@SuppressWarnings("unchecked")
 				List<VariableAccess> accesses = ti.getTask().getTaskController().getVariableAccesses();
 				
 				for (VariableAccess access : accesses) {

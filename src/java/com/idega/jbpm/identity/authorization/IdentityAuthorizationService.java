@@ -40,9 +40,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2008/05/05 16:28:10 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/06 21:42:50 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -85,6 +85,7 @@ Join.join(":", "a", "b", "c");
 			if(IWContext.getIWContext(fctx).isSuperAdmin())
 				return;
 
+			@SuppressWarnings("unchecked")
 			Set<PooledActor> pooledActors = taskInstance.getPooledActors();
 			
 			if(pooledActors.isEmpty()) {
@@ -170,6 +171,7 @@ Join.join(":", "a", "b", "c");
 	
 		try {
 			UserBusiness ub = getUserBusiness();
+			@SuppressWarnings("unchecked")
 			Collection<Group> userGroups = ub.getUserGroups(userId);
 			
 			for (Group group : userGroups) {
@@ -211,6 +213,7 @@ Join.join(":", "a", "b", "c");
 			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
 			UserBusiness userBusiness = getUserBusiness();
 			
+			@SuppressWarnings("unchecked")
 			Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
 			long taskId = taskInstance.getTask().getId();
 			
@@ -229,6 +232,7 @@ Join.join(":", "a", "b", "c");
 								
 								String roleName = processRole.getProcessRoleName();
 								
+								@SuppressWarnings("unchecked")
 								Collection<Group> grps = getAccessController().getAllGroupsForRoleKey(roleName, iwac);
 								
 								for (Group roleGrp : grps) {

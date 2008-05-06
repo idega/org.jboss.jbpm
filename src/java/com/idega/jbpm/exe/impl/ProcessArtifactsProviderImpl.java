@@ -18,9 +18,9 @@ import com.idega.jbpm.exe.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/05 16:28:10 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/06 21:42:52 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -39,6 +39,7 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 			
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			
+			@SuppressWarnings("unchecked")
 			List<Token> tkns = processInstance.findAllTokens();
 			
 			for (Token tkn : tkns) {
@@ -46,6 +47,8 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 				ProcessInstance subPI = tkn.getSubProcessInstance();
 				
 				if(subPI != null && email_fetch_process_name.equals(subPI.getProcessDefinition().getName())) {
+					
+					@SuppressWarnings("unchecked")
 					Collection<TaskInstance> taskInstances = subPI.getTaskMgmtInstance().getTaskInstances();
 
 					for (Iterator<TaskInstance> iterator  = taskInstances.iterator(); iterator.hasNext();) {
@@ -73,6 +76,7 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		try {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			
+			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> taskInstances = processInstance.getTaskMgmtInstance().getTaskInstances();
 			
 			for (Iterator<TaskInstance> iterator  = taskInstances.iterator(); iterator.hasNext();) {

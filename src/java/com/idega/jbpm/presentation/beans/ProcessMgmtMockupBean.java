@@ -17,9 +17,9 @@ import com.idega.jbpm.def.ViewToTask;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/05/05 16:22:24 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/06 21:42:49 $ by $Author: civilis $
  */
 public class ProcessMgmtMockupBean {
 	
@@ -73,6 +73,8 @@ public class ProcessMgmtMockupBean {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
+			
+			@SuppressWarnings("unchecked")
 			List<ProcessDefinition> pdList = ctx.getGraphSession().findLatestProcessDefinitions();
 			
 			for (ProcessDefinition processDefinition : pdList)
@@ -98,6 +100,7 @@ public class ProcessMgmtMockupBean {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
+			@SuppressWarnings("unchecked")
 			List<ProcessInstance> piList = ctx.getGraphSession().findProcessInstances(pid);
 			
 			for (ProcessInstance processInstance : piList)
@@ -123,7 +126,9 @@ public class ProcessMgmtMockupBean {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
+			
 			ProcessInstance pi = ctx.getProcessInstance(piid);
+			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> tis = pi.getTaskMgmtInstance().getUnfinishedTasks(pi.getRootToken());
 			
 			for (TaskInstance taskInstance : tis)

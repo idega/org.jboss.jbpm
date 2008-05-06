@@ -5,6 +5,7 @@ import java.security.Permission;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,9 +43,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $
+ * @version $Revision: 1.27 $
  *
- * Last modified: $Date: 2008/05/05 16:28:09 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/06 21:40:53 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("BPMProcessAssets")
@@ -86,6 +87,67 @@ public class ProcessArtifacts {
 			row.addCell(submittedDocument.getName());
 			row.addCell(submittedDocument.getEnd() == null ? CoreConstants.EMPTY :
 				new IWTimestamp(submittedDocument.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
+			);
+		}
+		
+		try {
+			return rows.getDocument();
+			
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Exception while parsing rows", e);
+			return null;
+		}
+	}
+	
+	protected Document getEmailsListDocument(Collection<TaskInstance> processEmails) {
+		
+		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+
+		int size = processEmails.size();
+		rows.setTotal(size);
+		rows.setPage(size == 0 ? 0 : 1);
+		
+		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+		RolesManager rolesManager = getBpmFactory().getRolesManager();
+		
+		VariablesHandler variablesHandler = getVariablesHandler();
+
+		for (TaskInstance email : processEmails) {
+			
+			try {
+				Permission permission = getTaskSubmitPermission(true, email);
+				rolesManager.checkPermission(permission);
+				
+			} catch (BPMAccessControlException e) {
+				continue;
+			}
+			
+			Map<String, Object> vars = variablesHandler.populateVariables(email.getId());
+			
+			String subject = (String)vars.get("string:subject");
+			String fromPersonal = (String)vars.get("string:fromPersonal");
+			String fromAddress = (String)vars.get("string:fromAddress");
+			
+			String fromStr = fromPersonal;
+			
+			if(fromAddress != null) {
+				
+				if(fromStr == null) {
+					fromStr = fromAddress;
+				} else {
+					fromStr = new StringBuilder(fromStr).append(" (").append(fromAddress).append(")").toString();
+				}
+			}
+			
+			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
+			rows.addRow(row);
+			String tidStr = String.valueOf(email.getId());
+			row.setId(tidStr);
+			
+			row.addCell(subject);
+			row.addCell(fromStr == null ? CoreConstants.EMPTY : fromStr);
+			row.addCell(email.getEnd() == null ? CoreConstants.EMPTY :
+				new IWTimestamp(email.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 			);
 		}
 		
@@ -141,12 +203,17 @@ public class ProcessArtifacts {
 			
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			
+			@SuppressWarnings("unchecked")
 			List<Token> tokens = processInstance.findAllTokens();
 			
+			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> tasks = processInstance.getTaskMgmtInstance().getUnfinishedTasks(processInstance.getRootToken());
 			
 			for (Token token : tokens) {
+				
 				if(!token.equals(processInstance.getRootToken())) {
+			
+					@SuppressWarnings("unchecked")
 					Collection<TaskInstance> tsks = processInstance.getTaskMgmtInstance().getUnfinishedTasks(token);
 					tasks.addAll(tsks);
 				}
@@ -294,7 +361,7 @@ public class ProcessArtifacts {
 			}
 			
 		} else		
-			return getDocumentsListDocument(processEmails);
+			return getEmailsListDocument(processEmails);
 	}
 	
 	protected String getTaskStatus(TaskInstance taskInstance) {
@@ -329,6 +396,7 @@ public class ProcessArtifacts {
 		try {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			
+			@SuppressWarnings("unchecked")
 			Collection<TaskInstance> taskInstances = processInstance.getTaskMgmtInstance().getTaskInstances();
 			
 			for (Iterator<TaskInstance> iterator  = taskInstances.iterator(); iterator.hasNext();) {

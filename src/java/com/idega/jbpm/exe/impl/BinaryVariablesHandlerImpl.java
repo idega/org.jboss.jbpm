@@ -29,9 +29,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/05/05 16:23:19 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/06 21:42:50 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -69,6 +69,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			} else if(dataType == VariableDataType.FILES) {
 				
 				if(val instanceof Collection) {
+					
+					@SuppressWarnings("unchecked")
 					Collection files = (Collection)val;
 					
 					if(files.isEmpty()) {
@@ -76,7 +78,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					} else {
 						
 						if(files.iterator().next() instanceof File) {
-							Collection<File> afiles = files;
+							
+							@SuppressWarnings("unchecked")
+							Collection<File> afiles = (Collection<File>)files;
 							ArrayList<BinaryVariable> binaryVariables = new ArrayList<BinaryVariable>(afiles.size());
 
 							for (File file : afiles) {
@@ -176,6 +180,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if(varVal instanceof BinaryVariable)
 				binaryVars.add((BinaryVariable)varVal);
 			else if(varVal instanceof Collection) {
+
+				@SuppressWarnings("unchecked")
 				Collection vals = (Collection)varVal;
 				
 				if(!vals.isEmpty() && vals.iterator().next() instanceof BinaryVariable) {

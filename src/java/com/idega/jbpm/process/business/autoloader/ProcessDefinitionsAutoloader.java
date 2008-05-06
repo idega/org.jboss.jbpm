@@ -40,9 +40,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/04/17 23:58:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/06 21:42:00 $ by $Author: civilis $
  */
 public class ProcessDefinitionsAutoloader implements ApplicationListener, ApplicationContextAware {
 
@@ -240,8 +240,12 @@ public class ProcessDefinitionsAutoloader implements ApplicationListener, Applic
 			ProcessDefinition pd = procBundle.getProcessDefinition();
 			pd.setVersion(version);
 			
-			if(checkDeployProcessDefinition(ctx, pd, false))
+			if(checkDeployProcessDefinition(ctx, pd, false)) {
+				
+				getLogger().log(Level.INFO, "Deploying process bundle: "+pd.getName());
 				getProcessBundleManager().createBundle(procBundle, pd.getName(), iwma, version);
+			}
+				
 			
 		} catch (IOException e) {
 			getLogger().log(Level.WARNING, "process definition not found", e);
