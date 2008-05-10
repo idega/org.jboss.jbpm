@@ -37,9 +37,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/05/10 18:10:25 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 18:18:23 $ by $Author: civilis $
  */
 public abstract class ProcessDefinitionsAutoloader implements ApplicationListener, ApplicationContextAware {
 
@@ -102,7 +102,7 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 
 	public void onApplicationEvent(ApplicationEvent applicationEvent) {
 	
-		if(applicationEvent instanceof IWMainSlideStartedEvent && false) {
+		if(applicationEvent instanceof IWMainSlideStartedEvent) {
 			
 			IWMainApplication iwma = ((IWMainSlideStartedEvent)applicationEvent).getIWMA();
 			autodeploy(iwma);
