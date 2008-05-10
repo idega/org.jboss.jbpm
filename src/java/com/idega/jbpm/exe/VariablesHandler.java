@@ -3,13 +3,12 @@ package com.idega.jbpm.exe;
 import java.util.List;
 import java.util.Map;
 
-import com.idega.jbpm.exe.impl.BinaryVariable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 18:08:07 $ by $Author: civilis $
  */
 public interface VariablesHandler {
 

@@ -5,12 +5,12 @@
     xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:ws="http://xmlns.idega.com/com.idega.workspace"
 	xmlns:t="http://myfaces.apache.org/tomahawk"
-	
 >
 
-<ws:page id="processRootPage" stylesheeturls="/idegaweb/bundles/org.jboss.jbpm.bundle/resources/style/jbpm.css" showFunctionMenu="true">
+<ws:page id="processRootPage" stylesheeturls="/idegaweb/bundles/org.jboss.jbpm.bundle/resources/style/egovBPM.css" showFunctionMenu="true">
 
 	<h:form enctype="multipart/form-data">
+        <h:commandButton value="Processes re-autodeploy" action="#{bpmProcessDefinitionsAutoloader.autodeploy}" />
 	</h:form>
 </ws:page>
 </html>

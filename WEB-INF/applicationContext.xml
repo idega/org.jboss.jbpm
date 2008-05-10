@@ -46,5 +46,6 @@
         <property name="resourcePatternResolver">
             <bean class="org.springframework.core.io.support.PathMatchingResourcePatternResolver" />
         </property>
+        <lookup-method name="createAutoDeployable" bean="BPMAutoDeployable" />
     </bean>
 </beans>

@@ -4,13 +4,12 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import com.idega.jbpm.exe.impl.BinaryVariable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 18:08:07 $ by $Author: civilis $
  */
 public interface BinaryVariablesHandler {
 

@@ -1,12 +1,12 @@
-package com.idega.jbpm.exe.impl;
+package com.idega.jbpm.exe;
 
 /**
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/03/29 20:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 18:08:07 $ by $Author: civilis $
  */
 public interface BinaryVariable {
 

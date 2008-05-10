@@ -27,9 +27,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  * 
- * Last modified: $Date: 2008/05/06 21:42:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 18:08:48 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -39,12 +39,6 @@ public class ProcessBundleManager {
 	private IdegaJbpmContext idegaJbpmContext;
 	private RolesManager rolesManager;
 	
-	public long createBundle(ProcessBundle processBundle,
-			String processDefinitionName, IWMainApplication iwma) throws IOException {
-		
-		return createBundle(processBundle, processDefinitionName, iwma, null);
-	}
-
 	/**
 	 * 
 	 * @param processBundle bundle to create process bundle from. i.e. all the resources, like process definition and views
@@ -52,8 +46,7 @@ public class ProcessBundleManager {
 	 * @return process definition id, of the created bundle
 	 * @throws IOException
 	 */
-	public long createBundle(ProcessBundle processBundle,
-			String processDefinitionName, IWMainApplication iwma, Integer version) throws IOException {
+	public long createBundle(ProcessBundle processBundle, IWMainApplication iwma) throws IOException {
 
 		String managersType = processBundle.getManagersType();
 		
@@ -66,12 +59,6 @@ public class ProcessBundleManager {
 
 			ProcessDefinition pd = processBundle.getProcessDefinition();
 
-			if (processDefinitionName != null)
-				pd.setName(processDefinitionName);
-			
-			if(version != null)
-				pd.setVersion(version);
-			
 			ctx.getGraphSession().deployProcessDefinition(pd);
 
 			try {
@@ -112,10 +99,11 @@ public class ProcessBundleManager {
 			} catch (Exception e) {
 
 				Logger.getLogger(getClass().getName()).log(Level.SEVERE,
-						"Exception while storing views and binding with tasks",
-						e);
+						"Exception while storing views and binding with tasks");
 				// TODO: remove all binds and views too
 				ctx.getGraphSession().deleteProcessDefinition(pd);
+				
+				throw new RuntimeException(e);
 			}
 
 			return pd.getId();

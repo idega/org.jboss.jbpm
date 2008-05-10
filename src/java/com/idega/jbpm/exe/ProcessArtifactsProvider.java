@@ -5,13 +5,12 @@ import java.util.List;
 
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
-import com.idega.jbpm.exe.impl.BinaryVariable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 18:08:07 $ by $Author: civilis $
  */
 public interface ProcessArtifactsProvider {
 

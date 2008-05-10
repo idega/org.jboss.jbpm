@@ -3,15 +3,16 @@ package com.idega.jbpm.process.business.autoloader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.faces.context.FacesContext;
 import javax.xml.parsers.DocumentBuilder;
 
-import org.jbpm.JbpmContext;
-import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,32 +28,26 @@ import org.w3c.dom.NodeList;
 
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.idegaweb.IWMainApplicationStartedEvent;
 import com.idega.idegaweb.IWMainSlideStartedEvent;
 import com.idega.jbpm.IdegaJbpmContext;
-import com.idega.jbpm.data.AutoloadedProcessDefinition;
-import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.def.ProcessBundle;
-import com.idega.jbpm.def.ProcessBundleManager;
 import com.idega.util.CoreConstants;
 import com.idega.util.xml.XPathUtil;
 import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/05/06 21:42:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 18:10:25 $ by $Author: civilis $
  */
-public class ProcessDefinitionsAutoloader implements ApplicationListener, ApplicationContextAware {
+public abstract class ProcessDefinitionsAutoloader implements ApplicationListener, ApplicationContextAware {
 
 	private final Logger logger;
 	private ResourcePatternResolver resourcePatternResolver;
-	private BPMDAO BPMDAO;
 	private List<String> mappings;
 	private IdegaJbpmContext idegaJbpmContext;
 	private ApplicationContext appCtx;
-	private ProcessBundleManager processBundleManager;
 	
 	public ProcessDefinitionsAutoloader() {
 		logger = Logger.getLogger(getClass().getName());
@@ -66,78 +61,86 @@ public class ProcessDefinitionsAutoloader implements ApplicationListener, Applic
 	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
+	
+	public synchronized void autodeploy() {
+		
+		IWMainApplication iwma;
+		FacesContext fctx = FacesContext.getCurrentInstance();
+		
+		if(fctx != null)
+			iwma = IWMainApplication.getIWMainApplication(fctx);
+		else
+			iwma = IWMainApplication.getDefaultIWMainApplication();
+		
+		autodeploy(iwma);
+	}
+	
+	protected void autodeploy(IWMainApplication iwma) {
+		
+		final List<String> mappings = getMappings();
+		final List<Resource> allResources = resolveResources(mappings);
+		
+		List<AutoDeployable> processDefinitionsAutos = resolveProcessDefinitionsAutodeployables(iwma, allResources);
+		List<AutoDeployable> processBundlesAutos = resolveProcessBundlesAutodeployables(iwma, allResources);
+		
+		processDefinitionsAutos.addAll(processBundlesAutos);
+		
+		HashSet<AutoDeployable> autos = new HashSet<AutoDeployable>(processDefinitionsAutos.size());
+		
+		for (Iterator<AutoDeployable> iterator = processDefinitionsAutos.iterator(); iterator.hasNext();) {
+			AutoDeployable auto = iterator.next();
+			
+			if(auto.getNeedsDeploy())
+				autos.add(auto);
+		}
+		
+		for (AutoDeployable autoDeployable : autos) {
+			
+			autoDeployable.deploy(iwma);
+		}
+	}
 
 	public void onApplicationEvent(ApplicationEvent applicationEvent) {
 	
-		if(applicationEvent instanceof IWMainApplicationStartedEvent || applicationEvent instanceof IWMainSlideStartedEvent) {
+		if(applicationEvent instanceof IWMainSlideStartedEvent && false) {
 			
-			final List<String> mappings = getMappings();
-			final ArrayList<Resource> allResources = new ArrayList<Resource>();
-			
-			if(mappings != null) {
-			
-				try {
-					for (String mapping : mappings) {
-						
-						final Resource[] resources = getResourcePatternResolver().getResources(mapping);
-						
-						for (int i = 0; i < resources.length; i++) {
-
-							allResources.add(resources[i]);
-						}
-					}
-				} catch (Exception e) {
-					getLogger().log(Level.WARNING, "Exception while resolving pdm resources by pattern", e);
-				}
-			}
-			
-			if(applicationEvent instanceof IWMainApplicationStartedEvent) {
-				
-				IWMainApplication iwma = ((IWMainApplicationStartedEvent)applicationEvent).getIWMA();
-				
-				List<ProcessDefinition> processDefinitions = resolveProcessDefinitions(iwma, allResources);
-				
-				if(!processDefinitions.isEmpty()) {
-				
-					JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
-					
-					try {
-						
-						for (ProcessDefinition processDefinition : processDefinitions) {
-							
-							checkDeployProcessDefinition(ctx, processDefinition, true);
-						}
-						
-					} finally {
-						getIdegaJbpmContext().closeAndCommit(ctx);
-					}
-				}
-				
-			} else if (applicationEvent instanceof IWMainSlideStartedEvent) {
-				
-				IWMainApplication iwma = ((IWMainSlideStartedEvent)applicationEvent).getIWMA();
-				
-				JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
-				
-				try {
-					createProcessBundles(ctx, iwma, allResources);
-					
-				} finally {
-					getIdegaJbpmContext().closeAndCommit(ctx);
-				}
-			}
+			IWMainApplication iwma = ((IWMainSlideStartedEvent)applicationEvent).getIWMA();
+			autodeploy(iwma);
 		}
 	}
 	
-	protected List<ProcessDefinition> resolveProcessDefinitions(IWMainApplication iwma, List<Resource> resources) {
+	protected List<Resource> resolveResources(List<String> mappings) {
+		
+		final ArrayList<Resource> allResources = new ArrayList<Resource>();
+		
+		if(mappings != null) {
+			
+			try {
+				for (String mapping : mappings) {
+					
+					final Resource[] resources = getResourcePatternResolver().getResources(mapping);
+					
+					for (int i = 0; i < resources.length; i++) {
+
+						allResources.add(resources[i]);
+					}
+				}
+			} catch (Exception e) {
+				getLogger().log(Level.WARNING, "Exception while resolving pdm resources by pattern", e);
+			}
+		}
+		return allResources;
+	}
+	
+	protected List<AutoDeployable> resolveProcessDefinitionsAutodeployables(IWMainApplication iwma, List<Resource> resources) {
+		
+		ArrayList<AutoDeployable> autos = new ArrayList<AutoDeployable>();
 		
 		try {
 			final String xpathExp = ".//processDefinition[@autoload='true']";
 			
 			final DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 			final XPathUtil ut = new XPathUtil(xpathExp);
-			
-			ArrayList<ProcessDefinition> pds = new ArrayList<ProcessDefinition>();
 			
 			for (Resource resource : resources) {
 		
@@ -171,19 +174,24 @@ public class ProcessDefinitionsAutoloader implements ApplicationListener, Applic
 						} catch (NumberFormatException e) { }
 					}
 					
-					pds.add(pd);
+					AutoDeployable auto = createAutoDeployable();
+					auto.setProcessDefinition(pd);
+					autos.add(auto);
 				}
 			}
 			
-			return pds;
-			
 		} catch (Exception e) {
 			getLogger().log(Level.SEVERE, "Exception while resolving process definitions", e);
-			return null;
 		}
+		
+		return autos;
 	}
 	
-	protected void createProcessBundles(JbpmContext ctx, IWMainApplication iwma, List<Resource> resources) {
+	protected abstract AutoDeployable createAutoDeployable();
+	
+	protected List<AutoDeployable> resolveProcessBundlesAutodeployables(IWMainApplication iwma, List<Resource> resources) {
+		
+		ArrayList<AutoDeployable> autos = new ArrayList<AutoDeployable>(resources.size());
 		
 		try {
 			final String xpathExp = ".//processBundle[@autoload='true']";
@@ -208,8 +216,6 @@ public class ProcessDefinitionsAutoloader implements ApplicationListener, Applic
 					
 					final Element BndlDesc = (Element)bundles.item(i);
 					
-					
-					
 					String bundleIdentifier = BndlDesc.getAttribute("bundle");
 					String pathToPropsWithinBundle = BndlDesc.getAttribute("propsUriWithinBundle");
 					String version = BndlDesc.getAttribute("version");
@@ -220,16 +226,22 @@ public class ProcessDefinitionsAutoloader implements ApplicationListener, Applic
 					Properties props = new Properties();
 					props.load(is);
 					
-					checkCreateBundle(iwma, ctx, props, new Integer(version), pathToPropsWithinBundle, bundleIdentifier);
+					ProcessBundle pb = createProcessBundle(iwma, props, new Integer(version), pathToPropsWithinBundle, bundleIdentifier);
+					
+					AutoDeployable auto = createAutoDeployable();
+					auto.setProcessBundle(pb);
+					autos.add(auto);
 				}
 			}
 			
 		} catch (Exception e) {
 			getLogger().log(Level.SEVERE, "Exception while resolving process bundles", e);
 		}
+		
+		return autos;
 	}
 	
-	protected void checkCreateBundle(IWMainApplication iwma, JbpmContext ctx, Properties props, Integer version, String pathToPropsWithinBundle, String bundleIdentifier) {
+	protected ProcessBundle createProcessBundle(IWMainApplication iwma, Properties props, Integer version, String pathToPropsWithinBundle, String bundleIdentifier) {
 		
 		String processBundleIdentifier = props.getProperty("process_definition.processBundle.beanIndentifier");
 		
@@ -240,93 +252,17 @@ public class ProcessDefinitionsAutoloader implements ApplicationListener, Applic
 			ProcessDefinition pd = procBundle.getProcessDefinition();
 			pd.setVersion(version);
 			
-			if(checkDeployProcessDefinition(ctx, pd, false)) {
-				
-				getLogger().log(Level.INFO, "Deploying process bundle: "+pd.getName());
-				getProcessBundleManager().createBundle(procBundle, pd.getName(), iwma, version);
-			}
-				
+			return procBundle;
 			
 		} catch (IOException e) {
 			getLogger().log(Level.WARNING, "process definition not found", e);
-			return;
+			return null;
 		}
 	}
 	
 	protected Logger getLogger() {
 		
 		return logger;
-	}
-	
-	protected boolean checkDeployProcessDefinition(JbpmContext ctx, ProcessDefinition processDefinition, boolean deploy) {
-
-		String pdName = processDefinition.getName();
-		
-		AutoloadedProcessDefinition apd;
-		
-		try {
-			apd = getBPMDAO().find(AutoloadedProcessDefinition.class, pdName);
-		} catch (Exception e) {
-			apd = null;
-		}
-		
-		if(apd == null) {
-			
-			ProcessDefinition pd;
-		
-			try {
-				pd = ctx.getGraphSession().findLatestProcessDefinition(pdName);
-				
-			} catch (JbpmException e) {
-//				thrown when nothing found
-				pd = null;
-			}
-			
-			if(pd != null) {
-				getLogger().log(Level.INFO, "Found explicitly deployed process: "+pd.getName());
-				return false;
-			} else {
-				
-				apd = new AutoloadedProcessDefinition();
-				apd.setProcessDefinitionName(pdName);
-				apd.setAutodeployPermitted(true);
-				apd.setAutoloadedVersion(processDefinition.getVersion());
-				
-				getBPMDAO().persist(apd);
-			}
-		} else {
-			
-			if(!apd.getAutodeployPermitted()) {
-				return false;
-				
-			} else {
-				
-				if(processDefinition.getVersion() <= apd.getAutoloadedVersion()) {
-					
-					getLogger().log(Level.INFO, "Found auto deployed process: "+pdName);
-					return false;
-				} else {
-					
-					apd.setAutoloadedVersion(processDefinition.getVersion());
-					getBPMDAO().merge(apd);
-				}
-			}
-		}
-		
-		if(deploy) {
-		
-			getLogger().log(Level.INFO, "Deploying process definition: "+processDefinition.getName());
-			
-			try {
-				ctx.deployProcessDefinition(processDefinition);
-				getLogger().log(Level.INFO, "Deployed process definition: "+processDefinition.getName());
-				
-			} catch (JbpmException ee) {
-				getLogger().log(Level.WARNING, "Failed to deploy process: "+processDefinition.getName(), ee);
-			}
-		}
-		
-		return true;
 	}
 	
 	public ResourcePatternResolver getResourcePatternResolver() {
@@ -352,23 +288,5 @@ public class ProcessDefinitionsAutoloader implements ApplicationListener, Applic
 	
 	public ApplicationContext getApplicationContext() {
 		return appCtx;
-	}
-
-	public ProcessBundleManager getProcessBundleManager() {
-		return processBundleManager;
-	}
-
-	@Autowired
-	public void setProcessBundleManager(ProcessBundleManager processBundleManager) {
-		this.processBundleManager = processBundleManager;
-	}
-
-	public BPMDAO getBPMDAO() {
-		return BPMDAO;
-	}
-
-	@Autowired
-	public void setBPMDAO(BPMDAO bpmdao) {
-		BPMDAO = bpmdao;
 	}
 }

@@ -15,14 +15,13 @@ import javax.servlet.http.HttpServletRequest;
 import com.idega.business.SpringBeanLookup;
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
-import com.idega.jbpm.exe.impl.BinaryVariable;
 import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/04/21 05:13:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 18:08:07 $ by $Author: civilis $
  */
 public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 

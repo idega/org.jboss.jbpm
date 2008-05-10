@@ -17,32 +17,34 @@ import com.idega.repository.data.Singleton;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version 1.0
+ * @version $Revision: 1.1 $
+ *
+ * Last modified: $Date: 2008/05/10 18:10:25 $ by $Author: civilis $
  */
-public class JbmpViewManager implements Singleton  {
+public class BPMViewManager implements Singleton  {
 
-	private static final String VIEW_MANAGER_KEY = "iw_jbmpviewmanager";
-	private static final String VIEW_MANAGER_ID = "Process";
+	private static final String VIEW_MANAGER_KEY = "iw_bpmviewmanager";
+	private static final String VIEW_MANAGER_ID = "BPM";
 	
 	private ViewNode rootNode;
 	private IWMainApplication iwma;
 	
-	private JbmpViewManager(IWMainApplication iwma){
+	private BPMViewManager(IWMainApplication iwma){
 		
 		this.iwma = iwma;
 	}
 
-	public static synchronized JbmpViewManager getInstance(IWMainApplication iwma) {
-		JbmpViewManager jbmp_vm = (JbmpViewManager)iwma.getAttribute(VIEW_MANAGER_KEY);
+	public static synchronized BPMViewManager getInstance(IWMainApplication iwma) {
+		BPMViewManager vm = (BPMViewManager)iwma.getAttribute(VIEW_MANAGER_KEY);
 		
-		if(jbmp_vm == null) {
-			jbmp_vm = new JbmpViewManager(iwma);
-			iwma.setAttribute(VIEW_MANAGER_KEY, jbmp_vm);
+		if(vm == null) {
+			vm = new BPMViewManager(iwma);
+			iwma.setAttribute(VIEW_MANAGER_KEY, vm);
 	    }
-	    return jbmp_vm;
+	    return vm;
 	}	
 	
-	public static JbmpViewManager getInstance(FacesContext context) {
+	public static BPMViewManager getInstance(FacesContext context) {
 		return getInstance(IWMainApplication.getIWMainApplication(context));
 	}
 	
@@ -68,7 +70,7 @@ public class JbmpViewManager implements Singleton  {
 		roles.add(StandardRoles.ROLE_KEY_BUILDER);
 		node.setAuthorizedRoles(roles);
 		
-		node.setFaceletUri(contentBundle.getFaceletURI("process.xhtml"));
+		node.setFaceletUri(contentBundle.getFaceletURI("BPMAdmin.xhtml"));
 		rootNode = node;
 		return rootNode;
 	}
@@ -77,28 +79,8 @@ public class JbmpViewManager implements Singleton  {
 		ViewNode contentNode = initalizeContentNode(bundle);
 		
 		DefaultViewNode node = new DefaultViewNode(VIEW_MANAGER_ID, contentNode);
-		node.setFaceletUri(bundle.getFaceletURI("processDefUpload.xhtml"));
+		node.setFaceletUri(bundle.getFaceletURI("BPMAdmin.xhtml"));
 		node.setName(VIEW_MANAGER_ID);
-		node.setVisibleInMenus(true);
-		
-		node = new DefaultViewNode("xforms_workflow", contentNode);
-		node.setFaceletUri("/idegaweb/bundles/com.idega.formbuilder.bundle/facelets/xformsWorkflow.xhtml");
-		node.setName("XForms Workflow");
-		node.setVisibleInMenus(true);
-		
-		node = new DefaultViewNode("processMgmntMockup", contentNode);
-		node.setFaceletUri(bundle.getFaceletURI("processMgmtMockup.xhtml"));
-		node.setName("Process Mgmnt Mockup");
-		node.setVisibleInMenus(true);
-		
-		node = new DefaultViewNode("simpleCasesProcess", contentNode);
-		node.setFaceletUri(bundle.getFaceletURI("SimpleCasesProcess.xhtml"));
-		node.setName("Simple cases process");
-		node.setVisibleInMenus(true);
-		
-		node = new DefaultViewNode("nestCasesProcess", contentNode);
-		node.setFaceletUri(bundle.getFaceletURI("NestCasesProcess.xhtml"));
-		node.setName("Nest cases process");
 		node.setVisibleInMenus(true);
 	}
 }
