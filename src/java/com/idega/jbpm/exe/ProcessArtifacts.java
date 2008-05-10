@@ -43,12 +43,12 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.27 $
+ * @version $Revision: 1.28 $
  *
- * Last modified: $Date: 2008/05/06 21:40:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 17:15:24 $ by $Author: valdas $
  */
 @Scope("singleton")
-@Service("BPMProcessAssets")
+@Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
 public class ProcessArtifacts {
 	
 	private BPMFactory bpmFactory;
@@ -375,15 +375,20 @@ public class ProcessArtifacts {
 	}
 	
 	public org.jdom.Document getViewDisplay(Long taskInstanceId) {
-
+		try {
+			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), getViewInUIComponent(taskInstanceId), true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public UIComponent getViewInUIComponent(Long taskInstanceId) throws Exception {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			long processDefinitionId = ctx.getTaskInstance(taskInstanceId).getProcessInstance().getProcessDefinition().getId();
-			
-			UIComponent viewUIComponent = getBpmFactory().getProcessManager(processDefinitionId).getTaskInstance(taskInstanceId).loadView().getViewForDisplay();
-			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), viewUIComponent, true);
-			
+			return getBpmFactory().getProcessManager(processDefinitionId).getTaskInstance(taskInstanceId).loadView().getViewForDisplay();
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
