@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
+import com.idega.core.file.data.ExtendedFile;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.def.VariableDataType;
 import com.idega.jbpm.exe.BinaryVariable;
@@ -26,13 +27,16 @@ import com.idega.jbpm.exe.BinaryVariablesHandler;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.StreamException;
+import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/05/10 18:09:05 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/12 23:14:55 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -78,15 +82,16 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 						entry.setValue(null);
 					} else {
 						
-						if(files.iterator().next() instanceof File) {
+						if(files.iterator().next() instanceof ExtendedFile) {
 							
 							@SuppressWarnings("unchecked")
-							Collection<File> afiles = (Collection<File>)files;
-							ArrayList<BinaryVariable> binaryVariables = new ArrayList<BinaryVariable>(afiles.size());
+							Collection<ExtendedFile> afiles = (Collection<ExtendedFile>)files;
+							ArrayList<String> binaryVariables = new ArrayList<String>(afiles.size());
 
-							for (File file : afiles) {
-								BinaryVariable binaryVariable = storeFile(identifier, file);
-								binaryVariables.add(binaryVariable);
+							for (ExtendedFile file : afiles) {
+								BinaryVariable binaryVariable = storeFile(identifier, file.getFile());
+								binaryVariable.setDescription(file.getFileInfo());
+								binaryVariables.add(convertToJSON(binaryVariable));
 							}
 							
 							entry.setValue(binaryVariables);
@@ -163,6 +168,18 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		}
 	}
 	
+	protected String convertToJSON(BinaryVariable binVar) {
+		XStream xstream = new XStream(new JettisonMappedXmlDriver());
+		String jsonStr = xstream.toXML(binVar);
+		return jsonStr;
+	}
+	
+	protected BinaryVariable convertToBinaryVariable(String jsonStr) {
+		XStream xstream = new XStream(new JettisonMappedXmlDriver());
+		BinaryVariable binVar = (BinaryVariable)xstream.fromXML(jsonStr);
+		return binVar;
+	}
+	
 	public Map<String, Object> resolveBinaryVariables(Map<String, Object> variables) {
 	
 //		TODO: shouldn't even be needed
@@ -178,8 +195,18 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if(varVal == null)
 				continue;
 			
-			if(varVal instanceof BinaryVariable)
-				binaryVars.add((BinaryVariable)varVal);
+			if(varVal instanceof BinaryVariable) {
+				//binaryVars.add((BinaryVariable)varVal);
+			}
+			else if(varVal instanceof String) {
+				BinaryVariable var;
+				try {
+					var = convertToBinaryVariable((String)varVal);
+				} catch(StreamException e) {
+					continue;
+				}
+				binaryVars.add(var);
+			}
 			else if(varVal instanceof Collection) {
 
 				@SuppressWarnings("unchecked")
@@ -187,8 +214,19 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				
 				if(!vals.isEmpty() && vals.iterator().next() instanceof BinaryVariable) {
 					
+//					for (Object object : vals) {
+//						binaryVars.add((BinaryVariable)object);
+//					}
+				}
+				else if(!vals.isEmpty() && vals.iterator().next() instanceof String) {
 					for (Object object : vals) {
-						binaryVars.add((BinaryVariable)object);
+						BinaryVariable var;
+						try {
+							var = convertToBinaryVariable((String)object);
+						} catch(StreamException e) {
+							continue;
+						}
+						binaryVars.add(var);
 					}
 				}
 			}

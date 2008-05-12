@@ -8,9 +8,9 @@ import com.idega.jbpm.exe.BinaryVariable;
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/05/10 18:09:05 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/12 23:14:55 $ by $Author: anton $
  */
 public class BinaryVariableImpl implements Serializable, BinaryVariable {
 
@@ -21,6 +21,15 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	private Integer hash;
 	private Long contentLength;
 	private String mimeType;
+	private String description;
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
 	public Integer getHash() {
 		return hash;

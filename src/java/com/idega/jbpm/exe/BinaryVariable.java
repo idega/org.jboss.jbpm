@@ -4,11 +4,14 @@ package com.idega.jbpm.exe;
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/10 18:08:07 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/12 23:14:55 $ by $Author: anton $
  */
 public interface BinaryVariable {
+	public abstract String getDescription();
+	
+	public abstract void setDescription(String description);
 
 	public abstract String getIdentifier();
 
