@@ -22,9 +22,9 @@ import com.idega.jbpm.def.ProcessBundleManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/10 18:10:25 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/12 20:09:41 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service("BPMAutoDeployable")
@@ -141,6 +141,7 @@ public class AutoDeployable {
 			apd.setProcessDefinitionName(pdName);
 			apd.setAutodeployPermitted(true);
 			apd.setAutoloadedVersion(getAutoloadedVersion());
+			getBPMDAO().persist(apd);
 			
 		} else {
 			
