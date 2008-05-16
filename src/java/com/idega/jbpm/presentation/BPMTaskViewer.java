@@ -21,9 +21,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/05/06 21:42:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 07:33:53 $ by $Author: alexis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -71,7 +71,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 			viewer = loadViewerFromTaskInstance(context, taskInstanceId);
 		
 		@SuppressWarnings("unchecked")
-		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
+		Map<Object, UIComponent> facets = (Map<Object, UIComponent>)getFacets();
 		
 		if(viewer != null)
 			facets.put(VIEWER_FACET, viewer);
@@ -113,7 +113,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		super.encodeChildren(context);
 
 		@SuppressWarnings("unchecked")
-		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
+		Map<Object, UIComponent> facets = (Map<Object, UIComponent>)getFacets();
 		UIComponent viewer = facets.get(VIEWER_FACET);
 		
 		if(viewer != null)
