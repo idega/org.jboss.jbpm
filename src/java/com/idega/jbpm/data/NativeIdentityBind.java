@@ -20,12 +20,12 @@ import javax.persistence.Table;
  * Used additionally to roles + ic_permit_role. In general use case, the identity type is user.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 18:18:34 $ by $Author: civilis $
  */
 @Entity
-@Table(name="BPM_NATIVE_IDENTITY")
+@Table(name=NativeIdentityBind.TABLE_NAME)
 @NamedQueries(
 		{
 			@NamedQuery(name=NativeIdentityBind.deleteByIds, query="delete from NativeIdentityBind b where b.id in (:"+NativeIdentityBind.idsParam+")"),
@@ -37,6 +37,7 @@ public class NativeIdentityBind implements Serializable {
 
 	private static final long serialVersionUID = 4739344819567695492L;
 
+	public static final String TABLE_NAME = "BPM_NATIVE_IDENTITIES";
 	public static final String procIdentityParam = "procIdentity";
 	
 	public static final String idsParam = "ids";

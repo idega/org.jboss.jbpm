@@ -15,9 +15,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/16 09:47:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 18:18:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -71,7 +71,7 @@ public class BeanValueResolver implements MessageValueResolver {
 						return val;
 						
 					} catch (Exception e) {
-						Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving property from object: "+entry.getValue()+", property: "+key);
+						Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving property from object: "+entry.getValue()+", property: "+key, e);
 					}
 				}
 			}

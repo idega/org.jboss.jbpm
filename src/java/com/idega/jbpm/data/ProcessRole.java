@@ -31,9 +31,9 @@ import javax.persistence.Table;
  * If there are no permissions for actor with process instance id != null, then the permissions for process name are taken (i.e. the permissions are specified for process definition scope). 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 18:18:34 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
@@ -78,18 +78,18 @@ import javax.persistence.Table;
 		{
 			@NamedNativeQuery(name=ProcessRole.getProcessInstanceIdsByUserIdentity, resultSetMapping="processInstanceId",
 					query=
-						"select pr.process_instance_id as processInstanceId from BPM_PROCESS_ROLES pr "+
-						"inner join BPM_NATIVE_IDENTITY ni "+ 
+						"select pr.process_instance_id as processInstanceId from "+ProcessRole.TABLE_NAME+" pr "+
+						"inner join "+NativeIdentityBind.TABLE_NAME+" ni "+ 
 						"on ni.process_role_fk = pr.actor_id "+
 						"where ni.identity_id = :"+NativeIdentityBind.identityIdProperty+" and ni.identity_type = :"+NativeIdentityBind.identityTypeProperty
 			),
 			@NamedNativeQuery(name=ProcessRole.getProcessInstanceIdsByUserRolesAndUserIdentity, resultSetMapping="processInstanceId",
 					query=
-						"select pr.process_instance_id as processInstanceId from BPM_PROCESS_ROLES pr "+
+						"select pr.process_instance_id as processInstanceId from "+ProcessRole.TABLE_NAME+" pr "+
 						"where pr.role_name in (:"+ProcessRole.processRoleNameProperty+") and pr.process_instance_id is not null "+
 						"union "+
-						"select pr.process_instance_id as processInstanceId from BPM_PROCESS_ROLES pr "+
-						"inner join BPM_NATIVE_IDENTITY ni "+ 
+						"select pr.process_instance_id as processInstanceId from "+ProcessRole.TABLE_NAME+" pr "+
+						"inner join "+NativeIdentityBind.TABLE_NAME+" ni "+ 
 						"on ni.process_role_fk = pr.actor_id "+
 						"where ni.identity_id = :"+NativeIdentityBind.identityIdProperty+" and ni.identity_type = :"+NativeIdentityBind.identityTypeProperty
 			)
@@ -98,6 +98,9 @@ import javax.persistence.Table;
 public class ProcessRole implements Serializable {
 
 	private static final long serialVersionUID = -1167182554959904075L;
+	
+	public static final String TABLE_NAME = "BPM_PROCESS_ROLES";
+	
 	public static final String getAllGeneral = "ProcessRoleNativeIdentityBind.getAllGeneral";
 	public static final String getSetByRoleNamesAndPIId = "ProcessRoleNativeIdentityBind.getSetByRoleNamesAndPIId";
 	public static final String getAllByRoleNamesAndPIIdIsNull = "ProcessRoleNativeIdentityBind.getAllByRoleNamesAndPIIdIsNull";

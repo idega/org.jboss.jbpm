@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jbpm.graph.exe.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 18:18:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -26,6 +27,7 @@ public class MessageValueHandler {
 
 	private Map<String, MessageValueResolver> resolvers;
 	private static final String messageValueObj = "mv";
+	private static final String beanTokenIdentifier = "bean:token";
 
 	@Autowired(required = false)
 	public void setValueResolvers(List<MessageValueResolver> resolvers) {
@@ -57,19 +59,26 @@ public class MessageValueHandler {
 		return CoreConstants.EMPTY;
 	}
 	
-	public String getFormattedMessage(String unformattedMessage, String messageValuesExp, Long tokenId) {
+	public String getFormattedMessage(String unformattedMessage, String messageValuesExp, Token tkn) {
 		
-		return getFormattedMessage(unformattedMessage, messageValuesExp, tokenId, null);
+		return getFormattedMessage(unformattedMessage, messageValuesExp, tkn, null);
 	}
 	
-	protected MessageValueContext updateContext(Long tokenId, MessageValueContext mvCtx) {
+	
+	
+	protected MessageValueContext updateContext(Token tkn, MessageValueContext mvCtx) {
+		
+		if(!mvCtx.containsKey(beanTokenIdentifier)) {
+
+			mvCtx.put(beanTokenIdentifier, tkn);
+		}
 		
 		return mvCtx;
 	}
 	
-	public String getFormattedMessage(String unformattedMessage, String messageValuesExp, Long tokenId, MessageValueContext providedMVCtx) {
+	public String getFormattedMessage(String unformattedMessage, String messageValuesExp, Token tkn, MessageValueContext providedMVCtx) {
 		
-		MessageValueContext mvCtx = updateContext(tokenId, providedMVCtx);
+		MessageValueContext mvCtx = updateContext(tkn, providedMVCtx);
 		
 		ArrayList<String> msgVals;
 		
