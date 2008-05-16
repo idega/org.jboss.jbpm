@@ -22,9 +22,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/05/06 21:42:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:42 $ by $Author: civilis $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -44,9 +44,6 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 	
 	public void execute(ExecutionContext ctx) throws Exception {
 		
-		
-		System.out.println("_____________________ participant invitationexecute");
-
 		String recepientEmail = (String)ctx.getVariable(participantEmailVarName);
 		
 		if(recepientEmail == null || !EmailValidator.getInstance().isValid(recepientEmail)) {
@@ -79,13 +76,6 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 		String fullUrl = composeFullUrl(iwc, ctx.getToken());
 		
 		message += "\nFollow the link to register and participate in the case: "+fullUrl;
-		
-		//com.idega.util.SendMail.send(fromAddress, receiver, "", bccReceiver, mailServer, subject, body, attachment);
-		System.out.println("sending participant invitation");
-		System.out.println("host: "+host);
-		System.out.println("from: "+from);
-		System.out.println("recepientEmail: "+recepientEmail);
-		System.out.println("subject: "+subject);
 		
 		try {
 			SendMail.send(from, recepientEmail, null, null, host, subject, message);

@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Join;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
@@ -40,9 +39,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  *
- * Last modified: $Date: 2008/05/06 21:42:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -61,7 +60,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 //		faces context == null when permission is called by the system (i.e. not the result of user navigation)
 		if(fctx == null)
 			return;
-Join.join(":", "a", "b", "c");
+		
 		if(!(perm instanceof BPMTaskAccessPermission))
 			throw new IllegalArgumentException("Only permissions implementing "+BPMTaskAccessPermission.class.getName()+" supported");
 		
@@ -104,68 +103,6 @@ Join.join(":", "a", "b", "c");
 			}
 		}
 	}
-	
-	/*
-	protected List<NativeIdentityBind> resolveCandidates(Collection<Long> pooledActors, TaskInstance taskInstance) {
-		
-		List<ProcessRole> roles = getBpmBindsDAO().getProcessRoles(pooledActors);
-		HashSet<String> genRoleNamesToCheck = new HashSet<String>(roles.size());
-		
-		ArrayList<NativeIdentityBind> candidates = new ArrayList<NativeIdentityBind>();
-		
-//		first check amongst assigned to task instance (bound to process instance)
-		for (ProcessRole processRole : roles) {
-			
-			if(isRoleSatisfiesPermission(processRole, taskInstance)) {
-			
-				if(processRole.getNativeIdentities().isEmpty()) {
-					
-					genRoleNamesToCheck.add(processRole.getProcessRoleName());
-					
-				} else {
-					
-					candidates.addAll(processRole.getNativeIdentities());
-				}
-			}
-		}
-		
-//		checking amongst general roles
-		if(!genRoleNamesToCheck.isEmpty()) {
-			
-			roles = getBpmBindsDAO().getProcessRolesByRolesNames(genRoleNamesToCheck, null);
-			
-			for (ProcessRole processRole : roles) {
-
-				candidates.addAll(processRole.getNativeIdentities());
-			}
-		}
-		
-		return candidates;
-	}
-	*/
-	
-	/*
-	protected boolean isRoleSatisfiesPermission(ProcessRole role, TaskInstance taskInstance) {
-		
-		String jsonExp = taskInstance.getTask().getAssignmentDelegation().getConfiguration();
-		
-		List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
-		boolean writeAccessNeeded = !taskInstance.hasEnded();
-		
-		for (Role confRole : roles) {
-
-			if(confRole.getRoleName().equals(role.getProcessRoleName())) {
-				
-				if(confRole.getAccesses().contains(Access.read) && (!writeAccessNeeded || confRole.getAccesses().contains(Access.write)))
-					return true;
-				else
-					return false;
-			}
-		}
-		
-		return false;
-	}
-	*/
 	
 	protected boolean fallsInGroups(int userId, List<NativeIdentityBind> nativeIdentities) {
 	
@@ -217,6 +154,8 @@ Join.join(":", "a", "b", "c");
 			Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
 			long taskId = taskInstance.getTask().getId();
 			
+			AccessController ac = getAccessController();
+			
 			for (ProcessRole processRole : roles) {
 				
 				List<ActorPermissions> perms = processRole.getActorPermissions();
@@ -228,12 +167,17 @@ Join.join(":", "a", "b", "c");
 						if(perm.getReadPermission() && (!writeAccessNeeded || perm.getWritePermission()) &&
 								((perm.getTaskInstanceId() != null && perm.getTaskInstanceId().equals(taskInstance.getId())) || (perm.getTaskInstanceId() == null && perm.getTaskId().equals(taskId)))) {
 							
-							if(processRole.getProcessInstanceId() == null) {
-								
+							List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
+							
+							if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
+								if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
+									return;
+							} else {
+							
 								String roleName = processRole.getProcessRoleName();
 								
 								@SuppressWarnings("unchecked")
-								Collection<Group> grps = getAccessController().getAllGroupsForRoleKey(roleName, iwac);
+								Collection<Group> grps = ac.getAllGroupsForRoleKey(roleName, iwac);
 								
 								for (Group roleGrp : grps) {
 									
@@ -243,13 +187,6 @@ Join.join(":", "a", "b", "c");
 										return;
 									}
 								}
-								
-							} else {
-								
-								List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
-						
-								if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
-									return;
 							}
 						}
 					}
@@ -261,37 +198,7 @@ Join.join(":", "a", "b", "c");
 		}
 		
 		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+").");
-	
-/*
-		List<NativeIdentityBind> nativeIdentities = resolveCandidates(pooledActors, taskInstance);
-		
-		if(!nativeIdentities.isEmpty()) {
-			
-//			check for users
-			if(fallsInUsers(userId, nativeIdentities))
-				return;
-
-//			check for groups:
-			if(fallsInGroups(userId, nativeIdentities))
-				return;
-			
-//			check for roles
-		}
-*/		
 	}
-	
-/*
-	protected boolean fallsIn(int userId, List<NativeIdentityBind> nativeIdentities) {
-		
-		for (NativeIdentityBind nativeIdentity : nativeIdentities) {
-			
-			if(nativeIdentity.getIdentityType() == IdentityType.USER && nativeIdentity.getIdentityId().equals(String.valueOf(userId)))
-				return true;
-		}
-		
-		return false;
-	}
-	*/
 	
 	public void close() { }
 

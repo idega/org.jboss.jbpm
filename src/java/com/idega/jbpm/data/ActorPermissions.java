@@ -2,6 +2,7 @@ package com.idega.jbpm.data;
 
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -9,30 +10,33 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
+ * Actor permissions for task or taskInstance. TaskInstance permissions should override ones specified for Task.
+ * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/04/26 02:48:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_ACTORS_PERMISSIONS")
 @NamedQueries(
 		{
-			@NamedQuery(name=ActorPermissions.getSetByTaskIdAndProcessRole, query="from ActorPermissions ap where ap."+ActorPermissions.taskIdProperty+" = :"+ActorPermissions.taskIdProperty+" and "+ActorPermissions.processRoleProperty+" in (:"+ActorPermissions.processRoleProperty+")")
+			//@NamedQuery(name=ActorPermissions.getSetByTaskIdAndProcessRole, query="from ActorPermissions ap where ap."+ActorPermissions.taskIdProperty+" = :"+ActorPermissions.taskIdProperty+" and "+ActorPermissions.processRoleProperty+" in (:"+ActorPermissions.processRoleProperty+")")
+			@NamedQuery(name=ActorPermissions.getSetByTaskIdAndProcessRoleNames, query="from ActorPermissions ap where ap."+ActorPermissions.taskIdProperty+" = :"+ActorPermissions.taskIdProperty+" and "+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+")")
 		}
 )
 public class ActorPermissions implements Serializable {
 
 	private static final long serialVersionUID = 4768266953928292205L;
 	
-	public static final String getSetByTaskIdAndProcessRole = "ActorPermissions.getSetByTaskIdAndProcessRole";
+	//public static final String getSetByTaskIdAndProcessRole = "ActorPermissions.getSetByTaskIdAndProcessRole";
+	public static final String getSetByTaskIdAndProcessRoleNames = "ActorPermissions.getSetByTaskIdAndProcessRoleNames";
 
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="actperm_id")
@@ -46,6 +50,10 @@ public class ActorPermissions implements Serializable {
 	@Column(name="task_instance_id")
 	private Long taskInstanceId;
 	
+	public static final String roleNameProperty = "roleName";
+	@Column(name="process_role_name")
+	private String roleName;
+	
 	public static final String readPermissionProperty = "readPermission";
 	@Column(name="has_read_permission", nullable=false)
 	private Boolean readPermission;
@@ -54,10 +62,17 @@ public class ActorPermissions implements Serializable {
 	@Column(name="has_write_permission", nullable=false)
 	private Boolean writePermission;
 	
-	public static final String processRoleProperty = "processRole";
-	@ManyToOne(cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE})
-    @JoinColumn(name="process_role_actor_id", nullable=false)
-	private ProcessRole processRole;
+//	public static final String processRoleProperty = "processRole";
+//	@ManyToOne(cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE})
+//    @JoinColumn(name="process_role_actor_id", nullable=false)
+//	private ProcessRole processRole;
+	
+	@ManyToMany(
+	        cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+	        mappedBy = ProcessRole.actorPermissionsProperty,
+	        targetEntity = ProcessRole.class
+	)
+	private List<ProcessRole> processRoles;
 	
 	public Long getId() {
 		return id;
@@ -89,10 +104,16 @@ public class ActorPermissions implements Serializable {
 	public void setWritePermission(Boolean writePermission) {
 		this.writePermission = writePermission;
 	}
-	public ProcessRole getProcessRole() {
-		return processRole;
+	public List<ProcessRole> getProcessRoles() {
+		return processRoles;
 	}
-	public void setProcessRole(ProcessRole processRole) {
-		this.processRole = processRole;
+	public void setProcessRoles(List<ProcessRole> processRoles) {
+		this.processRoles = processRoles;
+	}
+	public String getRoleName() {
+		return roleName;
+	}
+	public void setRoleName(String roleName) {
+		this.roleName = roleName;
 	}
 }

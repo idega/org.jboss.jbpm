@@ -22,9 +22,9 @@ import com.idega.jbpm.def.ProcessBundleManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/05/12 20:09:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:42 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service("BPMAutoDeployable")
@@ -195,6 +195,11 @@ public class AutoDeployable {
 
 	public void setProcessBundle(ProcessBundle processBundle) {
 		this.processBundle = processBundle;
+	}
+	
+	public void setNeedsDeploy(Boolean needsDeploy) {
+		
+		this.needsDeploy = needsDeploy;
 	}
 
 	public Boolean getNeedsDeploy() {

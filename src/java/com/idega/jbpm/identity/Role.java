@@ -8,9 +8,9 @@ import com.idega.jbpm.identity.permission.RoleScope;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/03/24 19:49:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
  */
 public class Role {
 
@@ -45,11 +45,18 @@ public class Role {
 	}
 	
 	@Override
+	public int hashCode() {
+		return getRoleName().hashCode();
+	}
+	
+	@Override
 	public boolean equals(Object arg0) {
 		
 		if(super.equals(arg0))
 			return true;
 		
-		return arg0 instanceof Role && ((Role)arg0).getRoleName().equals(getRoleName());
+		String roleName = arg0 instanceof String ? (String)arg0 : arg0 instanceof Role ? ((Role)arg0).getRoleName() : null;
+		
+		return roleName != null && roleName.equals(getRoleName());
 	}
 }

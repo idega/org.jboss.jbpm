@@ -15,19 +15,19 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- * Last modified: $Date: 2008/04/26 02:48:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
  */
 public interface RolesManager {
 
 //	public abstract List<ProcessRole> createRolesByProcessInstance(
 //			Map<String, Role> roles, long processInstanceId);
 	
-	public abstract void createTaskRolesPermissionsPIScope(Task task, List<Role> roles, Long processInstanceId);
+//	public abstract void createTaskRolesPermissionsPIScope(Task task, List<Role> roles, Long processInstanceId);
+//	
+//	public abstract void createTaskRolesPermissionsPDScope(Task task, List<Role> roles);
 	
-	public abstract void createTaskRolesPermissionsPDScope(Task task, List<Role> roles);
-
 	//public abstract void addGroupsToRoles(Long actorId, Collection<String> groupsIds, Long processInstanceId, Long processDefinitionId);
 	
 	public abstract void createIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId);
@@ -41,7 +41,19 @@ public interface RolesManager {
 	//public abstract Map<String, List<NativeIdentityBind>> getIdentitiesForRoles(Collection<String> rolesNames, long processInstanceId);
 	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi);
 	
-	public abstract List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles);
+	public abstract void createNativeRolesFromProcessRoles(String processName, Collection<Role> roles);
+	
+	public abstract void createTaskRolesPermissions(Task task, List<Role> roles);
+	
+//	public abstract List<ProcessRole> createProcessRolesForPDScope(String processName, Collection<Role> roles, Long processInstanceId);
+//	
+//	public abstract List<ProcessRole> createProcessRolesForPIScope(String processName, Collection<Role> roles, Long processInstanceId);
 	
 	public abstract List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId);
+	
+	public void assignTaskRolesPermissions(Task task, List<Role> roles, Long processInstanceId);
+	
+	//public abstract List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId);
+	
+	public abstract List<Long> getProcessInstancesIdsForCurrentUser();
 }

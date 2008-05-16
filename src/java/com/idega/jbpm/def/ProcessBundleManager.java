@@ -27,9 +27,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  * 
- * Last modified: $Date: 2008/05/10 18:08:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -129,13 +129,14 @@ public class ProcessBundleManager {
 			
 			for (Role role : roles) {
 			
+				System.out.println("role found: "+role.getRoleName()+", scope: "+role.getScope()+", task: "+task.getName());
 				if(role.getScope() == RoleScope.PD)
 					rolesToCreate.add(role);
 			}
 		}
 		
 		if(!rolesToCreate.isEmpty())
-			getRolesManager().createProcessRoles(pd.getName(), rolesToCreate);
+			getRolesManager().createNativeRolesFromProcessRoles(pd.getName(), rolesToCreate);
 	}
 	
 	protected void createTasksPermissions(ProcessDefinition pd) {
@@ -148,7 +149,7 @@ public class ProcessBundleManager {
 			String jsonExp = task.getAssignmentDelegation().getConfiguration();
 			
 			List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
-			getRolesManager().createTaskRolesPermissionsPDScope(task, roles);
+			getRolesManager().createTaskRolesPermissions(task, roles);
 		}
 	}
 

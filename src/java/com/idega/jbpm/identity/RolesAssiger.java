@@ -19,9 +19,9 @@ import com.idega.presentation.IWContext;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- * Last modified: $Date: 2008/04/26 02:48:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
@@ -54,7 +54,7 @@ public class RolesAssiger {
 		
 		ProcessInstance pi = taskInstance.getProcessInstance();
 		
-		getRolesManager().createTaskRolesPermissionsPIScope(taskInstance.getTask(), roles, pi.getId());
+		getRolesManager().assignTaskRolesPermissions(taskInstance.getTask(), roles, pi.getId());
 	}
 	
 	public void assignIdentities(TaskInstance taskInstance, List<Role> roles) {

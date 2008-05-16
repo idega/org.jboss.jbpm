@@ -17,10 +17,12 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
+ * Used additionally to roles + ic_permit_role. In general use case, the identity type is user.
+ * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/03/12 12:41:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_NATIVE_IDENTITY")
@@ -53,6 +55,7 @@ public class NativeIdentityBind implements Serializable {
 	@Column(name="id_")
 	private Long id;
 
+	public static final String identityIdProperty = "identityId";
 	@Column(name="identity_id", nullable=false)
 	private String identityId;
 

@@ -37,9 +37,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/05/10 18:18:23 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 09:47:42 $ by $Author: civilis $
  */
 public abstract class ProcessDefinitionsAutoloader implements ApplicationListener, ApplicationContextAware {
 
@@ -62,7 +62,7 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 	
-	public synchronized void autodeploy() {
+	public synchronized void forceAutodeploy() {
 		
 		IWMainApplication iwma;
 		FacesContext fctx = FacesContext.getCurrentInstance();
@@ -72,10 +72,10 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 		else
 			iwma = IWMainApplication.getDefaultIWMainApplication();
 		
-		autodeploy(iwma);
+		autodeploy(iwma, true);
 	}
 	
-	protected void autodeploy(IWMainApplication iwma) {
+	protected void autodeploy(IWMainApplication iwma, boolean force) {
 		
 		final List<String> mappings = getMappings();
 		final List<Resource> allResources = resolveResources(mappings);
@@ -89,8 +89,11 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 		
 		for (Iterator<AutoDeployable> iterator = processDefinitionsAutos.iterator(); iterator.hasNext();) {
 			AutoDeployable auto = iterator.next();
-			
-			if(auto.getNeedsDeploy())
+
+			if(force) {
+				auto.setNeedsDeploy(true);
+				autos.add(auto);
+			} else if(auto.getNeedsDeploy())
 				autos.add(auto);
 		}
 		
@@ -105,7 +108,7 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 		if(applicationEvent instanceof IWMainSlideStartedEvent) {
 			
 			IWMainApplication iwma = ((IWMainSlideStartedEvent)applicationEvent).getIWMA();
-			autodeploy(iwma);
+			autodeploy(iwma, false);
 		}
 	}
 	

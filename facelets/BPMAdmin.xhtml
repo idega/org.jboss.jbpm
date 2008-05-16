@@ -10,7 +10,7 @@
 <ws:page id="processRootPage" stylesheeturls="/idegaweb/bundles/org.jboss.jbpm.bundle/resources/style/egovBPM.css" showFunctionMenu="true">
 
 	<h:form enctype="multipart/form-data">
-        <h:commandButton value="Processes re-autodeploy" action="#{bpmProcessDefinitionsAutoloader.autodeploy}" />
+        <h:commandButton value="Force all autoloaded processes redeploy" action="#{bpmProcessDefinitionsAutoloader.forceAutodeploy}" />
 	</h:form>
 </ws:page>
 </html>
