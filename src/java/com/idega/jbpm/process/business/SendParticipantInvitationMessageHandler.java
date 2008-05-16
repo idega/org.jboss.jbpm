@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import javax.faces.context.FacesContext;
 
 import org.apache.commons.validator.EmailValidator;
+import org.jboss.jbpm.IWBundleStarter;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.Token;
@@ -15,6 +16,9 @@ import com.idega.core.builder.data.ICPage;
 import com.idega.core.builder.data.ICPageHome;
 import com.idega.data.IDOLookup;
 import com.idega.idegaweb.IWApplicationContext;
+import com.idega.idegaweb.IWBundle;
+import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.IWResourceBundle;
 import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
 import com.idega.util.SendMail;
@@ -22,9 +26,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/05/16 09:47:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/16 13:30:09 $ by $Author: anton $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -40,10 +44,13 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 	public SendParticipantInvitationMessageHandler() { }
 	
 	public SendParticipantInvitationMessageHandler(String parm) { }
-
 	
 	public void execute(ExecutionContext ctx) throws Exception {
+		final IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+		IWResourceBundle iwrb = getResourceBundle(iwc);
 		
+		System.out.println("_____________________ participant invitationexecute");
+
 		String recepientEmail = (String)ctx.getVariable(participantEmailVarName);
 		
 		if(recepientEmail == null || !EmailValidator.getInstance().isValid(recepientEmail)) {
@@ -58,14 +65,12 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 		String from = (String)ctx.getVariable(fromEmailVarName);
 		
 		if(subject == null || CoreConstants.EMPTY.equals(subject)) {
-			subject = "You've been invited to participate in case";
+			subject = iwrb.getLocalizedString("case_bpm.case_invitation", "You've been invited to participate in case");
 		}
 		
 		if(message == null) {
 			message = CoreConstants.EMPTY;
 		}
-		
-		final IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		
 		if(from == null || CoreConstants.EMPTY.equals(from) || !EmailValidator.getInstance().isValid(from)) {
 			from = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, "staff@idega.is");
@@ -75,7 +80,7 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 		
 		String fullUrl = composeFullUrl(iwc, ctx.getToken());
 		
-		message += "\nFollow the link to register and participate in the case: "+fullUrl;
+		message += "\n" + iwrb.getLocalizedString("case_bpm.case_invitation_message", "Follow the link to register and participate in the case") + ":" + fullUrl;
 		
 		try {
 			SendMail.send(from, recepientEmail, null, null, host, subject, message);
@@ -138,6 +143,17 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 			
 		} catch (Exception e) {
 			throw new RuntimeException("Exception while resolving icpages by subType: "+pageSubType, e);
+		}
+	}
+	
+	protected IWResourceBundle getResourceBundle(IWContext iwc) {
+		IWMainApplication app = iwc.getIWMainApplication();
+		IWBundle bundle = app.getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		
+		if(bundle != null) {
+			return bundle.getResourceBundle(iwc);
+		} else {
+			return null;
 		}
 	}
 }

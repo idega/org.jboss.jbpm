@@ -34,9 +34,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/05/12 23:14:55 $ by $Author: anton $
+ * Last modified: $Date: 2008/05/16 13:31:47 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -63,9 +63,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if(dataType == VariableDataType.FILE) {
 
 				if(val instanceof File) {
-					
+					ArrayList<String> binaryVariables = new ArrayList<String>(1);
 					BinaryVariable binaryVariable = storeFile((String)identifier, (File)val);
-					entry.setValue(binaryVariable);
+					binaryVariables.add(convertToJSON(binaryVariable));
+					
+					entry.setValue(binaryVariables);
 					
 				} else {
 					entry.setValue(null);
