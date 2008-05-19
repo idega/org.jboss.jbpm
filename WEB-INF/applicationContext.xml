@@ -48,4 +48,8 @@
         </property>
         <lookup-method name="createAutoDeployable" bean="BPMAutoDeployable" />
     </bean>
+    
+    <bean id="bpmUserFactory" class="com.idega.jbpm.identity.BPMUserFactory" scope="singleton">
+        <lookup-method name="createUser" bean="BPMUser" />
+    </bean>
 </beans>

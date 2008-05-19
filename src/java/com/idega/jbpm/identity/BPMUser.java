@@ -1,5 +1,8 @@
 package com.idega.jbpm.identity;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
 import com.idega.user.data.User;
 
 /**
@@ -10,10 +13,12 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/05/19 13:52:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 15:46:44 $ by $Author: civilis $
  */
+@Scope("prototype")
+@Service("BPMUser")
 public class BPMUser {
 
 	private User bpmUser;

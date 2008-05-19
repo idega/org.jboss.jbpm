@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.block.login.presentation.Register.RegisterListener;
-import com.idega.jbpm.process.business.SendParticipantInvitationMessageHandler;
+import com.idega.jbpm.process.business.SendParticipantInvitationMessageHandlerBean;
 import com.idega.presentation.IWContext;
 import com.idega.webface.WFUtil;
 
@@ -20,9 +20,9 @@ import com.idega.webface.WFUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/04/17 01:16:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 15:46:44 $ by $Author: civilis $
  */
 @Scope("request")
 @Service("regProcessParticipantBean")
@@ -52,7 +52,7 @@ public class RegProcessParticipantBean implements Serializable, RegisterListener
 	public Long getTokenId() {
 		
 		if(tokenId == null) {
-			String tokenIdStr = (String)FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(SendParticipantInvitationMessageHandler.tokenParam);
+			String tokenIdStr = (String)FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(SendParticipantInvitationMessageHandlerBean.tokenParam);
 			
 			if(tokenIdStr != null)
 				tokenId = new Long(tokenIdStr);
