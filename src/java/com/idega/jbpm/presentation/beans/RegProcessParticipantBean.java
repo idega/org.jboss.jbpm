@@ -20,9 +20,9 @@ import com.idega.webface.WFUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/05/19 15:46:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 19:39:00 $ by $Author: civilis $
  */
 @Scope("request")
 @Service("regProcessParticipantBean")
@@ -53,6 +53,7 @@ public class RegProcessParticipantBean implements Serializable, RegisterListener
 		
 		if(tokenId == null) {
 			String tokenIdStr = (String)FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(SendParticipantInvitationMessageHandlerBean.tokenParam);
+			//String bpmUsrIdStr = (String)FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(SendParticipantInvitationMessageHandlerBean.bpmUserParam);
 			
 			if(tokenIdStr != null)
 				tokenId = new Long(tokenIdStr);
