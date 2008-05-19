@@ -17,18 +17,18 @@ import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.jbpm.def.View;
-import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.BPMManagersFactory;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.identity.RolesManager;
+import com.idega.jbpm.view.View;
+import com.idega.jbpm.view.ViewFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/05/04 18:12:27 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	

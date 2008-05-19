@@ -1,4 +1,4 @@
-package com.idega.jbpm.exe;
+package com.idega.jbpm.process.business;
 
 import java.util.List;
 
@@ -11,9 +11,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/05/06 21:42:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
  */
 public class EndProcessHandler implements ActionHandler {
 

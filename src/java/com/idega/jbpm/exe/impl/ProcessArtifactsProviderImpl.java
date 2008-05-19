@@ -13,15 +13,15 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.IdegaJbpmContext;
-import com.idega.jbpm.exe.BinaryVariable;
-import com.idega.jbpm.exe.ProcessArtifactsProvider;
-import com.idega.jbpm.exe.VariablesHandler;
+import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
+import com.idega.jbpm.variables.BinaryVariable;
+import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/05/10 18:09:05 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service

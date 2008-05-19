@@ -1,4 +1,4 @@
-package com.idega.jbpm.exe;
+package com.idega.jbpm.artifacts.presentation;
 
 import java.rmi.RemoteException;
 import java.security.Permission;
@@ -28,12 +28,16 @@ import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
+import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.identity.BPMAccessControlException;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
-import com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
+import com.idega.jbpm.variables.BinaryVariable;
+import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
 import com.idega.user.business.UserBusiness;
 import com.idega.util.CoreConstants;
@@ -42,9 +46,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.30 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/05/12 23:14:55 $ by $Author: anton $
+ * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)

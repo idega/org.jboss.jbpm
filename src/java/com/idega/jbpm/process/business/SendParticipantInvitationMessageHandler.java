@@ -26,9 +26,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/05/16 13:30:09 $ by $Author: anton $
+ * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -49,8 +49,6 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 		final IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		IWResourceBundle iwrb = getResourceBundle(iwc);
 		
-		System.out.println("_____________________ participant invitationexecute");
-
 		String recepientEmail = (String)ctx.getVariable(participantEmailVarName);
 		
 		if(recepientEmail == null || !EmailValidator.getInstance().isValid(recepientEmail)) {

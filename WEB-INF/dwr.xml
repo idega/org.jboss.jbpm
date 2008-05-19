@@ -14,7 +14,7 @@
     	</create>
         <create creator="jsf" javascript="BPMProcessAssets">
             <param name="managedBeanName" value="BPMProcessAssets" />
-            <param name="class" value="com.idega.jbpm.exe.ProcessArtifacts" />
+            <param name="class" value="com.idega.jbpm.artifacts.presentation.ProcessArtifacts" />
             <include method="getProcessDocumentsList" />
             <include method="getProcessTasksList" />
             <include method="getTaskAttachments" />
@@ -24,7 +24,7 @@
             -->
         </create>
         
-        <convert converter="bean" match="com.idega.jbpm.presentation.beans.ProcessArtifactsParamsBean" />
+        <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.ProcessArtifactsParamsBean" />
   	</allow>
   	<signatures>
 	</signatures>

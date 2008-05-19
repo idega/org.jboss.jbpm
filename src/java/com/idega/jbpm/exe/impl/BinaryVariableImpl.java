@@ -2,15 +2,15 @@ package com.idega.jbpm.exe.impl;
 
 import java.io.Serializable;
 
-import com.idega.jbpm.exe.BinaryVariable;
+import com.idega.jbpm.variables.BinaryVariable;
 
 /**
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/12 23:14:55 $ by $Author: anton $
+ * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
  */
 public class BinaryVariableImpl implements Serializable, BinaryVariable {
 

@@ -9,15 +9,14 @@ import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
-import com.idega.jbpm.exe.BPMAccessControlException;
 import com.idega.user.data.User;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * 
- * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:39 $ by $Author: civilis $
  */
 public interface RolesManager {
 

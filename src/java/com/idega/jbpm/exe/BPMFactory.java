@@ -2,14 +2,14 @@ package com.idega.jbpm.exe;
 
 import java.util.List;
 
-import com.idega.jbpm.def.View;
 import com.idega.jbpm.identity.RolesManager;
+import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/05/04 18:12:27 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
  */
 public interface BPMFactory {
 

@@ -20,9 +20,9 @@ import javax.persistence.Table;
  * Used additionally to roles + ic_permit_role. In general use case, the identity type is user.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/05/16 18:18:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
  */
 @Entity
 @Table(name=NativeIdentityBind.TABLE_NAME)
@@ -48,6 +48,7 @@ public class NativeIdentityBind implements Serializable {
 	public enum IdentityType {
 		
 		USER,
+		BPMUSER,
 		GROUP,
 		ROLE
 	}

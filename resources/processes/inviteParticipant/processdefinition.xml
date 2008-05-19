@@ -22,7 +22,7 @@
    </node>
    <end-state name="end1">
       <event type="node-enter">
-         <action name="endProcessAction" class="com.idega.jbpm.exe.EndProcessHandler" config-type="constructor"></action>
+         <action name="endProcessAction" class="com.idega.jbpm.process.business.EndProcessHandler" config-type="constructor"></action>
       </event>
    </end-state>
 </process-definition>

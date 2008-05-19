@@ -1,4 +1,4 @@
-package com.idega.jbpm.def;
+package com.idega.jbpm.variables;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,9 +6,9 @@ import java.util.Set;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/03/27 14:14:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:39 $ by $Author: civilis $
  */
 public enum VariableDataType {
 

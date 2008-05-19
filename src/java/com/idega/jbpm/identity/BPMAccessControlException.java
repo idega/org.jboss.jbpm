@@ -1,4 +1,4 @@
-package com.idega.jbpm.exe;
+package com.idega.jbpm.identity;
 
 import java.security.AccessControlException;
 
@@ -7,7 +7,7 @@ import java.security.AccessControlException;
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/03/13 21:05:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:39 $ by $Author: civilis $
  */
 public class BPMAccessControlException extends AccessControlException {
 	

@@ -1,4 +1,4 @@
-package com.idega.jbpm.def;
+package com.idega.jbpm.bundle;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,13 +23,16 @@ import com.idega.jbpm.identity.JSONExpHandler;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.RoleScope;
+import com.idega.jbpm.view.View;
+import com.idega.jbpm.view.ViewResource;
+import com.idega.jbpm.view.ViewToTask;
 import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.1 $
  * 
- * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service

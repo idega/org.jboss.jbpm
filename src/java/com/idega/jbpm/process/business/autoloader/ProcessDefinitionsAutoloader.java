@@ -30,16 +30,16 @@ import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainSlideStartedEvent;
 import com.idega.jbpm.IdegaJbpmContext;
-import com.idega.jbpm.def.ProcessBundle;
+import com.idega.jbpm.bundle.ProcessBundle;
 import com.idega.util.CoreConstants;
 import com.idega.util.xml.XPathUtil;
 import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/05/16 09:47:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
  */
 public abstract class ProcessDefinitionsAutoloader implements ApplicationListener, ApplicationContextAware {
 

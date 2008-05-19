@@ -13,13 +13,13 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.jbpm.IdegaJbpmContext;
-import com.idega.jbpm.def.ViewToTask;
+import com.idega.jbpm.view.ViewToTask;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/05/06 21:42:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
  */
 public class ProcessMgmtMockupBean {
 	

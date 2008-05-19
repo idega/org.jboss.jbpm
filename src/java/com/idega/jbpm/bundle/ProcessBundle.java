@@ -1,4 +1,4 @@
-package com.idega.jbpm.def;
+package com.idega.jbpm.bundle;
 
 import java.io.IOException;
 import java.util.List;
@@ -6,12 +6,14 @@ import java.util.List;
 import org.jbpm.graph.def.ProcessDefinition;
 
 import com.idega.idegaweb.IWBundle;
+import com.idega.jbpm.view.ViewResource;
+import com.idega.jbpm.view.ViewToTask;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.1 $
  * 
- * Last modified: $Date: 2008/04/02 19:25:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
  */
 public interface ProcessBundle {
 

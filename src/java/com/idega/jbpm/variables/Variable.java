@@ -1,4 +1,4 @@
-package com.idega.jbpm.def;
+package com.idega.jbpm.variables;
 
 import com.idega.util.CoreConstants;
 
@@ -6,7 +6,7 @@ import com.idega.util.CoreConstants;
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2007/11/14 13:11:08 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:39 $ by $Author: civilis $
  */
 public class Variable {
 

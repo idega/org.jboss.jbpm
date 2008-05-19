@@ -133,7 +133,7 @@
    </fork>
    <node name="endProcess">
    <!--  
-      <action class="com.idega.jbpm.exe.EndProcessHandler" config-type="constructor"></action>
+      <action class="com.idega.jbpm.process.business.EndProcessHandler" config-type="constructor"></action>
       -->
    
       <event type="node-leave">

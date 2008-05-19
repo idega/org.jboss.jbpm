@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process-diagram name="participantInvitation" width="791" height="583">
+<process-diagram name="participantInvitation" width="755" height="576">
   <node name="start" x="90" y="56" width="79" height="34">
     <transition name="">
       <label x="5" y="-10"/>

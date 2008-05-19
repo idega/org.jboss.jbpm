@@ -14,17 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.bundle.ProcessBundle;
+import com.idega.jbpm.bundle.ProcessBundleManager;
 import com.idega.jbpm.data.AutoloadedProcessDefinition;
 import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.jbpm.def.ProcessBundle;
-import com.idega.jbpm.def.ProcessBundleManager;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/05/16 09:47:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service("BPMAutoDeployable")

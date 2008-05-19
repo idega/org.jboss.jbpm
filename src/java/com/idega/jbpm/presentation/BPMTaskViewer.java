@@ -13,17 +13,17 @@ import javax.faces.el.ValueBinding;
 import org.jbpm.JbpmContext;
 
 import com.idega.jbpm.IdegaJbpmContext;
-import com.idega.jbpm.def.View;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.view.View;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/05/16 07:33:53 $ by $Author: alexis $
+ * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	

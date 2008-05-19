@@ -21,9 +21,9 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.file.data.ExtendedFile;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.def.VariableDataType;
-import com.idega.jbpm.exe.BinaryVariable;
-import com.idega.jbpm.exe.BinaryVariablesHandler;
+import com.idega.jbpm.variables.BinaryVariable;
+import com.idega.jbpm.variables.BinaryVariablesHandler;
+import com.idega.jbpm.variables.VariableDataType;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
@@ -34,9 +34,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/05/16 13:31:47 $ by $Author: anton $
+ * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
