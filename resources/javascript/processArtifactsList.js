@@ -1,3 +1,9 @@
+if(Localization == null) var Localization = {};
+
+Localization.NR 			    		= 'NR';
+Localization.SUBMITTED_DATE 			= 'Submitted date';
+Localization.TASK_NAME					= 'Task name';
+
 jQuery.noConflict();
 
 if(ProcessArtifactsList == null) var ProcessArtifactsList = function() {};
@@ -26,7 +32,7 @@ ProcessArtifactsList.prototype.createArtifactsTable = function(tblSelector, proc
             
             datatype: "xml", 
             height: 250,
-            colNames:['Nr','Task name', 'Submitted date'], 
+            colNames:[Localization.NR, Localization.TASK_NAME, Localization.SUBMITTED_DATE], 
             colModel:[ 
                 {name:'id',index:'id'},
                 {name:'name',index:'name'}, 

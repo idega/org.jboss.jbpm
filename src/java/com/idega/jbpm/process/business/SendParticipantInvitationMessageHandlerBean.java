@@ -29,9 +29,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/19 15:46:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/20 06:57:00 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(SendParticipantInvitationMessageHandlerBean.beanIdentifier)
@@ -92,7 +92,7 @@ public class SendParticipantInvitationMessageHandlerBean {
 		
 //		String fullUrl = composeFullUrl(iwc, ctx.getToken());
 		
-		message += "\n" + iwrb.getLocalizedString("case_bpm.case_invitation_message", "Follow the link to register and participate in the case") + ":" + fullUrl;
+		message += "\n" + iwrb.getLocalizedAndFormattedString("case_bpm.case_invitation_message", "Follow the link to register and participate in the case : {0}", new Object[] {fullUrl}) ;
 		
 		try {
 			SendMail.send(from, recepientEmail, null, null, host, subject, message);
