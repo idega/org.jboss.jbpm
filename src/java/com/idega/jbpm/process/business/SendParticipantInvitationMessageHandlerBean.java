@@ -29,9 +29,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/05/20 06:57:00 $ by $Author: anton $
+ * Last modified: $Date: 2008/05/20 07:39:16 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(SendParticipantInvitationMessageHandlerBean.beanIdentifier)
@@ -70,7 +70,7 @@ public class SendParticipantInvitationMessageHandlerBean {
 		String from = (String)ctx.getVariable(fromEmailVarName);
 		
 		if(subject == null || CoreConstants.EMPTY.equals(subject)) {
-			subject = iwrb.getLocalizedString("case_bpm.case_invitation", "You've been invited to participate in case");
+			subject = iwrb.getLocalizedString("cases_bpm.case_invitation", "You've been invited to participate in case");
 		}
 		
 		if(message == null) {
@@ -92,7 +92,7 @@ public class SendParticipantInvitationMessageHandlerBean {
 		
 //		String fullUrl = composeFullUrl(iwc, ctx.getToken());
 		
-		message += "\n" + iwrb.getLocalizedAndFormattedString("case_bpm.case_invitation_message", "Follow the link to register and participate in the case : {0}", new Object[] {fullUrl}) ;
+		message += "\n" + iwrb.getLocalizedAndFormattedString("cases_bpm.case_invitation_message", "Follow the link to register and participate in the case : {0}", new Object[] {fullUrl}) ;
 		
 		try {
 			SendMail.send(from, recepientEmail, null, null, host, subject, message);
