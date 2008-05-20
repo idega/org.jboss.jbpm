@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,9 +35,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/20 06:45:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -78,12 +79,36 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				if(val instanceof Collection) {
 					
 					@SuppressWarnings("unchecked")
-					Collection files = (Collection)val;
+					Collection<Object> files = (Collection<Object>)val;
 					
 					if(files.isEmpty()) {
 						entry.setValue(null);
 					} else {
 						
+						ArrayList<String> binaryVariables = new ArrayList<String>(files.size());
+						
+						for (Iterator<Object> iterator = files.iterator(); iterator.hasNext();) {
+							Object o = iterator.next();
+							
+							if(o instanceof ExtendedFile) {
+								
+								ExtendedFile ef = (ExtendedFile)o;
+								
+								BinaryVariable binaryVariable = storeFile(identifier, ef.getFile());
+								binaryVariable.setDescription(ef.getFileInfo());
+								binaryVariables.add(convertToJSON(binaryVariable));
+							} else if(o instanceof File) {
+								
+								File f = (File)o;
+								
+								BinaryVariable binaryVariable = storeFile(identifier, f);
+								binaryVariable.setDescription(f.getName());
+								binaryVariables.add(convertToJSON(binaryVariable));
+							}
+						}
+						
+						entry.setValue(binaryVariables);
+						/*
 						if(files.iterator().next() instanceof ExtendedFile) {
 							
 							@SuppressWarnings("unchecked")
@@ -103,6 +128,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 							entry.setValue(null);
 							Logger.getLogger(getClass().getName()).log(Level.WARNING, "Variable data type resolved: "+dataType+", but value data type didn't match ("+val.getClass().getName()+"), variable name: "+key);
 						}
+						*/
 					}
 					
 				} else {
