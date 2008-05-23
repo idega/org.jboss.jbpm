@@ -49,9 +49,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  * 
- * Last modified: $Date: 2008/05/23 08:19:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/23 08:47:20 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -185,7 +185,16 @@ public class RolesManagerImpl implements RolesManager {
 	@Transactional(readOnly=true)
 	public Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi) {
 
-		List<ProcessRole> proles =
+		final List<ProcessRole> proles;
+		
+		if(rolesNames == null || rolesNames.isEmpty()) {
+		
+			proles =
+				getBpmDAO().getResultList(ProcessRole.getSetByPIId, ProcessRole.class, 
+						new Param(ProcessRole.processInstanceIdProperty, pi.getId())
+				);
+		} else
+			proles =
 				getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class, 
 						new Param(ProcessRole.processRoleNameProperty, rolesNames),
 						new Param(ProcessRole.processInstanceIdProperty, pi.getId())
