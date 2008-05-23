@@ -49,9 +49,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  * 
- * Last modified: $Date: 2008/05/19 13:52:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/23 08:19:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -700,6 +700,24 @@ public class RolesManagerImpl implements RolesManager {
 		}
 		
 		return prolesIds;
+	}
+	
+	public List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long taskInstanceId) {
+		
+		JbpmContext jctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			long processInstanceId = jctx.getTaskInstance(taskInstanceId).getProcessInstance().getId();
+			
+			final List<ProcessRole> proles = 
+				getBpmDAO().getResultList(ProcessRole.getSetByPIId, ProcessRole.class,
+						new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+				);
+			
+			return proles;
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(jctx);
+		}
 	}
 	
 	protected IWMainApplication getIWMA() {
