@@ -1,2 +1,13 @@
 cases_bpm.case_invitation=Þér hefur verið boðið að taka þátt eða gefa álit á máli
 cases_bpm.case_invitation_message=Opnaðu eftirfarandi slóð til að skoða málið sem að um ræðir: {0}
+cases_bpm.case_assigned_to_you=Þú
+cases_bpm.case_assigned_to_no_one=Enginn
+no_roles_to_set_permissions=Það eru engin hlutverk til að stýra aðgangi á
+set_access_rights=Stilla aðgang
+role_name=Hlutverk
+allow_disallow_to_read=Lesréttindi
+set_same_permission_for_attachements=Setja sömu réttindi á viðhengi
+close=Loka
+bpm_handler=Umsjónarmaður
+bpm_owner=Málsstofnandi
+bpm_defendant=Málsverjandi
