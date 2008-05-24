@@ -19,9 +19,12 @@
             <include method="getProcessTasksList" />
             <include method="getTaskAttachments" />
             <include method="getProcessEmailsList" />
-            <!--  
+            <include method="getProcessContactsList" />
+            <include method="getEmailAttachments" />
+            <include method="hasUserRolesEditorRights" />
+            <include method="setAccessRightsForProcessResource" />
+            <include method="getAccessRightsSetterBox" />
             <include method="getViewDisplay" />
-            -->
         </create>
         
         <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.ProcessArtifactsParamsBean" />
