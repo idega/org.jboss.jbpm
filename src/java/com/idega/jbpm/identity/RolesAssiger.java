@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.faces.context.FacesContext;
-
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.presentation.IWContext;
+import com.idega.jbpm.exe.BPMFactory;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/24 10:25:51 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
@@ -29,6 +27,7 @@ public class RolesAssiger {
 	
 	private BPMDAO bpmBindsDAO;
 	private RolesManager rolesManager;
+	private BPMFactory bpmFactory;
 
 	public void assign(TaskInstance taskInstance, List<Role> roles) {
 		
@@ -65,32 +64,41 @@ public class RolesAssiger {
 			return;
 		}
 		
+		/*
 		FacesContext fctx = FacesContext.getCurrentInstance();
 		if(fctx == null)
 			return;
 		
 //		currently supporting only assigning to current user
 		Integer userId = IWContext.getIWContext(fctx).getCurrentUserId();
+		*/
 		
-		ArrayList<Role> rolesToAssignIdentity = new ArrayList<Role>(roles.size());
+		Integer usrId = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getIdToUse();
 		
-		for (Role role : roles) {
+		if(usrId != null) {
+		
+			ArrayList<Role> rolesToAssignIdentity = new ArrayList<Role>(roles.size());
 			
-			if(role.getAssignIdentities() != null) {
+			for (Role role : roles) {
 				
-				for (String assignTo : role.getAssignIdentities()) {
+				if(role.getAssignIdentities() != null) {
 					
-					if(assignTo.equals(ASSIGN_IDENTITY_CURRENT_USER)) {
-						rolesToAssignIdentity.add(role);
-						break;
+					for (String assignTo : role.getAssignIdentities()) {
+						
+						if(assignTo.equals(ASSIGN_IDENTITY_CURRENT_USER)) {
+							rolesToAssignIdentity.add(role);
+							break;
+						}
 					}
 				}
 			}
-		}
-		
-		if(!rolesToAssignIdentity.isEmpty()) {
 			
-			getRolesManager().createIdentitiesForRoles(rolesToAssignIdentity, String.valueOf(userId), IdentityType.USER, taskInstance.getProcessInstance().getId());
+			if(!rolesToAssignIdentity.isEmpty()) {
+				
+				getRolesManager().createIdentitiesForRoles(rolesToAssignIdentity, String.valueOf(usrId), IdentityType.USER, taskInstance.getProcessInstance().getId());
+			}
+		} else {
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "assignIdentities called, but no user id resolved from current bpm user");
 		}
 	}
 	
@@ -120,5 +128,14 @@ public class RolesAssiger {
 	@Autowired
 	public void setRolesManager(RolesManager rolesManager) {
 		this.rolesManager = rolesManager;
+	}
+
+	public BPMFactory getBpmFactory() {
+		return bpmFactory;
+	}
+
+	@Autowired
+	public void setBpmFactory(BPMFactory bpmFactory) {
+		this.bpmFactory = bpmFactory;
 	}
 }

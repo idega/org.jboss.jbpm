@@ -1,8 +1,5 @@
 package com.idega.jbpm.identity;
 
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import com.idega.user.data.User;
 
 /**
@@ -13,27 +10,17 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/05/19 15:46:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/24 10:25:51 $ by $Author: civilis $
  */
-@Scope("prototype")
-@Service("BPMUser")
-public class BPMUser {
+public interface BPMUser {
 
-	private User bpmUser;
-	private User realUser;
-	
-	public User getBpmUser() {
-		return bpmUser;
-	}
-	public void setBpmUser(User bpmUser) {
-		this.bpmUser = bpmUser;
-	}
-	public User getRealUser() {
-		return realUser;
-	}
-	public void setRealUser(User realUser) {
-		this.realUser = realUser;
-	}
+	public abstract User getBpmUser();
+
+	public abstract User getRealUser();
+
+	public abstract Boolean getIsAssociated();
+
+	public abstract Integer getIdToUse();
 }

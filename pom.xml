@@ -183,5 +183,10 @@
       <version>${commons-beanutils-commons-beanutils-version}</version>
       <type>jar</type>
     </dependency>
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>jsr250-api</artifactId>
+      <version>${javax.annotation-jsr250-api-version}</version>
+    </dependency>
   </dependencies>
 </project>

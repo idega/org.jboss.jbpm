@@ -39,9 +39,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  *
- * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/24 10:25:52 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -111,14 +111,17 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			@SuppressWarnings("unchecked")
 			Collection<Group> userGroups = ub.getUserGroups(userId);
 			
-			for (Group group : userGroups) {
+			if(userGroups != null) {
 			
-				String groupId = group.getPrimaryKey().toString();
-				
-				for (NativeIdentityBind nativeIdentity : nativeIdentities) {
+				for (Group group : userGroups) {
 					
-					if(nativeIdentity.getIdentityType() == IdentityType.GROUP && nativeIdentity.getIdentityId().equals(groupId))
-						return true;
+					String groupId = group.getPrimaryKey().toString();
+					
+					for (NativeIdentityBind nativeIdentity : nativeIdentities) {
+						
+						if(nativeIdentity.getIdentityType() == IdentityType.GROUP && nativeIdentity.getIdentityId().equals(groupId))
+							return true;
+					}
 				}
 			}
 			
@@ -172,7 +175,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 							if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
 								if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
 									return;
-							} else {
+							} else if(usrGrps != null) {
 							
 								String roleName = processRole.getProcessRoleName();
 								

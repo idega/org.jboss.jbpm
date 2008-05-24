@@ -49,9 +49,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  * 
- * Last modified: $Date: 2008/05/23 08:47:20 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/24 10:25:51 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -502,6 +502,19 @@ public class RolesManagerImpl implements RolesManager {
 	}
 	
 	@Transactional(readOnly=true)
+	public List<ProcessRole> getProcessRoles(Collection<String> rolesNames, Long processInstanceId) {
+		
+		List<ProcessRole> proles = 
+			getBpmDAO().getResultList(
+					ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
+					new Param(ProcessRole.processRoleNameProperty, rolesNames),
+					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+			);
+		
+		return proles;
+	}
+	
+	@Transactional(readOnly=true)
 	public void assignTaskRolesPermissions(Task task, List<Role> roles, Long processInstanceId) {
 		
 		if(roles.isEmpty())
@@ -515,12 +528,12 @@ public class RolesManagerImpl implements RolesManager {
 			rolesNames.add(role.getRoleName());
 		}
 		
-		List<ProcessRole> proles = 
-			getBpmDAO().getResultList(
-					ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
-					new Param(ProcessRole.processRoleNameProperty, rolesNames),
-					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
-			);
+		List<ProcessRole> proles = getProcessRoles(rolesNames, processInstanceId);
+//			getBpmDAO().getResultList(
+//					ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
+//					new Param(ProcessRole.processRoleNameProperty, rolesNames),
+//					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+//			);
 		
 		if(proles != null && !proles.isEmpty()) {
 		

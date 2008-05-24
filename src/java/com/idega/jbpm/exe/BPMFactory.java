@@ -2,14 +2,15 @@ package com.idega.jbpm.exe;
 
 import java.util.List;
 
+import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/24 10:25:52 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
@@ -42,4 +43,6 @@ public interface BPMFactory {
 	public abstract View takeView(long taskInstanceId, boolean submitable, List<String> preferredTypes);
 	
 	public abstract RolesManager getRolesManager();
+	
+	public abstract BPMUserFactory getBpmUserFactory();
 }

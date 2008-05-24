@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-
-<processes>
-
-    <processDefinition bundle="org.jboss.jbpm" uriWithinBundle="resources/processes/inviteParticipant/processdefinition.xml" autoload="true" version="10" />
-
-</processes>

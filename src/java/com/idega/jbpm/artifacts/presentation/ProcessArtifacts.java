@@ -31,6 +31,7 @@ import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.identity.BPMAccessControlException;
+import com.idega.jbpm.identity.BPMUser;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
@@ -46,9 +47,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/24 10:25:52 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -229,7 +230,10 @@ public class ProcessArtifacts {
 			rows.setPage(size == 0 ? 0 : 1);
 			
 			RolesManager rolesManager = getBpmFactory().getRolesManager();
-			String loggedInUserId = String.valueOf(iwc.getCurrentUserId());
+			
+			BPMUser bpmUsr = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
+			Integer loggedInUserIdInt = bpmUsr.getIdToUse();
+			String loggedInUserId = loggedInUserIdInt == null ? null : String.valueOf(loggedInUserIdInt);
 			
 			for (TaskInstance taskInstance : tasks) {
 				
@@ -250,7 +254,7 @@ public class ProcessArtifacts {
 				
 				if(taskInstance.getActorId() != null) {
 					
-					if(taskInstance.getActorId().equals(loggedInUserId)) {
+					if(loggedInUserId != null && taskInstance.getActorId().equals(loggedInUserId)) {
 						disableSelection = false;
 						assignedToName = "You";
 						

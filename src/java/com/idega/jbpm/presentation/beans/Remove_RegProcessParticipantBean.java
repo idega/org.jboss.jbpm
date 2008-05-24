@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.block.login.presentation.Register.RegisterListener;
-import com.idega.jbpm.process.business.SendParticipantInvitationMessageHandlerBean;
+//import com.idega.jbpm.process.business.SendParticipantInvitationMessageHandlerBean;
 import com.idega.presentation.IWContext;
 import com.idega.webface.WFUtil;
 
@@ -20,13 +20,13 @@ import com.idega.webface.WFUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/05/19 19:39:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/24 10:25:52 $ by $Author: civilis $
  */
 @Scope("request")
 @Service("regProcessParticipantBean")
-public class RegProcessParticipantBean implements Serializable, RegisterListener {
+public class Remove_RegProcessParticipantBean implements Serializable, RegisterListener {
 
 	private static final long serialVersionUID = -8356636747899018641L;
 	
@@ -51,6 +51,7 @@ public class RegProcessParticipantBean implements Serializable, RegisterListener
 	
 	public Long getTokenId() {
 		
+		/*
 		if(tokenId == null) {
 			String tokenIdStr = (String)FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(SendParticipantInvitationMessageHandlerBean.tokenParam);
 			//String bpmUsrIdStr = (String)FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(SendParticipantInvitationMessageHandlerBean.bpmUserParam);
@@ -58,6 +59,7 @@ public class RegProcessParticipantBean implements Serializable, RegisterListener
 			if(tokenIdStr != null)
 				tokenId = new Long(tokenIdStr);
 		}
+		*/
 		
 		return tokenId;
 	}

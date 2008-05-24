@@ -20,15 +20,16 @@ import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.BPMManagersFactory;
 import com.idega.jbpm.exe.ProcessManager;
+import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/24 10:25:52 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	
@@ -39,6 +40,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	private BPMDAO bindsDAO;
 	private IdegaJbpmContext idegaJbpmContext;
 	private RolesManager rolesManager;
+	private BPMUserFactory bpmUserFactory;
 	
 	public BPMFactoryImpl() {
 		creatorTypeCreatorBeanIdentifier = new HashMap<String, String>(5);
@@ -225,11 +227,6 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 		return bindsDAO;
 	}
 
-	@Autowired
-	public void setBindsDAO(BPMDAO bindsDAO) {
-		this.bindsDAO = bindsDAO;
-	}
-
 	public Map<String, String> getViewTypeFactoryBeanIdentifier() {
 		
 		return viewTypeFactoryBeanIdentifier;
@@ -254,17 +251,31 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 		return idegaJbpmContext;
 	}
 
-	@Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
-		this.idegaJbpmContext = idegaJbpmContext;
-	}
-
 	public RolesManager getRolesManager() {
 		return rolesManager;
 	}
 
 	@Autowired
+	public void setBindsDAO(BPMDAO bindsDAO) {
+		this.bindsDAO = bindsDAO;
+	}
+
+	@Autowired
+	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+		this.idegaJbpmContext = idegaJbpmContext;
+	}
+	
+	@Autowired
 	public void setRolesManager(RolesManager rolesManager) {
 		this.rolesManager = rolesManager;
+	}
+
+	public BPMUserFactory getBpmUserFactory() {
+		return bpmUserFactory;
+	}
+
+	@Autowired
+	public void setBpmUserFactory(BPMUserFactory bpmUserFactory) {
+		this.bpmUserFactory = bpmUserFactory;
 	}
 }
