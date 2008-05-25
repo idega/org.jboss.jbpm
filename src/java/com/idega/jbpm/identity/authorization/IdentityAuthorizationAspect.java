@@ -1,8 +1,6 @@
 package com.idega.jbpm.identity.authorization;
 
 import java.security.Permission;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -21,9 +19,9 @@ import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/05/05 12:17:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/25 14:59:00 $ by $Author: civilis $
  */
 @Aspect
 public class IdentityAuthorizationAspect {
@@ -58,17 +56,9 @@ public class IdentityAuthorizationAspect {
 			Permission permission;
 			
 			if(taskInstance.hasEnded()) {
-				
-				if(taskInstance.getActorId() != null) {
-					
-					Logger.getLogger(getClass().getName()).log(Level.WARNING, "Task instance has ended, but it is still assigned to actorId, fixing this now. Task instance id: "+taskInstance.getId());
-					taskInstance.setActorId(null);
-				}
-				
 				permission = new ViewTaskParametersPermission("taskInstance", null, taskInstance);
 				
 			} else {
-				
 				permission = new SubmitTaskParametersPermission("taskInstance", null, taskInstance);
 			}
 			

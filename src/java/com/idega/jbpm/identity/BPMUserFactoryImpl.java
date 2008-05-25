@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/05/24 10:25:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/25 14:58:40 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -42,7 +42,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	private BPMFactory BPMFactory; 
 	private GenericDao genericDao;
 	
-	public BPMUser createBPMUser(String roleName, long processInstanceId) {
+	public BPMUser createBPMUser(String name, String roleName, long processInstanceId) {
 	
 		try {
 			FacesContext fctx = FacesContext.getCurrentInstance();
@@ -58,7 +58,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 //			bpmUserAcc.setPersonalID(String.valueOf(processInstanceId));
 //			bpmUserAcc.store();
 			
-			User bpmUserAcc = getUserBusiness(iwac).createUser("BPMUser", null, roleName, String.valueOf(processInstanceId));
+			User bpmUserAcc = getUserBusiness(iwac).createUser(name, BPMUser.bpmUserIdentifier, roleName, String.valueOf(processInstanceId));
 			
 			BPMUserImpl user = createUser();
 			user.setBpmUser(bpmUserAcc);

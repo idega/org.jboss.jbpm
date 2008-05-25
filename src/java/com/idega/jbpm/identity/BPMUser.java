@@ -10,11 +10,13 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/05/24 10:25:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/25 14:58:40 $ by $Author: civilis $
  */
 public interface BPMUser {
+	
+	public static final String bpmUserIdentifier = "BPM_USER";
 
 	public abstract User getBpmUser();
 
