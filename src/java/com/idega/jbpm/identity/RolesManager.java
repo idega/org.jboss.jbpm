@@ -14,21 +14,12 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  * 
- * Last modified: $Date: 2008/05/24 10:25:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/25 16:04:51 $ by $Author: civilis $
  */
 public interface RolesManager {
 
-//	public abstract List<ProcessRole> createRolesByProcessInstance(
-//			Map<String, Role> roles, long processInstanceId);
-	
-//	public abstract void createTaskRolesPermissionsPIScope(Task task, List<Role> roles, Long processInstanceId);
-//	
-//	public abstract void createTaskRolesPermissionsPDScope(Task task, List<Role> roles);
-	
-	//public abstract void addGroupsToRoles(Long actorId, Collection<String> groupsIds, Long processInstanceId, Long processDefinitionId);
-	
 	public abstract void createIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId);
 	
 	public abstract void hasRightsToStartTask(long taskInstanceId, int userId) throws BPMAccessControlException;
@@ -37,16 +28,11 @@ public interface RolesManager {
 	
 	public abstract void checkPermission(Permission permission) throws BPMAccessControlException;
 	
-	//public abstract Map<String, List<NativeIdentityBind>> getIdentitiesForRoles(Collection<String> rolesNames, long processInstanceId);
 	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi);
 	
 	public abstract void createNativeRolesFromProcessRoles(String processName, Collection<Role> roles);
 	
 	public abstract void createTaskRolesPermissions(Task task, List<Role> roles);
-	
-//	public abstract List<ProcessRole> createProcessRolesForPDScope(String processName, Collection<Role> roles, Long processInstanceId);
-//	
-//	public abstract List<ProcessRole> createProcessRolesForPIScope(String processName, Collection<Role> roles, Long processInstanceId);
 	
 	public abstract List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId);
 	
@@ -54,9 +40,16 @@ public interface RolesManager {
 
 	public abstract List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long taskInstanceId);
 	
-	//public abstract List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId);
-	
 	public abstract List<Long> getProcessInstancesIdsForCurrentUser();
 	
 	public abstract List<ProcessRole> getProcessRoles(Collection<String> rolesNames, Long processInstanceId);
+
+	/**
+	 * creates or updates task instance scope permissions for role.
+	 * @param role - role object, containing role name, and accesses to set
+	 * @param taskInstanceId
+	 * @param setSameForAttachments - set the same access rights for binary variables of the task instance 
+	 * @param variableName - if provided, set rights for variable for that task instance. This is usually used for task attachments.
+	 */
+	public abstract void setTaskRolePermissionsTIScope(Role role, Long taskInstanceId, boolean setSameForAttachments, String variableName);
 }

@@ -49,9 +49,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  * 
- * Last modified: $Date: 2008/05/24 10:25:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/25 16:04:50 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -258,42 +258,6 @@ public class RolesManagerImpl implements RolesManager {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving users from roles assigned groups", e);
 		}
 		
-		/*
-		List<ProcessRole> piScopeRoles = 
-			getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class, 
-					new Param(ProcessRole.processRoleNameProperty, rolesNames),
-					new Param(ProcessRole.processInstanceIdProperty, pi.getId())
-			);
-		
-		try {
-			for (ProcessRole processRole : piScopeRoles) {
-				
-				if(!processRole.getNativeIdentities().isEmpty()) {
-					
-					for (NativeIdentityBind identity : processRole.getNativeIdentities()) {
-						
-						if(identity.getIdentityType() == IdentityType.USER) {
-							
-							User user = userBusiness.getUser(new Integer(identity.getIdentityId()));
-							allUsers.put(user.getPrimaryKey().toString(), user);
-							
-						} else if(identity.getIdentityType() == IdentityType.GROUP) {
-							
-							@SuppressWarnings("unchecked")
-							Collection<User> groupUsers = userBusiness.getUsersInGroup(new Integer(identity.getIdentityId()));
-							
-							for (User user : groupUsers)
-								allUsers.put(user.getPrimaryKey().toString(), user);
-						}
-					}
-				}
-			}
-			
-		} catch (RemoteException e) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving users in native identities", e);
-		}
-		*/
-		
 		return allUsers.values();
 	}
 	
@@ -308,16 +272,6 @@ public class RolesManagerImpl implements RolesManager {
 			}
 		}
 	}
-	
-//	public List<ProcessRole> createProcessRolesForPDScope(String processName, Collection<Role> roles, Long processInstanceId) {
-//		
-//		return createProcessRoles(processName, roles, processInstanceId, RoleScope.PD);
-//	}
-//	
-//	public List<ProcessRole> createProcessRolesForPIScope(String processName, Collection<Role> roles, Long processInstanceId) {
-//		
-//		return createProcessRoles(processName, roles, processInstanceId, RoleScope.PI);
-//	}
 	
 	public List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId) {
 		
@@ -363,103 +317,6 @@ public class RolesManagerImpl implements RolesManager {
 		
 		return processRoles;
 	}
-	
-	/*
-	public List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId) {
-		
-		HashSet<String> pdScopeRolesNamesToCreate = new HashSet<String>();
-		HashSet<String> piScopeRolesNamesToCreate;
-		
-		if(processInstanceId != null)
-			piScopeRolesNamesToCreate = new HashSet<String>();
-		else
-			piScopeRolesNamesToCreate = null;
-		
-		for (Role role : roles) {
-			
-			if(role.getScope() == RoleScope.PD)
-				pdScopeRolesNamesToCreate.add(role.getRoleName());
-			else if(role.getScope() == RoleScope.PI && piScopeRolesNamesToCreate != null)
-				piScopeRolesNamesToCreate.add(role.getRoleName());
-		}
-		
-		List<ProcessRole> PDScopeProcRoles;
-		
-		if(!pdScopeRolesNamesToCreate.isEmpty()) {
-		
-			PDScopeProcRoles = 
-				getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndProcessNameAndPIIdIsNull, ProcessRole.class,
-						new Param(ProcessRole.processRoleNameProperty, pdScopeRolesNamesToCreate),
-						new Param(ProcessRole.processNameProperty, processName)
-				);
-			
-		} else {
-			PDScopeProcRoles = new ArrayList<ProcessRole>(0);
-		}
-		
-		ArrayList<ProcessRole> processRoles = new ArrayList<ProcessRole>();
-		
-		for (ProcessRole processRole : PDScopeProcRoles) {
-			
-			if(pdScopeRolesNamesToCreate.contains(processRole.getProcessRoleName()))
-				pdScopeRolesNamesToCreate.remove(processRole.getProcessRoleName());
-			
-			processRoles.add(processRole);
-		}
-		
-		AccessController ac = getAccessController();
-		
-		for (String roleNameToCreate : pdScopeRolesNamesToCreate) {
-			
-			ProcessRole processRole = new ProcessRole();
-			processRole.setProcessName(processName);
-			processRole.setProcessRoleName(roleNameToCreate);
-			
-			getBpmDAO().persist(processRole);
-			processRoles.add(processRole);
-			ac.checkIfRoleExistsInDataBaseAndCreateIfMissing(roleNameToCreate);
-		}
-		
-		if(piScopeRolesNamesToCreate != null && !piScopeRolesNamesToCreate.isEmpty()) {
-		
-			List<ProcessRole> PIScopeProcRoles = 
-				getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
-						new Param(ProcessRole.processRoleNameProperty, piScopeRolesNamesToCreate),
-						new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
-				);
-				
-			for (ProcessRole processRole : PIScopeProcRoles) {
-				
-				if(piScopeRolesNamesToCreate.contains(processRole.getProcessRoleName()))
-					piScopeRolesNamesToCreate.remove(processRole.getProcessRoleName());
-				
-				processRoles.add(processRole);
-			}
-			
-			for (String roleNameToCreate : piScopeRolesNamesToCreate) {
-				
-				ProcessRole processRole = new ProcessRole();
-				processRole.setProcessName(processName);
-				processRole.setProcessRoleName(roleNameToCreate);
-				processRole.setProcessInstanceId(processInstanceId);
-				
-				getBpmDAO().persist(processRole);
-				processRoles.add(processRole);
-			}
-		}
-		
-		return processRoles;
-	}*/
-	
-//	public void createTaskRolesPermissionsPIScope(Task task, List<Role> roles, Long processInstanceId) {
-//		
-//		assignTaskRolesPermissions(task, roles, processInstanceId);
-//	}
-//	
-//	public void createTaskRolesPermissionsPDScope(Task task, List<Role> roles) {
-//		
-//		assignTaskRolesPermissions(task, roles, null);
-//	}
 	
 	@Transactional(readOnly=true)
 	public void createTaskRolesPermissions(Task task, List<Role> roles) {
@@ -588,98 +445,6 @@ public class RolesManagerImpl implements RolesManager {
 			
 		} else
 			logger.log(Level.WARNING, "No process roles found by roles: "+rolesNames+", processInstanceId: "+processInstanceId);
-		
-		
-		
-//		List<String> assignedRolesNames  = 
-//			getBpmDAO().getResultList(ProcessRole.getSetHavingPermissionsByTaskIdAndRoleName, String.class,
-//					new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
-//					new Param(ProcessRole.processRoleNameProperty, rolesNames),
-//					new Param(ActorPermissions.taskIdProperty, task.getId())
-//			);
-//		
-//		if(assignedRolesNames.size() < roles.size()) {
-//			
-//			
-//			
-//		}
-		
-		
-		/*
-
-		HashMap<String, Role> mappedRoles = new HashMap<String, Role>(roles.size());
-		
-		for (Role role : roles) {
-			
-			if((processInstanceId == null && role.getScope() == RoleScope.PD) || (processInstanceId != null && role.getScope() == RoleScope.PI)) {
-			
-				mappedRoles.put(role.getRoleName(), role);
-			}
-		}
-		
-		
-		
-		List<ProcessRole> proles;
-		
-		if(!mappedRoles.isEmpty()) {
-		
-			if(processInstanceId == null) {
-				
-				proles = 
-					getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndProcessNameAndPIIdIsNull, ProcessRole.class,
-							new Param(ProcessRole.processRoleNameProperty, mappedRoles.keySet()),
-							new Param(ProcessRole.processNameProperty, task.getProcessDefinition().getName())
-					);
-			} else {
-				
-				proles = 
-					getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
-							new Param(ProcessRole.processRoleNameProperty, mappedRoles.keySet()),
-							new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
-					);
-			}
-		} else {
-			proles = new ArrayList<ProcessRole>(1);
-		}
-		*/
-		
-		/* TODO: remove getSetByTaskIdAndProcessRole query
-		List<ActorPermissions> perms = 
-			getBpmDAO().getResultList(ActorPermissions.getSetByTaskIdAndProcessRole, new Param[] {
-						new Param(ActorPermissions.taskIdProperty, task.getId()),
-						new Param(ActorPermissions.processRoleProperty, proles)
-					}, ActorPermissions.class);
-		 
-		
-		for (ProcessRole prole : proles) {
-			
-			List<ActorPermissions> perms = prole.getActorPermissions();
-			
-			boolean hasPermForTask = false;
-			
-			if(!perms.isEmpty()) {
-				
-				for (ActorPermissions actorPermissions : perms) {
-					
-					if(actorPermissions.getTaskId().equals(task.getId()) && actorPermissions.getTaskInstanceId() == null)
-						hasPermForTask = true;
-				}
-			}
-			
-			if(!hasPermForTask) {
-				
-				Role rolePermsToAssign = mappedRoles.get(prole.getProcessRoleName());
-				
-				ActorPermissions perm = new ActorPermissions();
-				perm.setTaskId(task.getId());
-				perm.setProcessRole(prole);
-				perm.setReadPermission(rolePermsToAssign.getAccesses().contains(Access.read));
-				perm.setWritePermission(rolePermsToAssign.getAccesses().contains(Access.write));
-				
-				getBpmDAO().persist(perm);
-			}
-		}
-		*/
 	}
 	
 	public List<Long> getProcessInstancesIdsForCurrentUser() {
@@ -740,6 +505,18 @@ public class RolesManagerImpl implements RolesManager {
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(jctx);
 		}
+	}
+	
+	/**
+	 * creates or updates task instance scope permissions for role.
+	 * @param role - role object, containing role name, and accesses to set
+	 * @param taskInstanceId
+	 * @param setSameForAttachments - set the same access rights for binary variables of the task instance 
+	 * @param variableName - if provided, set rights for variable for that task instance. This is usually used for task attachments.
+	 */
+	public void setTaskRolePermissionsTIScope(Role role, Long taskInstanceId, boolean setSameForAttachments, String variableName) {
+	
+		
 	}
 	
 	protected IWMainApplication getIWMA() {

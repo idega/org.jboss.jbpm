@@ -1,5 +1,6 @@
 package com.idega.jbpm.identity;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.idega.jbpm.identity.permission.Access;
@@ -8,9 +9,9 @@ import com.idega.jbpm.identity.permission.RoleScope;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/25 16:04:51 $ by $Author: civilis $
  */
 public class Role {
 
@@ -18,6 +19,14 @@ public class Role {
 	private List<String> assignIdentities;
 	private RoleScope scope;
 	private List<Access> accesses;
+	
+	public Role() {	}
+	
+	public Role(String roleName, Access... accesses) {
+		
+		this.roleName = roleName;
+		setAccesses(Arrays.asList(accesses));
+	}
 	
 	public String getRoleName() {
 		return roleName;

@@ -46,7 +46,9 @@ import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.identity.BPMAccessControlException;
 import com.idega.jbpm.identity.BPMUser;
+import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
+import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
@@ -74,9 +76,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/25 14:57:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/25 16:04:51 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -745,12 +747,17 @@ public class ProcessArtifacts {
 		return false;
 	}
 
-	public void setAccessRightsForProcessResource(String roleId, Long processId, Long taskId, boolean canAcsess, boolean setSameRightsForAttachments) {
-		if (roleId == null || taskId == null) {
+	public void setAccessRightsForProcessResource(String roleName, Long taskInstanceId, boolean hasReadAccess, boolean setSameRightsForAttachments) {
+		
+		if (roleName == null || CoreConstants.EMPTY.equals(roleName) || taskInstanceId == null) {
+			logger.log(Level.WARNING, "setAccessRightsForProcessResource called, but insufficient parameters provided. Got: roleName="+roleName+", taskInstanceId="+taskInstanceId);
 			return;
 		}
 		
-		//	TODO: make real logic
+		getBpmFactory().getRolesManager().setTaskRolePermissionsTIScope(
+				new Role(roleName, hasReadAccess ? Access.read : null),
+				taskInstanceId, setSameRightsForAttachments, null
+		);
 	}
 	
 	public org.jdom.Document getAccessRightsSetterBox(Long processId, Long taskId, boolean setSameRightsForAttachments) {
