@@ -74,9 +74,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/05/24 14:16:55 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/25 14:57:53 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -111,12 +111,36 @@ public class ProcessArtifacts {
 				continue;
 			}
 			
+			String actorId = submittedDocument.getActorId();
+			String submittedByName;
+			
+			if(actorId != null) {
+				
+				try {
+					User usr = getUserBusiness().getUser(Integer.parseInt(actorId));
+					
+					if(BPMUser.bpmUserIdentifier.equals(usr.getMiddleName())) {
+						
+						submittedByName = usr.getFirstName();
+					} else
+						submittedByName = usr.getName();
+					
+				} catch (Exception e) {
+					Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving actor name for actorId: "+actorId, e);
+					submittedByName = CoreConstants.EMPTY;
+				}
+				
+			} else
+				submittedByName = CoreConstants.EMPTY;
+			
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 			String tidStr = String.valueOf(submittedDocument.getId());
 			row.setId(tidStr);
 			//row.addCell(tidStr);
+			
 			row.addCell(submittedDocument.getName());
+			row.addCell(submittedByName);
 			row.addCell(submittedDocument.getEnd() == null ? CoreConstants.EMPTY :
 				new IWTimestamp(submittedDocument.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 			);
