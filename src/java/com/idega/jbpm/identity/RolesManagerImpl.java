@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +42,8 @@ import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.RoleScope;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
+import com.idega.jbpm.variables.BinaryVariable;
+import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Group;
@@ -50,9 +53,9 @@ import com.idega.util.CoreConstants;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  * 
- * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/26 14:13:32 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -62,6 +65,7 @@ public class RolesManagerImpl implements RolesManager {
 	private BPMDAO bpmDAO;
 	private IdegaJbpmContext idegaJbpmContext;
 	private AuthorizationService authorizationService;
+	private VariablesHandler variablesHandler;
 	
 	private static final Logger logger = Logger.getLogger(RolesManagerImpl.class.getName());
 
@@ -513,14 +517,15 @@ public class RolesManagerImpl implements RolesManager {
 	 * @param role - role object, containing role name, and accesses to set
 	 * @param taskInstanceId
 	 * @param setSameForAttachments - set the same access rights for binary variables of the task instance 
-	 * @param variableName - if provided, set rights for variable for that task instance. This is usually used for task attachments.
+	 * @param variableIdentifier - if provided, set rights for variable for that task instance. This is usually used for task attachments.
 	 */
-	public void setTaskRolePermissionsTIScope(Role role, Long taskInstanceId, boolean setSameForAttachments, String variableName) {
+	@Transactional(readOnly = false)
+	public void setTaskRolePermissionsTIScope(Role role, Long taskInstanceId, boolean setSameForAttachments, String variableIdentifier) {
 	
-//		todo: check permissions if rights can be changed
+//		TODO: check permissions if rights can be changed
 		String roleName = role.getRoleName();
 		
-		if(roleName != null && taskInstanceId != null && CoreConstants.EMPTY.equals(roleName)) {
+		if(roleName != null && taskInstanceId != null && !CoreConstants.EMPTY.equals(roleName)) {
 			
 			final JbpmContext jctx = getIdegaJbpmContext().createJbpmContext();
 			
@@ -531,7 +536,7 @@ public class RolesManagerImpl implements RolesManager {
 			
 				final List<ProcessRole> proles = getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
 						new Param(ProcessRole.processInstanceIdProperty, piId),
-						new Param(ProcessRole.processRoleNameProperty, new String[] {roleName})
+						new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {roleName}))
 				);
 				
 				if(proles != null && !proles.isEmpty()) {
@@ -543,13 +548,17 @@ public class RolesManagerImpl implements RolesManager {
 					boolean setReadPermission = accesses != null && accesses.contains(Access.read);
 					boolean setWritePermission = accesses != null && accesses.contains(Access.write);
 					
-					if(variableName != null && !CoreConstants.EMPTY.equals(variableName)) {
+					ActorPermissions tiPerm = null;
+					
+					if(variableIdentifier != null && !CoreConstants.EMPTY.equals(variableIdentifier)) {
 						
 						ActorPermissions aperm = null;
 						
 						for (ActorPermissions perm : perms) {
 							
-							if(taskInstanceId.equals(perm.getTaskInstanceId()) && variableName.equals(perm.getVariableName())) {
+							if(taskInstanceId.equals(perm.getTaskInstanceId()) && perm.getVariableIdentifier() == null) {
+								tiPerm = perm;
+							} else if(taskInstanceId.equals(perm.getTaskInstanceId()) && variableIdentifier.equals(perm.getVariableIdentifier())) {
 								aperm = perm;
 								break;
 							}
@@ -559,6 +568,7 @@ public class RolesManagerImpl implements RolesManager {
 							
 							aperm.setWritePermission(setReadPermission);
 							aperm.setReadPermission(setWritePermission);
+							aperm = getBpmDAO().merge(aperm);
 							
 						} else if(setReadPermission || setWritePermission) {
 							
@@ -568,34 +578,113 @@ public class RolesManagerImpl implements RolesManager {
 							aperm.setRoleName(prole.getProcessRoleName());
 							aperm.setTaskId(ti.getTask().getId());
 							aperm.setTaskInstanceId(taskInstanceId);
-							aperm.setVariableName(variableName);
+							aperm.setVariableIdentifier(variableIdentifier);
 							aperm.setReadPermission(setReadPermission);
 							aperm.setWritePermission(setWritePermission);
 							aperm.setProcessRoles(proles);
+							getBpmDAO().persist(aperm);
 						}
+					}
+					
+					if(tiPerm == null) {
+						for (ActorPermissions perm : perms) {
+							
+							if(taskInstanceId.equals(perm.getTaskInstanceId()) && perm.getVariableIdentifier() == null) {
+								tiPerm = perm;
+								break;
+							}
+						}
+					}
+					
+					if(variableIdentifier != null) {
+						
+						setWritePermission = setWritePermission || (tiPerm != null && tiPerm.getWritePermission());
+						setReadPermission = setReadPermission || (tiPerm != null && tiPerm.getReadPermission());
+					}
+					
+					if(tiPerm != null) {
+
+						tiPerm.setWritePermission(setWritePermission);
+						tiPerm.setReadPermission(setReadPermission);
+						
+						tiPerm = getBpmDAO().merge(tiPerm);
+						
+					} else if(setReadPermission || setWritePermission) {
+						
+//						creating only if there's any permissive permission to be set
+						
+						tiPerm = new ActorPermissions();
+						tiPerm.setRoleName(prole.getProcessRoleName());
+						tiPerm.setTaskId(ti.getTask().getId());
+						tiPerm.setTaskInstanceId(taskInstanceId);
+						tiPerm.setVariableIdentifier(null);
+						tiPerm.setWritePermission(setWritePermission);
+						tiPerm.setReadPermission(setReadPermission);
+						tiPerm.setProcessRoles(proles);
+						getBpmDAO().persist(tiPerm);
+						perms.add(tiPerm);
 					}
 					
 //					set for task instance
 					
-					
-					if(setSameForAttachments) {
+					if(setSameForAttachments && variableIdentifier == null) {
+
+						List<BinaryVariable> binaryVariables = getVariablesHandler().resolveBinaryVariables(taskInstanceId);
 						
+						if(!binaryVariables.isEmpty()) {
+						
+							for (ActorPermissions perm : perms) {
+								
+								if(taskInstanceId.equals(perm.getTaskInstanceId()) && perm.getVariableIdentifier() != null) {
+
+									for (Iterator<BinaryVariable> iterator = binaryVariables.iterator(); iterator.hasNext();) {
+										BinaryVariable binVar = iterator.next();
+										
+										if(perm.getVariableIdentifier().equals(binVar.getHash().toString())) {
+											
+											perm.setReadPermission(setReadPermission);
+											perm.setWritePermission(setWritePermission);
+											perm = getBpmDAO().merge(perm);
+											iterator.remove();
+										}
+									}
+								}
+							}
+							
+//							creating non existent permissions for vars
+							for (BinaryVariable binVar : binaryVariables) {
+								
+								tiPerm = new ActorPermissions();
+								tiPerm.setRoleName(prole.getProcessRoleName());
+								tiPerm.setTaskId(ti.getTask().getId());
+								tiPerm.setTaskInstanceId(taskInstanceId);
+								tiPerm.setVariableIdentifier(binVar.getHash().toString());
+								tiPerm.setWritePermission(setWritePermission);
+								tiPerm.setReadPermission(setReadPermission);
+								tiPerm.setProcessRoles(proles);
+								
+								getBpmDAO().persist(tiPerm);
+								perms.add(tiPerm);
+							}
+						}
 					}
 					
+					getBpmDAO().merge(prole);
 					
 				} else {
-					logger.log(Level.WARNING, "-setTaskRolePermissionsTIScope- No process roles found by roleName="+roleName+", processInstanceId="+piId);
+					logger.log(Level.WARNING, "-RolesManagerImpl.setTaskRolePermissionsTIScope- No process roles found by roleName="+roleName+", processInstanceId="+piId);
 				}
 				
 			} finally {
 				getIdegaJbpmContext().closeAndCommit(jctx);
 			}
 		} else
-			logger.log(Level.WARNING, "-setTaskRolePermissionsTIScope- Insufficient info provided");
+			logger.log(Level.WARNING, "-RolesManagerImpl.setTaskRolePermissionsTIScope- Insufficient info provided");
 	}
 	
-	public List<Role> getRolesPermissionsForTaskInstance(Long taskInstanceId, String variableName) {
+	public List<Role> getRolesPermissionsForTaskInstance(Long taskInstanceId, String variableIdentifier) {
 		
+//		TODO: check permissions if rights can be seen
 		if(taskInstanceId == null)
 			throw new IllegalArgumentException("TaskInstanceId not provided");
 		
@@ -622,7 +711,7 @@ public class RolesManagerImpl implements RolesManager {
 				
 				for (ActorPermissions perm : perms) {
 
-					if (taskInstanceId.equals(perm.getTaskInstanceId()) && variableName != null && variableName.equals(perm.getVariableName())) {
+					if (taskInstanceId.equals(perm.getTaskInstanceId()) && variableIdentifier != null && variableIdentifier.equals(perm.getVariableIdentifier())) {
 						
 						taskInstanceScopeANDVar = new ArrayList<Access>(2);
 					
@@ -637,7 +726,7 @@ public class RolesManagerImpl implements RolesManager {
 						
 						break;
 						
-					} else if (taskInstanceId.equals(perm.getTaskInstanceId()) && perm.getVariableName() == null) {
+					} else if (taskInstanceId.equals(perm.getTaskInstanceId()) && perm.getVariableIdentifier() == null) {
 						
 						taskInstanceScopeNoVar = new ArrayList<Access>(2);
 
@@ -650,10 +739,10 @@ public class RolesManagerImpl implements RolesManager {
 							taskInstanceScopeNoVar.add(Access.read);
 						}
 						
-						if(variableName == null)
+						if(variableIdentifier == null)
 							break;
 							
-					} else if (taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null && variableName != null && variableName.equals(perm.getVariableName())) {
+					} else if (taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null && variableIdentifier != null && variableIdentifier.equals(perm.getVariableIdentifier())) {
 						
 						taskScopeANDVar = new ArrayList<Access>(2);
 						
@@ -666,7 +755,7 @@ public class RolesManagerImpl implements RolesManager {
 							taskScopeANDVar.add(Access.read);
 						}
 						
-					} else if (taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null && perm.getVariableName() == null) {
+					} else if (taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null && perm.getVariableIdentifier() == null) {
 						
 						taskScopeNoVar = new ArrayList<Access>(2);
 						
@@ -681,7 +770,7 @@ public class RolesManagerImpl implements RolesManager {
 					}
 				}
 				
-				if(variableName != null) {
+				if(variableIdentifier != null) {
 					
 					if(taskInstanceScopeANDVar != null) {
 						role.setAccesses(taskInstanceScopeANDVar);
@@ -755,5 +844,14 @@ public class RolesManagerImpl implements RolesManager {
 		catch (IBOLookupException ile) {
 			throw new IBORuntimeException(ile);
 		}
+	}
+
+	public VariablesHandler getVariablesHandler() {
+		return variablesHandler;
+	}
+
+	@Autowired
+	public void setVariablesHandler(VariablesHandler variablesHandler) {
+		this.variablesHandler = variablesHandler;
 	}
 }

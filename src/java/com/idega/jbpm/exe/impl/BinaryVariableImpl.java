@@ -8,9 +8,9 @@ import com.idega.jbpm.variables.BinaryVariable;
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/05/26 08:43:27 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/26 14:13:32 $ by $Author: civilis $
  */
 public class BinaryVariableImpl implements Serializable, BinaryVariable {
 
@@ -96,5 +96,9 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 
 	public String getVariableName() {
 		return variableName;
+	}
+
+	public void setVariableName(String variableName) {
+		this.variableName = variableName;
 	}
 }
