@@ -73,9 +73,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/26 13:21:24 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -382,7 +382,7 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, String variableName, boolean setSameRightsForAttachments) {		
+	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, Integer variableIdentifier, boolean setSameRightsForAttachments) {		
 		String id = new StringBuilder("idPrefImg").append(taskInstanceId).toString();
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		StringBuilder image = new StringBuilder("<img id=\"").append(id).append("\" class=\"caseProcessResourceAccessRightsStyle\" src=\"");
@@ -394,11 +394,11 @@ public class ProcessArtifacts {
 			image.append("'").append(processInstanceId).append("'");
 		}
 		image.append(", '").append(taskInstanceId).append("', '").append(id).append("', ");
-		if (variableName == null) {
+		if (variableIdentifier == null) {
 			image.append("null");
 		}
 		else {
-			image.append("'").append(variableName).append("'");
+			image.append("'").append(variableIdentifier).append("'");
 		}
 		image.append(", ").append(setSameRightsForAttachments).append(");\" />");
 		row.addCell(image.toString());
@@ -446,7 +446,7 @@ public class ProcessArtifacts {
 			}
 			
 			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, params.getPiId(), tidStr, binaryVariable.getVariableName(), false);
+				addRightsChangerCell(row, params.getPiId(), tidStr, binaryVariable.getHash(), false);
 			}
 		}
 		

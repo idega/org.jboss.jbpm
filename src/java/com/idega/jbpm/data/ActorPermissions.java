@@ -20,9 +20,9 @@ import javax.persistence.Table;
  * If variableName is not null, then for taskInstance or task, the most permissive permission should be used.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/05/25 16:04:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/26 13:21:34 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_ACTORS_PERMISSIONS")
@@ -51,8 +51,8 @@ public class ActorPermissions implements Serializable {
 	@Column(name="task_instance_id")
 	private Long taskInstanceId;
 	
-	@Column(name="variable_name")
-	private String variableName;
+	@Column(name="variable_identifier")
+	private String variableIdentifier;
 	
 	public static final String roleNameProperty = "roleName";
 	@Column(name="process_role_name")
@@ -120,10 +120,10 @@ public class ActorPermissions implements Serializable {
 	public void setRoleName(String roleName) {
 		this.roleName = roleName;
 	}
-	public String getVariableName() {
-		return variableName;
+	public String getVariableIdentifier() {
+		return variableIdentifier;
 	}
-	public void setVariableName(String variableName) {
-		this.variableName = variableName;
+	public void setVariableIdentifier(String variableIdentifier) {
+		this.variableIdentifier = variableIdentifier;
 	}
 }
