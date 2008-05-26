@@ -76,9 +76,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/05/25 16:04:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/26 07:49:26 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -869,18 +869,26 @@ public class ProcessArtifacts {
 		
 		List<ActorPermissions> permissions = null;
 		try {
-//			permissions = role.getActorPermissions();	// FIXME: it ALWAYS throws exception
-			return true;
+			permissions = role.getActorPermissions();
 		} catch(Exception e) {
 			logger.log(Level.SEVERE, "Unable to get permissions for taskInstanceId: " + taskInstanceId, e);
 		}
-		if (permissions == null || permissions.isEmpty()) {
+		try {
+			if (permissions == null || permissions.isEmpty()) {	//	FIXME:	always throws exception
+				return false;
+			}
+		} catch(Exception e) {
+			logger.log(Level.SEVERE, "Unable to get permissions for taskInstanceId: " + taskInstanceId, e);
 			return false;
 		}
 		
 		for(ActorPermissions permission: permissions) {
-			if (taskInstanceId.equals(permission.getTaskInstanceId())) {
-				return permission.getReadPermission();
+			try {
+				if (taskInstanceId.equals(permission.getTaskInstanceId())) {
+					return permission.getReadPermission();
+				}
+			} catch(Exception e) {
+				logger.log(Level.SEVERE, "Unable to check permission for taskInstanceId: " + taskInstanceId, e);
 			}
 		}
 		
