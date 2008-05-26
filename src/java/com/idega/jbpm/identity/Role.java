@@ -9,9 +9,9 @@ import com.idega.jbpm.identity.permission.RoleScope;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/05/25 16:04:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
  */
 public class Role {
 
@@ -25,7 +25,7 @@ public class Role {
 	public Role(String roleName, Access... accesses) {
 		
 		this.roleName = roleName;
-		setAccesses(Arrays.asList(accesses));
+		setAccesses(accesses == null ? null : Arrays.asList(accesses));
 	}
 	
 	public String getRoleName() {
@@ -35,6 +35,7 @@ public class Role {
 		this.roleName = roleName;
 	}
 	public List<Access> getAccesses() {
+		
 		return accesses;
 	}
 	public void setAccesses(List<Access> accesses) {

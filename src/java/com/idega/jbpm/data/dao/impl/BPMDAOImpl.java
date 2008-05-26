@@ -21,9 +21,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/05/06 21:42:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -121,31 +121,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		@SuppressWarnings("unchecked")
 		List<ProcessRole> all = getEntityManager().createNamedQuery(ProcessRole.getAllGeneral)
 		.getResultList();
-		
-		return all;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public List<ProcessRole> getProcessRolesByRolesNames(Collection<String> rolesNames, Long processInstanceId) {
-		
-		if(rolesNames == null || rolesNames.isEmpty())
-			throw new IllegalArgumentException("Roles names should contain values");
-		
-		List<ProcessRole> all;
-		
-		if(processInstanceId == null) {
-			
-			all = getEntityManager().createNamedQuery(ProcessRole.getAllByRoleNamesAndPIIdIsNull)
-			.setParameter(ProcessRole.processRoleNameProperty, rolesNames)
-			.getResultList();
-			
-		} else {
-		
-			all = getEntityManager().createNamedQuery(ProcessRole.getSetByRoleNamesAndPIId)
-			.setParameter(ProcessRole.processRoleNameProperty, rolesNames)
-			.setParameter(ProcessRole.processInstanceIdProperty, processInstanceId)
-			.getResultList();
-		}
 		
 		return all;
 	}

@@ -24,7 +24,6 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
 
 import com.idega.business.IBOLookup;
@@ -41,8 +40,6 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
-import com.idega.jbpm.data.ActorPermissions;
-import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.identity.BPMAccessControlException;
 import com.idega.jbpm.identity.BPMUser;
@@ -76,9 +73,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/05/26 08:43:27 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -767,8 +764,9 @@ public class ProcessArtifacts {
 		);
 	}
 	
-	public org.jdom.Document getAccessRightsSetterBox(Long processId, Long taskId, String variableName, boolean setSameRightsForAttachments) {
-		if (taskId == null) {
+//	TODO: processInstanceId is not needed (anywhere regarding permissions)
+	public org.jdom.Document getAccessRightsSetterBox(Long processInstanceId, Long taskInstanceId, String variableName, boolean setSameRightsForAttachments) {
+		if (taskInstanceId == null) {
 			return null;
 		}
 		
@@ -784,13 +782,8 @@ public class ProcessArtifacts {
 		}
 		Layer container = new Layer();
 
-		RolesManager rolesManager = getBpmFactory().getRolesManager();
-		List<ProcessRole> roles = null;
-		try {
-			roles = rolesManager.getProcessRolesForProcessInstanceByTaskInstance(taskId);
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
+		List<Role> roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(taskInstanceId, CoreConstants.EMPTY.equals(variableName) ? null : variableName);
+		
 		if (roles == null || roles.isEmpty()) {
 			container.add(new Heading3(iwrb.getLocalizedString("no_roles_to_set_permissions", "There are no roles to set access rights")));
 		}
@@ -817,8 +810,9 @@ public class ProcessArtifacts {
 			
 			String roleName = null;
 			TableBodyRowGroup bodyRowGroup = table.createBodyRowGroup();
-			for (ProcessRole role: roles) {
-				roleName = role.getProcessRoleName();
+			
+			for (Role role : roles) {
+				roleName = role.getRoleName();
 				
 				TableRow bodyRow = bodyRowGroup.createRow();
 				TableCell2 cell = bodyRow.createCell();
@@ -830,15 +824,15 @@ public class ProcessArtifacts {
 				}
 				
 				CheckBox box = new CheckBox(roleName);
-				box.setChecked(isAllowedToReadTaskResource(role, taskId));
+				box.setChecked(role.getAccesses() != null && role.getAccesses().contains(Access.read));
 				StringBuilder action = new StringBuilder("setAccessRightsForBpmRelatedResource('").append(box.getId()).append("', ");
-				if (processId == null) {
+				if (processInstanceId == null) {
 					action.append("null");
 				}
 				else {
-					action.append("'").append(processId).append("'");
+					action.append("'").append(processInstanceId).append("'");
 				}
-				action.append(", '").append(taskId).append("', ");
+				action.append(", '").append(taskInstanceId).append("', ");
 				if (variableName == null) {
 					action.append("null");
 				}
@@ -875,6 +869,7 @@ public class ProcessArtifacts {
 		return builder.getRenderedComponent(iwc, container, false);
 	}
 	
+	/*
 	@Transactional(readOnly = true)
 	protected boolean isAllowedToReadTaskResource(ProcessRole role, Long taskInstanceId) {
 		if (role == null || taskInstanceId == null) {
@@ -908,6 +903,7 @@ public class ProcessArtifacts {
 		
 		return false;
 	}
+	*/
 	
 	public IdegaJbpmContext getIdegaJbpmContext() {
 		return idegaJbpmContext;

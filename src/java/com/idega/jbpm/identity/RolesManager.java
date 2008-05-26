@@ -14,9 +14,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  * 
- * Last modified: $Date: 2008/05/25 16:04:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -52,4 +52,6 @@ public interface RolesManager {
 	 * @param variableName - if provided, set rights for variable for that task instance. This is usually used for task attachments.
 	 */
 	public abstract void setTaskRolePermissionsTIScope(Role role, Long taskInstanceId, boolean setSameForAttachments, String variableName);
+	
+	public abstract List<Role> getRolesPermissionsForTaskInstance(Long taskInstanceId, String variableName);
 }

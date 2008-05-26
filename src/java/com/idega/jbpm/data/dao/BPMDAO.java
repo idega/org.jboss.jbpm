@@ -16,9 +16,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/04/11 01:28:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
  */
 public interface BPMDAO extends GenericDao {
 
@@ -45,8 +45,6 @@ public interface BPMDAO extends GenericDao {
 	public abstract void updateAddGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds);
 	
 	public abstract List<NativeIdentityBind> getNativeIdentities(long processRoleIdentityId);
-	
-	public abstract List<ProcessRole> getProcessRolesByRolesNames(Collection<String> rolesNames, Long processInstanceId);
 	
 	public abstract List<ProcessRole> getProcessRoles(Collection<Long> actorIds);
 	
