@@ -76,9 +76,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/05/26 07:49:26 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/26 08:43:27 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -150,7 +150,7 @@ public class ProcessArtifacts {
 			row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri).append("\" onclick=\"downloadCaseDocument('").append(tidStr).append("');\" />").toString());
 			
 			if (rightsChanger) {
-				addRightsChangerCell(row, processInstanceId, tidStr, true);
+				addRightsChangerCell(row, processInstanceId, tidStr, null, true);
 			}
 		}
 		
@@ -215,7 +215,7 @@ public class ProcessArtifacts {
 			);
 			
 			if (rightsChanger) {
-				addRightsChangerCell(row, processInstanceId, tidStr, true);
+				addRightsChangerCell(row, processInstanceId, tidStr, null, true);
 			}
 		}
 		
@@ -368,7 +368,7 @@ public class ProcessArtifacts {
 				}
 				
 				if (params.isRightsChanger()) {
-					addRightsChangerCell(row, processInstanceId, tidStr, true);
+					addRightsChangerCell(row, processInstanceId, tidStr, null, true);
 				}
 			}
 			
@@ -385,7 +385,7 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, boolean setSameRightsForAttachments) {		
+	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, String variableName, boolean setSameRightsForAttachments) {		
 		String id = new StringBuilder("idPrefImg").append(taskInstanceId).toString();
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		StringBuilder image = new StringBuilder("<img id=\"").append(id).append("\" class=\"caseProcessResourceAccessRightsStyle\" src=\"");
@@ -396,7 +396,14 @@ public class ProcessArtifacts {
 		else {
 			image.append("'").append(processInstanceId).append("'");
 		}
-		image.append(", '").append(taskInstanceId).append("', '").append(id).append("', ").append(setSameRightsForAttachments).append(");\" />");
+		image.append(", '").append(taskInstanceId).append("', '").append(id).append("', ");
+		if (variableName == null) {
+			image.append("null");
+		}
+		else {
+			image.append("'").append(variableName).append("'");
+		}
+		image.append(", ").append(setSameRightsForAttachments).append(");\" />");
 		row.addCell(image.toString());
 	}
 	
@@ -442,7 +449,7 @@ public class ProcessArtifacts {
 			}
 			
 			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, params.getPiId(), tidStr, false);
+				addRightsChangerCell(row, params.getPiId(), tidStr, binaryVariable.getVariableName(), false);
 			}
 		}
 		
@@ -747,7 +754,7 @@ public class ProcessArtifacts {
 		return false;
 	}
 
-	public void setAccessRightsForProcessResource(String roleName, Long taskInstanceId, boolean hasReadAccess, boolean setSameRightsForAttachments) {
+	public void setAccessRightsForProcessResource(String roleName, Long taskInstanceId, String variableName, boolean hasReadAccess, boolean setSameRightsForAttachments) {
 		
 		if (roleName == null || CoreConstants.EMPTY.equals(roleName) || taskInstanceId == null) {
 			logger.log(Level.WARNING, "setAccessRightsForProcessResource called, but insufficient parameters provided. Got: roleName="+roleName+", taskInstanceId="+taskInstanceId);
@@ -756,11 +763,11 @@ public class ProcessArtifacts {
 		
 		getBpmFactory().getRolesManager().setTaskRolePermissionsTIScope(
 				new Role(roleName, hasReadAccess ? Access.read : null),
-				taskInstanceId, setSameRightsForAttachments, null
+				taskInstanceId, setSameRightsForAttachments, variableName
 		);
 	}
 	
-	public org.jdom.Document getAccessRightsSetterBox(Long processId, Long taskId, boolean setSameRightsForAttachments) {
+	public org.jdom.Document getAccessRightsSetterBox(Long processId, Long taskId, String variableName, boolean setSameRightsForAttachments) {
 		if (taskId == null) {
 			return null;
 		}
@@ -832,6 +839,13 @@ public class ProcessArtifacts {
 					action.append("'").append(processId).append("'");
 				}
 				action.append(", '").append(taskId).append("', ");
+				if (variableName == null) {
+					action.append("null");
+				}
+				else {
+					action.append("'").append(variableName).append("'");
+				}
+				action.append(", ");
 				if (sameRigthsSetter == null) {
 					action.append("null");
 				}
