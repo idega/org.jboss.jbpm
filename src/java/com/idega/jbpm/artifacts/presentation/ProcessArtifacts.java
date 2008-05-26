@@ -73,9 +73,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/05/26 13:21:24 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/26 13:37:06 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -751,7 +751,7 @@ public class ProcessArtifacts {
 		return false;
 	}
 
-	public void setAccessRightsForProcessResource(String roleName, Long taskInstanceId, String variableName, boolean hasReadAccess, boolean setSameRightsForAttachments) {
+	public void setAccessRightsForProcessResource(String roleName, Long taskInstanceId, String fileHashValue, boolean hasReadAccess, boolean setSameRightsForAttachments) {
 		
 		if (roleName == null || CoreConstants.EMPTY.equals(roleName) || taskInstanceId == null) {
 			logger.log(Level.WARNING, "setAccessRightsForProcessResource called, but insufficient parameters provided. Got: roleName="+roleName+", taskInstanceId="+taskInstanceId);
@@ -760,12 +760,12 @@ public class ProcessArtifacts {
 		
 		getBpmFactory().getRolesManager().setTaskRolePermissionsTIScope(
 				new Role(roleName, hasReadAccess ? Access.read : null),
-				taskInstanceId, setSameRightsForAttachments, variableName
+				taskInstanceId, setSameRightsForAttachments, fileHashValue
 		);
 	}
 	
 //	TODO: processInstanceId is not needed (anywhere regarding permissions)
-	public org.jdom.Document getAccessRightsSetterBox(Long processInstanceId, Long taskInstanceId, String variableName, boolean setSameRightsForAttachments) {
+	public org.jdom.Document getAccessRightsSetterBox(Long processInstanceId, Long taskInstanceId, String fileHashValue, boolean setSameRightsForAttachments) {
 		if (taskInstanceId == null) {
 			return null;
 		}
@@ -782,7 +782,7 @@ public class ProcessArtifacts {
 		}
 		Layer container = new Layer();
 
-		List<Role> roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(taskInstanceId, CoreConstants.EMPTY.equals(variableName) ? null : variableName);
+		List<Role> roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(taskInstanceId, CoreConstants.EMPTY.equals(fileHashValue) ? null : fileHashValue);
 		
 		if (roles == null || roles.isEmpty()) {
 			container.add(new Heading3(iwrb.getLocalizedString("no_roles_to_set_permissions", "There are no roles to set access rights")));
@@ -833,11 +833,11 @@ public class ProcessArtifacts {
 					action.append("'").append(processInstanceId).append("'");
 				}
 				action.append(", '").append(taskInstanceId).append("', ");
-				if (variableName == null) {
+				if (fileHashValue == null) {
 					action.append("null");
 				}
 				else {
-					action.append("'").append(variableName).append("'");
+					action.append("'").append(fileHashValue).append("'");
 				}
 				action.append(", ");
 				if (sameRigthsSetter == null) {
