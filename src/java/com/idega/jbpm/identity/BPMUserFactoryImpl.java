@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/05/27 11:01:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 14:48:40 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -42,7 +42,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	private BPMFactory BPMFactory; 
 	private GenericDao genericDao;
 	
-	public BPMUser createBPMUser(String name, String roleName, long processInstanceId) {
+	public User createBPMUser(String name, String roleName, long processInstanceId) {
 	
 		try {
 			FacesContext fctx = FacesContext.getCurrentInstance();
@@ -60,10 +60,10 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 			
 			User bpmUserAcc = getUserBusiness(iwac).createUser(name, BPMUser.bpmUserIdentifier, roleName, String.valueOf(processInstanceId));
 			
-			BPMUserImpl user = createUser();
-			user.setBpmUser(bpmUserAcc);
+//			BPMUserImpl user = createUser();
+//			user.setBpmUser(bpmUserAcc);
 			
-			return user;
+			return bpmUserAcc;
 			
 		} catch (Exception e) {
 			Logger.getLogger(BPMUserFactoryImpl.class.getName()).log(Level.SEVERE, "Exception while creating bpm user", e);
