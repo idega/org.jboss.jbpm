@@ -73,9 +73,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/05/27 10:53:37 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/27 10:58:20 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -553,7 +553,7 @@ public class ProcessArtifacts {
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 			
-			row.addCell(user.getName());
+			row.addCell(BPMUser.bpmUserIdentifier.equals(user.getMiddleName()) ? user.getFirstName() : user.getName());
 			row.addCell(getUserEmails(user.getEmails()));
 			row.addCell(getUserPhones(user.getPhones()));
 			row.addCell(getUserAddress(user));
