@@ -48,6 +48,7 @@ import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
+import com.idega.jbpm.identity.permission.ViewTaskVariablePermission;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
 import com.idega.jbpm.variables.BinaryVariable;
@@ -73,9 +74,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/05/27 10:58:20 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/27 11:01:10 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -103,7 +104,7 @@ public class ProcessArtifacts {
 		for (TaskInstance submittedDocument : processDocuments) {
 			
 			try {
-				Permission permission = getTaskSubmitPermission(true, submittedDocument);
+				Permission permission = getTaskViewPermission(true, submittedDocument);
 				rolesManager.checkPermission(permission);
 				
 			} catch (BPMAccessControlException e) {
@@ -176,7 +177,8 @@ public class ProcessArtifacts {
 		for (TaskInstance email : processEmails) {
 			
 			try {
-				Permission permission = getTaskSubmitPermission(true, email);
+				
+				Permission permission = getTaskViewPermission(true, email);
 				rolesManager.checkPermission(permission);
 				
 			} catch (BPMAccessControlException e) {
@@ -257,6 +259,15 @@ public class ProcessArtifacts {
 		
 		ViewTaskParametersPermission permission = new ViewTaskParametersPermission("taskInstance", null, taskInstance);
 		permission.setCheckOnlyInActorsPool(authPooledActorsOnly);
+		
+		return permission;
+	}
+	
+	protected Permission getTaskVariableViewPermission(boolean authPooledActorsOnly, TaskInstance taskInstance, String variableIdentifier) {
+		
+		ViewTaskVariablePermission permission = new ViewTaskVariablePermission("taskInstance", null, taskInstance);
+		permission.setCheckOnlyInActorsPool(authPooledActorsOnly);
+		permission.setVariableIndentifier(variableIdentifier);
 		
 		return permission;
 	}
@@ -412,50 +423,69 @@ public class ProcessArtifacts {
 		
 		if(taskInstanceId == null)
 			return null;
-		
-		List<BinaryVariable> binaryVariables = getProcessArtifactsProvider().getTaskAttachments(taskInstanceId);
-		
-		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
-		int size = binaryVariables.size();
-		rows.setTotal(size);
-		rows.setPage(size == 0 ? 0 : 1);
-		
-		String kiloBytesStr = "KB";
-		for (BinaryVariable binaryVariable : binaryVariables) {
-			
-			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
-			rows.addRow(row);
-			String tidStr = String.valueOf(binaryVariable.getHash());
-			row.setId(tidStr);
-			String description = binaryVariable.getDescription();
-			if(description != null && description.length() > 0) {
-				row.addCell(description);
-			} else {
-				row.addCell(binaryVariable.getFileName());
-			}
-			
-			Long fileSize = binaryVariable.getContentLength();
-			if (fileSize == null) {
-				row.addCell(new StringBuilder().append(0).append(CoreConstants.SPACE).append(kiloBytesStr).toString());
-			}
-			else {
-				long kiloBytes = fileSize / 1024;
-				long bytes = fileSize % 1024;
-				row.addCell(new StringBuilder().append(kiloBytes).append(CoreConstants.DOT).append(bytes).append(CoreConstants.SPACE).append(kiloBytesStr).toString());
-			}
-			
-			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, params.getPiId(), tidStr, binaryVariable.getHash(), false);
-			}
-		}
-		
+		JbpmContext jctx = getIdegaJbpmContext().createJbpmContext();
 		try {
-			return rows.getDocument();
 			
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Exception while parsing rows", e);
-			return null;
+			TaskInstance taskInstance = jctx.getTaskInstance(taskInstanceId);
+			List<BinaryVariable> binaryVariables = getProcessArtifactsProvider().getTaskAttachments(taskInstanceId);
+			RolesManager rolesManager = getBpmFactory().getRolesManager();
+			
+			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+
+			int size = binaryVariables.size();
+			rows.setTotal(size);
+			rows.setPage(size == 0 ? 0 : 1);
+			String kiloBytesStr = "KB";
+			
+			for (BinaryVariable binaryVariable : binaryVariables) {
+				
+				if(binaryVariable.getHash() == null)
+					continue;
+				
+				try {
+					Permission permission = getTaskVariableViewPermission(true, taskInstance, binaryVariable.getHash().toString());
+					rolesManager.checkPermission(permission);
+					
+				} catch (BPMAccessControlException e) {
+					continue;
+				}
+				
+				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
+				rows.addRow(row);
+				String tidStr = taskInstanceId.toString();
+				row.setId(tidStr);
+				String description = binaryVariable.getDescription();
+				if(description != null && description.length() > 0) {
+					row.addCell(description);
+				} else {
+					row.addCell(binaryVariable.getFileName());
+				}
+				
+				Long fileSize = binaryVariable.getContentLength();
+				if (fileSize == null) {
+					row.addCell(new StringBuilder().append(0).append(CoreConstants.SPACE).append(kiloBytesStr).toString());
+				}
+				else {
+					long kiloBytes = fileSize / 1024;
+					long bytes = fileSize % 1024;
+					row.addCell(new StringBuilder().append(kiloBytes).append(CoreConstants.DOT).append(bytes).append(CoreConstants.SPACE).append(kiloBytesStr).toString());
+				}
+				
+				if (params.isRightsChanger()) {
+					addRightsChangerCell(row, params.getPiId(), tidStr, binaryVariable.getHash(), false);
+				}
+			}
+			
+			try {
+				return rows.getDocument();
+				
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Exception while parsing rows", e);
+				return null;
+			}
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(jctx);
 		}
 	}
 	

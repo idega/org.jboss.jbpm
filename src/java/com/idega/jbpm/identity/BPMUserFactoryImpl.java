@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/05/25 14:58:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 11:01:10 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -178,7 +178,6 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 							ni.setIdentityType(IdentityType.USER);
 							ni.setProcessRole(prole);
 							nis.add(ni);
-							System.out.println("associaing: "+realUsr);
 						}
 						
 						if(!foundForBPMUsr) {
@@ -188,7 +187,6 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 							ni.setIdentityType(IdentityType.USER);
 							ni.setProcessRole(prole);
 							nis.add(ni);
-							System.out.println("associaing: "+realUsr);
 						}
 						
 						getGenericDao().persist(prole);

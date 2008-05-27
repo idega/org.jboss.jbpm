@@ -3,16 +3,13 @@ package com.idega.jbpm.identity.authorization;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.faces.context.FacesContext;
 
 import org.jbpm.security.AuthenticationService;
 import org.jbpm.security.AuthorizationService;
-import org.jbpm.taskmgmt.exe.PooledActor;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -23,6 +20,7 @@ import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.AccessController;
+import com.idega.core.persistence.Param;
 import com.idega.data.IDORuntimeException;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
@@ -31,17 +29,20 @@ import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
+import com.idega.jbpm.identity.permission.BPMTaskVariableAccessPermission;
 import com.idega.presentation.IWContext;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Group;
+import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  *
- * Last modified: $Date: 2008/05/25 14:59:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 11:01:10 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -81,26 +82,39 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		} else {
 			
 //			super admin always gets an access
-			if(IWContext.getIWContext(fctx).isSuperAdmin())
-				return;
-
-			@SuppressWarnings("unchecked")
-			Set<PooledActor> pooledActors = taskInstance.getPooledActors();
-			
-			if(pooledActors.isEmpty()) {
-				throw new AccessControlException("You shall not pass. Pooled actors set was empty, for taskInstanceId: "+taskInstance.getId());
+			if(!IWContext.getIWContext(fctx).isSuperAdmin()) {
 				
-			} else {
-
-				Collection<Long> pooledActorsIds = new ArrayList<Long>(pooledActors.size());
+				if(perm instanceof BPMTaskVariableAccessPermission) {
 				
-				for (PooledActor pooledActor : pooledActors) {
+					BPMTaskVariableAccessPermission vperm = (BPMTaskVariableAccessPermission)perm;
 					
-					Long actorId = new Long(pooledActor.getActorId());
-					pooledActorsIds.add(actorId);
+					if(vperm.getVariableIndentifier() == null || CoreConstants.EMPTY.equals(vperm.getVariableIndentifier()))
+						throw new IllegalArgumentException("Illegal permission passed. Passed of type="+BPMTaskVariableAccessPermission.class.getName()+", but not variable identifier provided");
+					
+					checkPermissionsForTaskInstance(new Integer(loggedInActorId), taskInstance, permission.getAccesses(), vperm.getVariableIndentifier());
+				} else {
+
+					checkPermissionsForTaskInstance(new Integer(loggedInActorId), taskInstance, permission.getAccesses(), null);
 				}
-				checkPermissionInPooledActors(new Integer(loggedInActorId), pooledActorsIds, taskInstance);
 			}
+
+//			@SuppressWarnings("unchecked")
+//			Set<PooledActor> pooledActors = taskInstance.getPooledActors();
+//			
+//			if(pooledActors.isEmpty()) {
+//				throw new AccessControlException("You shall not pass. Pooled actors set was empty, for taskInstanceId: "+taskInstance.getId());
+//				
+//			} else {
+//
+//				Collection<Long> pooledActorsIds = new ArrayList<Long>(pooledActors.size());
+//				
+//				for (PooledActor pooledActor : pooledActors) {
+//					
+//					Long actorId = new Long(pooledActor.getActorId());
+//					pooledActorsIds.add(actorId);
+//				}
+//				
+//			}
 		}
 	}
 	
@@ -143,11 +157,17 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		return false;
 	}
 	
-	protected void checkPermissionInPooledActors(int userId, Collection<Long> pooledActors, TaskInstance taskInstance) throws AccessControlException {
+	protected void checkPermissionsForTaskInstance(int userId, TaskInstance taskInstance, Collection<Access> accesses, String variableIdentifier) throws AccessControlException {
 		
-		List<ProcessRole> roles = getBpmBindsDAO().getProcessRoles(pooledActors);
+		long processInstanceId = taskInstance.getProcessInstance().getId();
 		
-		boolean writeAccessNeeded = !taskInstance.hasEnded();
+		List<ProcessRole> roles = 
+			getBpmBindsDAO().getResultList(ProcessRole.getSetByPIId, ProcessRole.class,
+					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+			);
+		
+		boolean checkWriteAccess = accesses.contains(Access.write);
+		boolean checkReadAccess = accesses.contains(Access.read);
 		
 		try {
 			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
@@ -155,7 +175,8 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			
 			@SuppressWarnings("unchecked")
 			Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
-			long taskId = taskInstance.getTask().getId();
+			Long taskId = taskInstance.getTask().getId();
+			Long taskInstanceId = taskInstance.getId();
 			
 			AccessController ac = getAccessController();
 			
@@ -165,30 +186,86 @@ public class IdentityAuthorizationService implements AuthorizationService {
 				
 				if(perms != null) {
 					
+					Boolean hasTaskInstanceScopeAccess = null;
+					Boolean hasTaskInstanceScopeANDVarAccess = null;
+					Boolean hasTaskScopeAccess = null;
+					Boolean hasTaskScopeANDVarAccess = null;
+					
 					for (ActorPermissions perm : perms) {
 						
-						if(perm.getReadPermission() && (!writeAccessNeeded || perm.getWritePermission()) &&
-								((perm.getTaskInstanceId() != null && perm.getTaskInstanceId().equals(taskInstance.getId())) || (perm.getTaskInstanceId() == null && perm.getTaskId().equals(taskId)))) {
-							
-							List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
-							
-							if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
-								if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
-									return;
-							} else if(usrGrps != null) {
-							
-								String roleName = processRole.getProcessRoleName();
-								
-								@SuppressWarnings("unchecked")
-								Collection<Group> grps = ac.getAllGroupsForRoleKey(roleName, iwac);
-								
-								for (Group roleGrp : grps) {
+						if(taskInstanceId.equals(perm.getTaskInstanceId())) {
+
+							if(variableIdentifier != null) {
+
+								if(variableIdentifier.equals(perm.getVariableIdentifier())) {
 									
-									if(usrGrps.contains(roleGrp)) {
-										
-//										falls in group satisfying permission
-										return;
-									}
+									hasTaskInstanceScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+																	&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+									break;
+								}
+							}
+							
+							if(perm.getVariableIdentifier() == null) {
+								
+								hasTaskInstanceScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+															&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+								
+								if(variableIdentifier == null)
+									break;
+							}
+							
+						} else if(taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null) {
+							
+							if(variableIdentifier != null) {
+
+								if(variableIdentifier.equals(perm.getVariableIdentifier())) {
+									
+									hasTaskScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+																	&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+								}
+							}
+							
+							if(perm.getVariableIdentifier() == null) {
+								
+								hasTaskScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+															&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+							}
+						}
+					}
+
+					if(
+							(variableIdentifier != null && (
+										(hasTaskInstanceScopeANDVarAccess != null && hasTaskInstanceScopeANDVarAccess) ||
+										(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
+										(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess != null && hasTaskScopeANDVarAccess) ||
+										(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
+									)
+							) ||
+							(variableIdentifier == null && (
+									(hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
+									(hasTaskInstanceScopeAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
+								)
+							)
+					) {
+						
+						List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
+						
+						if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
+							if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
+								return;
+						} else if(usrGrps != null) {
+						
+							String roleName = processRole.getProcessRoleName();
+							
+							@SuppressWarnings("unchecked")
+							Collection<Group> grps = ac.getAllGroupsForRoleKey(roleName, iwac);
+							
+							for (Group roleGrp : grps) {
+								
+								if(usrGrps.contains(roleGrp)) {
+									
+//									falls in group satisfying permission
+									return;
 								}
 							}
 						}
@@ -200,7 +277,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			throw new RuntimeException(e);
 		}
 		
-		throw new AccessControlException("User ("+userId+") doesn't fall into any of pooled actors ("+pooledActors+").");
+		throw new AccessControlException("No permission for user="+userId+", for taskInstance="+taskInstance.getId()+", variableIdentifier="+variableIdentifier);
 	}
 	
 	public void close() { }

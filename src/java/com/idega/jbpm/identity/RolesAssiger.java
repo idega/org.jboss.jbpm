@@ -9,7 +9,6 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
@@ -17,9 +16,9 @@ import com.idega.jbpm.exe.BPMFactory;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * 
- * Last modified: $Date: 2008/05/24 10:25:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 11:01:10 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
@@ -39,8 +38,8 @@ public class RolesAssiger {
 		
 		ProcessInstance pi = taskInstance.getProcessInstance();
 		
-		List<ProcessRole> processRoles = getRolesManager().createProcessRoles(pi.getProcessDefinition().getName(), roles, pi.getId());
-		setPooledActors(taskInstance, processRoles);
+		/*List<ProcessRole> processRoles = */getRolesManager().createProcessRoles(pi.getProcessDefinition().getName(), roles, pi.getId());
+		//setPooledActors(taskInstance, processRoles);
 	}
 	
 	public void createRolesPermissions(TaskInstance taskInstance, List<Role> roles) {
@@ -102,6 +101,7 @@ public class RolesAssiger {
 		}
 	}
 	
+	/*
 	private void setPooledActors(TaskInstance taskInstance, List<ProcessRole> processRoles) {
 		
 		ArrayList<String> actorIds = new ArrayList<String>(processRoles.size());
@@ -111,6 +111,7 @@ public class RolesAssiger {
 		
 		taskInstance.setPooledActors(actorIds.toArray(new String[] {}));
 	}
+	*/
 	
 	public BPMDAO getBpmBindsDAO() {
 		return bpmBindsDAO;
