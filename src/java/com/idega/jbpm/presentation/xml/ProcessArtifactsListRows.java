@@ -14,9 +14,9 @@ import com.thoughtworks.xstream.XStream;
  * see http://www.trirand.com/blog/?page_id=4
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/05/27 17:47:34 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
  */
 public class ProcessArtifactsListRows {
 
@@ -79,7 +79,6 @@ public class ProcessArtifactsListRows {
 
 		XStream xstream = new XStream();
     	xstream.alias(ProcessArtifactsListRows.alias, ProcessArtifactsListRows.class);
-    	xstream.alias(ProcessArtifactsListRow.alias, ProcessArtifactsListRow.class);
     	xstream.alias(ProcessArtifactsListRow.alias, ProcessArtifactsListRow.class);
     	
     	xstream.useAttributeFor(ProcessArtifactsListRow.class, ProcessArtifactsListRow.attributeId);

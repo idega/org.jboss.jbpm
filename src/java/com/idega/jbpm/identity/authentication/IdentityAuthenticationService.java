@@ -18,11 +18,14 @@ public class IdentityAuthenticationService implements AuthenticationService {
 	public String getActorId() {
 
 		BPMUser bpmUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
-		Integer usrId = bpmUser.getIdToUse();
 		
-//		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
-//		String currentUserId = String.valueOf(iwc.getCurrentUserId());
-		return usrId == null ? null : usrId.toString();
+		if(bpmUser != null) {
+		
+			Integer usrId = bpmUser.getIdToUse();
+			return usrId == null ? null : usrId.toString();
+		}
+		
+		return null;
 	}
 
 	public void close() { }

@@ -30,6 +30,7 @@ import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.permission.Access;
+import com.idega.jbpm.identity.permission.BPMRightsMgmtPermission;
 import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
 import com.idega.jbpm.identity.permission.BPMTaskVariableAccessPermission;
 import com.idega.presentation.IWContext;
@@ -40,9 +41,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  *
- * Last modified: $Date: 2008/05/27 11:01:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -53,21 +54,13 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	
 	private AuthenticationService authenticationService;
 	private BPMDAO bpmBindsDAO;
-
-	public void checkPermission(Permission perm) throws AccessControlException {
-		
-		FacesContext fctx = FacesContext.getCurrentInstance();
-		
-//		faces context == null when permission is called by the system (i.e. not the result of user navigation)
-		if(fctx == null)
-			return;
-		
-		if(!(perm instanceof BPMTaskAccessPermission))
-			throw new IllegalArgumentException("Only permissions implementing "+BPMTaskAccessPermission.class.getName()+" supported");
-		
-		BPMTaskAccessPermission permission = (BPMTaskAccessPermission)perm;
+	
+	protected void checkTaskAccessPermission(FacesContext fctx, BPMTaskAccessPermission permission) throws AccessControlException {
 		
 		String loggedInActorId = getAuthenticationService().getActorId();
+		
+		if(loggedInActorId == null)
+			throw new AccessControlException("Not logged in");
 		
 		TaskInstance taskInstance = permission.getTaskInstance();
 		
@@ -84,9 +77,9 @@ public class IdentityAuthorizationService implements AuthorizationService {
 //			super admin always gets an access
 			if(!IWContext.getIWContext(fctx).isSuperAdmin()) {
 				
-				if(perm instanceof BPMTaskVariableAccessPermission) {
+				if(permission instanceof BPMTaskVariableAccessPermission) {
 				
-					BPMTaskVariableAccessPermission vperm = (BPMTaskVariableAccessPermission)perm;
+					BPMTaskVariableAccessPermission vperm = (BPMTaskVariableAccessPermission)permission;
 					
 					if(vperm.getVariableIndentifier() == null || CoreConstants.EMPTY.equals(vperm.getVariableIndentifier()))
 						throw new IllegalArgumentException("Illegal permission passed. Passed of type="+BPMTaskVariableAccessPermission.class.getName()+", but not variable identifier provided");
@@ -97,25 +90,27 @@ public class IdentityAuthorizationService implements AuthorizationService {
 					checkPermissionsForTaskInstance(new Integer(loggedInActorId), taskInstance, permission.getAccesses(), null);
 				}
 			}
-
-//			@SuppressWarnings("unchecked")
-//			Set<PooledActor> pooledActors = taskInstance.getPooledActors();
-//			
-//			if(pooledActors.isEmpty()) {
-//				throw new AccessControlException("You shall not pass. Pooled actors set was empty, for taskInstanceId: "+taskInstance.getId());
-//				
-//			} else {
-//
-//				Collection<Long> pooledActorsIds = new ArrayList<Long>(pooledActors.size());
-//				
-//				for (PooledActor pooledActor : pooledActors) {
-//					
-//					Long actorId = new Long(pooledActor.getActorId());
-//					pooledActorsIds.add(actorId);
-//				}
-//				
-//			}
 		}
+	}
+	
+	protected void checkRightsMgmtPermission(FacesContext fctx, BPMRightsMgmtPermission permission) throws AccessControlException {
+		
+	}
+
+	public void checkPermission(Permission perm) throws AccessControlException {
+		
+		FacesContext fctx = FacesContext.getCurrentInstance();
+		
+//		faces context == null when permission is called by the system (i.e. not the result of user navigation)
+		if(fctx == null)
+			return;
+		
+		if((perm instanceof BPMTaskAccessPermission)) {
+			checkTaskAccessPermission(fctx, (BPMTaskAccessPermission)perm);
+		} else if((perm instanceof BPMRightsMgmtPermission)) {
+			checkRightsMgmtPermission(fctx, (BPMRightsMgmtPermission)perm);
+		} else 
+			throw new IllegalArgumentException("Only permissions implementing "+BPMTaskAccessPermission.class.getName()+" or "+BPMRightsMgmtPermission.class.getName()+" supported");
 	}
 	
 	protected boolean fallsInGroups(int userId, List<NativeIdentityBind> nativeIdentities) {

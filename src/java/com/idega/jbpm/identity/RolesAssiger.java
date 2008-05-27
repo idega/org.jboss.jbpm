@@ -16,9 +16,9 @@ import com.idega.jbpm.exe.BPMFactory;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- * Last modified: $Date: 2008/05/27 11:01:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
@@ -72,32 +72,35 @@ public class RolesAssiger {
 		Integer userId = IWContext.getIWContext(fctx).getCurrentUserId();
 		*/
 		
-		Integer usrId = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getIdToUse();
+		BPMUser usr = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
 		
-		if(usrId != null) {
+		if(usr != null) {
 		
-			ArrayList<Role> rolesToAssignIdentity = new ArrayList<Role>(roles.size());
+			Integer usrId = usr.getIdToUse();
 			
-			for (Role role : roles) {
+			if(usrId != null) {
+			
+				ArrayList<Role> rolesToAssignIdentity = new ArrayList<Role>(roles.size());
 				
-				if(role.getAssignIdentities() != null) {
+				for (Role role : roles) {
 					
-					for (String assignTo : role.getAssignIdentities()) {
+					if(role.getAssignIdentities() != null) {
 						
-						if(assignTo.equals(ASSIGN_IDENTITY_CURRENT_USER)) {
-							rolesToAssignIdentity.add(role);
-							break;
+						for (String assignTo : role.getAssignIdentities()) {
+							
+							if(assignTo.equals(ASSIGN_IDENTITY_CURRENT_USER)) {
+								rolesToAssignIdentity.add(role);
+								break;
+							}
 						}
 					}
 				}
-			}
-			
-			if(!rolesToAssignIdentity.isEmpty()) {
 				
-				getRolesManager().createIdentitiesForRoles(rolesToAssignIdentity, String.valueOf(usrId), IdentityType.USER, taskInstance.getProcessInstance().getId());
+				if(!rolesToAssignIdentity.isEmpty()) {
+					
+					getRolesManager().createIdentitiesForRoles(rolesToAssignIdentity, String.valueOf(usrId), IdentityType.USER, taskInstance.getProcessInstance().getId());
+				}
 			}
-		} else {
-			Logger.getLogger(getClass().getName()).log(Level.WARNING, "assignIdentities called, but no user id resolved from current bpm user");
 		}
 	}
 	

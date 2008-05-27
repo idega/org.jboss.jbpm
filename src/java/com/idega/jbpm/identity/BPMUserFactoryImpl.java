@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/05/27 14:48:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -80,17 +80,16 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	
 	public BPMUser getBPMUser(Integer bpmUserPK, User usr) {
 		
-		BPMUserImpl bpmUsr = createUser();
 		FacesContext fctx = FacesContext.getCurrentInstance();
+		
+		if(fctx == null)
+			return null;
+		
+		BPMUserImpl bpmUsr = createUser();
 		
 		if(bpmUserPK != null && (bpmUsr.getBpmUser() == null || !bpmUsr.getBpmUser().getPrimaryKey().equals(bpmUserPK))) {
 			
-			IWApplicationContext iwac;
-			
-			if(fctx == null) {
-				iwac = IWMainApplication.getDefaultIWApplicationContext();
-			} else
-				iwac = IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
+			IWApplicationContext iwac = IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
 			
 			try {
 				User bpmUsrAcc = getUserBusiness(iwac).getUser(bpmUserPK);

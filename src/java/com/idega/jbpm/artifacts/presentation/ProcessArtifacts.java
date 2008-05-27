@@ -46,6 +46,7 @@ import com.idega.jbpm.identity.BPMUser;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.Access;
+import com.idega.jbpm.identity.permission.ProcessRightsMgmtPermission;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskVariablePermission;
@@ -74,9 +75,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2008/05/27 17:47:34 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -248,10 +249,22 @@ public class ProcessArtifacts {
 		return getDocumentsListDocument(processDocuments, processInstanceId, params.isRightsChanger(), params.getDownloadDocument());
 	}
 	
+	
+//	TODO: create something similar to permissions factory, and use them in more standard way
+	
 	protected Permission getTaskSubmitPermission(boolean authPooledActorsOnly, TaskInstance taskInstance) {
 		
 		SubmitTaskParametersPermission permission = new SubmitTaskParametersPermission("taskInstance", null, taskInstance);
 		permission.setCheckOnlyInActorsPool(authPooledActorsOnly);
+		
+		return permission;
+	}
+	
+	protected Permission getRightsMgmtPermission(Long processInstanceId) {
+		
+		ProcessRightsMgmtPermission permission = new ProcessRightsMgmtPermission("procRights", null);
+		permission.setChangeTaskRights(true);
+		permission.setProcessInstanceId(processInstanceId);
 		
 		return permission;
 	}
@@ -761,39 +774,21 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	public enum Permisison {
-		EDIT_PERMISSION { public void check() throws AccessControlException { return; } };
-			
-		public abstract void check() throws AccessControlException;
-	}
-	
 	public boolean hasUserRolesEditorRights(Long processInstanceId) {
-		if (processInstanceId == null) {
-			return false;
-		}
 		
-		IWContext iwc = CoreUtil.getIWContext();
-		if (iwc == null) {
+		if (processInstanceId == null)
 			return false;
-		}
-		
-		User currentUser = null;
-		try {
-			currentUser = iwc.getCurrentUser();
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		if (currentUser == null) {
-			return false;
-		}
 		
 		try {
-			Permisison.EDIT_PERMISSION.check();
-			return true;
+			Permission perm = getRightsMgmtPermission(processInstanceId);
+			getBpmFactory().getRolesManager().checkPermission(perm);
+			
 		} catch(AccessControlException e) {
 			logger.log(Level.SEVERE, "Current user does not have rights to change access rights to resources of process: " + processInstanceId, e);
+			return false;
 		}
-		return false;
+		
+		return true;
 	}
 
 	public void setAccessRightsForProcessResource(String roleName, Long taskInstanceId, String fileHashValue, boolean hasReadAccess, boolean setSameRightsForAttachments) {
