@@ -74,9 +74,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/05/27 12:29:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 14:03:04 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -654,7 +654,12 @@ public class ProcessArtifacts {
 		StringBuilder userPhones = new StringBuilder();
 		for(Phone phone: phones) {
 			phoneNumber = phone.getNumber();
-			userPhones.append(phone == null ? CoreConstants.MINUS : phoneNumber);
+			if (phoneNumber == null || CoreConstants.EMPTY.equals(phoneNumber) || "null".equals(phoneNumber)) {
+				userPhones.append(CoreConstants.MINUS);
+			}
+			else {
+				userPhones.append(phoneNumber);
+			}
 			if ((phonesCounter + 1) < phones.size()) {
 				userPhones.append(CoreConstants.SEMICOLON);
 			}
@@ -675,7 +680,12 @@ public class ProcessArtifacts {
 		StringBuilder userEmails = new StringBuilder();
 		for(Email email: emails) {
 			emailValue = email.getEmailAddressMailtoFormatted();
-			userEmails.append(emailValue == null ? CoreConstants.MINUS : emailValue);
+			if (emailValue == null || CoreConstants.EMPTY.equals(emailValue) || "null".equals(emailValue)) {
+				userEmails.append(CoreConstants.MINUS);
+			}
+			else {
+				userEmails.append(emailValue);
+			}
 			if ((emailsCounter + 1) < emails.size()) {
 				userEmails.append(CoreConstants.SEMICOLON);
 			}
