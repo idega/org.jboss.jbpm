@@ -5,9 +5,9 @@ import java.util.List;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/16 19:00:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 17:47:34 $ by $Author: valdas $
  */
 public class ProcessArtifactsListRow {
 
@@ -16,10 +16,13 @@ public class ProcessArtifactsListRow {
 	static final String attributeId = "id";
 	static final String attributeStyleClass = "styleClass";
 	static final String attributeDisabledSelection = "disabledSelection";
+	static final String attributeFileHashValue = "fileHashValue";
+	
 	private static final String trueValue = "true";
 	private String id;
 	private String styleClass;
 	private String disabledSelection;
+	private String fileHashValue;
 	
 	static final String implicitCells = "cells";
 	static final String implicitAkaCells = "cell";
@@ -56,5 +59,11 @@ public class ProcessArtifactsListRow {
 	}
 	protected void setDisabledSelection(String disabledSelection) {
 		this.disabledSelection = disabledSelection;
+	}
+	public String getFileHashValue() {
+		return fileHashValue;
+	}
+	public void setFileHashValue(String fileHashValue) {
+		this.fileHashValue = fileHashValue;
 	}
 }

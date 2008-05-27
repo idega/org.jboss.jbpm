@@ -74,9 +74,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  *
- * Last modified: $Date: 2008/05/27 14:03:04 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/27 17:47:34 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -456,6 +456,8 @@ public class ProcessArtifacts {
 				rows.addRow(row);
 				String tidStr = taskInstanceId.toString();
 				row.setId(tidStr);
+				
+				row.setFileHashValue(String.valueOf(binaryVariable.getHash()));
 				
 				String description = binaryVariable.getDescription();
 				row.addCell(description != null && !CoreConstants.EMPTY.equals(description) ? description : binaryVariable.getFileName());
