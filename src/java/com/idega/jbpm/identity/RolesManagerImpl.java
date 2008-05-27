@@ -53,9 +53,9 @@ import com.idega.util.CoreConstants;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $
+ * @version $Revision: 1.26 $
  * 
- * Last modified: $Date: 2008/05/27 16:04:58 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 18:54:26 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -611,7 +611,7 @@ public class RolesManagerImpl implements RolesManager {
 						
 						tiPerm = getBpmDAO().merge(tiPerm);
 						
-					} else if(setReadPermission || setWritePermission) {
+					} else {
 						
 //						creating only if there's any permissive permission to be set
 						
