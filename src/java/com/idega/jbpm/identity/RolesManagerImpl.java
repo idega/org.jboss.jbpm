@@ -53,9 +53,9 @@ import com.idega.util.CoreConstants;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.24 $
+ * @version $Revision: 1.25 $
  * 
- * Last modified: $Date: 2008/05/26 14:13:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 16:04:58 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -566,11 +566,11 @@ public class RolesManagerImpl implements RolesManager {
 						
 						if(aperm != null) {
 							
-							aperm.setWritePermission(setReadPermission);
-							aperm.setReadPermission(setWritePermission);
+							aperm.setWritePermission(setWritePermission);
+							aperm.setReadPermission(setReadPermission);
 							aperm = getBpmDAO().merge(aperm);
 							
-						} else if(setReadPermission || setWritePermission) {
+						} else {
 							
 //							creating only if there's any permissive permission to be set
 							
@@ -582,7 +582,9 @@ public class RolesManagerImpl implements RolesManager {
 							aperm.setReadPermission(setReadPermission);
 							aperm.setWritePermission(setWritePermission);
 							aperm.setProcessRoles(proles);
+							
 							getBpmDAO().persist(aperm);
+							perms.add(aperm);
 						}
 					}
 					
@@ -621,6 +623,7 @@ public class RolesManagerImpl implements RolesManager {
 						tiPerm.setWritePermission(setWritePermission);
 						tiPerm.setReadPermission(setReadPermission);
 						tiPerm.setProcessRoles(proles);
+						
 						getBpmDAO().persist(tiPerm);
 						perms.add(tiPerm);
 					}
