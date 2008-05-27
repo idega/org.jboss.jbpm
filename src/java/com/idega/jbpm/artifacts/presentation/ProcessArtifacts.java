@@ -73,9 +73,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/05/26 13:37:06 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/27 10:46:00 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -621,11 +621,13 @@ public class ProcessArtifacts {
 		}
 		
 		int phonesCounter = 0;
+		String phoneNumber = null;
 		StringBuilder userPhones = new StringBuilder();
 		for(Phone phone: phones) {
-			userPhones.append(phone.getNumber());
+			phoneNumber = phone.getNumber();
+			userPhones.append(phone == null ? CoreConstants.MINUS : phoneNumber);
 			if ((phonesCounter + 1) < phones.size()) {
-				userPhones.append(CoreConstants.SPACE);
+				userPhones.append(CoreConstants.SEMICOLON);
 			}
 			phonesCounter++;
 		}
@@ -640,11 +642,13 @@ public class ProcessArtifacts {
 		}
 		
 		int emailsCounter = 0;
+		String emailValue = null;
 		StringBuilder userEmails = new StringBuilder();
 		for(Email email: emails) {
-			userEmails.append(email.getEmailAddressMailtoFormatted());
+			emailValue = email.getEmailAddressMailtoFormatted();
+			userEmails.append(emailValue == null ? CoreConstants.MINUS : emailValue);
 			if ((emailsCounter + 1) < emails.size()) {
-				userEmails.append(CoreConstants.SPACE);
+				userEmails.append(CoreConstants.SEMICOLON);
 			}
 			emailsCounter++;
 		}

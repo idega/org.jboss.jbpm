@@ -2,9 +2,9 @@ package com.idega.jbpm.artifacts.presentation;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/05/24 14:16:55 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/27 10:46:00 $ by $Author: valdas $
  */
 public class ProcessArtifactsParamsBean {
 
@@ -15,6 +15,7 @@ public class ProcessArtifactsParamsBean {
 	private Long piId;
 	private Long taskId;
 	private boolean rightsChanger = false;
+	private String identifier = null;
 	
 	public Integer getPage() {
 		return page;
@@ -58,4 +59,11 @@ public class ProcessArtifactsParamsBean {
 	public void setRightsChanger(boolean rightsChanger) {
 		this.rightsChanger = rightsChanger;
 	}
+	public String getIdentifier() {
+		return identifier;
+	}
+	public void setIdentifier(String identifier) {
+		this.identifier = identifier;
+	}
+	
 }
