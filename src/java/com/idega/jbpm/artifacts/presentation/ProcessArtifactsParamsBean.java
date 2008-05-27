@@ -2,9 +2,9 @@ package com.idega.jbpm.artifacts.presentation;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/05/27 10:46:00 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/27 12:29:59 $ by $Author: civilis $
  */
 public class ProcessArtifactsParamsBean {
 
@@ -15,7 +15,8 @@ public class ProcessArtifactsParamsBean {
 	private Long piId;
 	private Long taskId;
 	private boolean rightsChanger = false;
-	private String identifier = null;
+	private String identifier;
+	private Boolean downloadDocument;
 	
 	public Integer getPage() {
 		return page;
@@ -65,5 +66,10 @@ public class ProcessArtifactsParamsBean {
 	public void setIdentifier(String identifier) {
 		this.identifier = identifier;
 	}
-	
+	public Boolean getDownloadDocument() {
+		return downloadDocument == null ? true : downloadDocument;
+	}
+	public void setDownloadDocument(Boolean downloadDocument) {
+		this.downloadDocument = downloadDocument;
+	}
 }

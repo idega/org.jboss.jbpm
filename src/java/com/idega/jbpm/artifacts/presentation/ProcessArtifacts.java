@@ -74,9 +74,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/05/27 11:01:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 12:29:59 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -89,7 +89,7 @@ public class ProcessArtifacts {
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
-	private Document getDocumentsListDocument(Collection<TaskInstance> processDocuments, Long processInstanceId, boolean rightsChanger) {
+	private Document getDocumentsListDocument(Collection<TaskInstance> processDocuments, Long processInstanceId, boolean rightsChanger, boolean dlDoc) {
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
@@ -145,7 +145,8 @@ public class ProcessArtifacts {
 				new IWTimestamp(submittedDocument.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 			);
 			
-			row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri).append("\" onclick=\"downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
+			if(dlDoc)
+				row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri).append("\" onclick=\"downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
 			
 			if (rightsChanger) {
 				addRightsChangerCell(row, processInstanceId, tidStr, null, true);
@@ -244,7 +245,7 @@ public class ProcessArtifacts {
 		
 		Collection<TaskInstance> processDocuments = getProcessArtifactsProvider().getSubmittedTaskInstances(processInstanceId);
 		
-		return getDocumentsListDocument(processDocuments, processInstanceId, params.isRightsChanger());
+		return getDocumentsListDocument(processDocuments, processInstanceId, params.isRightsChanger(), params.getDownloadDocument());
 	}
 	
 	protected Permission getTaskSubmitPermission(boolean authPooledActorsOnly, TaskInstance taskInstance) {
@@ -455,12 +456,10 @@ public class ProcessArtifacts {
 				rows.addRow(row);
 				String tidStr = taskInstanceId.toString();
 				row.setId(tidStr);
+				
 				String description = binaryVariable.getDescription();
-				if(description != null && description.length() > 0) {
-					row.addCell(description);
-				} else {
-					row.addCell(binaryVariable.getFileName());
-				}
+				row.addCell(description != null && !CoreConstants.EMPTY.equals(description) ? description : binaryVariable.getFileName());
+				row.addCell(binaryVariable.getFileName());
 				
 				Long fileSize = binaryVariable.getContentLength();
 				if (fileSize == null) {
