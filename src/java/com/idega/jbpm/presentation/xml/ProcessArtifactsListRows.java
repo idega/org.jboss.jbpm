@@ -14,9 +14,9 @@ import com.thoughtworks.xstream.XStream;
  * see http://www.trirand.com/blog/?page_id=4
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 19:10:02 $ by $Author: valdas $
  */
 public class ProcessArtifactsListRows {
 
@@ -84,7 +84,6 @@ public class ProcessArtifactsListRows {
     	xstream.useAttributeFor(ProcessArtifactsListRow.class, ProcessArtifactsListRow.attributeId);
     	xstream.useAttributeFor(ProcessArtifactsListRow.class, ProcessArtifactsListRow.attributeStyleClass);
     	xstream.useAttributeFor(ProcessArtifactsListRow.class, ProcessArtifactsListRow.attributeDisabledSelection);
-    	xstream.useAttributeFor(ProcessArtifactsListRow.class, ProcessArtifactsListRow.attributeFileHashValue);
     	
     	xstream.addImplicitCollection(ProcessArtifactsListRows.class, ProcessArtifactsListRows.alias);
     	xstream.addImplicitCollection(ProcessArtifactsListRow.class, ProcessArtifactsListRow.implicitCells, ProcessArtifactsListRow.implicitAkaCells, String.class);

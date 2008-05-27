@@ -75,9 +75,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  *
- * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/27 19:10:01 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -468,9 +468,7 @@ public class ProcessArtifacts {
 				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 				rows.addRow(row);
 				String tidStr = taskInstanceId.toString();
-				row.setId(tidStr);
-				
-				row.setFileHashValue(String.valueOf(binaryVariable.getHash()));
+				row.setId(binaryVariable.getHash().toString());
 				
 				String description = binaryVariable.getDescription();
 				row.addCell(description != null && !CoreConstants.EMPTY.equals(description) ? description : binaryVariable.getFileName());
@@ -667,17 +665,22 @@ public class ProcessArtifacts {
 		int phonesCounter = 0;
 		String phoneNumber = null;
 		StringBuilder userPhones = new StringBuilder();
-		for(Phone phone: phones) {
+		boolean addSemicolon = false;
+		for (Phone phone: phones) {
 			phoneNumber = phone.getNumber();
+			addSemicolon = false;
+			
 			if (phoneNumber == null || CoreConstants.EMPTY.equals(phoneNumber) || "null".equals(phoneNumber)) {
-				userPhones.append(CoreConstants.MINUS);
+				userPhones.append(CoreConstants.EMPTY);
 			}
 			else {
+				addSemicolon = true;
 				userPhones.append(phoneNumber);
 			}
-			if ((phonesCounter + 1) < phones.size()) {
-				userPhones.append(CoreConstants.SEMICOLON);
+			if ((phonesCounter + 1) < phones.size() && addSemicolon) {
+				userPhones.append(CoreConstants.SEMICOLON).append(CoreConstants.SPACE);
 			}
+			
 			phonesCounter++;
 		}
 		
@@ -693,17 +696,22 @@ public class ProcessArtifacts {
 		int emailsCounter = 0;
 		String emailValue = null;
 		StringBuilder userEmails = new StringBuilder();
-		for(Email email: emails) {
+		boolean addSemicolon = false;
+		for (Email email: emails) {
 			emailValue = email.getEmailAddressMailtoFormatted();
+			addSemicolon = false;
+			
 			if (emailValue == null || CoreConstants.EMPTY.equals(emailValue) || "null".equals(emailValue)) {
-				userEmails.append(CoreConstants.MINUS);
+				userEmails.append(CoreConstants.EMPTY);
 			}
 			else {
+				addSemicolon = true;
 				userEmails.append(emailValue);
 			}
-			if ((emailsCounter + 1) < emails.size()) {
-				userEmails.append(CoreConstants.SEMICOLON);
+			if ((emailsCounter + 1) < emails.size() && addSemicolon) {
+				userEmails.append(CoreConstants.SEMICOLON).append(CoreConstants.SPACE);
 			}
+			
 			emailsCounter++;
 		}
 		
