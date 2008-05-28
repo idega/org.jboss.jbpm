@@ -72,12 +72,13 @@ import com.idega.user.util.UserComparator;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.IWTimestamp;
+import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  *
- * Last modified: $Date: 2008/05/28 09:03:20 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/28 09:32:51 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -101,7 +102,10 @@ public class ProcessArtifacts {
 		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		RolesManager rolesManager = getBpmFactory().getRolesManager();
 
-		String pdfUri = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER).getVirtualPathWithFileNameString("images/pdf.gif");
+		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
+		
+		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
 		for (TaskInstance submittedDocument : processDocuments) {
 			
 			try {
@@ -138,9 +142,8 @@ public class ProcessArtifacts {
 			rows.addRow(row);
 			String tidStr = String.valueOf(submittedDocument.getId());
 			row.setId(tidStr);
-			//row.addCell(tidStr);
 			
-			row.addCell(submittedDocument.getName());
+			row.addCell(getLocalizedName(iwrb, submittedDocument.getName()));	//	TODO:	Should be better localization
 			row.addCell(submittedByName);
 			row.addCell(submittedDocument.getEnd() == null ? CoreConstants.EMPTY :
 				new IWTimestamp(submittedDocument.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
@@ -370,22 +373,18 @@ public class ProcessArtifacts {
 					assignedToName = noOneLocalized;
 				}
 				
-//				String status = getTaskStatus(iwrb, taskInstance);
-				
 				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 				rows.addRow(row);
 				
 				String tidStr = String.valueOf(taskInstance.getId());
 				row.setId(tidStr);
-				//row.addCell(tidStr);
-				row.addCell(taskInstance.getName());
+				row.addCell(getLocalizedName(iwrb, taskInstance.getName()));	//	TODO:	Should be better localization
 				row.addCell(taskInstance.getCreate() == null ? CoreConstants.EMPTY :
 							new IWTimestamp(taskInstance.getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 				);
 				row.setDateCellIndex(row.getCells().size() - 1);
 				
 				row.addCell(assignedToName);
-//				row.addCell(status);
 
 				if(disableSelection) {
 					
@@ -409,6 +408,18 @@ public class ProcessArtifacts {
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
+	}
+	
+	private String getLocalizedName(IWResourceBundle iwrb, String name) {
+		if (iwrb == null || name == null) {
+			return null;
+		}
+		
+		String nameForKey = StringHandler.stripNonRomanCharacters(name, new char[] {' '});
+		nameForKey = StringHandler.replace(nameForKey, CoreConstants.SPACE, CoreConstants.UNDER);
+		
+		String key = new StringBuilder("cases_bpm.process_resource_name_").append(nameForKey.toLowerCase()).toString();
+		return iwrb.getLocalizedString(key, name);
 	}
 	
 	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, Integer variableIdentifier, boolean setSameRightsForAttachments) {		
