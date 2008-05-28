@@ -3,6 +3,7 @@ package com.idega.jbpm.identity.authorization;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -41,9 +42,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  *
- * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/28 08:02:47 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -95,6 +96,54 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	
 	protected void checkRightsMgmtPermission(FacesContext fctx, BPMRightsMgmtPermission permission) throws AccessControlException {
 		
+		String loggedInActorId = getAuthenticationService().getActorId();
+		
+		if(loggedInActorId == null)
+			throw new AccessControlException("Not logged in");
+		
+//		super admin always gets an access
+		if(!IWContext.getIWContext(fctx).isSuperAdmin()) {
+		
+			Long processInstanceId = permission.getProcessInstanceId();
+			
+			if(processInstanceId == null)
+				throw new RuntimeException("No process instance id found in permission="+permission.getClass().getName());
+			
+			String roleName = "bpm_handler";
+//			TODO: get roles that can edit permissions
+			
+			List<ProcessRole> proles = 
+				getBpmBindsDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
+						new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
+						new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {roleName}))
+				);
+			
+			if(proles == null || proles.isEmpty())
+				throw new AccessControlException("No process role found by role name="+roleName+" and process instance id = "+processInstanceId);
+			
+			ProcessRole prole = proles.iterator().next();
+			
+			try {
+				
+				int userId = new Integer(loggedInActorId);
+
+				UserBusiness userBusiness = getUserBusiness();
+				@SuppressWarnings("unchecked")
+				Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
+				AccessController ac = getAccessController();
+				IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+				
+				List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
+				
+				if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, usrGrps, userId, ac, iwac))
+					return;
+				
+			} catch (RemoteException e) {
+				throw new IBORuntimeException(e);
+			}
+			
+			throw new AccessControlException("No rights management permission for user="+loggedInActorId+", for processInstanceId="+processInstanceId);
+		}
 	}
 
 	public void checkPermission(Permission perm) throws AccessControlException {
@@ -245,6 +294,9 @@ public class IdentityAuthorizationService implements AuthorizationService {
 						
 						List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
 						
+						if(checkFallsInRole(processRole.getProcessRoleName(), nativeIdentities, usrGrps, userId, ac, iwac))
+							return;
+						/*
 						if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
 							if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
 								return;
@@ -264,6 +316,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 								}
 							}
 						}
+						*/
 					}
 				}
 			}
@@ -275,7 +328,28 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		throw new AccessControlException("No permission for user="+userId+", for taskInstance="+taskInstance.getId()+", variableIdentifier="+variableIdentifier);
 	}
 	
-	public void close() { }
+	private boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, Collection<Group> usrGrps, int userId, AccessController ac, IWApplicationContext iwac) {
+		
+		if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
+			if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
+				return true;
+		} else if(usrGrps != null) {
+		
+			@SuppressWarnings("unchecked")
+			Collection<Group> grps = ac.getAllGroupsForRoleKey(roleName, iwac);
+			
+			for (Group roleGrp : grps) {
+				
+				if(usrGrps.contains(roleGrp)) {
+					
+//					falls in group satisfying permission
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
 
 	public AuthenticationService getAuthenticationService() {
 		return authenticationService;
@@ -321,4 +395,6 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		
 		return iwma;
 	}
+
+	public void close() { }
 }
