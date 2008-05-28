@@ -75,9 +75,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  *
- * Last modified: $Date: 2008/05/27 19:10:01 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/28 05:45:59 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -448,6 +448,9 @@ public class ProcessArtifacts {
 			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
 			int size = binaryVariables.size();
+			if (size == 0) {
+				return null;	//	This will result in 'closed' row in grid
+			}
 			rows.setTotal(size);
 			rows.setPage(size == 0 ? 0 : 1);
 			String kiloBytesStr = "KB";
