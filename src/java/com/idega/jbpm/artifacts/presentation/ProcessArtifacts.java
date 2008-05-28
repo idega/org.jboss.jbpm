@@ -75,9 +75,9 @@ import com.idega.util.IWTimestamp;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  *
- * Last modified: $Date: 2008/05/28 05:45:59 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/28 09:03:20 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -145,6 +145,7 @@ public class ProcessArtifacts {
 			row.addCell(submittedDocument.getEnd() == null ? CoreConstants.EMPTY :
 				new IWTimestamp(submittedDocument.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 			);
+			row.setDateCellIndex(row.getCells().size() - 1);
 			
 			if(dlDoc)
 				row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri).append("\" onclick=\"downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
@@ -214,6 +215,7 @@ public class ProcessArtifacts {
 			row.addCell(email.getEnd() == null ? CoreConstants.EMPTY :
 				new IWTimestamp(email.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 			);
+			row.setDateCellIndex(row.getCells().size() - 1);
 			
 			if (rightsChanger) {
 				addRightsChangerCell(row, processInstanceId, tidStr, null, true);
@@ -380,6 +382,8 @@ public class ProcessArtifacts {
 				row.addCell(taskInstance.getCreate() == null ? CoreConstants.EMPTY :
 							new IWTimestamp(taskInstance.getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 				);
+				row.setDateCellIndex(row.getCells().size() - 1);
+				
 				row.addCell(assignedToName);
 //				row.addCell(status);
 

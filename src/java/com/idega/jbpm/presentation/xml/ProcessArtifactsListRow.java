@@ -5,9 +5,9 @@ import java.util.List;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/27 19:10:02 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/28 09:03:20 $ by $Author: valdas $
  */
 public class ProcessArtifactsListRow {
 
@@ -25,6 +25,8 @@ public class ProcessArtifactsListRow {
 	static final String implicitCells = "cells";
 	static final String implicitAkaCells = "cell";
 	private List<String> cells = new ArrayList<String>();
+	
+	private int dateCellIndex = -1;
 	
 	public String getId() {
 		return id;
@@ -58,4 +60,11 @@ public class ProcessArtifactsListRow {
 	protected void setDisabledSelection(String disabledSelection) {
 		this.disabledSelection = disabledSelection;
 	}
+	public int getDateCellIndex() {
+		return dateCellIndex;
+	}
+	public void setDateCellIndex(int dateCellIndex) {
+		this.dateCellIndex = dateCellIndex;
+	}
+	
 }

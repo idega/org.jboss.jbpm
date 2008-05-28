@@ -3,10 +3,13 @@ package com.idega.jbpm.presentation.xml;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.w3c.dom.Document;
 
+import com.idega.util.CoreUtil;
+import com.idega.util.IWTimestamp;
 import com.idega.util.xml.XmlUtil;
 import com.thoughtworks.xstream.XStream;
 
@@ -14,9 +17,9 @@ import com.thoughtworks.xstream.XStream;
  * see http://www.trirand.com/blog/?page_id=4
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/05/27 19:10:02 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/28 09:03:20 $ by $Author: valdas $
  */
 public class ProcessArtifactsListRows {
 
@@ -76,7 +79,12 @@ public class ProcessArtifactsListRows {
 	}
 	
 	public Document getDocument() throws Exception {
-
+		try {
+			Collections.sort(getRows(), new ProcessArtifactsListRowComparator(IWTimestamp.SHORT, CoreUtil.getIWContext().getCurrentLocale()));
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		XStream xstream = new XStream();
     	xstream.alias(ProcessArtifactsListRows.alias, ProcessArtifactsListRows.class);
     	xstream.alias(ProcessArtifactsListRow.alias, ProcessArtifactsListRow.class);
