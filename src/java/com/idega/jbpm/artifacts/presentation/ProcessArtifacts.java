@@ -76,9 +76,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  *
- * Last modified: $Date: 2008/05/28 10:17:36 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/28 10:56:15 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -656,7 +656,7 @@ public class ProcessArtifacts {
 		StringBuilder userAddress = new StringBuilder();
 		String streetAddress = mainAddress.getStreetAddress();
 		if (streetAddress != null && !CoreConstants.EMPTY.equals(streetAddress)) {
-			userAddress.append(streetAddress);
+			userAddress.append(streetAddress).append(CoreConstants.COMMA).append(CoreConstants.SPACE);
 		}
 		
 		String postalAddress = mainAddress.getPostalAddress();
