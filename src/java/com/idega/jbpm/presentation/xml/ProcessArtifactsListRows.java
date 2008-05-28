@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.xmlio.out.XMLOutputStreamWriter;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -21,9 +22,9 @@ import com.thoughtworks.xstream.XStream;
  * see http://www.trirand.com/blog/?page_id=4
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/05/28 10:44:58 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/28 10:54:09 $ by $Author: civilis $
  */
 public class ProcessArtifactsListRows {
 
@@ -101,8 +102,10 @@ public class ProcessArtifactsListRows {
     	xstream.addImplicitCollection(ProcessArtifactsListRow.class, ProcessArtifactsListRow.implicitCells, ProcessArtifactsListRow.implicitAkaCells, String.class);
     	
     	ByteArrayOutputStream output = new ByteArrayOutputStream();
-    	xstream.toXML(this, output);
+    	XMLOutputStreamWriter writer = new XMLOutputStreamWriter(output, XMLOutputStreamWriter.ENCODING_UTF_8);
+    	xstream.toXML(this, writer);
     	
+    	//new OutputsourceSource(reader)
     	Reader reader = null;
 		try {
 			reader = new InputStreamReader(new ByteArrayInputStream(output.toByteArray()), CoreConstants.ENCODING_UTF8);
