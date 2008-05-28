@@ -76,9 +76,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  *
- * Last modified: $Date: 2008/05/28 09:32:51 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/28 10:17:36 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -415,8 +415,8 @@ public class ProcessArtifacts {
 			return null;
 		}
 		
-		String nameForKey = StringHandler.stripNonRomanCharacters(name, new char[] {' '});
-		nameForKey = StringHandler.replace(nameForKey, CoreConstants.SPACE, CoreConstants.UNDER);
+		//String nameForKey = StringHandler.stripNonRomanCharacters(name, new char[] {' '});
+		String nameForKey = StringHandler.replace(name, CoreConstants.SPACE, CoreConstants.EMPTY);
 		
 		String key = new StringBuilder("cases_bpm.process_resource_name_").append(nameForKey.toLowerCase()).toString();
 		return iwrb.getLocalizedString(key, name);
