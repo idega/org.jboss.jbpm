@@ -2,12 +2,16 @@ package com.idega.jbpm.presentation.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
+import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.xml.XmlUtil;
@@ -17,9 +21,9 @@ import com.thoughtworks.xstream.XStream;
  * see http://www.trirand.com/blog/?page_id=4
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/05/28 09:03:20 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/28 10:44:58 $ by $Author: civilis $
  */
 public class ProcessArtifactsListRows {
 
@@ -99,8 +103,16 @@ public class ProcessArtifactsListRows {
     	ByteArrayOutputStream output = new ByteArrayOutputStream();
     	xstream.toXML(this, output);
     	
+    	Reader reader = null;
+		try {
+			reader = new InputStreamReader(new ByteArrayInputStream(output.toByteArray()), CoreConstants.ENCODING_UTF8);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
     	
-    	return XmlUtil.getDocumentBuilder().parse(new ByteArrayInputStream(output.toByteArray()));
+//    	return XmlUtil.getDocumentBuilder().parse(new ByteArrayInputStream(output.toByteArray()));
+		return XmlUtil.getDocumentBuilder().parse(new InputSource(reader));
 	}
 	
 	public static void main(String[] args) {
