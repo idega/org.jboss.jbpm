@@ -11,3 +11,11 @@ close=Close
 bpm_handler=Case handler
 bpm_owner=Case owner
 bpm_defendant=Defendant
+
+cases_bpm.process_resource_name_submitnewcase=Beiðni um álitsgerð
+cases_bpm.process_resource_name_requestadditionalinformation=Óska meiri upplýsingar frá sendanda
+cases_bpm.process_resource_name_submitadditionalinformation=Senda meiri upplýsingar
+cases_bpm.process_resource_name_invitedefendant=Boð til gagnaðila
+cases_bpm.process_resource_name_submitprocessruling=Senda álit nefndarinnar
+cases_bpm.process_resource_name_submitdefendantcaseanswer=Senda andsvar
+cases_bpm.process_resource_name_setthedocumentkey=Velja skjalalykill
