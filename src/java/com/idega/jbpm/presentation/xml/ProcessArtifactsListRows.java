@@ -22,9 +22,9 @@ import com.thoughtworks.xstream.XStream;
  * see http://www.trirand.com/blog/?page_id=4
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/05/28 10:54:09 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/29 08:24:11 $ by $Author: valdas $
  */
 public class ProcessArtifactsListRows {
 
@@ -105,7 +105,6 @@ public class ProcessArtifactsListRows {
     	XMLOutputStreamWriter writer = new XMLOutputStreamWriter(output, XMLOutputStreamWriter.ENCODING_UTF_8);
     	xstream.toXML(this, writer);
     	
-    	//new OutputsourceSource(reader)
     	Reader reader = null;
 		try {
 			reader = new InputStreamReader(new ByteArrayInputStream(output.toByteArray()), CoreConstants.ENCODING_UTF8);
@@ -114,7 +113,6 @@ public class ProcessArtifactsListRows {
 			return null;
 		}
     	
-//    	return XmlUtil.getDocumentBuilder().parse(new ByteArrayInputStream(output.toByteArray()));
 		return XmlUtil.getDocumentBuilder().parse(new InputSource(reader));
 	}
 	

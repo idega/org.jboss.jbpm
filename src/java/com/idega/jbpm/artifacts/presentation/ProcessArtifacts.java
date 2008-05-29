@@ -76,9 +76,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.24 $
+ * @version $Revision: 1.25 $
  *
- * Last modified: $Date: 2008/05/28 10:56:15 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/29 08:24:10 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -934,42 +934,6 @@ public class ProcessArtifacts {
 		
 		return builder.getRenderedComponent(iwc, container, false);
 	}
-	
-	/*
-	@Transactional(readOnly = true)
-	protected boolean isAllowedToReadTaskResource(ProcessRole role, Long taskInstanceId) {
-		if (role == null || taskInstanceId == null) {
-			return false;
-		}
-		
-		List<ActorPermissions> permissions = null;
-		try {
-			permissions = role.getActorPermissions();
-		} catch(Exception e) {
-			logger.log(Level.SEVERE, "Unable to get permissions for taskInstanceId: " + taskInstanceId, e);
-		}
-		try {
-			if (permissions == null || permissions.isEmpty()) {	//	FIXME:	always throws exception
-				return false;
-			}
-		} catch(Exception e) {
-			logger.log(Level.SEVERE, "Unable to get permissions for taskInstanceId: " + taskInstanceId, e);
-			return false;
-		}
-		
-		for(ActorPermissions permission: permissions) {
-			try {
-				if (taskInstanceId.equals(permission.getTaskInstanceId())) {
-					return permission.getReadPermission();
-				}
-			} catch(Exception e) {
-				logger.log(Level.SEVERE, "Unable to check permission for taskInstanceId: " + taskInstanceId, e);
-			}
-		}
-		
-		return false;
-	}
-	*/
 	
 	public IdegaJbpmContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
