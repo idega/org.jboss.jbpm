@@ -37,9 +37,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/30 15:10:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/30 16:22:37 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(SendParticipantInvitationMessageHandlerBean.beanIdentifier)
@@ -51,9 +51,10 @@ public class SendParticipantInvitationMessageHandlerBean {
 	public static final String messageVarName = "string:message";
 	public static final String subjectVarName = "string:subject";
 	public static final String fromEmailVarName = "string:fromEmail";
-	//private static final String egovBPMPageType = "bpm_registerProcessParticipant";
 	public static final String tokenParam = "bpmtkn";
-	public static final String participantRoleNameVarName = AssignAccountToParticipantHandler.participantRoleNameVarName;
+	public static final String processInstanceIdParam = "piId";
+	private static final String defaultAssetsViewPageType = "bpm_assets_view";
+	private static final String participantRoleNameVarName = AssignAccountToParticipantHandler.participantRoleNameVarName;
 	
 	private RolesManager rolesManager;
 	private BPMFactory bpmFactory;
@@ -107,11 +108,11 @@ public class SendParticipantInvitationMessageHandlerBean {
 		
 		
 		//String fullUrl = getBuilderService(iwc).getFullPageUrlByPageType(iwc, egovBPMPageType);
-		String fullUrl = getBuilderService(iwc).getFullPageUrlByPageType(iwc, "bpm_assets_view");
+		String fullUrl = getAssetsUrl(iwc);
 		
 		final URIUtil uriUtil = new URIUtil(fullUrl);
 		
-		uriUtil.setParameter("piId", String.valueOf(parentPID));
+		uriUtil.setParameter(processInstanceIdParam, String.valueOf(parentPID));
 		//uriUtil.setParameter(tokenParam, String.valueOf(tokenId));
 		uriUtil.setParameter(BPMUserImpl.bpmUsrParam, String.valueOf(bpmUser.getPrimaryKey().toString()));
 		fullUrl = uriUtil.getUri();
@@ -125,6 +126,13 @@ public class SendParticipantInvitationMessageHandlerBean {
 		} catch (javax.mail.MessagingException me) {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while sending participant invitation message", me);
 		}
+	}
+	
+	private String getAssetsUrl(IWContext iwc) {
+		
+//		TODO: try to resolve url from app prop, if fail, then use default page type, and resolve from it (as it is now)
+		String fullUrl = getBuilderService(iwc).getFullPageUrlByPageType(iwc, defaultAssetsViewPageType);
+		return fullUrl;
 	}
 	
 	protected User createAndAssignBPMIdentity(String userName, String roleName, ExecutionContext ctx) {
