@@ -12,12 +12,12 @@ import com.idega.presentation.IWBaseComponent;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/05/06 21:42:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/30 16:22:47 $ by $Author: civilis $
  *
  */
-public class UIRegProcessParticipant extends IWBaseComponent {
+public class _UIRegProcessParticipant extends IWBaseComponent {
 	
 	public static final String COMPONENT_TYPE = "com.idega.UIRegProcessParticipant";
 
