@@ -76,9 +76,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.27 $
+ * @version $Revision: 1.28 $
  *
- * Last modified: $Date: 2008/05/30 12:08:42 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/30 15:09:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -853,7 +853,7 @@ public class ProcessArtifacts {
 			getBpmFactory().getRolesManager().checkPermission(perm);
 			
 		} catch(AccessControlException e) {
-			logger.log(Level.SEVERE, "Current user does not have rights to change access rights to resources of process: " + processInstanceId, e);
+//			logger.log(Level.SEVERE, "Current user does not have rights to change access rights to resources of process: " + processInstanceId, e);
 			return false;
 		}
 		
