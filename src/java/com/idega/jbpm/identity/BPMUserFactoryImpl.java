@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/30 15:10:11 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -79,17 +79,19 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	}
 	
 	public BPMUser getBPMUser(Integer bpmUserPK, User usr) {
+		return getBPMUser(IWContext.getInstance(), bpmUserPK, usr);
+	}
+	
+	public BPMUser getBPMUser(IWContext iwc, Integer bpmUserPK, User usr) {
 		
-		FacesContext fctx = FacesContext.getCurrentInstance();
-		
-		if(fctx == null)
+		if(iwc == null)
 			return null;
 		
 		BPMUserImpl bpmUsr = createUser();
 		
 		if(bpmUserPK != null && (bpmUsr.getBpmUser() == null || !bpmUsr.getBpmUser().getPrimaryKey().equals(bpmUserPK))) {
 			
-			IWApplicationContext iwac = IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
+			IWApplicationContext iwac = IWMainApplication.getIWMainApplication(iwc).getIWApplicationContext();
 			
 			try {
 				User bpmUsrAcc = getUserBusiness(iwac).getUser(bpmUserPK);
@@ -109,9 +111,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		
 		if(usr == null) {
 			
-			IWContext iwc = IWContext.getIWContext(fctx);
-			
-			if(fctx != null && iwc.isLoggedOn())
+			if(iwc != null && iwc.isLoggedOn())
 				usr = iwc.getCurrentUser();
 		}
 		

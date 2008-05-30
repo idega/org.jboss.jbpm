@@ -2,13 +2,14 @@ package com.idega.jbpm.identity;
 
 import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/05/27 14:48:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/30 15:10:11 $ by $Author: civilis $
  */
 public interface BPMUserFactory {
 
@@ -20,6 +21,8 @@ public interface BPMUserFactory {
 	public abstract BPMUser getCurrentBPMUser();
 
 	public abstract BPMUser getBPMUser(Integer bpmUserPK, User usr);
+	
+	public abstract BPMUser getBPMUser(IWContext iwc, Integer bpmUserPK, User usr);
 
 	public abstract boolean isAssociated(User realUsr, User bpmUsr,
 			boolean autoAssociate);
