@@ -1,6 +1,6 @@
 cases_bpm.case_invitation=You've been invited to participate in case
 cases_bpm.case_invitation_message=Follow the link to register and participate in the case : {0}
-
+cases_bpm.case_take_task=Take task
 cases_bpm.process_resource_name_submitnewcase=Submit new case
 cases_bpm.process_resource_name_requestadditionalinformation=Request additional information
 cases_bpm.process_resource_name_submitadditionalinformation=Submit additional information

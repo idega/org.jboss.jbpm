@@ -76,9 +76,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $
+ * @version $Revision: 1.27 $
  *
- * Last modified: $Date: 2008/05/30 08:44:09 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/30 12:08:42 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -331,9 +331,13 @@ public class ProcessArtifacts {
 			BPMUser bpmUsr = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
 			Integer loggedInUserIdInt = bpmUsr.getIdToUse();
 			String loggedInUserId = loggedInUserIdInt == null ? null : String.valueOf(loggedInUserIdInt);
-			IWResourceBundle iwrb = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER).getResourceBundle(iwc);
+			IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+			IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 			String youLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_you", "You");
 			String noOneLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_no_one", "No one");
+			String takeTaskImage = bundle.getVirtualPathWithFileNameString("images/take_task.png");
+			String takeTaskTitle = iwrb.getLocalizedString("cases_bpm.case_take_task", "Take task");
+			boolean allowReAssignTask = false;	//	TODO
 			for (TaskInstance taskInstance : tasks) {
 				
 				if(taskInstance.getToken().hasEnded())
@@ -351,6 +355,9 @@ public class ProcessArtifacts {
 				boolean disableSelection = false;
 				String assignedToName;
 				
+				String tidStr = String.valueOf(taskInstance.getId());
+				
+				boolean addTaskAssigment = false;
 				if(taskInstance.getActorId() != null) {
 					
 					if(loggedInUserId != null && taskInstance.getActorId().equals(loggedInUserId)) {
@@ -369,14 +376,21 @@ public class ProcessArtifacts {
 					}
 					
 				} else {
-					
+					addTaskAssigment = true;	//	Because is not assigned yet
 					assignedToName = noOneLocalized;
+				}
+				if (addTaskAssigment || allowReAssignTask) {
+					String imageId = new StringBuilder("id").append(tidStr).append("_assignTask").toString();
+					StringBuilder assignedToCell = new StringBuilder("<img src=\"").append(takeTaskImage).append("\" title=\"").append(takeTaskTitle).append("\"");
+					assignedToCell.append(" id=\"").append(imageId).append("\"").append(" onclick=\"takeCurrentProcessTask(event, '").append(tidStr).append("', '");
+					assignedToCell.append(imageId).append("', ").append(allowReAssignTask).append(");\" />");
+					
+					assignedToName = new StringBuilder(assignedToCell.toString()).append(CoreConstants.SPACE).append(assignedToName).toString();
 				}
 				
 				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 				rows.addRow(row);
 				
-				String tidStr = String.valueOf(taskInstance.getId());
 				row.setId(tidStr);
 				row.addCell(getLocalizedName(iwrb, taskInstance.getName()));	//	TODO:	Should be better localization
 				row.addCell(taskInstance.getCreate() == null ? CoreConstants.EMPTY :

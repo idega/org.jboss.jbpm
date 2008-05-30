@@ -11,7 +11,7 @@ close=Loka
 bpm_handler=Umsj\u00F3narma\u00F0ur
 bpm_owner=M\u00E1lsstofnandi
 bpm_defendant=M\u00E1lsverjandi
-
+cases_bpm.case_take_task=Take task
 cases_bpm.process_resource_name_submitnewcase=Bei\u00F0ni um \u00E1litsger\u00F0
 cases_bpm.process_resource_name_requestadditionalinformation=\u00D3ska meiri uppl\u00FDsingar fr\u00E1 sendanda
 cases_bpm.process_resource_name_submitadditionalinformation=Senda meiri uppl\u00FDsingar
