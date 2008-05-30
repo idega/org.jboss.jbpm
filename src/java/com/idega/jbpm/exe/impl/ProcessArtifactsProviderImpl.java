@@ -19,9 +19,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/30 08:44:09 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service
@@ -120,5 +120,24 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 	@Autowired
 	public void setVariablesHandler(VariablesHandler variablesHandler) {
 		this.variablesHandler = variablesHandler;
+	}
+
+	public String getCaseIdentifier(Long processInstanceId) {
+		if (processInstanceId == null) {
+			return null;
+		}
+		
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		try {
+			ProcessInstance pi = ctx.getProcessInstance(processInstanceId);
+			Object o = pi.getContextInstance().getVariable(ProcessArtifactsProvider.CASE_IDENTIFIER);
+			return o == null ? null : String.valueOf(o);
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
+		
+		return null;
 	}
 }

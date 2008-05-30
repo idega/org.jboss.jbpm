@@ -76,9 +76,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $
+ * @version $Revision: 1.26 $
  *
- * Last modified: $Date: 2008/05/29 08:24:10 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/30 08:44:09 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -609,12 +609,19 @@ public class ProcessArtifacts {
 		rows.setTotal(uniqueUsers.size());
 		rows.setPage(uniqueUsers.isEmpty() ? 0 : 1);
 		
+		String systemEmail = null;
+		try {
+			systemEmail = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_ACCOUNT);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		String caseIdentifier = getProcessArtifactsProvider().getCaseIdentifier(processInstanceId);
 		for(User user: uniqueUsers) {
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 			
 			row.addCell(BPMUser.bpmUserIdentifier.equals(user.getMiddleName()) ? user.getFirstName() : user.getName());
-			row.addCell(getUserEmails(user.getEmails()));
+			row.addCell(getUserEmails(user.getEmails(), caseIdentifier, systemEmail));
 			row.addCell(getUserPhones(user.getPhones()));
 			row.addCell(getUserAddress(user));
 		}
@@ -706,7 +713,7 @@ public class ProcessArtifacts {
 		return result.equals(CoreConstants.EMPTY) ? CoreConstants.MINUS : result;
 	}
 	
-	private String getUserEmails(Collection<Email> emails) {
+	private String getUserEmails(Collection<Email> emails, String caseIdentifier, String systemEmail) {
 		if (emails == null || emails.isEmpty()) {
 			return CoreConstants.MINUS;
 		}
@@ -716,7 +723,7 @@ public class ProcessArtifacts {
 		StringBuilder userEmails = new StringBuilder();
 		boolean addSemicolon = false;
 		for (Email email: emails) {
-			emailValue = email.getEmailAddressMailtoFormatted();
+			emailValue = email.getEmailAddress();
 			addSemicolon = false;
 			
 			if (emailValue == null || CoreConstants.EMPTY.equals(emailValue) || "null".equals(emailValue)) {
@@ -724,10 +731,10 @@ public class ProcessArtifacts {
 			}
 			else {
 				addSemicolon = true;
-				userEmails.append(emailValue);
+				userEmails.append(getContactEmailFormatted(emailValue, caseIdentifier, systemEmail));
 			}
 			if ((emailsCounter + 1) < emails.size() && addSemicolon) {
-				userEmails.append(CoreConstants.SEMICOLON).append(CoreConstants.SPACE);
+				userEmails.append(CoreConstants.SPACE);
 			}
 			
 			emailsCounter++;
@@ -735,6 +742,28 @@ public class ProcessArtifacts {
 		
 		String result = userEmails.toString();
 		return result.equals(CoreConstants.EMPTY) ? CoreConstants.MINUS : result;
+	}
+	
+	private String getContactEmailFormatted(String emailAddress, String caseIdentifier, String systemEmail) {
+		StringBuffer link = new StringBuffer("<a href=\"mailto:").append(emailAddress);
+		
+		boolean firstParamAdded = false;
+		if (caseIdentifier != null) {
+			link.append("?subject=(").append(caseIdentifier).append(")");
+			firstParamAdded = true;
+		}
+		if (systemEmail != null) {
+			if (firstParamAdded) {
+				link.append("&");
+			}
+			else {
+				link.append("?");
+			}
+			link.append("cc=").append(systemEmail);
+		}
+		
+		link.append("\">").append(emailAddress).append("</a>");
+		return link.toString();
 	}
 	
 	protected String getTaskStatus(IWResourceBundle iwrb, TaskInstance taskInstance) {
