@@ -1,4 +1,4 @@
-package com.idega.jbpm.exe.impl;
+package com.idega.jbpm.artifacts.impl;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -19,9 +19,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/05/30 08:44:09 $ by $Author: valdas $
+ * Last modified: $Date: 2008/05/30 15:08:51 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -104,24 +104,6 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		return binaryVariables;
 	}
 	
-	public IdegaJbpmContext getIdegaJbpmContext() {
-		return idegaJbpmContext;
-	}
-
-	@Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
-		this.idegaJbpmContext = idegaJbpmContext;
-	}
-
-	public VariablesHandler getVariablesHandler() {
-		return variablesHandler;
-	}
-
-	@Autowired
-	public void setVariablesHandler(VariablesHandler variablesHandler) {
-		this.variablesHandler = variablesHandler;
-	}
-
 	public String getCaseIdentifier(Long processInstanceId) {
 		if (processInstanceId == null) {
 			return null;
@@ -139,5 +121,23 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		}
 		
 		return null;
+	}
+	
+	public IdegaJbpmContext getIdegaJbpmContext() {
+		return idegaJbpmContext;
+	}
+
+	@Autowired
+	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+		this.idegaJbpmContext = idegaJbpmContext;
+	}
+
+	public VariablesHandler getVariablesHandler() {
+		return variablesHandler;
+	}
+
+	@Autowired
+	public void setVariablesHandler(VariablesHandler variablesHandler) {
+		this.variablesHandler = variablesHandler;
 	}
 }

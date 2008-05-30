@@ -1,4 +1,4 @@
-package com.idega.jbpm.exe.impl;
+package com.idega.jbpm.variables.impl;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,9 +22,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/30 15:11:16 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")

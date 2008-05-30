@@ -1,4 +1,4 @@
-package com.idega.jbpm.exe.impl;
+package com.idega.jbpm.variables.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,9 +35,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/05/20 06:45:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/30 15:11:14 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
