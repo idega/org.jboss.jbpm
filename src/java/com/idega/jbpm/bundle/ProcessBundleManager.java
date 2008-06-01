@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
+import org.jbpm.instantiation.Delegation;
 import org.jbpm.taskmgmt.def.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -30,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/01 12:03:20 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -126,15 +127,19 @@ public class ProcessBundleManager {
 		
 		for (Task task : tasks.values()) {
 			
-			String jsonExp = task.getAssignmentDelegation().getConfiguration();
+			Delegation deleg = task.getAssignmentDelegation();
 			
-			List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
+			if(deleg != null && deleg.getConfiguration() != null) {
 			
-			for (Role role : roles) {
-			
-				System.out.println("role found: "+role.getRoleName()+", scope: "+role.getScope()+", task: "+task.getName());
-				if(role.getScope() == RoleScope.PD)
-					rolesToCreate.add(role);
+				String jsonExp = deleg.getConfiguration();
+				
+				List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
+				
+				for (Role role : roles) {
+				
+					if(role.getScope() == RoleScope.PD)
+						rolesToCreate.add(role);
+				}
 			}
 		}
 		
@@ -149,10 +154,15 @@ public class ProcessBundleManager {
 
 		for (Task task : tasks.values()) {
 			
-			String jsonExp = task.getAssignmentDelegation().getConfiguration();
+			Delegation deleg = task.getAssignmentDelegation();
 			
-			List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
-			getRolesManager().createTaskRolesPermissions(task, roles);
+			if(deleg != null && deleg.getConfiguration() != null) {
+			
+				String jsonExp = deleg.getConfiguration();
+				
+				List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
+				getRolesManager().createTaskRolesPermissions(task, roles);
+			}
 		}
 	}
 
