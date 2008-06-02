@@ -35,9 +35,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/06/02 08:11:46 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/02 08:22:26 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -45,6 +45,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
 	public static final String BPM_UPLOADED_FILES_PATH = "/files/bpm/uploadedFiles/";
 	public static final String STORAGE_TYPE = "slide";
+	public static final String BINARY_VARIABLE = "binaryVariable";
 
 	public Map<String, Object> storeBinaryVariables(Object identifier, Map<String, Object> variables) {
 		
@@ -198,14 +199,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
 	protected String convertToJSON(BinaryVariable binVar) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
-		xstream.alias("binaryVariable", BinaryVariableImpl.class);
+		xstream.alias(BINARY_VARIABLE, BinaryVariableImpl.class);
 		String jsonStr = xstream.toXML(binVar);
 		return jsonStr;
 	}
 	
 	protected BinaryVariable convertToBinaryVariable(String jsonStr) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
-		xstream.alias("binaryVariable", BinaryVariableImpl.class);
+		xstream.alias(BINARY_VARIABLE, BinaryVariableImpl.class);
 		BinaryVariable binVar = (BinaryVariable)xstream.fromXML(jsonStr);
 		return binVar;
 	}
