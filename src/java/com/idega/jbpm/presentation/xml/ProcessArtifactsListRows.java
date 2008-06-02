@@ -22,9 +22,9 @@ import com.thoughtworks.xstream.XStream;
  * see http://www.trirand.com/blog/?page_id=4
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/05/29 08:24:11 $ by $Author: valdas $
+ * Last modified: $Date: 2008/06/02 09:00:39 $ by $Author: valdas $
  */
 public class ProcessArtifactsListRows {
 
@@ -85,7 +85,7 @@ public class ProcessArtifactsListRows {
 	
 	public Document getDocument() throws Exception {
 		try {
-			Collections.sort(getRows(), new ProcessArtifactsListRowComparator(IWTimestamp.SHORT, CoreUtil.getIWContext().getCurrentLocale()));
+			Collections.sort(getRows(), new ProcessArtifactsListRowComparator(IWTimestamp.SHORT, IWTimestamp.SHORT, CoreUtil.getIWContext().getCurrentLocale()));
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
