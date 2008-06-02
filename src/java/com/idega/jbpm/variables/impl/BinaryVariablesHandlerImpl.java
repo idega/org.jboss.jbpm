@@ -35,9 +35,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/30 15:11:14 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/02 08:11:46 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -198,12 +198,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
 	protected String convertToJSON(BinaryVariable binVar) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
+		xstream.alias("binaryVariable", BinaryVariableImpl.class);
 		String jsonStr = xstream.toXML(binVar);
 		return jsonStr;
 	}
 	
 	protected BinaryVariable convertToBinaryVariable(String jsonStr) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
+		xstream.alias("binaryVariable", BinaryVariableImpl.class);
 		BinaryVariable binVar = (BinaryVariable)xstream.fromXML(jsonStr);
 		return binVar;
 	}
