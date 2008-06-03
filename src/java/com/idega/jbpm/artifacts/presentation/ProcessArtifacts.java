@@ -76,9 +76,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.28 $
+ * @version $Revision: 1.29 $
  *
- * Last modified: $Date: 2008/05/30 15:09:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/03 09:31:54 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -151,7 +151,7 @@ public class ProcessArtifacts {
 			row.setDateCellIndex(row.getCells().size() - 1);
 			
 			if(dlDoc)
-				row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri).append("\" onclick=\"downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
+				row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri).append("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
 			
 			if (rightsChanger) {
 				addRightsChangerCell(row, processInstanceId, tidStr, null, true);
@@ -382,8 +382,8 @@ public class ProcessArtifacts {
 				if (addTaskAssigment || allowReAssignTask) {
 					String imageId = new StringBuilder("id").append(tidStr).append("_assignTask").toString();
 					StringBuilder assignedToCell = new StringBuilder("<img src=\"").append(takeTaskImage).append("\" title=\"").append(takeTaskTitle).append("\"");
-					assignedToCell.append(" id=\"").append(imageId).append("\"").append(" onclick=\"takeCurrentProcessTask(event, '").append(tidStr).append("', '");
-					assignedToCell.append(imageId).append("', ").append(allowReAssignTask).append(");\" />");
+					assignedToCell.append(" id=\"").append(imageId).append("\"").append(" onclick=\"CasesBPMAssets.takeCurrentProcessTask(event, '").append(tidStr);
+					assignedToCell.append("', '").append(imageId).append("', ").append(allowReAssignTask).append(");\" />");
 					
 					assignedToName = new StringBuilder(assignedToCell.toString()).append(CoreConstants.SPACE).append(assignedToName).toString();
 				}
@@ -440,7 +440,7 @@ public class ProcessArtifacts {
 		String id = new StringBuilder("idPrefImg").append(taskInstanceId).toString();
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		StringBuilder image = new StringBuilder("<img id=\"").append(id).append("\" class=\"caseProcessResourceAccessRightsStyle\" src=\"");
-		image.append(bundle.getVirtualPathWithFileNameString("images/preferences.png")).append("\" onclick=\"changeAccessRightsForBpmRelatedResource(event, ");
+		image.append(bundle.getVirtualPathWithFileNameString("images/preferences.png")).append("\" onclick=\"CasesBPMAssets.changeAccessRightsForBpmRelatedResource(event, ");
 		if (processInstanceId == null) {
 			image.append("null");
 		}
@@ -934,7 +934,7 @@ public class ProcessArtifacts {
 				
 				CheckBox box = new CheckBox(roleName);
 				box.setChecked(role.getAccesses() != null && role.getAccesses().contains(Access.read));
-				StringBuilder action = new StringBuilder("setAccessRightsForBpmRelatedResource('").append(box.getId()).append("', ");
+				StringBuilder action = new StringBuilder("CasesBPMAssets.setAccessRightsForBpmRelatedResource('").append(box.getId()).append("', ");
 				if (processInstanceId == null) {
 					action.append("null");
 				}
@@ -973,7 +973,7 @@ public class ProcessArtifacts {
 		Link closeLink = new Link(iwrb.getLocalizedString("close", "Close"));
 		container.add(closeLink);
 		closeLink.setURL("javascript:void(0);");
-		closeLink.setOnClick("closeAccessRightsSetterBox();");
+		closeLink.setOnClick("CasesBPMAssets.closeAccessRightsSetterBox();");
 		
 		return builder.getRenderedComponent(iwc, container, false);
 	}
