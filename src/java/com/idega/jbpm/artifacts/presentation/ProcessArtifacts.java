@@ -29,6 +29,7 @@ import org.w3c.dom.Document;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
+import com.idega.core.accesscontrol.business.NotLoggedOnException;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.contact.data.Email;
@@ -41,6 +42,8 @@ import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.ProcessManager;
+import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.identity.BPMAccessControlException;
 import com.idega.jbpm.identity.BPMUser;
 import com.idega.jbpm.identity.Role;
@@ -77,9 +80,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.30 $
+ * @version $Revision: 1.31 $
  *
- * Last modified: $Date: 2008/06/03 15:57:59 $ by $Author: valdas $
+ * Last modified: $Date: 2008/06/03 16:08:06 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -334,7 +337,7 @@ public class ProcessArtifacts {
 			String loggedInUserId = loggedInUserIdInt == null ? null : String.valueOf(loggedInUserIdInt);
 			IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 			IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-			String youLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_you", "You");
+			String youLocalized = getAssignedToYouLocalizedString(iwrb);
 			String noOneLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_no_one", "No one");
 			String takeTaskImage = bundle.getVirtualPathWithFileNameString("images/take_task.png");
 			String takeTaskTitle = iwrb.getLocalizedString("cases_bpm.case_take_task", "Take task");
@@ -669,24 +672,36 @@ public class ProcessArtifacts {
 		
 		StringBuilder userAddress = new StringBuilder();
 		String streetAddress = mainAddress.getStreetAddress();
-		if (streetAddress != null && !CoreConstants.EMPTY.equals(streetAddress)) {
+		if (canAddValueToCell(streetAddress)) {
 			userAddress.append(streetAddress).append(CoreConstants.COMMA).append(CoreConstants.SPACE);
 		}
 		
 		String postalAddress = mainAddress.getPostalAddress();
-		if (postalAddress != null && !CoreConstants.EMPTY.equals(postalAddress)) {
+		if (canAddValueToCell(postalAddress)) {
 			userAddress.append(postalAddress).append(CoreConstants.SPACE);
 		}
 		
 		Country country = mainAddress.getCountry();
 		if (country != null) {
 			String countryName = country.getName();
-			if (countryName != null && !CoreConstants.EMPTY.equals(countryName)) {
+			if (canAddValueToCell(countryName)) {
 				userAddress.append(countryName);
 			}
 		}
 		
 		return userAddress.toString();
+	}
+	
+	private boolean canAddValueToCell(String value) {
+		if (value == null) {
+			return false;
+		}
+		
+		if (CoreConstants.EMPTY.equals(value) || "null".equals(value)) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	private String getUserPhones(Collection<Phone> phones) {
@@ -702,7 +717,7 @@ public class ProcessArtifacts {
 			phoneNumber = phone.getNumber();
 			addSemicolon = false;
 			
-			if (phoneNumber == null || CoreConstants.EMPTY.equals(phoneNumber) || "null".equals(phoneNumber)) {
+			if (canAddValueToCell(phoneNumber)) {
 				userPhones.append(CoreConstants.EMPTY);
 			}
 			else {
@@ -733,7 +748,7 @@ public class ProcessArtifacts {
 			emailValue = email.getEmailAddress();
 			addSemicolon = false;
 			
-			if (emailValue == null || CoreConstants.EMPTY.equals(emailValue) || "null".equals(emailValue)) {
+			if (canAddValueToCell(emailValue)) {
 				userEmails.append(CoreConstants.EMPTY);
 			}
 			else {
@@ -969,6 +984,50 @@ public class ProcessArtifacts {
 		closeLink.setOnClick("CasesBPMAssets.closeAccessRightsSetterBox();");
 		
 		return builder.getRenderedComponent(iwc, container, false);
+	}
+	
+	public String takeBPMProcessTask(Long taskInstanceId, boolean reAssign) {
+		if (taskInstanceId == null) {
+			return null;
+		}
+		
+		IWContext iwc = CoreUtil.getIWContext();
+		if (iwc == null) {
+			return null;
+		}
+		
+		User currentUser = null;
+		try {
+			currentUser = iwc.getCurrentUser();
+		} catch(NotLoggedOnException e) {
+			e.printStackTrace();
+		}
+		if (currentUser == null) {
+			return null;
+		}
+		
+		try {
+			ProcessManager processManager = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId);
+			TaskInstanceW taskInstance = processManager.getTaskInstance(taskInstanceId);
+			
+			User assignedTo = taskInstance.getAssignedTo();
+			if (assignedTo != null && !reAssign) {
+				return assignedTo.getName();
+			}
+			else {
+				taskInstance.assign(currentUser);
+			}
+			
+			return getAssignedToYouLocalizedString(iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER).getResourceBundle(iwc));
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	private String getAssignedToYouLocalizedString(IWResourceBundle iwrb) {
+		return iwrb.getLocalizedString("cases_bpm.case_assigned_to_you", "You");
 	}
 	
 	public IdegaJbpmContext getIdegaJbpmContext() {
