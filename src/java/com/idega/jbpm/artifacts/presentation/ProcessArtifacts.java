@@ -71,14 +71,15 @@ import com.idega.user.data.User;
 import com.idega.user.util.UserComparator;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
+import com.idega.util.FileUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.29 $
+ * @version $Revision: 1.30 $
  *
- * Last modified: $Date: 2008/06/03 09:31:54 $ by $Author: valdas $
+ * Last modified: $Date: 2008/06/03 15:57:59 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -482,7 +483,6 @@ public class ProcessArtifacts {
 			}
 			rows.setTotal(size);
 			rows.setPage(size == 0 ? 0 : 1);
-			String kiloBytesStr = "KB";
 			
 			for (BinaryVariable binaryVariable : binaryVariables) {
 				
@@ -507,14 +507,7 @@ public class ProcessArtifacts {
 				row.addCell(binaryVariable.getFileName());
 				
 				Long fileSize = binaryVariable.getContentLength();
-				if (fileSize == null) {
-					row.addCell(new StringBuilder().append(0).append(CoreConstants.SPACE).append(kiloBytesStr).toString());
-				}
-				else {
-					long kiloBytes = fileSize / 1024;
-					long bytes = fileSize % 1024;
-					row.addCell(new StringBuilder().append(kiloBytes).append(CoreConstants.DOT).append(bytes).append(CoreConstants.SPACE).append(kiloBytesStr).toString());
-				}
+				row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
 				
 				if (params.isRightsChanger()) {
 					addRightsChangerCell(row, params.getPiId(), tidStr, binaryVariable.getHash(), false);
