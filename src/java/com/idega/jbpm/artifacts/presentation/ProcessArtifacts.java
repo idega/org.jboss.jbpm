@@ -81,9 +81,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.32 $
+ * @version $Revision: 1.33 $
  *
- * Last modified: $Date: 2008/06/04 12:59:15 $ by $Author: valdas $
+ * Last modified: $Date: 2008/06/04 13:25:30 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -681,6 +681,7 @@ public class ProcessArtifacts {
 		
 		String postalAddress = mainAddress.getPostalAddress();
 		if (canAddValueToCell(postalAddress)) {
+			postalAddress = StringHandler.replace(postalAddress, "null", CoreConstants.EMPTY);
 			userAddress.append(postalAddress).append(CoreConstants.SPACE);
 		}
 		
