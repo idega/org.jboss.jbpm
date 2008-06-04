@@ -23,5 +23,4 @@ cases_bpm.process_resource_name_actiontakenrequest=Eftirfylgni
 cases_bpm.process_resource_name_defendantactiontaken=Svar vegna eftirfylgnifyrirspurnar
 cases_bpm.process_resource_name_owneractiontaken=Svar vegna eftirfylgnifyrirspurnar
 cases_bpm.process_resource_name_completeprocess=Loka m\u00E1li
-
-
+cases_bpm.can_not_fulfill_action=Sorry, error occurred - can not fulfill your action

@@ -41,6 +41,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
+import com.idega.jbpm.artifacts.presentation.bean.BPMProcessWatcher;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.TaskInstanceW;
@@ -80,9 +81,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.31 $
+ * @version $Revision: 1.32 $
  *
- * Last modified: $Date: 2008/06/03 16:08:06 $ by $Author: valdas $
+ * Last modified: $Date: 2008/06/04 12:59:15 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -92,6 +93,7 @@ public class ProcessArtifacts {
 	private IdegaJbpmContext idegaJbpmContext;
 	private VariablesHandler variablesHandler;
 	private ProcessArtifactsProvider processArtifactsProvider;
+	private BPMProcessWatcher processWatcher = null;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
@@ -444,7 +446,8 @@ public class ProcessArtifacts {
 		String id = new StringBuilder("idPrefImg").append(taskInstanceId).toString();
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		StringBuilder image = new StringBuilder("<img id=\"").append(id).append("\" class=\"caseProcessResourceAccessRightsStyle\" src=\"");
-		image.append(bundle.getVirtualPathWithFileNameString("images/preferences.png")).append("\" onclick=\"CasesBPMAssets.changeAccessRightsForBpmRelatedResource(event, ");
+		image.append(bundle.getVirtualPathWithFileNameString("images/preferences.png")).append("\" ondblclick=\"function() {}\"");
+		image.append(" onclick=\"CasesBPMAssets.changeAccessRightsForBpmRelatedResource(event, ");
 		if (processInstanceId == null) {
 			image.append("null");
 		}
@@ -1026,6 +1029,47 @@ public class ProcessArtifacts {
 		return null;
 	}
 	
+	public String watchOrUnwatchBPMProcessTask(Long processInstanceId) {
+		String errorMessage = "Sorry, error occurred - can not fulfill your action";
+	
+		IWContext iwc = CoreUtil.getIWContext();
+		if (iwc == null) {
+			return errorMessage;
+		}
+		
+		IWResourceBundle iwrb = null;
+		try {
+			iwrb = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER).getResourceBundle(iwc);
+		} catch(Exception e) {
+			logger.log(Level.SEVERE, "Can not get IWResourceBundle", e);
+		}
+		if (iwrb == null) {
+			return errorMessage;
+		}
+		
+		errorMessage = iwrb.getLocalizedString("cases_bpm.can_not_fulfill_action", errorMessage);
+		
+		if (processInstanceId == null) {
+			return errorMessage;
+		}
+		
+		if (getProcessWatcher().isWatching(processInstanceId)) {
+			//	Remove
+			if (getProcessWatcher().removeWatch(processInstanceId)) {
+				return getProcessWatcher().getWatchCaseStatusLabel(false);
+			}
+			
+			return errorMessage;
+		}
+		
+		//	Add
+		if (getProcessWatcher().takeWatch(processInstanceId)) {
+			return getProcessWatcher().getWatchCaseStatusLabel(true);
+		}
+		
+		return errorMessage;
+	}
+	
 	private String getAssignedToYouLocalizedString(IWResourceBundle iwrb) {
 		return iwrb.getLocalizedString("cases_bpm.case_assigned_to_you", "You");
 	}
@@ -1075,4 +1119,14 @@ public class ProcessArtifacts {
 			ProcessArtifactsProvider processArtifactsProvider) {
 		this.processArtifactsProvider = processArtifactsProvider;
 	}
+
+	public BPMProcessWatcher getProcessWatcher() {
+		return processWatcher;
+	}
+
+	@Autowired
+	public void setProcessWatcher(BPMProcessWatcher processWatcher) {
+		this.processWatcher = processWatcher;
+	}
+	
 }

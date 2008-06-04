@@ -19,3 +19,4 @@ cases_bpm.process_resource_name_invitedefendant=Bo\u00F0 til gagna\u00F0ila
 cases_bpm.process_resource_name_submitprocessruling=Senda \u00E1lit nefndarinnar
 cases_bpm.process_resource_name_submitdefendantcaseanswer=Senda andsvar
 cases_bpm.process_resource_name_setthedocumentkey=Velja skjalalykill
+cases_bpm.can_not_fulfill_action=Sorry, error occurred - can not fulfill your action
