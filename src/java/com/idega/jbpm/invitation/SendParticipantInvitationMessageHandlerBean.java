@@ -37,9 +37,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/05/30 16:22:37 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/06 16:33:44 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(SendParticipantInvitationMessageHandlerBean.beanIdentifier)
@@ -74,7 +74,7 @@ public class SendParticipantInvitationMessageHandlerBean {
 			userName = recepientEmail;
 		
 		long parentPID = ctx.getProcessInstance().getSuperProcessToken().getProcessInstance().getId();
-		User bpmUser = createAndAssignBPMIdentity(userName, roleName, ctx);
+		User bpmUser = createAndAssignBPMIdentity(userName, roleName, recepientEmail, ctx);
 		
 		final IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		IWResourceBundle iwrb = getResourceBundle(iwc);
@@ -117,6 +117,8 @@ public class SendParticipantInvitationMessageHandlerBean {
 		uriUtil.setParameter(BPMUserImpl.bpmUsrParam, String.valueOf(bpmUser.getPrimaryKey().toString()));
 		fullUrl = uriUtil.getUri();
 		
+//		System.out.println("fullUrl="+fullUrl);
+		
 //		String fullUrl = composeFullUrl(iwc, ctx.getToken());
 		
 		message += "\n" + iwrb.getLocalizedAndFormattedString("cases_bpm.case_invitation_message", "Follow the link to register and participate in the case : {0}", new Object[] {fullUrl}) ;
@@ -135,7 +137,7 @@ public class SendParticipantInvitationMessageHandlerBean {
 		return fullUrl;
 	}
 	
-	protected User createAndAssignBPMIdentity(String userName, String roleName, ExecutionContext ctx) {
+	protected User createAndAssignBPMIdentity(String userName, String roleName, String email, ExecutionContext ctx) {
 		
 		Role role = new Role();
 		role.setRoleName(roleName);
@@ -147,7 +149,7 @@ public class SendParticipantInvitationMessageHandlerBean {
 		ProcessInstance parentPI = ctx.getProcessInstance().getSuperProcessToken().getProcessInstance();
 		long parentProcessInstanceId = parentPI.getId();
 		
-		User bpmUser = getBpmFactory().getBpmUserFactory().createBPMUser(userName, roleName, parentProcessInstanceId);
+		User bpmUser = getBpmFactory().getBpmUserFactory().createBPMUser(userName, roleName, email, parentProcessInstanceId);
 		
 		getRolesManager().createProcessRoles(parentPI.getProcessDefinition().getName(), rolz, parentProcessInstanceId);
 		//getRolesManager().createTaskRolesPermissionsPIScope(task, rolz, parentProcessInstanceId);

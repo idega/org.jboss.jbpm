@@ -2,6 +2,7 @@ package com.idega.jbpm.identity;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
+import com.idega.core.contact.data.Email;
+import com.idega.core.contact.data.EmailHome;
 import com.idega.core.persistence.GenericDao;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
@@ -31,9 +34,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/06/06 10:09:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/06 16:33:48 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -42,7 +45,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	private BPMFactory BPMFactory; 
 	private GenericDao genericDao;
 	
-	public User createBPMUser(String name, String roleName, long processInstanceId) {
+	public User createBPMUser(String name, String roleName, String email, long processInstanceId) {
 	
 		try {
 			FacesContext fctx = FacesContext.getCurrentInstance();
@@ -53,15 +56,45 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 			} else
 				iwac = IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
 			
-//			User bpmUserAcc = ((com.idega.user.data.UserHome) com.idega.data.IDOLookup.getHome(User.class)).create();
-//			bpmUserAcc.setFirstName(name == null || CoreConstants.EMPTY.equals(name) ? "BPMUser" : name);
-//			bpmUserAcc.setPersonalID(String.valueOf(processInstanceId));
-//			bpmUserAcc.store();
+			UserBusiness userBusiness = getUserBusiness(iwac);
 			
-			User bpmUserAcc = getUserBusiness(iwac).createUser(name, BPMUser.bpmUserIdentifier, roleName, String.valueOf(processInstanceId));
+			User bpmUserAcc = null;
 			
-//			BPMUserImpl user = createUser();
-//			user.setBpmUser(bpmUserAcc);
+			if(email != null) {
+				
+				Collection<User> users = userBusiness.getUserHome().findUsersByEmail(email);
+				
+				if(users != null) {
+				
+					for (User user : users) {
+						
+						if(BPMUser.bpmUserIdentifier.equals(user.getMiddleName())) {
+							bpmUserAcc = user;
+							break;
+						}
+					}
+					
+					if(bpmUserAcc == null && !users.isEmpty()) {
+						bpmUserAcc = users.iterator().next();
+					}
+				}
+				
+				//bpmUserAcc
+				
+				if(bpmUserAcc == null) {
+					
+					bpmUserAcc = userBusiness.createUser(name, BPMUser.bpmUserIdentifier, roleName, String.valueOf(processInstanceId));
+					
+					EmailHome eHome = userBusiness.getEmailHome();
+					Email uEmail = eHome.create();
+					uEmail.setEmailAddress(email);
+					uEmail.store();
+					bpmUserAcc.addEmail(uEmail);
+				}
+				
+			} else {
+				bpmUserAcc = userBusiness.createUser(name, BPMUser.bpmUserIdentifier, roleName, String.valueOf(processInstanceId));
+			}
 			
 			return bpmUserAcc;
 			
@@ -125,6 +158,9 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	
 	@Transactional(readOnly = true)
 	public boolean isAssociated(User realUsr, User bpmUsr, boolean autoAssociate) {
+		
+		if(bpmUsr.equals(realUsr))
+			return true;
 		
 		try {
 			String roleName = bpmUsr.getLastName();
