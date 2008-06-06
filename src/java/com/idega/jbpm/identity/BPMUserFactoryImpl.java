@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/05/30 15:10:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/06 10:09:53 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -79,7 +79,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	}
 	
 	public BPMUser getBPMUser(Integer bpmUserPK, User usr) {
-		return getBPMUser(IWContext.getInstance(), bpmUserPK, usr);
+		return getBPMUser(IWContext.getCurrentInstance(), bpmUserPK, usr);
 	}
 	
 	public BPMUser getBPMUser(IWContext iwc, Integer bpmUserPK, User usr) {
