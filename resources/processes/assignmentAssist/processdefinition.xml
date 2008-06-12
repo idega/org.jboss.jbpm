@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-definition
+  xmlns=""  name="AssignmentAssist">
+  
+	<start-state name="start-state1">
+		<transition to="isCurrentUserAssistant"></transition>
+	</start-state>
+
+	<decision name="isCurrentUserAssistant">
+		<handler class="com.idega.jbpm.identity.authentication.BelongsToRoleDecisionHandler">
+			<roleNameExp>
+				#{assistantRoleName}
+			</roleNameExp>
+			<processInstanceIdExp>
+                #{assignFromProcessInstanceId}
+            </processInstanceIdExp>
+		</handler>
+		<transition to="locateAssignee" name="true"></transition>
+		<transition to="end-state1" name="false"></transition>
+	</decision>
+
+	<node name="locateAssignee">
+		<event type="node-enter">
+			<action class="com.idega.jbpm.identity.authentication.LocateUserHandler">
+				<userDataExp>
+                    #{assigneeData}
+                </userDataExp>
+			</action>
+		</event>
+		<transition to="assigneeFound"></transition>
+	</node>
+
+	<node name="assignToRole">
+		<event type="node-enter">
+			<action class="com.idega.jbpm.identity.authentication.AssignUserToRoleHandler" name="AssignToRoleAction">
+				<userIdExp>
+					x
+				</userIdExp>
+				<roleExpressionExp>
+					x
+				</roleExpressionExp>
+				<processInstanceIdExp>
+					x
+				</processInstanceIdExp>
+			</action>
+		</event>
+		<transition to="sendInvitationToAssignee" name="toSendInvitationToAssignee"></transition>
+	</node>
+
+	<decision name="assigneeFound" expression="#{assigneeUserId != null}">
+		<transition to="createUser" name="false"></transition>
+		<transition to="assignToRole" name="true"></transition>
+	</decision>
+
+	<node name="createUser">
+		<event type="node-enter">
+			<action class="com.idega.jbpm.identity.authentication.CreateUserHandler">
+				<userDataExp>
+					#{assigneeData}
+				</userDataExp>
+				<!--  
+				<userIdVariableName>
+					assigneeUserId
+				</userIdVariableName>
+				-->
+			</action>
+		</event>
+		<transition to="end-state2" name="toAssignRole"></transition>
+	</node>
+
+	<node name="sendInvitationToAssignee">
+		<transition to="end-state1"></transition>
+	</node>
+
+
+	<end-state name="end-state1"></end-state>
+
+	<end-state name="end-state2"></end-state>
+
+
+</process-definition>
