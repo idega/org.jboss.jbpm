@@ -8,6 +8,13 @@ import org.springframework.stereotype.Service;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.identity.BPMUser;
 
+/**
+ *   
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.6 $
+ * 
+ * Last modified: $Date: 2008/06/12 18:29:46 $ by $Author: civilis $
+ */
 @Scope("singleton")
 @Service
 public class IdentityAuthenticationService implements AuthenticationService {
