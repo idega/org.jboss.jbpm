@@ -14,17 +14,15 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/05/24 10:25:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/12 18:28:42 $ by $Author: civilis $
  */
 @Scope("session")
 //TODO: change scope to prototype and use seam conversation scope (after seam integration of course) 
 @Service("BPMUser")
 public class BPMUserImpl implements BPMUser {
 	
-	public static final String bpmUsrParam = "bpmusr";
-
 	private Boolean isAssociated;
 	private User bpmUser;
 	private User realUser;
