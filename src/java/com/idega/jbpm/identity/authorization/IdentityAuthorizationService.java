@@ -32,6 +32,7 @@ import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMRightsMgmtPermission;
+import com.idega.jbpm.identity.permission.BPMRoleAccessPermission;
 import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
 import com.idega.jbpm.identity.permission.BPMTaskVariableAccessPermission;
 import com.idega.presentation.IWContext;
@@ -42,9 +43,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.24 $
+ * @version $Revision: 1.25 $
  *
- * Last modified: $Date: 2008/05/28 08:02:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/12 18:30:10 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -92,6 +93,48 @@ public class IdentityAuthorizationService implements AuthorizationService {
 				}
 			}
 		}
+	}
+	
+	protected void checkRoleAccessPermission(FacesContext fctx, BPMRoleAccessPermission permission) throws AccessControlException {
+		
+		String loggedInActorId = getAuthenticationService().getActorId();
+		
+		if(loggedInActorId == null)
+			throw new AccessControlException("Not logged in");
+		
+		Long processInstanceId = permission.getProcessInstanceId();
+		String roleName = permission.getRoleName();
+		
+		List<ProcessRole> proles = 
+			getBpmBindsDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
+					new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
+					new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {roleName}))
+			);
+		
+		if(proles == null || proles.isEmpty())
+			throw new AccessControlException("No process role found by role name="+roleName+" and process instance id = "+processInstanceId);
+		
+		ProcessRole prole = proles.iterator().next();
+		
+		try {
+			int userId = new Integer(loggedInActorId);
+
+			UserBusiness userBusiness = getUserBusiness();
+			@SuppressWarnings("unchecked")
+			Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
+			AccessController ac = getAccessController();
+			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+			
+			List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
+			
+			if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, usrGrps, userId, ac, iwac))
+				return;
+			
+		} catch (RemoteException e) {
+			throw new IBORuntimeException(e);
+		}
+
+		throw new AccessControlException("No role access for user="+loggedInActorId+", for processInstanceId="+processInstanceId+", for role="+roleName);
 	}
 	
 	protected void checkRightsMgmtPermission(FacesContext fctx, BPMRightsMgmtPermission permission) throws AccessControlException {
@@ -158,6 +201,8 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			checkTaskAccessPermission(fctx, (BPMTaskAccessPermission)perm);
 		} else if((perm instanceof BPMRightsMgmtPermission)) {
 			checkRightsMgmtPermission(fctx, (BPMRightsMgmtPermission)perm);
+		} else if((perm instanceof BPMRoleAccessPermission)) {
+			checkRoleAccessPermission(fctx, (BPMRoleAccessPermission)perm);
 		} else 
 			throw new IllegalArgumentException("Only permissions implementing "+BPMTaskAccessPermission.class.getName()+" or "+BPMRightsMgmtPermission.class.getName()+" supported");
 	}
