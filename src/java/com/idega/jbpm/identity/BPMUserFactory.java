@@ -7,13 +7,13 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/06/06 16:33:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/12 18:29:09 $ by $Author: civilis $
  */
 public interface BPMUserFactory {
 
-	public abstract User createBPMUser(String name, String roleName, String email, long processInstanceId);
+	public abstract User createBPMUser(UserPersonalData upd, Role role, long processInstanceId);
 
 	public abstract BPMUserImpl createUser();
 

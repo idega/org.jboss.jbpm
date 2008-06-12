@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
+import javax.ejb.CreateException;
 import javax.faces.context.FacesContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +35,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- * Last modified: $Date: 2008/06/06 16:33:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/12 18:29:09 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -45,7 +46,10 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	private BPMFactory BPMFactory; 
 	private GenericDao genericDao;
 	
-	public User createBPMUser(String name, String roleName, String email, long processInstanceId) {
+	/**
+	 * creates ic_user for BpmUser
+	 */
+	public User createBPMUser(UserPersonalData upd, Role role, long processInstanceId) {
 	
 		try {
 			FacesContext fctx = FacesContext.getCurrentInstance();
@@ -59,31 +63,32 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 			UserBusiness userBusiness = getUserBusiness(iwac);
 			
 			User bpmUserAcc = null;
-			
+			String email = upd.getUserEmail();
+
 			if(email != null) {
+				
+//				try to find existing bpmUser by email
 				
 				Collection<User> users = userBusiness.getUserHome().findUsersByEmail(email);
 				
 				if(users != null) {
 				
 					for (User user : users) {
+
+						String usrType = user.getMetaData(BPMUser.USER_TYPE);
 						
-						if(BPMUser.bpmUserIdentifier.equals(user.getMiddleName())) {
+						if(BPMUser.USER_TYPE_NATURAL.equals(usrType) || BPMUser.USER_TYPE_LEGAL.equals(usrType)) {
+//							found bpmUser 
 							bpmUserAcc = user;
 							break;
 						}
 					}
-					
-					if(bpmUserAcc == null && !users.isEmpty()) {
-						bpmUserAcc = users.iterator().next();
-					}
 				}
-				
-				//bpmUserAcc
 				
 				if(bpmUserAcc == null) {
 					
-					bpmUserAcc = userBusiness.createUser(name, BPMUser.bpmUserIdentifier, roleName, String.valueOf(processInstanceId));
+//					no bpm user found for email address -> creating new one
+					bpmUserAcc = createBpmUserAcc(userBusiness, upd, role, processInstanceId);
 					
 					EmailHome eHome = userBusiness.getEmailHome();
 					Email uEmail = eHome.create();
@@ -93,7 +98,8 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 				}
 				
 			} else {
-				bpmUserAcc = userBusiness.createUser(name, BPMUser.bpmUserIdentifier, roleName, String.valueOf(processInstanceId));
+//				no email found to look for existing bpm users -> just create new bpmUser
+				bpmUserAcc = createBpmUserAcc(userBusiness, upd, role, processInstanceId);
 			}
 			
 			return bpmUserAcc;
@@ -102,6 +108,37 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 			Logger.getLogger(BPMUserFactoryImpl.class.getName()).log(Level.SEVERE, "Exception while creating bpm user", e);
 			return null;
 		}
+	}
+	
+	private User createBpmUserAcc(UserBusiness userBusiness, UserPersonalData upd, Role role, long processInstanceId) throws CreateException, RemoteException {
+		
+		final User bpmUserAcc;
+		
+		if(BPMUser.USER_TYPE_NATURAL.equals(upd.getUserType())) {
+
+			if(upd.getFullName() != null) {
+				
+				bpmUserAcc = userBusiness.createUser(null, null, null, null, upd.getPersonalId(), null, null, null, null, upd.getFullName());
+			} else {
+			
+				bpmUserAcc = userBusiness.createUser(upd.getFirstName(), null, upd.getLastName(), upd.getPersonalId());
+			}
+			
+		} else if(BPMUser.USER_TYPE_LEGAL.equals(upd.getUserType())) {
+			
+//			for legal person always using full name
+			bpmUserAcc = userBusiness.createUser(null, upd.getFullName(), null, upd.getPersonalId());
+		} else
+			throw new IllegalArgumentException("Illegal user type in user data. Type="+upd.getUserType());
+		
+//		meta data meant to store bpmUser related data
+		bpmUserAcc.setMetaData(BPMUser.USER_TYPE, upd.getUserType());
+		bpmUserAcc.setMetaData(BPMUser.USER_ROLE, role.getRoleName());
+		bpmUserAcc.setMetaData(BPMUser.PROCESS_INSTANCE_ID, String.valueOf(processInstanceId));
+		
+		//TODO: is this needed? bpmUserAcc.store();
+		
+		return bpmUserAcc;
 	}
 	
 	public abstract BPMUserImpl createUser();
