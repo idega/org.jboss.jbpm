@@ -81,9 +81,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.34 $
+ * @version $Revision: 1.35 $
  *
- * Last modified: $Date: 2008/06/06 16:33:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/12 18:27:35 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -129,12 +129,7 @@ public class ProcessArtifacts {
 				
 				try {
 					User usr = getUserBusiness().getUser(Integer.parseInt(actorId));
-					
-					if(BPMUser.bpmUserIdentifier.equals(usr.getMiddleName())) {
-						
-						submittedByName = usr.getFirstName();
-					} else
-						submittedByName = usr.getName();
+					submittedByName = usr.getName();
 					
 				} catch (Exception e) {
 					Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving actor name for actorId: "+actorId, e);
@@ -633,7 +628,7 @@ public class ProcessArtifacts {
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 			
-			row.addCell(BPMUser.bpmUserIdentifier.equals(user.getMiddleName()) ? user.getFirstName() : user.getName());
+			row.addCell(user.getName());
 			row.addCell(getUserEmails(user.getEmails(), caseIdentifier, systemEmail));
 			row.addCell(getUserPhones(user.getPhones()));
 			row.addCell(getUserAddress(user));
