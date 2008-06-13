@@ -14,14 +14,17 @@ import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
+import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.ProcessInstanceW;
+import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/30 15:08:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/13 08:13:42 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -29,6 +32,7 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 	
 	private IdegaJbpmContext idegaJbpmContext;
 	private VariablesHandler variablesHandler;
+	private BPMFactory bpmFactory;
 	
 	public static final String email_fetch_process_name = "fetchEmails";
 	
@@ -70,22 +74,45 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		}
 	}
 	
-	public Collection<TaskInstance> getSubmittedTaskInstances(Long processInstanceId) {
+	public Collection<TaskInstanceW> getSubmittedTaskInstances(Long processInstanceId) {
 
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
-			
+			ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(processInstance.getProcessDefinition().getId()).getProcessInstance(processInstanceId);
 			@SuppressWarnings("unchecked")
-			Collection<TaskInstance> taskInstances = processInstance.getTaskMgmtInstance().getTaskInstances();
+			Collection<TaskInstanceW> taskInstances = processInstanceW.getTaskInstances(processInstanceId, ctx);
 			
-			for (Iterator<TaskInstance> iterator  = taskInstances.iterator(); iterator.hasNext();) {
-				TaskInstance taskInstance = iterator.next();
+			for (Iterator<TaskInstanceW> iterator  = taskInstances.iterator(); iterator.hasNext();) {
+				TaskInstanceW taskInstance = iterator.next();
 				
-				if(!taskInstance.hasEnded())
+				if(!taskInstance.getTaskInstance().hasEnded())
 					iterator.remove();
 			}
+			
+			return taskInstances;
+			
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
+	}
+	
+	public Collection<TaskInstanceW> getUnfinishedTaskInstances(Long processInstanceId, Token rootToken) {
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
+			ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(processInstance.getProcessDefinition().getId()).getProcessInstance(processInstanceId);
+			@SuppressWarnings("unchecked")
+			Collection<TaskInstanceW> taskInstances = processInstanceW.getUnfinishedTasks(processInstanceId, rootToken, ctx);
+			
+//			for (Iterator<TaskInstanceW> iterator  = taskInstances.iterator(); iterator.hasNext();) {
+//				TaskInstanceW taskInstance = iterator.next();
+//				
+//				if(!taskInstance.getTaskInstance().hasEnded())
+//					iterator.remove();
+//			}
 			
 			return taskInstances;
 			
@@ -139,5 +166,14 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 	@Autowired
 	public void setVariablesHandler(VariablesHandler variablesHandler) {
 		this.variablesHandler = variablesHandler;
+	}
+	
+	public BPMFactory getBpmFactory() {
+		return bpmFactory;
+	}
+
+	@Autowired
+	public void setBpmFactory(BPMFactory bpmFactory) {
+		this.bpmFactory = bpmFactory;
 	}
 }

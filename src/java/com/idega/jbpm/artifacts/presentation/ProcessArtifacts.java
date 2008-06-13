@@ -81,9 +81,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.35 $
+ * @version $Revision: 1.36 $
  *
- * Last modified: $Date: 2008/06/12 18:27:35 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/13 08:13:40 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -95,9 +95,10 @@ public class ProcessArtifacts {
 	private ProcessArtifactsProvider processArtifactsProvider;
 	private BPMProcessWatcher processWatcher = null;
 	
+	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
-	private Document getDocumentsListDocument(Collection<TaskInstance> processDocuments, Long processInstanceId, boolean rightsChanger, boolean dlDoc) {
+	private Document getDocumentsListDocument(Collection<TaskInstanceW> processDocuments, Long processInstanceId, boolean rightsChanger, boolean dlDoc) {
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
@@ -112,17 +113,17 @@ public class ProcessArtifacts {
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
 		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
-		for (TaskInstance submittedDocument : processDocuments) {
+		for (TaskInstanceW submittedDocument : processDocuments) {
 			
 			try {
-				Permission permission = getTaskViewPermission(true, submittedDocument);
+				Permission permission = getTaskViewPermission(true, submittedDocument.getTaskInstance());
 				rolesManager.checkPermission(permission);
 				
 			} catch (BPMAccessControlException e) {
 				continue;
 			}
 			
-			String actorId = submittedDocument.getActorId();
+			String actorId = submittedDocument.getTaskInstance().getActorId();
 			String submittedByName;
 			
 			if(actorId != null) {
@@ -141,13 +142,12 @@ public class ProcessArtifacts {
 			
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
-			String tidStr = String.valueOf(submittedDocument.getId());
-			row.setId(tidStr);
+			String tidStr = String.valueOf(submittedDocument.getTaskInstance().getId());
 			
-			row.addCell(getLocalizedName(iwrb, submittedDocument.getName()));	//	TODO:	Should be better localization
+			row.addCell(submittedDocument.getName(iwc.getCurrentLocale()));
 			row.addCell(submittedByName);
-			row.addCell(submittedDocument.getEnd() == null ? CoreConstants.EMPTY :
-				new IWTimestamp(submittedDocument.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
+			row.addCell(submittedDocument.getTaskInstance().getEnd() == null ? CoreConstants.EMPTY :
+				new IWTimestamp(submittedDocument.getTaskInstance().getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 			);
 			row.setDateCellIndex(row.getCells().size() - 1);
 			
@@ -250,7 +250,7 @@ public class ProcessArtifacts {
 			}
 		}
 		
-		Collection<TaskInstance> processDocuments = getProcessArtifactsProvider().getSubmittedTaskInstances(processInstanceId);
+		Collection<TaskInstanceW> processDocuments = getProcessArtifactsProvider().getSubmittedTaskInstances(processInstanceId);
 		
 		return getDocumentsListDocument(processDocuments, processInstanceId, params.isRightsChanger(), params.getDownloadDocument());
 	}
@@ -310,14 +310,16 @@ public class ProcessArtifacts {
 			List<Token> tokens = processInstance.findAllTokens();
 			
 			@SuppressWarnings("unchecked")
-			Collection<TaskInstance> tasks = processInstance.getTaskMgmtInstance().getUnfinishedTasks(processInstance.getRootToken());
+//			Collection<TaskInstance> tasksTmp = processInstance.getTaskMgmtInstance().getUnfinishedTasks(processInstance.getRootToken());
+			Collection<TaskInstanceW> tasks = getProcessArtifactsProvider().getUnfinishedTaskInstances(processInstanceId, processInstance.getRootToken());
 			
 			for (Token token : tokens) {
 				
 				if(!token.equals(processInstance.getRootToken())) {
 			
 					@SuppressWarnings("unchecked")
-					Collection<TaskInstance> tsks = processInstance.getTaskMgmtInstance().getUnfinishedTasks(token);
+//					Collection<TaskInstance> tsks2 = processInstance.getTaskMgmtInstance().getUnfinishedTasks(token);
+					Collection<TaskInstanceW> tsks = getProcessArtifactsProvider().getUnfinishedTaskInstances(processInstanceId, token);
 					tasks.addAll(tsks);
 				}
 			}
@@ -338,15 +340,16 @@ public class ProcessArtifacts {
 			String noOneLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_no_one", "No one");
 			String takeTaskImage = bundle.getVirtualPathWithFileNameString("images/take_task.png");
 			String takeTaskTitle = iwrb.getLocalizedString("cases_bpm.case_take_task", "Take task");
-			boolean allowReAssignTask = false;	//	TODO
-			for (TaskInstance taskInstance : tasks) {
-				
-				if(taskInstance.getToken().hasEnded())
+			boolean allowReAssignTask = false;	
+			
+			for (TaskInstanceW taskInstance : tasks) {
+				boolean ended = taskInstance.getTaskInstance().getToken().hasEnded();
+				if(taskInstance.getTaskInstance().getToken().hasEnded())
 					continue;
 				
 				try {
 					
-					Permission permission = getTaskSubmitPermission(true, taskInstance);
+					Permission permission = getTaskSubmitPermission(true, taskInstance.getTaskInstance());
 					rolesManager.checkPermission(permission);
 					
 				} catch (BPMAccessControlException e) {
@@ -356,12 +359,12 @@ public class ProcessArtifacts {
 				boolean disableSelection = false;
 				String assignedToName;
 				
-				String tidStr = String.valueOf(taskInstance.getId());
+				String tidStr = String.valueOf(taskInstance.getTaskInstance().getId());
 				
 				boolean addTaskAssigment = false;
-				if(taskInstance.getActorId() != null) {
+				if(taskInstance.getTaskInstance().getActorId() != null) {
 					
-					if(loggedInUserId != null && taskInstance.getActorId().equals(loggedInUserId)) {
+					if(loggedInUserId != null && taskInstance.getTaskInstance().getActorId().equals(loggedInUserId)) {
 						disableSelection = false;
 						assignedToName = youLocalized;
 						
@@ -369,9 +372,9 @@ public class ProcessArtifacts {
 						disableSelection = true;
 						
 						try {
-							assignedToName = getUserBusiness().getUser(Integer.parseInt(taskInstance.getActorId())).getName();
+							assignedToName = getUserBusiness().getUser(Integer.parseInt(taskInstance.getTaskInstance().getActorId())).getName();
 						} catch (Exception e) {
-							Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving actor name for actorId: "+taskInstance.getActorId(), e);
+							Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving actor name for actorId: "+taskInstance.getTaskInstance().getActorId(), e);
 							assignedToName = CoreConstants.EMPTY;
 						}
 					}
@@ -393,9 +396,10 @@ public class ProcessArtifacts {
 				rows.addRow(row);
 				
 				row.setId(tidStr);
-				row.addCell(getLocalizedName(iwrb, taskInstance.getName()));	//	TODO:	Should be better localization
-				row.addCell(taskInstance.getCreate() == null ? CoreConstants.EMPTY :
-							new IWTimestamp(taskInstance.getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
+
+				row.addCell(taskInstance.getName(iwc.getCurrentLocale()));
+				row.addCell(taskInstance.getTaskInstance().getCreate() == null ? CoreConstants.EMPTY :
+							new IWTimestamp(taskInstance.getTaskInstance().getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 				);
 				row.setDateCellIndex(row.getCells().size() - 1);
 				

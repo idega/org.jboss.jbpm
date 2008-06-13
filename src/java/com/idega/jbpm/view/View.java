@@ -1,15 +1,16 @@
 package com.idega.jbpm.view;
 
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.faces.component.UIComponent;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/13 08:13:41 $ by $Author: anton $
  */
 public interface View {
 
@@ -20,6 +21,7 @@ public interface View {
 	public abstract String getViewId();
 	
 	public abstract String getDisplayName();
+	public abstract String getDisplayName(Locale locale);
 	
 	public abstract void setViewType(String viewType);
 	public abstract String getViewType();
