@@ -81,9 +81,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.36 $
+ * @version $Revision: 1.37 $
  *
- * Last modified: $Date: 2008/06/13 08:13:40 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/13 10:45:00 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -143,7 +143,8 @@ public class ProcessArtifacts {
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 			String tidStr = String.valueOf(submittedDocument.getTaskInstance().getId());
-			
+			row.setId(tidStr);
+						
 			row.addCell(submittedDocument.getName(iwc.getCurrentLocale()));
 			row.addCell(submittedByName);
 			row.addCell(submittedDocument.getTaskInstance().getEnd() == null ? CoreConstants.EMPTY :
