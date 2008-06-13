@@ -81,9 +81,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.37 $
+ * @version $Revision: 1.38 $
  *
- * Last modified: $Date: 2008/06/13 10:45:00 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/13 11:11:34 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -312,7 +312,7 @@ public class ProcessArtifacts {
 			
 			@SuppressWarnings("unchecked")
 //			Collection<TaskInstance> tasksTmp = processInstance.getTaskMgmtInstance().getUnfinishedTasks(processInstance.getRootToken());
-			Collection<TaskInstanceW> tasks = getProcessArtifactsProvider().getUnfinishedTaskInstances(processInstanceId, processInstance.getRootToken());
+			Collection<TaskInstanceW> tasks = getProcessArtifactsProvider().getUnfinishedTaskInstances(processInstance.getRootToken());
 			
 			for (Token token : tokens) {
 				
@@ -320,7 +320,7 @@ public class ProcessArtifacts {
 			
 					@SuppressWarnings("unchecked")
 //					Collection<TaskInstance> tsks2 = processInstance.getTaskMgmtInstance().getUnfinishedTasks(token);
-					Collection<TaskInstanceW> tsks = getProcessArtifactsProvider().getUnfinishedTaskInstances(processInstanceId, token);
+					Collection<TaskInstanceW> tsks = getProcessArtifactsProvider().getUnfinishedTaskInstances(token);
 					tasks.addAll(tsks);
 				}
 			}

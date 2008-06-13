@@ -9,9 +9,9 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/06/13 08:13:42 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/13 11:11:34 $ by $Author: anton $
  */
 public interface TaskInstanceW {
 	
@@ -32,8 +32,6 @@ public interface TaskInstanceW {
 	public abstract Long getTaskInstanceId();
 	
 	public abstract void setTaskInstanceId(Long taskInstanceId);
-	
-	public abstract String getLabelOutput();
 	
 	public abstract String getName(Locale locale);
 	

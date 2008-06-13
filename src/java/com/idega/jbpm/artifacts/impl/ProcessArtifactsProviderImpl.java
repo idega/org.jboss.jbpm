@@ -22,9 +22,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/06/13 08:13:42 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/13 11:11:34 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -98,14 +98,14 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		}
 	}
 	
-	public Collection<TaskInstanceW> getUnfinishedTaskInstances(Long processInstanceId, Token rootToken) {
+	public Collection<TaskInstanceW> getUnfinishedTaskInstances(Token token) {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
-		
+		long processInstanceId = token.getProcessInstance().getId();
 		try {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(processInstance.getProcessDefinition().getId()).getProcessInstance(processInstanceId);
 			@SuppressWarnings("unchecked")
-			Collection<TaskInstanceW> taskInstances = processInstanceW.getUnfinishedTasks(processInstanceId, rootToken, ctx);
+			Collection<TaskInstanceW> taskInstances = processInstanceW.getUnfinishedTasks(processInstanceId, token, ctx);
 			
 //			for (Iterator<TaskInstanceW> iterator  = taskInstances.iterator(); iterator.hasNext();) {
 //				TaskInstanceW taskInstance = iterator.next();
