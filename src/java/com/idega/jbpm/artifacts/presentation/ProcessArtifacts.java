@@ -81,9 +81,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.38 $
+ * @version $Revision: 1.39 $
  *
- * Last modified: $Date: 2008/06/13 11:11:34 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/13 12:55:22 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -430,17 +430,17 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	private String getLocalizedName(IWResourceBundle iwrb, String name) {
-		if (iwrb == null || name == null) {
-			return null;
-		}
-		
-		//String nameForKey = StringHandler.stripNonRomanCharacters(name, new char[] {' '});
-		String nameForKey = StringHandler.replace(name, CoreConstants.SPACE, CoreConstants.EMPTY);
-		
-		String key = new StringBuilder("cases_bpm.process_resource_name_").append(nameForKey.toLowerCase()).toString();
-		return iwrb.getLocalizedString(key, name);
-	}
+//	private String getLocalizedName(IWResourceBundle iwrb, String name) {
+//		if (iwrb == null || name == null) {
+//			return null;
+//		}
+//		
+//		//String nameForKey = StringHandler.stripNonRomanCharacters(name, new char[] {' '});
+//		String nameForKey = StringHandler.replace(name, CoreConstants.SPACE, CoreConstants.EMPTY);
+//		
+//		String key = new StringBuilder("cases_bpm.process_resource_name_").append(nameForKey.toLowerCase()).toString();
+//		return iwrb.getLocalizedString(key, name);
+//	}
 	
 	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, Integer variableIdentifier, boolean setSameRightsForAttachments) {		
 		String id = new StringBuilder("idPrefImg").append(taskInstanceId).toString();
