@@ -43,9 +43,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $
+ * @version $Revision: 1.26 $
  *
- * Last modified: $Date: 2008/06/12 18:30:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/13 16:22:41 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -382,6 +382,10 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		
 			@SuppressWarnings("unchecked")
 			Collection<Group> grps = ac.getAllGroupsForRoleKey(roleName, iwac);
+			
+			System.out.println("rolename="+roleName+"=");
+			
+			System.out.println("groups size="+grps.size());
 			
 			for (Group roleGrp : grps) {
 				

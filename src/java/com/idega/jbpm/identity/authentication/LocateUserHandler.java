@@ -23,9 +23,9 @@ import com.idega.util.CoreConstants;
  * If ic_user found, updates missing user data by user personal data provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/06/12 18:29:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/13 16:22:41 $ by $Author: civilis $
  */
 public class LocateUserHandler implements ActionHandler {
 
@@ -69,8 +69,6 @@ public class LocateUserHandler implements ActionHandler {
 			} else
 //				not found. lookup by name could be performed here
 				usrFound = null;
-			
-			upd.setFirstName("blabla");
 			
 			if(usrFound != null) {
 				
