@@ -12,18 +12,18 @@ import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
-import com.idega.business.SpringBeanLookup;
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 11:54:33 $ by $Author: civilis $
  */
 public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
@@ -110,6 +110,6 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 	
 	public VariablesHandler getVariablesHandler(ServletContext ctx) {
 		
-		return (VariablesHandler)SpringBeanLookup.getInstance().getSpringBean(ctx, "bpmVariablesHandler");
+		return ELUtil.getInstance().getBean("bpmVariablesHandler");
 	}
 }
