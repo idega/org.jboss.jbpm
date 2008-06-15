@@ -29,9 +29,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/06/12 18:31:18 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 11:58:32 $ by $Author: civilis $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -53,7 +53,7 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 			final Integer bpmUserId = 				(Integer)JbpmExpressionEvaluator.evaluate(getBpmUserIdExp(), ectx);
 			final ProcessInstance pi = ectx.getJbpmContext().getProcessInstance(pid);
 			final UserPersonalData upd = 			(UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
-			final Message msg = 					(Message)JbpmExpressionEvaluator.evaluate(getMessageExp(), ectx);
+			final Message msg = 					getMessageExp() != null ? (Message)JbpmExpressionEvaluator.evaluate(getMessageExp(), ectx) : null;
 			
 //			SendParticipantInvitationMessageHandlerBean bean = ELUtil.getInstance().getBean(SendParticipantInvitationMessageHandlerBean.beanIdentifier);
 //			bean.send(msg, upd, role, pi, ectx);
@@ -71,9 +71,9 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 			
 //			TODO: think about language choice
 			
-			String subject = msg.getSubject();
-			String text = msg.getText();
-			String from = msg.getFrom();
+			String subject = msg != null ? msg.getSubject() : null;
+			String text = msg != null ? msg.getText() : null;
+			String from = msg != null ? msg.getFrom() : null;
 			
 			if(subject == null || CoreConstants.EMPTY.equals(subject)) {
 				subject = iwrb.getLocalizedString("cases_bpm.case_invitation", "You've been invited to participate in case");
