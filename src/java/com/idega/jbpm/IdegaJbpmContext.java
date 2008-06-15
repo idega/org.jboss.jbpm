@@ -10,11 +10,11 @@ import org.jbpm.JbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/04/25 00:05:25 $ by $Author: laddi $
+ * Last modified: $Date: 2008/06/15 15:56:45 $ by $Author: civilis $
  */
-public class IdegaJbpmContext {
+public class IdegaJbpmContext implements BPMContext {
 	
 	public static final String beanIdentifier = "idegaJbpmContext";
 	private static final String mainJbpmContext = "idegaMain";
