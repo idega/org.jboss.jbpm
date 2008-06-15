@@ -19,7 +19,6 @@ import javax.faces.context.FacesContext;
 import org.jboss.jbpm.IWBundleStarter;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.exe.ProcessInstance;
-import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -81,9 +80,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.41 $
+ * @version $Revision: 1.42 $
  *
- * Last modified: $Date: 2008/06/15 15:57:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 16:32:45 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -299,133 +298,109 @@ public class ProcessArtifacts {
 		if(processInstanceId == null)
 			return null;
 	
-		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		
-		try {
-			IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
-			
-			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
-			
-			@SuppressWarnings("unchecked")
-			List<Token> tokens = processInstance.findAllTokens();
-			
-			@SuppressWarnings("unchecked")
-//			Collection<TaskInstance> tasksTmp = processInstance.getTaskMgmtInstance().getUnfinishedTasks(processInstance.getRootToken());
-			Collection<TaskInstanceW> tasks = getProcessArtifactsProvider().getUnfinishedTaskInstances(processInstance.getRootToken());
-			
-			for (Token token : tokens) {
-				
-				if(!token.equals(processInstance.getRootToken())) {
-			
-					@SuppressWarnings("unchecked")
-//					Collection<TaskInstance> tsks2 = processInstance.getTaskMgmtInstance().getUnfinishedTasks(token);
-					Collection<TaskInstanceW> tsks = getProcessArtifactsProvider().getUnfinishedTaskInstances(token);
-					tasks.addAll(tsks);
-				}
-			}
-			
-			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+		@SuppressWarnings("unchecked")
+		Collection<TaskInstanceW> tasks = getProcessArtifactsProvider().getAllUnfinishedTaskInstances(processInstanceId);
+		
+		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
-			int size = tasks.size();
-			rows.setTotal(size);
-			rows.setPage(size == 0 ? 0 : 1);
+		int size = tasks.size();
+		rows.setTotal(size);
+		rows.setPage(size == 0 ? 0 : 1);
+		
+		RolesManager rolesManager = getBpmFactory().getRolesManager();
+		BPMUser bpmUsr = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
+		Integer loggedInUserIdInt = bpmUsr.getIdToUse();
+		String loggedInUserId = loggedInUserIdInt == null ? null : String.valueOf(loggedInUserIdInt);
+		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
+		String youLocalized = getAssignedToYouLocalizedString(iwrb);
+		String noOneLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_no_one", "No one");
+		String takeTaskImage = bundle.getVirtualPathWithFileNameString("images/take_task.png");
+		String takeTaskTitle = iwrb.getLocalizedString("cases_bpm.case_take_task", "Take task");
+		boolean allowReAssignTask = false;	
+		
+		for (TaskInstanceW taskInstance : tasks) {
 			
-			RolesManager rolesManager = getBpmFactory().getRolesManager();
-			BPMUser bpmUsr = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
-			Integer loggedInUserIdInt = bpmUsr.getIdToUse();
-			String loggedInUserId = loggedInUserIdInt == null ? null : String.valueOf(loggedInUserIdInt);
-			IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-			IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-			String youLocalized = getAssignedToYouLocalizedString(iwrb);
-			String noOneLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_no_one", "No one");
-			String takeTaskImage = bundle.getVirtualPathWithFileNameString("images/take_task.png");
-			String takeTaskTitle = iwrb.getLocalizedString("cases_bpm.case_take_task", "Take task");
-			boolean allowReAssignTask = false;	
-			
-			for (TaskInstanceW taskInstance : tasks) {
-				
-//				if(taskInstance.getTaskInstance().getToken().hasEnded())
-//					continue;
-				
-				try {
-					
-					Permission permission = getTaskSubmitPermission(true, taskInstance.getTaskInstance());
-					rolesManager.checkPermission(permission);
-					
-				} catch (BPMAccessControlException e) {
-					continue;
-				}
-				
-				boolean disableSelection = false;
-				String assignedToName;
-				
-				String tidStr = String.valueOf(taskInstance.getTaskInstance().getId());
-				
-				boolean addTaskAssigment = false;
-				if(taskInstance.getTaskInstance().getActorId() != null) {
-					
-					if(loggedInUserId != null && taskInstance.getTaskInstance().getActorId().equals(loggedInUserId)) {
-						disableSelection = false;
-						assignedToName = youLocalized;
-						
-					} else {
-						disableSelection = true;
-						
-						try {
-							assignedToName = getUserBusiness().getUser(Integer.parseInt(taskInstance.getTaskInstance().getActorId())).getName();
-						} catch (Exception e) {
-							Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving actor name for actorId: "+taskInstance.getTaskInstance().getActorId(), e);
-							assignedToName = CoreConstants.EMPTY;
-						}
-					}
-					
-				} else {
-					addTaskAssigment = true;	//	Because is not assigned yet
-					assignedToName = noOneLocalized;
-				}
-				if (addTaskAssigment || allowReAssignTask) {
-					String imageId = new StringBuilder("id").append(tidStr).append("_assignTask").toString();
-					StringBuilder assignedToCell = new StringBuilder("<img src=\"").append(takeTaskImage).append("\" title=\"").append(takeTaskTitle).append("\"");
-					assignedToCell.append(" id=\"").append(imageId).append("\"").append(" onclick=\"CasesBPMAssets.takeCurrentProcessTask(event, '").append(tidStr);
-					assignedToCell.append("', '").append(imageId).append("', ").append(allowReAssignTask).append(");\" />");
-					
-					assignedToName = new StringBuilder(assignedToCell.toString()).append(CoreConstants.SPACE).append(assignedToName).toString();
-				}
-				
-				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
-				rows.addRow(row);
-				
-				row.setId(tidStr);
-
-				row.addCell(taskInstance.getName(iwc.getCurrentLocale()));
-				row.addCell(taskInstance.getTaskInstance().getCreate() == null ? CoreConstants.EMPTY :
-							new IWTimestamp(taskInstance.getTaskInstance().getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
-				);
-				row.setDateCellIndex(row.getCells().size() - 1);
-				
-				row.addCell(assignedToName);
-
-				if(disableSelection) {
-					
-					row.setStyleClass("disabledSelection");
-					row.setDisabledSelection(disableSelection);
-				}
-				
-				if (params.isRightsChanger()) {
-					addRightsChangerCell(row, processInstanceId, tidStr, null, true);
-				}
-			}
+//			if(taskInstance.getTaskInstance().getToken().hasEnded())
+//				continue;
 			
 			try {
-				return rows.getDocument();
 				
-			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Exception while parsing rows", e);
-				return null;
+				Permission permission = getTaskSubmitPermission(true, taskInstance.getTaskInstance());
+				rolesManager.checkPermission(permission);
+				
+			} catch (BPMAccessControlException e) {
+				continue;
 			}
 			
-		} finally {
-			getIdegaJbpmContext().closeAndCommit(ctx);
+			boolean disableSelection = false;
+			String assignedToName;
+			
+			String tidStr = String.valueOf(taskInstance.getTaskInstance().getId());
+			
+			boolean addTaskAssigment = false;
+			if(taskInstance.getTaskInstance().getActorId() != null) {
+				
+				if(loggedInUserId != null && taskInstance.getTaskInstance().getActorId().equals(loggedInUserId)) {
+					disableSelection = false;
+					assignedToName = youLocalized;
+					
+				} else {
+					disableSelection = true;
+					
+					try {
+						assignedToName = getUserBusiness().getUser(Integer.parseInt(taskInstance.getTaskInstance().getActorId())).getName();
+					} catch (Exception e) {
+						Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving actor name for actorId: "+taskInstance.getTaskInstance().getActorId(), e);
+						assignedToName = CoreConstants.EMPTY;
+					}
+				}
+				
+			} else {
+				addTaskAssigment = true;	//	Because is not assigned yet
+				assignedToName = noOneLocalized;
+			}
+			if (addTaskAssigment || allowReAssignTask) {
+				String imageId = new StringBuilder("id").append(tidStr).append("_assignTask").toString();
+				StringBuilder assignedToCell = new StringBuilder("<img src=\"").append(takeTaskImage).append("\" title=\"").append(takeTaskTitle).append("\"");
+				assignedToCell.append(" id=\"").append(imageId).append("\"").append(" onclick=\"CasesBPMAssets.takeCurrentProcessTask(event, '").append(tidStr);
+				assignedToCell.append("', '").append(imageId).append("', ").append(allowReAssignTask).append(");\" />");
+				
+				assignedToName = new StringBuilder(assignedToCell.toString()).append(CoreConstants.SPACE).append(assignedToName).toString();
+			}
+			
+			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
+			rows.addRow(row);
+			
+			row.setId(tidStr);
+
+			row.addCell(taskInstance.getName(iwc.getCurrentLocale()));
+			row.addCell(taskInstance.getTaskInstance().getCreate() == null ? CoreConstants.EMPTY :
+						new IWTimestamp(taskInstance.getTaskInstance().getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
+			);
+			row.setDateCellIndex(row.getCells().size() - 1);
+			
+			row.addCell(assignedToName);
+
+			if(disableSelection) {
+				
+				row.setStyleClass("disabledSelection");
+				row.setDisabledSelection(disableSelection);
+			}
+			
+			if (params.isRightsChanger()) {
+				addRightsChangerCell(row, processInstanceId, tidStr, null, true);
+			}
+		}
+		
+		try {
+			return rows.getDocument();
+			
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Exception while parsing rows", e);
+			return null;
 		}
 	}
 	
