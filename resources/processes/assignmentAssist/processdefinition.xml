@@ -38,7 +38,7 @@
                     #{assignFromProcessInstanceId}
                 </processInstanceIdExp>
                 <roleExpressionExp>
-                    #{assistantRoleExpression}
+                    #{assigneeRoleExpression}
                 </roleExpressionExp>
                 <userIdExp>
                     #{assigneeData.userId}
@@ -59,22 +59,20 @@
 				<userDataExp>
 					#{assigneeData}
 				</userDataExp>
-				<!--  
-				<userIdVariableName>
-					assigneeUserId
-				</userIdVariableName>
-				-->
 			</action>
 		</event>
 		<transition to="assignToRole" name="toAssignRole"></transition>
 	</node>
 
 	<process-state name="sendInvitationToAssignee">
-		<sub-process name=""></sub-process>
-		<transition to="end-state1"></transition>
+		<sub-process name="participantInvitation" binding="late" />
+      
+	      <variable name="assignFromProcessInstanceId" access="read" mapped-name="sendFromProcessInstanceId" />
+	      <variable name="assigneeData" access="read" mapped-name="participantUserData" />
+	      <variable name="assigneeRoleExpression" access="read" mapped-name="participantRoleExpression" />
+	      
+		<transition to="end-state1" name="toEnd"></transition>
 	</process-state>
-
-
 	<end-state name="end-state1"></end-state>
 
 
