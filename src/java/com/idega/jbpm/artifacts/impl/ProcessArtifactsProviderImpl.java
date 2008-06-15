@@ -22,9 +22,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/06/15 15:57:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 16:32:30 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -98,27 +98,25 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		}
 	}
 	
-	public Collection<TaskInstanceW> getUnfinishedTaskInstances(Token token) {
-		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
-		long processInstanceId = token.getProcessInstance().getId();
+	public List<TaskInstanceW> getAllUnfinishedTaskInstances(long processInstanceId) {
+		
+		JbpmContext jctx = getIdegaJbpmContext().createJbpmContext();
+		
 		try {
-			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
-			ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(processInstance.getProcessDefinition().getId()).getProcessInstance(processInstanceId);
-			@SuppressWarnings("unchecked")
-			Collection<TaskInstanceW> taskInstances = processInstanceW.getUnfinishedTaskInstances(token);
-			
-//			for (Iterator<TaskInstanceW> iterator  = taskInstances.iterator(); iterator.hasNext();) {
-//				TaskInstanceW taskInstance = iterator.next();
-//				
-//				if(!taskInstance.getTaskInstance().hasEnded())
-//					iterator.remove();
-//			}
-			
-			return taskInstances;
+			ProcessInstance pi = jctx.getProcessInstance(processInstanceId);
+			ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(pi.getProcessDefinition().getId()).getProcessInstance(processInstanceId);
+			return processInstanceW.getAllUnfinishedTaskInstances();
 			
 		} finally {
-			getIdegaJbpmContext().closeAndCommit(ctx);
+			getIdegaJbpmContext().closeAndCommit(jctx);
 		}
+	}
+	
+	public Collection<TaskInstanceW> getUnfinishedTaskInstances(Token token) {
+		
+		ProcessInstance pi = token.getProcessInstance();
+		ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(pi.getProcessDefinition().getId()).getProcessInstance(pi.getId());
+		return processInstanceW.getAllUnfinishedTaskInstances();
 	}
 	
 	public List<BinaryVariable> getTaskAttachments(Long taskInstanceId) {

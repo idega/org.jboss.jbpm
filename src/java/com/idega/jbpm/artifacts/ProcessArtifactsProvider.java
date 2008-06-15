@@ -12,9 +12,9 @@ import com.idega.jbpm.variables.BinaryVariable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/06/13 11:11:34 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/15 16:32:30 $ by $Author: civilis $
  */
 public interface ProcessArtifactsProvider {
 	
@@ -22,6 +22,8 @@ public interface ProcessArtifactsProvider {
 
 	public abstract Collection<TaskInstanceW> getSubmittedTaskInstances(Long processInstanceId);
 	
+	public abstract List<TaskInstanceW> getAllUnfinishedTaskInstances(long processInstanceId);
+		
 	public abstract Collection<TaskInstanceW> getUnfinishedTaskInstances(Token token);
 
 	public abstract Collection<TaskInstance> getAttachedEmailsTaskInstances(Long processInstanceId);
