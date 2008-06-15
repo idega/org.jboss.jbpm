@@ -9,9 +9,8 @@ import org.jbpm.identity.assignment.ExpressionAssignmentHandler;
 import org.jbpm.taskmgmt.exe.Assignable;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
-import com.idega.business.SpringBeanLookup;
-import com.idega.idegaweb.IWMainApplication;
 import com.idega.util.CoreConstants;
+import com.idega.util.expression.ELUtil;
 
 /**
  * <p>Expects assignment expression in json notation. E.g.:</p>
@@ -26,9 +25,9 @@ import com.idega.util.CoreConstants;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- * Last modified: $Date: 2008/05/01 15:39:08 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 11:57:14 $ by $Author: civilis $
  */
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	
@@ -84,6 +83,6 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	
 	protected RolesAssiger getRolesAssigner() {
 		
-		return (RolesAssiger)SpringBeanLookup.getInstance().getSpringBean(IWMainApplication.getDefaultIWMainApplication().getServletContext(), rolesAssignerBeanIdentifier);
+		return ELUtil.getInstance().getBean(rolesAssignerBeanIdentifier);
 	}
 }
