@@ -14,9 +14,9 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/05/06 21:42:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 11:58:54 $ by $Author: civilis $
  *
  */
 public class Mockup {
@@ -34,7 +34,7 @@ public class Mockup {
 			JbpmContext ctx = jbpmConfiguration.createJbpmContext();
 			
 			ProcessDefinition pd = ProcessDefinition.parseXmlInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/processdefinition.xml"));
-			ProcessDefinition invitationPD = ProcessDefinition.parseXmlInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/participantInvitation/processdefinition.xml"));
+			//ProcessDefinition invitationPD = ProcessDefinition.parseXmlInputStream(new FileInputStream("/Users/civilis/dev/workspace/eplatform-4-bpm/org.jboss.jbpm/src/java/com/idega/jbpm/test/participantInvitation/processdefinition.xml"));
 			
 			try {
 				
