@@ -12,6 +12,7 @@ import javax.faces.el.ValueBinding;
 
 import org.jbpm.JbpmContext;
 
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.view.View;
@@ -21,9 +22,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2008/05/24 14:16:57 $ by $Author: valdas $
+ * Last modified: $Date: 2008/06/15 15:59:18 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -42,7 +43,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 	private Long taskInstanceId;
 	
 	private BPMFactory bpmFactory;
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
     
 	public BPMTaskViewer() {
 		
@@ -170,19 +171,19 @@ public class BPMTaskViewer extends IWBaseComponent {
 		this.bpmFactory = bpmFactory;
 	}
 	
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 	
-	public IdegaJbpmContext getIdegaJbpmContext(FacesContext context) {
+	public BPMContext getIdegaJbpmContext(FacesContext context) {
 		
-		IdegaJbpmContext ctx = getIdegaJbpmContext();
+		BPMContext ctx = getIdegaJbpmContext();
 		if(ctx == null) {
 			
 			ctx = getValueBinding(idegaJbpmContext_PROPERTY) != null ? (IdegaJbpmContext)getValueBinding(idegaJbpmContext_PROPERTY).getValue(context) : null;
 			
 			if(ctx == null)
-				ctx = (IdegaJbpmContext)getBeanInstance(idegaJbpmContextBeanId);
+				ctx = (BPMContext)getBeanInstance(idegaJbpmContextBeanId);
 			
 			setIdegaJbpmContext(ctx);
 		}
@@ -190,7 +191,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		return ctx;
 	}
 
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 

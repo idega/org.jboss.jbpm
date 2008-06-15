@@ -30,6 +30,7 @@ import org.hibernate.type.StringType;
 import org.jbpm.JbpmContext;
 import org.jbpm.context.exe.JbpmTypeMatcher;
 
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.util.expression.ELUtil;
 
@@ -45,7 +46,7 @@ public class HibernateStringIdMatcher implements JbpmTypeMatcher {
 
 	public boolean matches(Object value) {
 	  
-		IdegaJbpmContext ijctx = ELUtil.getInstance().getBean(IdegaJbpmContext.beanIdentifier);
+		BPMContext ijctx = ELUtil.getInstance().getBean(IdegaJbpmContext.beanIdentifier);
 		JbpmContext jctx = ijctx.createJbpmContext();
 		
 		try {

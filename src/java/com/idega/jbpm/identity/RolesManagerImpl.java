@@ -33,7 +33,7 @@ import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
@@ -53,9 +53,9 @@ import com.idega.util.CoreConstants;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.27 $
+ * @version $Revision: 1.28 $
  * 
- * Last modified: $Date: 2008/06/15 11:57:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:57:53 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -63,7 +63,7 @@ import com.idega.util.CoreConstants;
 public class RolesManagerImpl implements RolesManager {
 	
 	private BPMDAO bpmDAO;
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 	private AuthorizationService authorizationService;
 	private VariablesHandler variablesHandler;
 	
@@ -825,12 +825,12 @@ public class RolesManagerImpl implements RolesManager {
 		return getIWMA().getAccessController();
 	}
 	
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
 	@Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 	

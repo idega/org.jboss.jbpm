@@ -17,7 +17,7 @@ import com.idega.core.builder.data.ICPage;
 import com.idega.core.builder.data.ICPageHome;
 import com.idega.data.IDOLookup;
 import com.idega.idegaweb.IWApplicationContext;
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.process.business.AssignAccountToParticipantHandler;
 import com.idega.presentation.IWContext;
 import com.idega.util.URIUtil;
@@ -25,9 +25,9 @@ import com.idega.util.URIUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/05/06 21:42:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:58:50 $ by $Author: civilis $
  */
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service(ProcessParticipantRegistrationMgmntBean.beanIdentifier)
@@ -38,14 +38,14 @@ public class ProcessParticipantRegistrationMgmntBean {
 	public static final String egovBPMAssetsView = "bpm_assets_view";
 	
 	
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
 	@Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 

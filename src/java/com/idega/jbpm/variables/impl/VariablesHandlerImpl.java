@@ -15,22 +15,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/30 15:11:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:59:04 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
 public class VariablesHandlerImpl implements VariablesHandler {
 
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 	private BinaryVariablesHandler binaryVariablesHandler;
 	
 	public void submitVariables(Map<String, Object> variables, long taskInstanceId, boolean validate) {
@@ -126,12 +126,12 @@ public class VariablesHandlerImpl implements VariablesHandler {
 		return getBinaryVariablesHandler().resolveBinaryVariablesAsList(variables);
 	}
 	
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
 	@Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 	

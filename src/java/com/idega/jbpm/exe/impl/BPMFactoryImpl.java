@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -27,9 +27,9 @@ import com.idega.jbpm.view.ViewFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/05/24 10:25:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:57:53 $ by $Author: civilis $
  */
 public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	
@@ -38,7 +38,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	private final Map<String, String> viewTypeFactoryBeanIdentifier;
 	
 	private BPMDAO bindsDAO;
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 	private RolesManager rolesManager;
 	private BPMUserFactory bpmUserFactory;
 	
@@ -247,7 +247,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 		}
 	}
 
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
@@ -261,7 +261,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	}
 
 	@Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 	

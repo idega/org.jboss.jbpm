@@ -22,14 +22,14 @@ import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
 import com.idega.builder.bean.AdvancedProperty;
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 
 @SuppressWarnings("unchecked")
 public class JbpmProcessBusinessBean {
 	
 	public static final String BEAN_ID = "jbpmProcessBusiness";
 	
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 
 	public void deleteProcessDefinition(Long processId) {
 
@@ -449,11 +449,11 @@ public class JbpmProcessBusinessBean {
 		}
 	}
 	
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 }

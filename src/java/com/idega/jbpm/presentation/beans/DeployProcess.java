@@ -9,20 +9,20 @@ import org.apache.myfaces.custom.fileupload.UploadedFile;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/02/07 13:58:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:58:50 $ by $Author: civilis $
  *
  */
 public class DeployProcess {
 	
 	private UploadedFile pd;
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 	
 	public UploadedFile getProcessDefinition() {
 		return pd;
@@ -57,11 +57,11 @@ public class DeployProcess {
 		}
 	}
 
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 }

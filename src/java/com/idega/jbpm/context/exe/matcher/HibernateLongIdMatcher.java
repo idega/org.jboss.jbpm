@@ -30,6 +30,7 @@ import org.hibernate.type.LongType;
 import org.jbpm.JbpmContext;
 import org.jbpm.context.exe.JbpmTypeMatcher;
 
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.util.expression.ELUtil;
 
@@ -46,7 +47,7 @@ public class HibernateLongIdMatcher implements JbpmTypeMatcher {
 	public boolean matches(Object value) {
 	    boolean matches = false;
 	    
-	    IdegaJbpmContext ijctx = ELUtil.getInstance().getBean(IdegaJbpmContext.beanIdentifier);
+	    BPMContext ijctx = ELUtil.getInstance().getBean(IdegaJbpmContext.beanIdentifier);
 		JbpmContext jctx = ijctx.createJbpmContext();
 	    
 	    try {

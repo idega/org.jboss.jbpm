@@ -6,14 +6,14 @@ import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.Token;
 
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:58:50 $ by $Author: civilis $
  */
 public class EndProcessHandler implements ActionHandler {
 
@@ -38,8 +38,8 @@ public class EndProcessHandler implements ActionHandler {
 		}
 	}
 	
-	protected IdegaJbpmContext getIdegaJbpmContext() {
+	protected BPMContext getIdegaJbpmContext() {
 		
-		return (IdegaJbpmContext)WFUtil.getBeanInstance(idegaJbpmContextBeanIdentifier);
+		return (BPMContext)WFUtil.getBeanInstance(idegaJbpmContextBeanIdentifier);
 	}
 }

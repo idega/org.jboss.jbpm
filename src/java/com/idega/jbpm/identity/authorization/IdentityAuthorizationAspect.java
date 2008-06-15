@@ -10,7 +10,7 @@ import org.jbpm.security.AuthorizationService;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.business.BPMPointcuts;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.TaskInstanceW;
@@ -19,14 +19,14 @@ import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/05/25 14:59:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:58:50 $ by $Author: civilis $
  */
 @Aspect
 public class IdentityAuthorizationAspect {
 
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 	private BPMDAO bpmBindsDAO;
 	private AuthorizationService authorizationService;
 
@@ -69,11 +69,11 @@ public class IdentityAuthorizationAspect {
 		}
 	}
 
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 

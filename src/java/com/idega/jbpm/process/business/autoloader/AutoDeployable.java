@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.bundle.ProcessBundle;
 import com.idega.jbpm.bundle.ProcessBundleManager;
 import com.idega.jbpm.data.AutoloadedProcessDefinition;
@@ -22,9 +22,9 @@ import com.idega.jbpm.data.dao.BPMDAO;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:59:04 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service("BPMAutoDeployable")
@@ -37,7 +37,7 @@ public class AutoDeployable {
 	private ProcessDefinition processDefinition;
 	private ProcessBundle processBundle;
 	private Boolean needsDeploy;
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 	private Integer autoloadedVersion;
 	
 	private AutoloadedProcessDefinition apd;
@@ -222,12 +222,12 @@ public class AutoDeployable {
 		this.processBundleManager = processBundleManager;
 	}
 
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
 	@Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 	

@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.JSONExpHandler;
@@ -31,16 +31,16 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/06/01 12:03:20 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:57:32 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
 public class ProcessBundleManager {
 
 	private BPMDAO bpmBindsDAO;
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 	private RolesManager rolesManager;
 	
 	/**
@@ -166,12 +166,12 @@ public class ProcessBundleManager {
 		}
 	}
 
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
 	@Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 

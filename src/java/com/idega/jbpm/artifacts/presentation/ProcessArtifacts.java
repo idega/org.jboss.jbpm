@@ -39,7 +39,7 @@ import com.idega.core.location.data.Country;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
 import com.idega.jbpm.artifacts.presentation.bean.BPMProcessWatcher;
 import com.idega.jbpm.exe.BPMFactory;
@@ -81,16 +81,16 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.40 $
+ * @version $Revision: 1.41 $
  *
- * Last modified: $Date: 2008/06/15 11:55:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 15:57:32 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
 public class ProcessArtifacts {
 	
 	private BPMFactory bpmFactory;
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 	private VariablesHandler variablesHandler;
 	private ProcessArtifactsProvider processArtifactsProvider;
 	private BPMProcessWatcher processWatcher = null;
@@ -1074,12 +1074,12 @@ public class ProcessArtifacts {
 		return iwrb.getLocalizedString("cases_bpm.case_assigned_to_you", "You");
 	}
 	
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
 	@Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 
