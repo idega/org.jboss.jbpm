@@ -24,6 +24,7 @@ import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.jbpm.IdegaJbpmContext;
 
+@SuppressWarnings("unchecked")
 public class JbpmProcessBusinessBean {
 	
 	public static final String BEAN_ID = "jbpmProcessBusiness";
