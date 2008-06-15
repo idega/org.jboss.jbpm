@@ -17,9 +17,9 @@ import com.idega.util.expression.ELUtil;
  * Jbpm action handler, checks if <b>current</b> user belongs to process role provided. Output is boolean string expression (true/false)
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/06/13 16:22:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 11:58:15 $ by $Author: civilis $
  */
 public class BelongsToRoleDecisionHandler implements DecisionHandler {
 
@@ -35,7 +35,6 @@ public class BelongsToRoleDecisionHandler implements DecisionHandler {
 //		injecting spring dependencies, as this is not yet spring managed bean
 //		TODO: remove this when moved to spring (or seam) bean
 		ELUtil.getInstance().autowire(this);
-		System.out.println("__decide");
 		
 		final String roleExpression =		(String)JbpmExpressionEvaluator.evaluate(getRoleExpressionExp(), ectx);
 		Role role = JSONExpHandler.resolveRoleFromJSONExpression(roleExpression);
