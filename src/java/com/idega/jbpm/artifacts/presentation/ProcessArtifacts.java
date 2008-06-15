@@ -81,9 +81,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.39 $
+ * @version $Revision: 1.40 $
  *
- * Last modified: $Date: 2008/06/13 12:55:22 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/15 11:55:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -110,7 +110,6 @@ public class ProcessArtifacts {
 		RolesManager rolesManager = getBpmFactory().getRolesManager();
 
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
 		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
 		for (TaskInstanceW submittedDocument : processDocuments) {
@@ -344,9 +343,9 @@ public class ProcessArtifacts {
 			boolean allowReAssignTask = false;	
 			
 			for (TaskInstanceW taskInstance : tasks) {
-				boolean ended = taskInstance.getTaskInstance().getToken().hasEnded();
-				if(taskInstance.getTaskInstance().getToken().hasEnded())
-					continue;
+				
+//				if(taskInstance.getTaskInstance().getToken().hasEnded())
+//					continue;
 				
 				try {
 					
