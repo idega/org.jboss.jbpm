@@ -22,9 +22,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/06/13 11:11:34 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/15 11:54:04 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -82,7 +82,7 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(processInstance.getProcessDefinition().getId()).getProcessInstance(processInstanceId);
 			@SuppressWarnings("unchecked")
-			Collection<TaskInstanceW> taskInstances = processInstanceW.getTaskInstances(processInstanceId, ctx);
+			Collection<TaskInstanceW> taskInstances = processInstanceW.getAllTaskInstances();
 			
 			for (Iterator<TaskInstanceW> iterator  = taskInstances.iterator(); iterator.hasNext();) {
 				TaskInstanceW taskInstance = iterator.next();
@@ -105,7 +105,7 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(processInstance.getProcessDefinition().getId()).getProcessInstance(processInstanceId);
 			@SuppressWarnings("unchecked")
-			Collection<TaskInstanceW> taskInstances = processInstanceW.getUnfinishedTasks(processInstanceId, token, ctx);
+			Collection<TaskInstanceW> taskInstances = processInstanceW.getUnfinishedTaskInstances(token);
 			
 //			for (Iterator<TaskInstanceW> iterator  = taskInstances.iterator(); iterator.hasNext();) {
 //				TaskInstanceW taskInstance = iterator.next();
