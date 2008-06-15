@@ -30,9 +30,8 @@ import org.hibernate.type.StringType;
 import org.jbpm.JbpmContext;
 import org.jbpm.context.exe.JbpmTypeMatcher;
 
-import com.idega.business.SpringBeanLookup;
-import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.util.expression.ELUtil;
 
 /**
  * copied from jbpm. changes:
@@ -46,21 +45,20 @@ public class HibernateStringIdMatcher implements JbpmTypeMatcher {
 
 	public boolean matches(Object value) {
 	  
-		IWMainApplication iwma = IWMainApplication.getDefaultIWMainApplication();
-	    IdegaJbpmContext ctx = (IdegaJbpmContext)SpringBeanLookup.getInstance().getSpringBean(iwma.getServletContext(), IdegaJbpmContext.beanIdentifier);
-		JbpmContext jbpmContext = ctx.createJbpmContext();
+		IdegaJbpmContext ijctx = ELUtil.getInstance().getBean(IdegaJbpmContext.beanIdentifier);
+		JbpmContext jctx = ijctx.createJbpmContext();
 		
 		try {
 			
 			boolean matches = false;
-		    if (jbpmContext!=null) {
+		    if (jctx != null) {
 		    	@SuppressWarnings("unchecked")
 		      Class valueClass = value.getClass();
 		      if (value instanceof HibernateProxy) {
 		        valueClass = valueClass.getSuperclass();
 		      }
 	
-		      SessionFactory sessionFactory = jbpmContext.getSession().getSessionFactory();
+		      SessionFactory sessionFactory = jctx.getSession().getSessionFactory();
 		      if (sessionFactory!=null) {
 		        ClassMetadata classMetadata = sessionFactory.getClassMetadata(valueClass);
 		        matches = ( (classMetadata!=null)
@@ -74,7 +72,7 @@ public class HibernateStringIdMatcher implements JbpmTypeMatcher {
 		    return matches;
 			
 		} finally {
-			ctx.closeAndCommit(jbpmContext);
+			ijctx.closeAndCommit(jctx);
 		}
 	}
 
