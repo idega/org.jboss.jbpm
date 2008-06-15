@@ -53,9 +53,9 @@ import com.idega.util.CoreConstants;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $
+ * @version $Revision: 1.27 $
  * 
- * Last modified: $Date: 2008/05/27 18:54:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/15 11:57:47 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -85,34 +85,37 @@ public class RolesManagerImpl implements RolesManager {
 		
 		//List<ProcessRole> processRoles = getBpmDAO().getProcessRolesByRolesNames(rolesNames, processInstanceId);
 		
-		List<ProcessRole> processRoles = 
-			getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
-					new Param(ProcessRole.processRoleNameProperty, rolesNames),
-					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
-			);
-		
-		for (ProcessRole role : processRoles) {
+		if(!rolesNames.isEmpty()) {
 			
-			List<NativeIdentityBind> identities = role.getNativeIdentities();
+			List<ProcessRole> processRoles = 
+				getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
+						new Param(ProcessRole.processRoleNameProperty, rolesNames),
+						new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+				);
 			
-			boolean contains = false;
-			
-			for (NativeIdentityBind nativeIdentityBind : identities) {
+			for (ProcessRole role : processRoles) {
 				
-				if(identityType == nativeIdentityBind.getIdentityType() && identityId.equals(nativeIdentityBind.getIdentityId())) {
-					contains = true;
-					break;
+				List<NativeIdentityBind> identities = role.getNativeIdentities();
+				
+				boolean contains = false;
+				
+				for (NativeIdentityBind nativeIdentityBind : identities) {
+					
+					if(identityType == nativeIdentityBind.getIdentityType() && identityId.equals(nativeIdentityBind.getIdentityId())) {
+						contains = true;
+						break;
+					}
 				}
+				
+				if(contains)
+					continue;
+				
+				NativeIdentityBind nidentity = new NativeIdentityBind();
+				nidentity.setIdentityId(identityId);
+				nidentity.setIdentityType(identityType);
+				nidentity.setProcessRole(getBpmDAO().merge(role));
+				getBpmDAO().persist(nidentity);
 			}
-			
-			if(contains)
-				continue;
-			
-			NativeIdentityBind nidentity = new NativeIdentityBind();
-			nidentity.setIdentityId(identityId);
-			nidentity.setIdentityType(identityType);
-			nidentity.setProcessRole(getBpmDAO().merge(role));
-			getBpmDAO().persist(nidentity);
 		}
 	}
 	
