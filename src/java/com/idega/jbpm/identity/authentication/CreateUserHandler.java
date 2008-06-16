@@ -23,9 +23,9 @@ import com.idega.user.data.User;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/06/12 18:29:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/16 13:03:54 $ by $Author: civilis $
  */
 public class CreateUserHandler implements ActionHandler {
 
@@ -37,8 +37,6 @@ public class CreateUserHandler implements ActionHandler {
 		if(getUserDataExp() != null) {
 
 			UserPersonalData upd = (UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
-			
-			System.out.println("first name="+upd.getFirstName());
 			
 			if(upd.getUserId() == null) {
 			
@@ -55,7 +53,6 @@ public class CreateUserHandler implements ActionHandler {
 						iwac = IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
 					
 					UserBusiness userBusiness = getUserBusiness(iwac);
-					//userBusiness.create
 					
 					final User usrCreated;
 					
