@@ -5,9 +5,9 @@ import java.io.Serializable;
 /**
  *  
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/06/12 18:29:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/16 13:03:30 $ by $Author: civilis $
  */
 public class UserPersonalData implements Serializable {
 	
@@ -18,6 +18,11 @@ public class UserPersonalData implements Serializable {
 	private String fullName;
 	private String userEmail;
 	private String userType;
+	private String userAddress;
+	private String userPostalCode;
+	private String userMunicipality;
+	private String userPhone;
+	
 	private Integer userId;
 	
 	public Integer getUserId() {
@@ -61,5 +66,29 @@ public class UserPersonalData implements Serializable {
 	}
 	public void setUserType(String userType) {
 		this.userType = userType;
+	}
+	public String getUserAddress() {
+		return userAddress;
+	}
+	public void setUserAddress(String userAddress) {
+		this.userAddress = userAddress;
+	}
+	public String getUserPostalCode() {
+		return userPostalCode;
+	}
+	public void setUserPostalCode(String userPostalCode) {
+		this.userPostalCode = userPostalCode;
+	}
+	public String getUserMunicipality() {
+		return userMunicipality;
+	}
+	public void setUserMunicipality(String userMunicipality) {
+		this.userMunicipality = userMunicipality;
+	}
+	public String getUserPhone() {
+		return userPhone;
+	}
+	public void setUserPhone(String userPhone) {
+		this.userPhone = userPhone;
 	}
 }
