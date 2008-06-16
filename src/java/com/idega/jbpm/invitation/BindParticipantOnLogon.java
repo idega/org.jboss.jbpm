@@ -14,9 +14,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/30 15:11:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/16 13:04:56 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -36,7 +36,7 @@ public class BindParticipantOnLogon implements ApplicationListener {
 			
 			if(bpmUser != null)
 //				would associate automatically if not associated
-				bpmUser.getIsAssociated();
+				bpmUser.getIsAssociated(true);
 		}
 	}
 	
