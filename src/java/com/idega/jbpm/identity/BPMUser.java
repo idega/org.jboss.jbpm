@@ -10,9 +10,9 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/06/12 18:28:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/16 13:03:13 $ by $Author: civilis $
  */
 public interface BPMUser {
 	
@@ -26,8 +26,10 @@ public interface BPMUser {
 	public abstract User getBpmUser();
 
 	public abstract User getRealUser();
-
+	
 	public abstract Boolean getIsAssociated();
+
+	public abstract Boolean getIsAssociated(boolean clean);
 
 	public abstract Integer getIdToUse();
 }

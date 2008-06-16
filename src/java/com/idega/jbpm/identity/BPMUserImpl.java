@@ -14,9 +14,9 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/06/12 18:28:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/16 13:03:13 $ by $Author: civilis $
  */
 @Scope("session")
 //TODO: change scope to prototype and use seam conversation scope (after seam integration of course) 
@@ -42,9 +42,9 @@ public class BPMUserImpl implements BPMUser {
 		setIsAssociated(null);
 		this.realUser = realUser;
 	}
-	public Boolean getIsAssociated() {
+	public Boolean getIsAssociated(boolean clean) {
 		
-		if(isAssociated == null) {
+		if(clean || isAssociated == null) {
 
 			if(getBpmUser() != null && getRealUser() != null) {
 				
@@ -53,6 +53,10 @@ public class BPMUserImpl implements BPMUser {
 		}
 		
 		return isAssociated == null ? false : isAssociated;
+	}
+	public Boolean getIsAssociated() {
+		
+		return getIsAssociated(false);
 	}
 	public void setIsAssociated(Boolean isAssociated) {
 		this.isAssociated = isAssociated;
@@ -69,7 +73,7 @@ public class BPMUserImpl implements BPMUser {
 		
 		Object pk;
 	
-		if(getRealUser() != null && (getIsAssociated() || getBpmUser() == null)) {
+		if(getRealUser() != null && (getIsAssociated(false) || getBpmUser() == null)) {
 			
 			pk = getRealUser().getPrimaryKey();
 		} else if(getBpmUser() != null) {
