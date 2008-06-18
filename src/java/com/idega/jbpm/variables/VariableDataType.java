@@ -6,9 +6,9 @@ import java.util.Set;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/19 13:52:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 13:19:54 $ by $Author: anton $
  */
 public enum VariableDataType {
 
@@ -16,13 +16,15 @@ public enum VariableDataType {
 	STRING {public String toString() { return string; }},
 	LIST {public String toString() { return list; }},
 	FILE {public String toString() { return file; }},
-	FILES {public String toString() { return files; }};
+	FILES {public String toString() { return files; }}, 
+	OBJLIST{public String toString() { return objectList; }};
 	
-	private static final String date = 		"date";
-	private static final String string = 	"string";
-	private static final String list = 		"list";
-	private static final String file = 		"file";
-	private static final String files =  	"files";
+	private static final String date = 			"date";
+	private static final String string = 		"string";
+	private static final String list = 			"list";
+	private static final String file = 			"file";
+	private static final String files =  		"files";
+	private static final String objectList =	"objlist";
 	
 	public static Set<String> getAllTypesInStrings() {
 		
