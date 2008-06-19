@@ -18,6 +18,7 @@ import com.idega.business.IBORuntimeException;
 import com.idega.core.location.data.Address;
 import com.idega.core.location.data.Commune;
 import com.idega.core.location.data.PostalCode;
+import com.idega.data.IDOFinderException;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.identity.UserPersonalData;
@@ -30,9 +31,9 @@ import com.idega.util.CoreConstants;
  * If ic_user found, updates missing user data by user personal data provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/06/16 13:04:27 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/19 07:52:18 $ by $Author: civilis $
  */
 public class LocateUserHandler implements ActionHandler {
 
@@ -61,8 +62,13 @@ public class LocateUserHandler implements ActionHandler {
 			if(personalId != null && !CoreConstants.EMPTY.equals(personalId)) {
 				
 //				lookup by personal id if present
-				usrFound = userBusiness.getUser(personalId);
-				System.out.println("usr found by personal id = "+usrFound);
+				try {
+					usrFound = userBusiness.getUser(personalId);
+					
+				} catch (IDOFinderException e) {
+					usrFound = null;
+				}
+
 			} else
 				usrFound = null;
 				
