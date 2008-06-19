@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
  * If ic_user found, updates missing user data by user personal data provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/06/19 07:52:18 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/19 09:48:16 $ by $Author: civilis $
  */
 public class LocateUserHandler implements ActionHandler {
 
@@ -107,7 +107,7 @@ public class LocateUserHandler implements ActionHandler {
 		}
 	}
 	
-	private void updateAddress(UserBusiness userBusiness, User usr, UserPersonalData upd) throws RemoteException, FinderException {
+	static void updateAddress(UserBusiness userBusiness, User usr, UserPersonalData upd) throws RemoteException, FinderException {
 		
 		try {
 			
@@ -189,11 +189,11 @@ public class LocateUserHandler implements ActionHandler {
 				}
 				
 			} else {
-				Logger.getLogger(getClass().getName()).log(Level.WARNING, "No street name or street nr resolved - skipping updating user address");
+				Logger.getLogger(LocateUserHandler.class.getName()).log(Level.WARNING, "No street name or street nr resolved - skipping updating user address");
 			}
 			
 		} catch (Exception e) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while updating user address. User id="+usr.getPrimaryKey(), e);
+			Logger.getLogger(LocateUserHandler.class.getName()).log(Level.SEVERE, "Exception while updating user address. User id="+usr.getPrimaryKey(), e);
 		}
 	}
 	
