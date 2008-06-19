@@ -25,9 +25,9 @@ import com.idega.user.data.User;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/06/19 09:49:37 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/19 10:09:17 $ by $Author: civilis $
  */
 public class CreateUserHandler implements ActionHandler {
 
@@ -75,12 +75,12 @@ public class CreateUserHandler implements ActionHandler {
 						uEmail.setEmailAddress(upd.getUserEmail());
 						uEmail.store();
 						usrCreated.addEmail(uEmail);
-						
-						LocateUserHandler.updateAddress(userBusiness, usrCreated, upd);
-
-						if(upd.getUserPhone() != null)
-							userBusiness.updateUserHomePhone(usrCreated, upd.getUserPhone());
 					}
+					
+					LocateUserHandler.updateAddress(userBusiness, usrCreated, upd);
+
+					if(upd.getUserPhone() != null)
+						userBusiness.updateUserHomePhone(usrCreated, upd.getUserPhone());
 					
 //					put result back to user personal data
 					
