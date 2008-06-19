@@ -11,9 +11,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/06/12 18:29:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/19 07:51:04 $ by $Author: civilis $
  */
 public class CreateBPMUserHandler implements ActionHandler {
 
@@ -51,8 +51,6 @@ public class CreateBPMUserHandler implements ActionHandler {
 			
 			ectx.setVariable(variableName, usrId);
 		}
-		
-		System.out.println("__created user="+bpmUser);
 	}
 
 	public String getProcessInstanceIdExp() {
