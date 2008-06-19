@@ -4,5 +4,6 @@
 
     <processDefinition bundle="org.jboss.jbpm" uriWithinBundle="resources/processes/inviteParticipant/processdefinition.xml" autoload="true" version="10" />
     <processDefinition bundle="org.jboss.jbpm" uriWithinBundle="resources/processes/assignmentAssist/processdefinition.xml" autoload="true" version="1" />
+    <processDefinition bundle="org.jboss.jbpm" uriWithinBundle="resources/processes/anonAssignment/processdefinition.xml" autoload="true" version="1" />
 
 </processes>
