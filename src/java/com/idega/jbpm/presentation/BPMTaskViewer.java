@@ -22,9 +22,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  *
- * Last modified: $Date: 2008/06/15 15:59:18 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/19 07:52:40 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -81,7 +81,14 @@ public class BPMTaskViewer extends IWBaseComponent {
 	
 	private UIComponent loadViewerFromDefinition(FacesContext context, String processDefinitionId) {
 
-		int initiatorId = IWContext.getIWContext(context).getCurrentUserId();
+		final IWContext iwc = IWContext.getIWContext(context);
+		final Integer initiatorId;
+		
+		if(iwc.isLoggedOn())
+			initiatorId = IWContext.getIWContext(context).getCurrentUserId();
+		else
+			initiatorId = null;
+		
 		long pdId = Long.parseLong(processDefinitionId);
 		
 		View initView = getBpmFactory(context).getProcessManager(pdId).getProcessDefinition(pdId).loadInitView(initiatorId);
