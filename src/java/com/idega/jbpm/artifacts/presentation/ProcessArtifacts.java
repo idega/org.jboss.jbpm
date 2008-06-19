@@ -80,9 +80,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.42 $
+ * @version $Revision: 1.43 $
  *
- * Last modified: $Date: 2008/06/15 16:32:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/19 10:02:47 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -559,6 +559,19 @@ public class ProcessArtifacts {
 		
 		if (users == null || users.isEmpty()) {
 			return null;
+		}
+
+//		TODO: tmp add logic to the process (what bpm user should be displayed in the contacts list)
+		for (Iterator<User> iterator = users.iterator(); iterator.hasNext();) {
+			User user = iterator.next();
+			
+			String usrType = user.getMetaData(BPMUser.USER_TYPE);
+			
+			if(BPMUser.USER_TYPE_NATURAL.equals(usrType)) {
+				
+				System.out.println("removing natural user from contacts");
+				iterator.remove();
+			}
 		}
 		
 		List<User> connectedPeople = new ArrayList<User>(users);
