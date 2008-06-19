@@ -29,9 +29,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/06/15 11:58:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/19 09:49:53 $ by $Author: civilis $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -117,7 +117,7 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 	private String getAssetsUrl(IWContext iwc) {
 		
 //		TODO: try to resolve url from app prop, if fail, then use default page type, and resolve from it (as it is now)
-		String fullUrl = getBuilderService(iwc).getFullPageUrlByPageType(iwc, defaultAssetsViewPageType);
+		String fullUrl = getBuilderService(iwc).getFullPageUrlByPageType(iwc, defaultAssetsViewPageType, true);
 		return fullUrl;
 	}
 	
