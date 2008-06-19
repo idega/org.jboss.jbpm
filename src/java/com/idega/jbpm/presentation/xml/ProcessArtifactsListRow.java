@@ -3,11 +3,13 @@ package com.idega.jbpm.presentation.xml;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.idega.util.CoreConstants;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/05/28 09:03:20 $ by $Author: valdas $
+ * Last modified: $Date: 2008/06/19 09:50:17 $ by $Author: civilis $
  */
 public class ProcessArtifactsListRow {
 
@@ -38,7 +40,7 @@ public class ProcessArtifactsListRow {
 		return cells;
 	}
 	public void addCell(String cellContent) {
-		getCells().add(cellContent);
+		getCells().add(cellContent == null ? CoreConstants.EMPTY : cellContent);
 	}
 	public String getStyleClass() {
 		return styleClass;
