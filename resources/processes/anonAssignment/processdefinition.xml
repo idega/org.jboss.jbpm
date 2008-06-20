@@ -38,7 +38,7 @@
                 </userIdExp>
 			</action>
 		</event>
-		<transition to="sendInvitationToAssignee" name="toSendInvitationToAssignee"></transition>
+		<transition to="assignUserAsFirstTaskSubmitter" name="toAssignUserAsFirstTaskSubmitter"></transition>
 	</node>
 
 	<decision name="assigneeFound" expression="#{assigneeData.userId != null}">
@@ -66,6 +66,10 @@
 	      
 		<transition to="end-state1" name="toEnd"></transition>
 	</process-state>
+
+	<node name="assignUserAsFirstTaskSubmitter">
+		<transition to="sendInvitationToAssignee" name="toSendInvitationToAssignee"></transition>
+	</node>
 	<end-state name="end-state1"></end-state>
 
 
