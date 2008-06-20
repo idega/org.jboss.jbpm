@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
  * If ic_user found, updates missing user data by user personal data provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/06/19 09:48:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/20 14:02:38 $ by $Author: civilis $
  */
 public class LocateUserHandler implements ActionHandler {
 
@@ -117,11 +117,28 @@ public class LocateUserHandler implements ActionHandler {
 			String postalCodeStr = upd.getUserPostalCode();
 			String municipalityName = upd.getUserMunicipality();
 			
-			Commune commune = userBusiness.getAddressBusiness().getCommuneHome().findByCommuneName(municipalityName);
+			Commune commune;
+			
+			if (municipalityName != null) {
+
+				try {
+					commune = userBusiness.getAddressBusiness().getCommuneHome().findByCommuneName(municipalityName);
+					
+				} catch (FinderException e) {
+					commune = null;
+				}
+				
+			} else
+				commune = null;
 			
 			if(postalCodeStr != null) {
 				
-				postalCode = userBusiness.getAddressBusiness().getPostalCodeHome().findByPostalCode(postalCodeStr);
+				try {
+					postalCode = userBusiness.getAddressBusiness().getPostalCodeHome().findByPostalCode(postalCodeStr);
+				} catch (FinderException e) {
+					postalCode = null;
+				}
+				
 			} else
 				postalCode = null;
 			
