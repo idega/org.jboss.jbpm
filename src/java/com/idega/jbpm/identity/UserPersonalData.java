@@ -5,9 +5,9 @@ import java.io.Serializable;
 /**
  *  
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/06/16 13:03:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/21 16:47:53 $ by $Author: civilis $
  */
 public class UserPersonalData implements Serializable {
 	
@@ -22,6 +22,7 @@ public class UserPersonalData implements Serializable {
 	private String userPostalCode;
 	private String userMunicipality;
 	private String userPhone;
+	private Boolean hideInContacts;
 	
 	private Integer userId;
 	
@@ -90,5 +91,11 @@ public class UserPersonalData implements Serializable {
 	}
 	public void setUserPhone(String userPhone) {
 		this.userPhone = userPhone;
+	}
+	public Boolean getHideInContacts() {
+		return hideInContacts != null && hideInContacts;
+	}
+	public void setHideInContacts(Boolean hideInContacts) {
+		this.hideInContacts = hideInContacts;
 	}
 }
