@@ -43,10 +43,10 @@
       <bendpoint w1="-155" h1="-10" w2="46" h2="194"/>
     </edge>
   </node>
-  <node name="end-state1" x="100" y="235" width="21" height="22"/>
   <node name="assignUserAsFirstTaskSubmitter" x="204" y="407" width="208" height="36">
     <edge>
       <label x="-77" y="-4"/>
     </edge>
   </node>
+  <node name="end-state1" x="100" y="235" width="21" height="22"/>
 </root-container>

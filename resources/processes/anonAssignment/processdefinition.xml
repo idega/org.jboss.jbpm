@@ -64,13 +64,30 @@
 	      <variable name="assigneeData" access="read" mapped-name="participantUserData" />
 	      <variable name="assigneeRoleExpression" access="read" mapped-name="participantRoleExpression" />
 	      
+		<event type="node-enter">
+			<script name="assignPropertiesToUserData">
+                <expression>
+                    upd.setHideInContacts(true);
+                </expression>
+                <variable name='assigneeData' access='read' mapped-name='upd' />
+			</script>
+		</event>
 		<transition to="end-state1" name="toEnd"></transition>
 	</process-state>
 
 	<node name="assignUserAsFirstTaskSubmitter">
+		<event type="node-enter">
+			<action class="com.idega.jbpm.identity.AssignUserToTaskInstanceSubmitterHandler" name="assignUserAsFirstTaskSubmitterAction">
+				<userIdExp>
+					#{assigneeData.userId}
+				</userIdExp>
+				<processInstanceIdExp>
+					#{assignFromProcessInstanceId}
+				</processInstanceIdExp>
+			</action>
+		</event>
 		<transition to="sendInvitationToAssignee" name="toSendInvitationToAssignee"></transition>
 	</node>
 	<end-state name="end-state1"></end-state>
-
-
+	
 </process-definition>
