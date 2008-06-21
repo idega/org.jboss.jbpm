@@ -35,9 +35,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- * Last modified: $Date: 2008/06/12 18:29:09 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/21 16:47:38 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -136,7 +136,8 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		bpmUserAcc.setMetaData(BPMUser.USER_ROLE, role.getRoleName());
 		bpmUserAcc.setMetaData(BPMUser.PROCESS_INSTANCE_ID, String.valueOf(processInstanceId));
 		
-		//TODO: is this needed? bpmUserAcc.store();
+		if(upd.getHideInContacts())
+			bpmUserAcc.setMetaData(BPMUser.HIDE_IN_CONTACTS, CoreConstants.EMPTY);
 		
 		return bpmUserAcc;
 	}
