@@ -80,9 +80,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.43 $
+ * @version $Revision: 1.44 $
  *
- * Last modified: $Date: 2008/06/19 10:02:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/21 16:46:47 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -541,47 +541,47 @@ public class ProcessArtifacts {
 			return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger());
 	}
 	
-	private List<User> getPeopleConnectedToProcess(Long processInstanceId) {
-		if (processInstanceId == null) {
-			return null;
-		}
+	private List<User> getPeopleConnectedToProcess(long processInstanceId) {
 		
-		Collection<User> users = null;
-		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		final Collection<User> users;
+		final JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
 		try {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			users = getBpmFactory().getRolesManager().getAllUsersForRoles(null, processInstance);
+			
 		} catch(Exception e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE, "Exception while resolving all process instance users", e);
+			return null;
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 		
-		if (users == null || users.isEmpty()) {
-			return null;
-		}
+		if(users != null && !users.isEmpty()) {
 
-//		TODO: tmp add logic to the process (what bpm user should be displayed in the contacts list)
-		for (Iterator<User> iterator = users.iterator(); iterator.hasNext();) {
-			User user = iterator.next();
-			
-			String usrType = user.getMetaData(BPMUser.USER_TYPE);
-			
-			if(BPMUser.USER_TYPE_NATURAL.equals(usrType)) {
+//			using separate list, as the resolved one could be cashed (shared) and so
+			ArrayList<User> connectedPeople = new ArrayList<User>(users);
+
+			for (Iterator<User> iterator = connectedPeople.iterator(); iterator.hasNext();) {
 				
-				System.out.println("removing natural user from contacts");
-				iterator.remove();
+				User user = iterator.next();
+				String hideInContacts = user.getMetaData(BPMUser.HIDE_IN_CONTACTS);
+				
+				if(hideInContacts != null)
+//					excluding ones, that should be hidden in contacts list
+					iterator.remove();
 			}
+			
+			try {
+				Collections.sort(connectedPeople, new UserComparator(CoreUtil.getIWContext().getCurrentLocale()));
+			} catch(Exception e) {
+				logger.log(Level.SEVERE, "Exception while sorting contacts list ("+connectedPeople+")", e);
+			}
+			
+			return connectedPeople; 
 		}
 		
-		List<User> connectedPeople = new ArrayList<User>(users);
-		try {
-			Collections.sort(connectedPeople, new UserComparator(CoreUtil.getIWContext().getCurrentLocale()));
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-		return connectedPeople;
+		return null;
 	}
 	
 	@SuppressWarnings("unchecked")
