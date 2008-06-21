@@ -29,9 +29,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/06/19 09:49:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/21 16:48:36 $ by $Author: civilis $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -61,11 +61,11 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 			final IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 			final IWResourceBundle iwrb = getResourceBundle(iwc);
 			
-			String recepientEmail = upd.getUserEmail();
+			String recipientEmail = upd.getUserEmail();
 			
-			if(recepientEmail == null || !EmailValidator.getInstance().isValid(recepientEmail)) {
+			if(recipientEmail == null || !EmailValidator.getInstance().isValid(recipientEmail)) {
 				
-				Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Participant email address provided is not valid: "+recepientEmail);
+				Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Participant email address provided is not valid: "+recipientEmail);
 				return;
 			}
 			
@@ -107,7 +107,7 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 			text += "\n" + iwrb.getLocalizedAndFormattedString("cases_bpm.case_invitation_message", "Follow the link to register and participate in the case : {0}", new Object[] {fullUrl}) ;
 			
 			try {
-				SendMail.send(from, recepientEmail, null, null, host, subject, text);
+				SendMail.send(from, recipientEmail, null, null, host, subject, text);
 			} catch (javax.mail.MessagingException me) {
 				Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while sending participant invitation message", me);
 			}
