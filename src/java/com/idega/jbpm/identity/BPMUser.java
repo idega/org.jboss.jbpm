@@ -10,9 +10,9 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/06/16 13:03:13 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/21 16:47:17 $ by $Author: civilis $
  */
 public interface BPMUser {
 	
@@ -22,6 +22,7 @@ public interface BPMUser {
 	public static final String USER_TYPE = "BPM_USER_TYPE";
 	public static final String USER_ROLE = "BPM_USER_ROLE";
 	public static final String PROCESS_INSTANCE_ID = "BPM_PROCESS_INSTANCE_ID";
+	public static final String HIDE_IN_CONTACTS = "BPM_HIDE_IN_CONTACTS";
 
 	public abstract User getBpmUser();
 
