@@ -35,9 +35,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- * Last modified: $Date: 2008/06/21 16:47:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/24 14:22:29 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -114,20 +114,23 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		
 		final User bpmUserAcc;
 		
+//		some silly personalId
+		String personalIdToUse = "42"+upd.getPersonalId();
+		
 		if(BPMUser.USER_TYPE_NATURAL.equals(upd.getUserType())) {
 
 			if(upd.getFullName() != null) {
 				
-				bpmUserAcc = userBusiness.createUser(null, null, null, null, upd.getPersonalId(), null, null, null, null, upd.getFullName());
+				bpmUserAcc = userBusiness.createUser(null, null, null, null, personalIdToUse, null, null, null, null, upd.getFullName());
 			} else {
 			
-				bpmUserAcc = userBusiness.createUser(upd.getFirstName(), null, upd.getLastName(), upd.getPersonalId());
+				bpmUserAcc = userBusiness.createUser(upd.getFirstName(), null, upd.getLastName(), personalIdToUse);
 			}
 			
 		} else if(BPMUser.USER_TYPE_LEGAL.equals(upd.getUserType())) {
 			
 //			for legal person always using full name
-			bpmUserAcc = userBusiness.createUser(null, upd.getFullName(), null, upd.getPersonalId());
+			bpmUserAcc = userBusiness.createUser(null, upd.getFullName(), null, personalIdToUse);
 		} else
 			throw new IllegalArgumentException("Illegal user type in user data. Type="+upd.getUserType());
 		
@@ -138,6 +141,8 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		
 		if(upd.getHideInContacts())
 			bpmUserAcc.setMetaData(BPMUser.HIDE_IN_CONTACTS, CoreConstants.EMPTY);
+		
+		bpmUserAcc.store();
 		
 		return bpmUserAcc;
 	}
