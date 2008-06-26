@@ -43,9 +43,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $
+ * @version $Revision: 1.27 $
  *
- * Last modified: $Date: 2008/06/13 16:22:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -152,17 +152,21 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			if(processInstanceId == null)
 				throw new RuntimeException("No process instance id found in permission="+permission.getClass().getName());
 			
-			String roleName = "bpm_handler";
+//			String roleName = "bpm_handler";
+			
 //			TODO: get roles that can edit permissions
+			
+			List<String> roleNames = getBpmBindsDAO().getResultList(ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, String.class,
+					new Param(ProcessRole.processInstanceIdProperty, processInstanceId));
 			
 			List<ProcessRole> proles = 
 				getBpmBindsDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
 						new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
-						new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {roleName}))
+						new Param(ProcessRole.processRoleNameProperty, roleNames)
 				);
 			
 			if(proles == null || proles.isEmpty())
-				throw new AccessControlException("No process role found by role name="+roleName+" and process instance id = "+processInstanceId);
+				throw new AccessControlException("No process role found by role names="+roleNames.toString() +" and process instance id = "+processInstanceId);
 			
 			ProcessRole prole = proles.iterator().next();
 			

@@ -14,9 +14,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  * 
- * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
  */
 public interface RolesManager {
 
@@ -37,6 +37,8 @@ public interface RolesManager {
 	public abstract List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId);
 	
 	public abstract void assignTaskRolesPermissions(Task task, List<Role> roles, Long processInstanceId);
+	
+	public abstract void assignRolesPermissions(List<Role> roles, Long processInstanceId);
 
 	public abstract List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long taskInstanceId);
 	

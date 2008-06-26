@@ -16,9 +16,9 @@ import com.idega.jbpm.exe.BPMFactory;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  * 
- * Last modified: $Date: 2008/05/27 18:04:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
  */
 public class RolesAssiger {
 	
@@ -28,17 +28,17 @@ public class RolesAssiger {
 	private RolesManager rolesManager;
 	private BPMFactory bpmFactory;
 
-	public void assign(TaskInstance taskInstance, List<Role> roles) {
+	public void assign(ProcessInstance processInstance, List<Role> roles) {
 		
 		if(roles == null || roles.isEmpty()) {
 			
-			Logger.getLogger(getClass().getName()).log(Level.WARNING, "No roles for task instance: "+taskInstance.getId());
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "No roles for task instance: "+processInstance.getId());
 			return;
 		}
 		
-		ProcessInstance pi = taskInstance.getProcessInstance();
+
 		
-		/*List<ProcessRole> processRoles = */getRolesManager().createProcessRoles(pi.getProcessDefinition().getName(), roles, pi.getId());
+		/*List<ProcessRole> processRoles = */getRolesManager().createProcessRoles(processInstance.getProcessDefinition().getName(), roles, processInstance.getId());
 		//setPooledActors(taskInstance, processRoles);
 	}
 	
@@ -53,6 +53,17 @@ public class RolesAssiger {
 		ProcessInstance pi = taskInstance.getProcessInstance();
 		
 		getRolesManager().assignTaskRolesPermissions(taskInstance.getTask(), roles, pi.getId());
+	}
+	
+	public void createRolesPermissions(ProcessInstance pi, List<Role> roles) {
+		
+		if(roles == null || roles.isEmpty()) {
+			
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "No roles specified");
+			return;
+		}
+		
+		getRolesManager().assignRolesPermissions(roles, pi.getId());
 	}
 	
 	public void assignIdentities(TaskInstance taskInstance, List<Role> roles) {

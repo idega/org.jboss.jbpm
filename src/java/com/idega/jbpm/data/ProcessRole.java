@@ -31,9 +31,9 @@ import javax.persistence.Table;
  * If there are no permissions for actor with process instance id != null, then the permissions for process name are taken (i.e. the permissions are specified for process definition scope). 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
@@ -44,7 +44,9 @@ import javax.persistence.Table;
 			//@NamedQuery(name=ProcessRole.getAllByRoleNamesAndPIIdIsNull, query="from ProcessRole b where b."+ProcessRole.processRoleNameProperty+" in(:"+ProcessRole.processRoleNameProperty+") and b."+ProcessRole.processInstanceIdProperty+" is null"),
 			@NamedQuery(name=ProcessRole.getAllByActorIds, query="from ProcessRole b where b."+ProcessRole.actorIdProperty+" in(:"+ProcessRole.actorIdProperty+")"),
 			@NamedQuery(name=ProcessRole.getAllProcessInstancesIds, query="select pr."+ProcessRole.processInstanceIdProperty+" from ProcessRole pr"),
-			@NamedQuery(name=ProcessRole.getSetByPIId, query="from ProcessRole b where b."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty)
+			@NamedQuery(name=ProcessRole.getSetByPIId, query="from ProcessRole b where b."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty),
+			@NamedQuery(name=ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, query=
+				"select pr." + ProcessRole.processRoleNameProperty + " from ProcessRole pr, in (pr." + ProcessRole.actorPermissionsProperty + ") permissions where pr."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty + " and permissions." + ActorPermissions.modifyRightsPermissionProperty + " = true")
 			
 			/*, TODO: remove
 			@NamedQuery(name=ProcessRole.getSetHavingPermissionsByTaskIdAndRoleName, query=
@@ -109,10 +111,11 @@ public class ProcessRole implements Serializable {
 	///public static final String getSetByRoleNamesAndProcessNameAndPIIdIsNull = "ProcessRoleNativeIdentityBind.getSetByRoleNamesAndProcessNameAndPIIdIsNull";
 	public static final String getProcessInstanceIdsByUserIdentity = "ProcessRole.getProcessInstanceIdsByUserIdentity";
 	public static final String getProcessInstanceIdsByUserRolesAndUserIdentity = "ProcessRole.getProcessInstanceIdsByUserRolesAndUserIdentity";
-	
+
 	public static final String getAllByActorIds = "ProcessRoleNativeIdentityBind.getAllByActorIds";
 	public static final String getAllProcessInstancesIds = "ProcessRoleNativeIdentityBind.getAllProcessInstancesIds";
 	public static final String getSetHavingPermissionsByTaskIdAndRoleName = "ProcessRoleNativeIdentityBind.getSetRolesNamesHavingPermissionsByTaskIdAndRoleName";
+	public static final String getRoleNameHavingRightsModifyPermissionByPIId = "ProcessRoleNativeIdentityBind.getHavingRightsModifyPermissionByPIId";
 	
 	public static final String processRoleNameProperty = "processRoleName";
 	@Column(name="role_name", nullable=false)

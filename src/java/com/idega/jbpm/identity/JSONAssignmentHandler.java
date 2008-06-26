@@ -25,9 +25,9 @@ import com.idega.util.expression.ELUtil;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- * Last modified: $Date: 2008/06/15 11:57:14 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
  */
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	
@@ -51,7 +51,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 			List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(exp);
 			
 			RolesAssiger rolesAssigner = getRolesAssigner();
-			rolesAssigner.assign(taskInstance, roles);
+			rolesAssigner.assign(taskInstance.getProcessInstance(), roles);
 			rolesAssigner.createRolesPermissions(taskInstance, roles);
 			rolesAssigner.assignIdentities(taskInstance, roles);
 		}

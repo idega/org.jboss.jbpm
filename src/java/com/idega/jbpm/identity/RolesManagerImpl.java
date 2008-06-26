@@ -53,9 +53,9 @@ import com.idega.util.CoreConstants;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.28 $
+ * @version $Revision: 1.29 $
  * 
- * Last modified: $Date: 2008/06/15 15:57:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -359,6 +359,45 @@ public class RolesManagerImpl implements RolesManager {
 					perm.setRoleName(role.getRoleName());
 					perm.setReadPermission(role.getAccesses().contains(Access.read));
 					perm.setWritePermission(role.getAccesses().contains(Access.write));
+					perm.setModifyRightsPermission(role.getAccesses().contains(Access.modifyPermissions));
+					
+					getBpmDAO().persist(perm);
+				}
+			}
+		}
+	}
+	
+	@Transactional(readOnly=true)
+	public void createRolesPermissions(List<Role> roles) {
+		
+		if(!roles.isEmpty()) {
+		
+			HashSet<String> rolesNames = new HashSet<String>(roles.size());
+			
+			for (Role role : roles) {
+				rolesNames.add(role.getRoleName());
+			}
+			
+			List<ActorPermissions> perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessRoleNames, ActorPermissions.class,
+					new Param(ActorPermissions.roleNameProperty, rolesNames)
+			);
+			
+//			if eq, then all perms are created
+			if(perms.size() < rolesNames.size()) {
+				
+				for (ActorPermissions actorPermissions : perms) {
+					roles.remove(actorPermissions.getRoleName());
+					rolesNames.remove(actorPermissions.getRoleName());
+				}
+			
+				for (Role role : roles) {
+					
+					ActorPermissions perm = new ActorPermissions();
+					perm.setTaskId(null);
+					perm.setRoleName(role.getRoleName());
+					perm.setReadPermission(role.getAccesses().contains(Access.read));
+					perm.setWritePermission(role.getAccesses().contains(Access.write));
+					perm.setModifyRightsPermission(role.getAccesses().contains(Access.modifyPermissions));
 					
 					getBpmDAO().persist(perm);
 				}
@@ -413,9 +452,12 @@ public class RolesManagerImpl implements RolesManager {
 				if(!perms.isEmpty()) {
 					
 					for (ActorPermissions actorPermissions : perms) {
-						
+						try {
 						if(actorPermissions.getTaskId().equals(task.getId()) && actorPermissions.getTaskInstanceId() == null)
 							hasPermForTask = true;
+						} catch(NullPointerException e) {
+							continue;
+						}						
 					}
 				}
 				
@@ -450,6 +492,52 @@ public class RolesManagerImpl implements RolesManager {
 					}
 				}
 			}
+			
+		} else
+			logger.log(Level.WARNING, "No process roles found by roles: "+rolesNames+", processInstanceId: "+processInstanceId);
+	}
+	
+	@Transactional(readOnly=true)
+	public void assignRolesPermissions(List<Role> roles, Long processInstanceId) {
+		
+		if(roles.isEmpty())
+			return;
+		
+		createRolesPermissions(roles);
+		
+		HashSet<String> rolesNames = new HashSet<String>(roles.size());
+		
+		for (Role role : roles) {
+			rolesNames.add(role.getRoleName());
+		}
+		
+		List<ProcessRole> proles = getProcessRoles(rolesNames, processInstanceId);
+		
+		if(proles != null && !proles.isEmpty()) {
+				
+				List<ActorPermissions> perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessRoleNames, ActorPermissions.class,
+						new Param(ActorPermissions.roleNameProperty, rolesNames)
+				);
+				
+				for (ProcessRole prole : proles) {
+					
+					for (Iterator<ActorPermissions> iterator = perms.iterator(); iterator.hasNext();) {
+						
+						ActorPermissions perm = iterator.next();
+						
+						if(prole.getProcessRoleName().equals(perm.getRoleName())) {
+							List<ActorPermissions> rolePerms = prole.getActorPermissions();
+							
+							if(rolePerms == null) {
+								rolePerms = new ArrayList<ActorPermissions>();
+							}
+							
+							rolePerms.add(perm);
+							iterator.remove();
+							getBpmDAO().merge(prole);
+						}
+					}
+				}
 			
 		} else
 			logger.log(Level.WARNING, "No process roles found by roles: "+rolesNames+", processInstanceId: "+processInstanceId);
