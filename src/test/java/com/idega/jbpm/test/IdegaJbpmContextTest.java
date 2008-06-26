@@ -17,6 +17,12 @@ import com.idega.core.test.base.IdegaBaseTest;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 
+/**
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.2 $
+ *
+ * Last modified: $Date: 2008/06/26 14:14:13 $ by $Author: civilis $
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations={"classpath:/com/idega/jbpm/test/IdegaJbpmContextTest-context.xml"})
 @Transactional
