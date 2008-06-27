@@ -53,9 +53,9 @@ import com.idega.util.CoreConstants;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.29 $
+ * @version $Revision: 1.30 $
  * 
- * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/27 07:07:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -326,7 +326,7 @@ public class RolesManagerImpl implements RolesManager {
 		return processRoles;
 	}
 	
-	@Transactional(readOnly=true)
+	@Transactional(readOnly=false)
 	public void createTaskRolesPermissions(Task task, List<Role> roles) {
 		
 		if(!roles.isEmpty()) {
@@ -367,7 +367,7 @@ public class RolesManagerImpl implements RolesManager {
 		}
 	}
 	
-	@Transactional(readOnly=true)
+	@Transactional(readOnly=false)
 	public void createRolesPermissions(List<Role> roles) {
 		
 		if(!roles.isEmpty()) {
@@ -418,7 +418,7 @@ public class RolesManagerImpl implements RolesManager {
 		return proles;
 	}
 	
-	@Transactional(readOnly=true)
+	@Transactional(readOnly=false)
 	public void assignTaskRolesPermissions(Task task, List<Role> roles, Long processInstanceId) {
 		
 		if(roles.isEmpty())
@@ -497,7 +497,7 @@ public class RolesManagerImpl implements RolesManager {
 			logger.log(Level.WARNING, "No process roles found by roles: "+rolesNames+", processInstanceId: "+processInstanceId);
 	}
 	
-	@Transactional(readOnly=true)
+	@Transactional(readOnly=false)
 	public void assignRolesPermissions(List<Role> roles, Long processInstanceId) {
 		
 		if(roles.isEmpty())
