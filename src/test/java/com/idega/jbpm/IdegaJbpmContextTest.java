@@ -1,4 +1,4 @@
-package com.idega.jbpm.test;
+package com.idega.jbpm;
 
 import java.util.List;
 
@@ -13,20 +13,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.core.persistence.GenericDao;
 import com.idega.core.persistence.Param;
-import com.idega.core.test.base.IdegaBaseTest;
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.core.test.base.IdegaBaseTransactionalTest;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/06/26 14:14:13 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/28 19:15:38 $ by $Author: civilis $
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations={"classpath:/com/idega/jbpm/test/IdegaJbpmContextTest-context.xml"})
+@ContextConfiguration
 @Transactional
-public final class IdegaJbpmContextTest extends IdegaBaseTest {
+public final class IdegaJbpmContextTest extends IdegaBaseTransactionalTest {
 
 	@Autowired
 	private IdegaJbpmContext bpmContext;
@@ -40,10 +39,9 @@ public final class IdegaJbpmContextTest extends IdegaBaseTest {
 		JbpmContext jctx = bpmContext.createJbpmContext();
 		
 		try {
-
 			ProcessInstance pi = jctx.getProcessInstance(1);
 			System.out.println("pi="+pi);
-			
+			 
 		} finally {
 			bpmContext.closeAndCommit(jctx);
 		}
