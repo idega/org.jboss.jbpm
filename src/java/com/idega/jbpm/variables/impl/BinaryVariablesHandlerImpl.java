@@ -1,8 +1,7 @@
 package com.idega.jbpm.variables.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +21,9 @@ import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.file.data.ExtendedFile;
+import com.idega.core.file.util.FileInfo;
+import com.idega.core.file.util.FileURIHandler;
+import com.idega.core.file.util.FileURIHandlerFactory;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
@@ -35,9 +38,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/06/27 12:43:30 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/28 19:15:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -46,7 +49,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	public static final String BPM_UPLOADED_FILES_PATH = "/files/bpm/uploadedFiles/";
 	public static final String STORAGE_TYPE = "slide";
 	public static final String BINARY_VARIABLE = "binaryVariable";
-
+	
+	private FileURIHandlerFactory fileURIHandlerFactory;
+	
 	public Map<String, Object> storeBinaryVariables(Object identifier, Map<String, Object> variables) {
 		
 		HashMap<String, Object> newVars = new HashMap<String, Object>(variables);
@@ -64,9 +69,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			
 			if(dataType == VariableDataType.FILE) {
 
-				if(val instanceof File) {
+				if(val instanceof URI) {
 					ArrayList<String> binaryVariables = new ArrayList<String>(1);
-					BinaryVariable binaryVariable = storeFile((String)identifier, (File)val);
+					BinaryVariable binaryVariable = storeFile((String)identifier, (URI)val);
 					binaryVariables.add(convertToJSON(binaryVariable));
 					
 					entry.setValue(binaryVariables);
@@ -95,15 +100,17 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 								
 								ExtendedFile ef = (ExtendedFile)o;
 								
-								BinaryVariable binaryVariable = storeFile(identifier, ef.getFile());
+								BinaryVariable binaryVariable = storeFile(identifier, ef.getFileUri());
 								binaryVariable.setDescription(ef.getFileInfo());
 								binaryVariables.add(convertToJSON(binaryVariable));
-							} else if(o instanceof File) {
+							} else if(o instanceof URI) {
 								
-								File f = (File)o;
+								URI u = (URI)o;
 								
-								BinaryVariable binaryVariable = storeFile(identifier, f);
-								binaryVariable.setDescription(f.getName());
+								String fName = getFileURIHandlerFactory().getHandler(u).getFileInfo(u).getFileName();
+								
+								BinaryVariable binaryVariable = storeFile(identifier, u);
+								binaryVariable.setDescription(fName);
 								binaryVariables.add(convertToJSON(binaryVariable));
 							}
 						}
@@ -152,10 +159,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return path+CoreConstants.SLASH+fileName;
 	}
 	
-	protected BinaryVariable storeFile(Object identifier, File file) {
+	protected BinaryVariable storeFile(final Object identifier, final URI fileUri) {
 		
 		String path = BPM_UPLOADED_FILES_PATH+identifier+"/files";
-		String fileName = file.getName();
+		
+		final FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
+		
+		final FileInfo fileInfo = fileURIHandler.getFileInfo(fileUri);
+		String fileName = fileInfo.getFileName();
 		
 		//replace windows absolute path filename with just filename
 		if(fileName.contains(CoreConstants.BACK_SLASH)) {
@@ -186,15 +197,23 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				}
 			}
 			
-			FileInputStream is = new FileInputStream(file);
-			slideService.uploadFileAndCreateFoldersFromStringAsRoot(path+CoreConstants.SLASH, fileName, is, null, false);
-			is.close();
+			//FileInputStream is = new FileInputStream(fileUri);
+			InputStream is = fileURIHandler.getFile(fileUri);
+			
+			try {
+				slideService.uploadFileAndCreateFoldersFromStringAsRoot(path+CoreConstants.SLASH, fileName, is, null, false);
+				
+			} finally {
+				
+				if(is != null)
+					is.close();
+			}
 			
 			BinaryVariableImpl binaryVariable = new BinaryVariableImpl();
 			binaryVariable.setFileName(fileName);
 			binaryVariable.setIdentifier(concPF(path, fileName));
 			binaryVariable.setStorageType(STORAGE_TYPE);
-			binaryVariable.setContentLength(file.length());
+			binaryVariable.setContentLength(fileInfo.getContentLength());
 			
 			return binaryVariable;
 			
@@ -275,20 +294,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return binaryVars;
 	}
 	
-//	public InputStream getBinaryVariableContent(BinaryVariable variable) {
-//		
-//		return getBinaryVariableContent(null, variable);
-//	}
-	
 	public InputStream getBinaryVariableContent(BinaryVariable variable) {
 		
 		if(!STORAGE_TYPE.equals(variable.getStorageType()))
 			throw new IllegalArgumentException("Unsupported binary variable storage type: "+variable.getStorageType());
 		
 		try {
-			
-//			if(iwc == null)
-//				iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 			
 			IWSlideService slideService = getIWSlideService();
 			
@@ -322,5 +333,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	public BinaryVariable getBinaryVariable(long taskInstanceId, int variableHash) {
 		
 		return null;
+	}
+
+	public FileURIHandlerFactory getFileURIHandlerFactory() {
+		return fileURIHandlerFactory;
+	}
+
+	@Autowired
+	public void setFileURIHandlerFactory(FileURIHandlerFactory fileURIHandlerFactory) {
+		this.fileURIHandlerFactory = fileURIHandlerFactory;
 	}
 }
