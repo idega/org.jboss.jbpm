@@ -31,9 +31,9 @@ import javax.persistence.Table;
  * If there are no permissions for actor with process instance id != null, then the permissions for process name are taken (i.e. the permissions are specified for process definition scope). 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/30 09:22:31 $ by $Author: anton $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
@@ -45,6 +45,8 @@ import javax.persistence.Table;
 			@NamedQuery(name=ProcessRole.getAllByActorIds, query="from ProcessRole b where b."+ProcessRole.actorIdProperty+" in(:"+ProcessRole.actorIdProperty+")"),
 			@NamedQuery(name=ProcessRole.getAllProcessInstancesIds, query="select pr."+ProcessRole.processInstanceIdProperty+" from ProcessRole pr"),
 			@NamedQuery(name=ProcessRole.getSetByPIId, query="from ProcessRole b where b."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty),
+			
+//			TODO verify that works with different databases
 			@NamedQuery(name=ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, query=
 				"select pr." + ProcessRole.processRoleNameProperty + " from ProcessRole pr, in (pr." + ProcessRole.actorPermissionsProperty + ") permissions where pr."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty + " and permissions." + ActorPermissions.modifyRightsPermissionProperty + " = true")
 			
