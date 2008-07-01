@@ -18,9 +18,9 @@ import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/06/28 19:15:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/01 19:39:04 $ by $Author: civilis $
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -34,19 +34,16 @@ public final class IdegaJbpmContextTest extends IdegaBaseTransactionalTest {
 	public void testLoadTitle() throws Exception {
 
 		GenericDao genericDao = getGenericDao();
-		System.out.println("bpmContext="+bpmContext);
 		
 		JbpmContext jctx = bpmContext.createJbpmContext();
 		
 		try {
 			ProcessInstance pi = jctx.getProcessInstance(1);
-			System.out.println("pi="+pi);
+			assertNotNull(pi);
 			 
 		} finally {
 			bpmContext.closeAndCommit(jctx);
 		}
-		
-		///managersTypeProcessDefinitionBind_getByProcessDefinitionId
 		
 		ManagersTypeProcessDefinitionBind b = new ManagersTypeProcessDefinitionBind();
 		b.setManagersType("whatever");
@@ -59,8 +56,7 @@ public final class IdegaJbpmContextTest extends IdegaBaseTransactionalTest {
 					new Param(ManagersTypeProcessDefinitionBind.processDefinitionIdParam, new Long(1))
 			);
 		
-		System.out.println("binds="+binds.iterator().next().getManagersType());
-		
-		assertNotNull(new Object());
+		assertNotNull(binds);
+		assertFalse(binds.isEmpty());
 	}
 }
