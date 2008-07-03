@@ -2,6 +2,7 @@ package com.idega.jbpm.invitation;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,9 +22,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/07/03 12:10:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/03 15:25:19 $ by $Author: civilis $
  */
 public class AssignTasksForRolesUsers implements ActionHandler {
 
@@ -43,7 +44,7 @@ public class AssignTasksForRolesUsers implements ActionHandler {
 			RolesManager rolesManager = getBpmFactory().getRolesManager();
 			
 			for (AssignTasksForRolesUsersBean tb : tasksBeans) {
-
+				
 				if(tb.getRoles() != null && tb.getRoles().length != 0) {
 
 					Task task = tb.getTask();
@@ -57,8 +58,10 @@ public class AssignTasksForRolesUsers implements ActionHandler {
 					
 						for (User user : users) {
 							
-							TaskInstance ti = ectx.getTaskMgmtInstance().createTaskInstance(task, tb.getToken());
+							ExecutionContext newEctx = new ExecutionContext(tb.getToken());
+							TaskInstance ti = newEctx.getTaskMgmtInstance().createTaskInstance(task, newEctx);
 //							creating task instance for each user, and assigning
+							ti.setStart(new Date());
 							ti.setActorId(user.getPrimaryKey().toString());
 						}
 					}
