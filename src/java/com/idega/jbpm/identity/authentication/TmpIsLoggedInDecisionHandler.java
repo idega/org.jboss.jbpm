@@ -12,9 +12,9 @@ import com.idega.util.expression.ELUtil;
  * Tmp jbpm action handler, checks if current bpm user is null. Expression should be used in definition
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/06/19 07:52:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/03 12:11:13 $ by $Author: civilis $
  */
 public class TmpIsLoggedInDecisionHandler implements DecisionHandler {
 
@@ -30,8 +30,8 @@ public class TmpIsLoggedInDecisionHandler implements DecisionHandler {
 		ELUtil.getInstance().autowire(this);
 		
 		BPMUser bpmUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
-
-		return bpmUser.getBpmUser() != null ? booleanTrue : booleanFalse;
+		
+		return bpmUser.getRealUser() != null ? booleanTrue : booleanFalse;
 	}
 
 	public BPMFactory getBpmFactory() {
