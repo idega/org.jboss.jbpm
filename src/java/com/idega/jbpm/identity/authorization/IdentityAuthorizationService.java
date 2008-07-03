@@ -43,9 +43,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.27 $
+ * @version $Revision: 1.28 $
  *
- * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/03 15:26:10 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -159,34 +159,37 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			List<String> roleNames = getBpmBindsDAO().getResultList(ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, String.class,
 					new Param(ProcessRole.processInstanceIdProperty, processInstanceId));
 			
-			List<ProcessRole> proles = 
-				getBpmBindsDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
-						new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
-						new Param(ProcessRole.processRoleNameProperty, roleNames)
-				);
+			if(roleNames != null && !roleNames.isEmpty()) {
 			
-			if(proles == null || proles.isEmpty())
-				throw new AccessControlException("No process role found by role names="+roleNames.toString() +" and process instance id = "+processInstanceId);
-			
-			ProcessRole prole = proles.iterator().next();
-			
-			try {
+				List<ProcessRole> proles = 
+					getBpmBindsDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
+							new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
+							new Param(ProcessRole.processRoleNameProperty, roleNames)
+					);
 				
-				int userId = new Integer(loggedInActorId);
+				if(proles == null || proles.isEmpty())
+					throw new AccessControlException("No process role found by role names="+roleNames.toString() +" and process instance id = "+processInstanceId);
+				
+				ProcessRole prole = proles.iterator().next();
+				
+				try {
+					
+					int userId = new Integer(loggedInActorId);
 
-				UserBusiness userBusiness = getUserBusiness();
-				@SuppressWarnings("unchecked")
-				Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
-				AccessController ac = getAccessController();
-				IWApplicationContext iwac = getIWMA().getIWApplicationContext();
-				
-				List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
-				
-				if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, usrGrps, userId, ac, iwac))
-					return;
-				
-			} catch (RemoteException e) {
-				throw new IBORuntimeException(e);
+					UserBusiness userBusiness = getUserBusiness();
+					@SuppressWarnings("unchecked")
+					Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
+					AccessController ac = getAccessController();
+					IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+					
+					List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
+					
+					if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, usrGrps, userId, ac, iwac))
+						return;
+					
+				} catch (RemoteException e) {
+					throw new IBORuntimeException(e);
+				}
 			}
 			
 			throw new AccessControlException("No rights management permission for user="+loggedInActorId+", for processInstanceId="+processInstanceId);
