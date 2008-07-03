@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Resource;
 import javax.ejb.CreateException;
 import javax.faces.context.FacesContext;
 
@@ -19,12 +18,12 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.contact.data.Email;
 import com.idega.core.contact.data.EmailHome;
-import com.idega.core.persistence.GenericDao;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.presentation.IWContext;
 import com.idega.user.business.GroupBusiness;
@@ -35,16 +34,16 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- * Last modified: $Date: 2008/06/24 14:22:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/03 12:11:58 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
 	private static final Logger logger = Logger.getLogger(BPMUserFactoryImpl.class.getName());
 	
 	private BPMFactory BPMFactory; 
-	private GenericDao genericDao;
+	private BPMDAO bpmDAO;
 	
 	/**
 	 * creates ic_user for BpmUser
@@ -115,6 +114,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		final User bpmUserAcc;
 		
 //		some silly personalId
+//		FIXME: change this 42 to something unique
 		String personalIdToUse = "42"+upd.getPersonalId();
 		
 		if(BPMUser.USER_TYPE_NATURAL.equals(upd.getUserType())) {
@@ -302,15 +302,15 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		}
 	}
 	
-	public GenericDao getGenericDao() {
-		return genericDao;
+	public BPMDAO getBpmDAO() {
+		return bpmDAO;
 	}
 
-	@Resource(name="genericDAO")
-	public void setGenericDao(GenericDao genericDao) {
-		this.genericDao = genericDao;
+	@Autowired
+	public void setBpmDAO(BPMDAO bpmDAO) {
+		this.bpmDAO = bpmDAO;
 	}
-	
+
 	public BPMFactory getBPMFactory() {
 		return BPMFactory;
 	}
