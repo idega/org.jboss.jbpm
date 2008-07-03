@@ -27,8 +27,6 @@
         <property name="entityManagerFactory" ref="entityManagerFactory" />
     </bean>
     
-    <bean id="bpmFactory" class="com.idega.jbpm.exe.impl.BPMFactoryImpl" scope="singleton" />
-    
     <bean id="bpmRolesAssiger" class="com.idega.jbpm.identity.RolesAssiger" scope="singleton" />
     
     <bean id="bpmIdentityAuthorizationAspect" class="com.idega.jbpm.identity.authorization.IdentityAuthorizationAspect" scope="singleton" >

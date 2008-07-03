@@ -12,6 +12,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
@@ -27,10 +29,12 @@ import com.idega.jbpm.view.ViewFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/06/15 15:57:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/03 12:13:03 $ by $Author: civilis $
  */
+@Scope("singleton")
+@Service("bpmFactory")
 public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	
 	private ApplicationContext applicationContext;
