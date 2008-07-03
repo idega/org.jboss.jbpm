@@ -1,10 +1,12 @@
 package com.idega.jbpm.process.business;
 
 import java.io.InputStream;
+import java.util.Collection;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +20,9 @@ import com.idega.jbpm.IdegaJbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/07/01 19:39:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/03 15:26:16 $ by $Author: civilis $
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -44,6 +46,7 @@ public final class FollowupResponsesProcessTest extends IdegaBaseTransactionalTe
 			
 			ProcessDefinition superProcess = ProcessDefinition.parseXmlString(
 						      "<process-definition name='super'>" +
+						      "<task-node name=\"submitOwnerActionTaken\">" +
 						      "		<task name='Task for subprocess'>" +
 						      "			<controller>" +
 						      "				<variable name='string:ownerKennitala' access='read,write,required'></variable>"+
@@ -60,11 +63,14 @@ public final class FollowupResponsesProcessTest extends IdegaBaseTransactionalTe
 						      "</assignment>" +
 						      */
 						      "		</task>" +
+						      "</task-node>" +
+						      "<task-node name=\"submitOwnerActionTaken2\">" +
 						      "		<task name='Task for subprocess 2'>" +
 						      "			<controller>" +
 						      "				<variable name='string:ownerKennitala' access='read,write,required'></variable>"+
 						      "			</controller>" +
 						      "		</task>" +
+						      "</task-node>" +
 						      "  <start-state>" +
 						      "    <transition name='with subprocess' to='subprocess' />" +
 						      "  </start-state>" +
@@ -92,8 +98,9 @@ public final class FollowupResponsesProcessTest extends IdegaBaseTransactionalTe
 						      "			<variable name='tasksToSubprocess' access='write' mapped-name='tasks' />" +
 						      "		</script>"+
 						      "	</event>" +
-						      "    <transition name='toEnd' to='end' />" +
+						      "    <transition name='toEnd' to='pause' />" +
 						      "  </process-state>" +
+						      "<state name='pause'></state>" +
 						      "<end-state name='end'></end-state>" +
 						      "</process-definition>"
 						    );
@@ -114,13 +121,38 @@ public final class FollowupResponsesProcessTest extends IdegaBaseTransactionalTe
 		deployProcessDefinitions();
 		
 		JbpmContext jbpmContext = bpmContext.createJbpmContext();
+		Long piId = null; 
 		
 		try {
-			ProcessInstance pi = jbpmContext.newProcessInstanceForUpdate("super");
+			ProcessInstance pi = jbpmContext.newProcessInstance("super");
+			piId = pi.getId();
 			System.out.println("superprocess ID="+pi.getId());
 		    pi.signal("with subprocess");
 
+		    Collection<TaskInstance> tis = pi.getTaskMgmtInstance().getTaskInstances();
+		    System.out.println("alltis="+tis);
 		    
+		    System.out.println("current node="+pi.getRootToken().getNode());
+		    System.out.println("tokens="+pi.getRootToken());
+		    Collection<TaskInstance> tis2 = pi.getTaskMgmtInstance().getUnfinishedTasks(pi.getRootToken());
+		    System.out.println("unfinishedtis="+tis2);
+			
+		} finally {
+			bpmContext.closeAndCommit(jbpmContext);
+		}
+		
+		jbpmContext = bpmContext.createJbpmContext();
+		
+		try {
+			ProcessInstance pi = jbpmContext.getProcessInstance(piId);
+
+		    Collection<TaskInstance> tis = pi.getTaskMgmtInstance().getTaskInstances();
+		    System.out.println("alltis="+tis);
+		    
+		    System.out.println("current node="+pi.getRootToken().getNode());
+		    System.out.println("tokens="+pi.getRootToken());
+		    Collection<TaskInstance> tis2 = pi.getTaskMgmtInstance().getUnfinishedTasks(pi.getRootToken());
+		    System.out.println("unfinishedtis="+tis2);
 			
 		} finally {
 			bpmContext.closeAndCommit(jbpmContext);
