@@ -1,46 +1,71 @@
 package com.idega.jbpm.invitation;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
-import org.jbpm.graph.node.TaskNode;
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
 import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.exe.TaskInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.identity.RolesManager;
+import com.idega.user.data.User;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/07/01 19:38:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/03 12:10:53 $ by $Author: civilis $
  */
 public class AssignTasksForRolesUsers implements ActionHandler {
 
 	private static final long serialVersionUID = -1873068611362644702L;
 	private String tasksExp;
+	private BPMFactory bpmFactory;
 
 	public void execute(ExecutionContext ectx) throws Exception {
 
 		@SuppressWarnings("unchecked")
 		final List<AssignTasksForRolesUsersBean> tasksBeans = (List<AssignTasksForRolesUsersBean>)JbpmExpressionEvaluator.evaluate(getTasksExp(), ectx);
 		
-		System.out.println("SUBPROCESS ID="+ectx.getProcessInstance().getId());
+		if(tasksBeans != null) {
 
-		for (AssignTasksForRolesUsersBean tb : tasksBeans) {
-
-			Task task = tb.getTask();
-			System.out.println("__roles="+tb.getRoles());
-			System.out.println("______task="+task);
+			ELUtil.getInstance().autowire(this);
 			
-			///TaskNode taskNode = (TaskNode)ectx.getProcessDefinition().getNode("tasksForAllRolesUsers");
-			try {
-				TaskInstance ti = ectx.getTaskMgmtInstance().createTaskInstance(task, tb.getToken());
-				System.out.println("______created ti, assigning="+ti);
-				ti.setActorId("xx");
-				
-			} catch (Exception e) {
-				e.printStackTrace();
+			RolesManager rolesManager = getBpmFactory().getRolesManager();
+			
+			for (AssignTasksForRolesUsersBean tb : tasksBeans) {
+
+				if(tb.getRoles() != null && tb.getRoles().length != 0) {
+
+					Task task = tb.getTask();
+					
+					List<String> rolesNames = Arrays.asList(tb.getRoles());
+					ProcessInstance pi = tb.getToken().getProcessInstance();
+					
+					Collection<User> users = rolesManager.getAllUsersForRoles(rolesNames, pi);
+					
+					if(users != null) {
+					
+						for (User user : users) {
+							
+							TaskInstance ti = ectx.getTaskMgmtInstance().createTaskInstance(task, tb.getToken());
+//							creating task instance for each user, and assigning
+							ti.setActorId(user.getPrimaryKey().toString());
+						}
+					}
+					
+				} else {
+					Logger.getLogger(getClass().getName()).log(Level.WARNING, "AssignTasksForRolesUsersBean got, but roles were not set. Task="+tb.getTask());
+				}
 			}
 		}
 	}
@@ -51,5 +76,14 @@ public class AssignTasksForRolesUsers implements ActionHandler {
 
 	public void setTasksExp(String tasksExp) {
 		this.tasksExp = tasksExp;
+	}
+
+	public BPMFactory getBpmFactory() {
+		return bpmFactory;
+	}
+
+	@Autowired
+	public void setBpmFactory(BPMFactory bpmFactory) {
+		this.bpmFactory = bpmFactory;
 	}
 }
