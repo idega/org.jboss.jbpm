@@ -7,11 +7,6 @@
         <transition to="createTasksForAllRolesUsers" name="tr1"></transition>
 	</start-state>
 
-	<task-node name="tasksForAllRolesUsers">
-		<task></task>
-		<transition to="end-state1" name="toEnd"></transition>
-	</task-node>
-
 	<node name="createTasksForAllRolesUsers">
 		<event type="node-leave">
 			<action name="createTasksForAllRolesUsersAction" class="com.idega.jbpm.invitation.AssignTasksForRolesUsers">
@@ -24,7 +19,7 @@
 	</node>
 
 	<node name="sendMessagesForAllRolesUsers">
-		<transition to="tasksForAllRolesUsers" name="tr3"></transition>
+		<transition to="end-state1" name="toEnd"></transition>
 	</node>
 
 
