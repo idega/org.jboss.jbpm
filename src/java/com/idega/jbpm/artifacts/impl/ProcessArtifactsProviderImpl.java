@@ -22,9 +22,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/06/30 15:23:01 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/03 12:27:53 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -156,7 +156,7 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		try {
 			ProcessInstance pi = ctx.getProcessInstance(processInstanceId);
-			Object o = pi.getContextInstance().getVariable(ProcessArtifactsProvider.PROJECT_NAME);
+			Object o = pi.getContextInstance().getVariable(ProcessArtifactsProvider.CASE_DESCRIPTION);
 			return o == null ? null : String.valueOf(o);
 		} catch(Exception e) {
 			e.printStackTrace();

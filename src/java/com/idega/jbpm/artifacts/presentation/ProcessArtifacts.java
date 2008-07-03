@@ -80,9 +80,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.45 $
+ * @version $Revision: 1.46 $
  *
- * Last modified: $Date: 2008/06/30 15:22:59 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/03 12:28:08 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -547,10 +547,8 @@ public class ProcessArtifacts {
 		final JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
-			Collection<String> roleNames = new ArrayList<String>();
-			roleNames.add("bpm_handler");
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
-			users = getBpmFactory().getRolesManager().getAllUsersForRoles(roleNames, processInstance);
+			users = getBpmFactory().getRolesManager().getAllUsersForRoles(null, processInstance);
 			
 		} catch(Exception e) {
 			logger.log(Level.SEVERE, "Exception while resolving all process instance users", e);

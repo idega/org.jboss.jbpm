@@ -12,15 +12,15 @@ import com.idega.jbpm.variables.BinaryVariable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/06/30 15:23:01 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/03 12:27:30 $ by $Author: anton $
  */
 public interface ProcessArtifactsProvider {
 	
 	public static final String CASE_IDENTIFIER = "string:caseIdentifier";
 	
-	public static final String PROJECT_NAME = "string:ownerNameOfProject";
+	public static final String CASE_DESCRIPTION = "string:caseDescription";
 
 	public abstract Collection<TaskInstanceW> getSubmittedTaskInstances(Long processInstanceId);
 	
