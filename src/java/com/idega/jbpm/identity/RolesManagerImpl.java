@@ -6,6 +6,7 @@ import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,9 +54,9 @@ import com.idega.util.CoreConstants;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.30 $
+ * @version $Revision: 1.31 $
  * 
- * Last modified: $Date: 2008/06/27 07:07:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/03 12:12:46 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -208,65 +209,73 @@ public class RolesManagerImpl implements RolesManager {
 						new Param(ProcessRole.processInstanceIdProperty, pi.getId())
 				);
 		
-		IWApplicationContext iwac = getIWMA().getIWApplicationContext();
-		UserBusiness userBusiness = getUserBusiness(iwac);
-		
-		ArrayList<Group> allGroups = new ArrayList<Group>();
-		HashMap<String, User> allUsers = new HashMap<String, User>();
-		
-		for (ProcessRole prole : proles) {
+		if(proles != null && !proles.isEmpty()) {
 			
-			if(prole.getNativeIdentities() == null || prole.getNativeIdentities().isEmpty()) {
+			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+			UserBusiness userBusiness = getUserBusiness(iwac);
+			
+			ArrayList<Group> allGroups = new ArrayList<Group>();
+			HashMap<String, User> allUsers = new HashMap<String, User>();
+			
+			for (ProcessRole prole : proles) {
 				
-				@SuppressWarnings("unchecked")
-				Collection<Group> grps = getAccessController().getAllGroupsForRoleKey(prole.getProcessRoleName(), iwac);
-				
-				if(grps != null)
-					allGroups.addAll(grps);
-				
-			} else {
-				
-				try {
+				if(prole.getNativeIdentities() == null || prole.getNativeIdentities().isEmpty()) {
 					
-					for (NativeIdentityBind identity : prole.getNativeIdentities()) {
+					@SuppressWarnings("unchecked")
+					Collection<Group> grps = getAccessController().getAllGroupsForRoleKey(prole.getProcessRoleName(), iwac);
+					
+					if(grps != null)
+						allGroups.addAll(grps);
+					
+				} else {
+					
+					try {
 						
-						if(identity.getIdentityType() == IdentityType.USER) {
+						for (NativeIdentityBind identity : prole.getNativeIdentities()) {
 							
-							User user = userBusiness.getUser(new Integer(identity.getIdentityId()));
-							allUsers.put(user.getPrimaryKey().toString(), user);
-							
-						} else if(identity.getIdentityType() == IdentityType.GROUP) {
-							
-							@SuppressWarnings("unchecked")
-							Collection<User> groupUsers = userBusiness.getUsersInGroup(new Integer(identity.getIdentityId()));
-							
-							for (User user : groupUsers)
+							if(identity.getIdentityType() == IdentityType.USER) {
+								
+								User user = userBusiness.getUser(new Integer(identity.getIdentityId()));
 								allUsers.put(user.getPrimaryKey().toString(), user);
+								
+							} else if(identity.getIdentityType() == IdentityType.GROUP) {
+								
+								@SuppressWarnings("unchecked")
+								Collection<User> groupUsers = userBusiness.getUsersInGroup(new Integer(identity.getIdentityId()));
+								
+								for (User user : groupUsers)
+									allUsers.put(user.getPrimaryKey().toString(), user);
+							}
 						}
+						
+					} catch (RemoteException e) {
+						logger.log(Level.SEVERE, "Exception while loading users from nativeIdentities", e);
 					}
-					
-				} catch (RemoteException e) {
-					logger.log(Level.SEVERE, "Exception while loading users from nativeIdentities", e);
-				}
-			}
-		}
-		
-		try {
-			for (Group group : allGroups) {
-
-				@SuppressWarnings("unchecked")
-				Collection<User> users = userBusiness.getUsersInGroup(group);
-				
-				for (User user : users) {
-					allUsers.put(user.getPrimaryKey().toString(), user);
 				}
 			}
 			
-		} catch (RemoteException e) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving users from roles assigned groups", e);
+			try {
+				for (Group group : allGroups) {
+
+					@SuppressWarnings("unchecked")
+					Collection<User> users = userBusiness.getUsersInGroup(group);
+					
+					for (User user : users) {
+						allUsers.put(user.getPrimaryKey().toString(), user);
+					}
+				}
+				
+			} catch (RemoteException e) {
+				Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving users from roles assigned groups", e);
+			}
+			
+			return allUsers.values();
+		} else {
+			
+			@SuppressWarnings("unchecked")
+			List<User> empty = Collections.EMPTY_LIST;
+			return empty;
 		}
-		
-		return allUsers.values();
 	}
 	
 	public void createNativeRolesFromProcessRoles(String processName, Collection<Role> roles) {
