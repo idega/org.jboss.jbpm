@@ -34,9 +34,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * 
- * Last modified: $Date: 2008/07/03 12:11:58 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/04 12:42:55 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -112,10 +112,21 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	private User createBpmUserAcc(UserBusiness userBusiness, UserPersonalData upd, Role role, long processInstanceId) throws CreateException, RemoteException {
 		
 		final User bpmUserAcc;
+
+		final String pref = String.valueOf(System.currentTimeMillis());
+		String personalIdToUse;
 		
-//		some silly personalId
-//		FIXME: change this 42 to something unique
-		String personalIdToUse = "42"+upd.getPersonalId();
+		if(upd.getPersonalId() != null) {
+			
+			personalIdToUse = pref+upd.getPersonalId();
+		} else
+			personalIdToUse = pref;
+		
+		if(personalIdToUse.length() > 20) {
+
+//			truncating to the limit of userbmpbean property length
+			personalIdToUse = personalIdToUse.substring(personalIdToUse.length()-20);
+		}
 		
 		if(BPMUser.USER_TYPE_NATURAL.equals(upd.getUserType())) {
 
