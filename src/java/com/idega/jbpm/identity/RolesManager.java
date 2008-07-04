@@ -9,14 +9,15 @@ import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
+import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  * 
- * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/04 15:19:09 $ by $Author: valdas $
  */
 public interface RolesManager {
 
@@ -56,4 +57,6 @@ public interface RolesManager {
 	public abstract void setTaskRolePermissionsTIScope(Role role, Long taskInstanceId, boolean setSameForAttachments, String variableName);
 	
 	public abstract List<Role> getRolesPermissionsForTaskInstance(Long taskInstanceId, String variableName);
+	
+	public abstract List<Long> getProcessInstancesIdsForUser(IWContext iwc, User user, boolean checkIfSuperAdmin);
 }

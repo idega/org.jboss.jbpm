@@ -1,5 +1,6 @@
 package com.idega.jbpm.identity;
 
+import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
@@ -50,13 +51,15 @@ import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Group;
 import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
+import com.idega.util.ListUtil;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.31 $
+ * @version $Revision: 1.32 $
  * 
- * Last modified: $Date: 2008/07/03 12:12:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/04 15:19:09 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -553,29 +556,35 @@ public class RolesManagerImpl implements RolesManager {
 	}
 	
 	public List<Long> getProcessInstancesIdsForCurrentUser() {
-		
-		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
-		
+		IWContext iwc = CoreUtil.getIWContext(); 
+		return getProcessInstancesIdsForUser(iwc, iwc.getCurrentUser(), true);
+	}
+	
+	public List<Long> getProcessInstancesIdsForUser(IWContext iwc, User user, boolean checkIfSuperAdmin) {
 		final List<Long> prolesIds;
 		
-		if(iwc.isSuperAdmin()) {
+		if(checkIfSuperAdmin && iwc.isSuperAdmin()) {
 			
 			prolesIds = getBpmDAO().getResultList(ProcessRole.getAllProcessInstancesIds, Long.class);
 			
 		} else {
 			
-			Integer currentUserId = iwc.getCurrentUserId();
+			Integer userId = null;
+			try {
+				userId = Integer.valueOf(user.getId());
+			} catch(NumberFormatException e) {
+				e.printStackTrace();
+			}
 		
 			@SuppressWarnings("unchecked")
-			Set<String> userRoles = getAccessController().getAllRolesForCurrentUser(iwc);
-			
+			Set<String> userRoles = getAccessController().getAllRolesForUser(user);
 			
 			if(userRoles != null && !userRoles.isEmpty()) {
 				
 				prolesIds = 
 					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserRolesAndUserIdentity, Long.class,
 							new Param(ProcessRole.processRoleNameProperty, userRoles),
-							new Param(NativeIdentityBind.identityIdProperty, currentUserId),
+							new Param(NativeIdentityBind.identityIdProperty, userId),
 							new Param(NativeIdentityBind.identityTypeProperty, NativeIdentityBind.IdentityType.USER.toString())
 					);
 				
@@ -583,15 +592,25 @@ public class RolesManagerImpl implements RolesManager {
 				
 				prolesIds = 
 					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserIdentity, Long.class,
-							new Param(NativeIdentityBind.identityIdProperty, currentUserId),
+							new Param(NativeIdentityBind.identityIdProperty, userId),
 							new Param(NativeIdentityBind.identityTypeProperty, NativeIdentityBind.IdentityType.USER.toString())
 					);
-				
-				
 			}
 		}
 		
-		return prolesIds;
+		if (!ListUtil.isEmpty(prolesIds)) {
+			List<Long> realIds = new ArrayList<Long>(prolesIds.size());
+			for (Object id: prolesIds) {
+				if (id instanceof BigInteger) {
+					//	TODO: find out why we get BigInteger instead of Long
+					realIds.add(Long.valueOf(((BigInteger) id).longValue()));
+				}
+			}
+			
+			return ListUtil.isEmpty(realIds) ? prolesIds : realIds;
+		}
+		
+		return null;
 	}
 	
 	public List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long taskInstanceId) {
