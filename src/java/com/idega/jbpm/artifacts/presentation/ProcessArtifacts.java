@@ -80,9 +80,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.46 $
+ * @version $Revision: 1.47 $
  *
- * Last modified: $Date: 2008/07/03 12:28:08 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/04 13:49:59 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -328,7 +328,7 @@ public class ProcessArtifacts {
 			
 			try {
 				
-				Permission permission = getTaskSubmitPermission(true, taskInstance.getTaskInstance());
+				Permission permission = getTaskSubmitPermission(false, taskInstance.getTaskInstance());
 				rolesManager.checkPermission(permission);
 				
 			} catch (BPMAccessControlException e) {
