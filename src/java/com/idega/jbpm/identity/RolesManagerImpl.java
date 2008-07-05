@@ -57,9 +57,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.32 $
+ * @version $Revision: 1.33 $
  * 
- * Last modified: $Date: 2008/07/04 15:19:09 $ by $Author: valdas $
+ * Last modified: $Date: 2008/07/05 08:37:34 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -602,6 +602,7 @@ public class RolesManagerImpl implements RolesManager {
 			List<Long> realIds = new ArrayList<Long>(prolesIds.size());
 			for (Object id: prolesIds) {
 				if (id instanceof BigInteger) {
+					logger.log(Level.INFO, "Converting BigInteger: " + id + " to Long");
 					//	TODO: find out why we get BigInteger instead of Long
 					realIds.add(Long.valueOf(((BigInteger) id).longValue()));
 				}
