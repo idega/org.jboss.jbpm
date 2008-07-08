@@ -80,9 +80,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.47 $
+ * @version $Revision: 1.48 $
  *
- * Last modified: $Date: 2008/07/04 13:49:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/08 14:08:26 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -300,7 +300,6 @@ public class ProcessArtifacts {
 	
 		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		
-		@SuppressWarnings("unchecked")
 		Collection<TaskInstanceW> tasks = getProcessArtifactsProvider().getAllUnfinishedTaskInstances(processInstanceId);
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
