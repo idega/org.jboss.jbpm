@@ -57,9 +57,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.33 $
+ * @version $Revision: 1.34 $
  * 
- * Last modified: $Date: 2008/07/05 08:37:34 $ by $Author: valdas $
+ * Last modified: $Date: 2008/07/08 08:10:20 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -560,12 +560,13 @@ public class RolesManagerImpl implements RolesManager {
 		return getProcessInstancesIdsForUser(iwc, iwc.getCurrentUser(), true);
 	}
 	
+	//	TODO: find out why we get BigInteger instead of Long
 	public List<Long> getProcessInstancesIdsForUser(IWContext iwc, User user, boolean checkIfSuperAdmin) {
-		final List<Long> prolesIds;
+		final List<Object> prolesIds;
 		
 		if(checkIfSuperAdmin && iwc.isSuperAdmin()) {
 			
-			prolesIds = getBpmDAO().getResultList(ProcessRole.getAllProcessInstancesIds, Long.class);
+			prolesIds = getBpmDAO().getResultList(ProcessRole.getAllProcessInstancesIds, Object.class);
 			
 		} else {
 			
@@ -582,7 +583,7 @@ public class RolesManagerImpl implements RolesManager {
 			if(userRoles != null && !userRoles.isEmpty()) {
 				
 				prolesIds = 
-					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserRolesAndUserIdentity, Long.class,
+					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserRolesAndUserIdentity, Object.class,
 							new Param(ProcessRole.processRoleNameProperty, userRoles),
 							new Param(NativeIdentityBind.identityIdProperty, userId),
 							new Param(NativeIdentityBind.identityTypeProperty, NativeIdentityBind.IdentityType.USER.toString())
@@ -591,27 +592,29 @@ public class RolesManagerImpl implements RolesManager {
 			} else {
 				
 				prolesIds = 
-					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserIdentity, Long.class,
+					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserIdentity, Object.class,
 							new Param(NativeIdentityBind.identityIdProperty, userId),
 							new Param(NativeIdentityBind.identityTypeProperty, NativeIdentityBind.IdentityType.USER.toString())
 					);
 			}
 		}
 		
-		if (!ListUtil.isEmpty(prolesIds)) {
-			List<Long> realIds = new ArrayList<Long>(prolesIds.size());
-			for (Object id: prolesIds) {
-				if (id instanceof BigInteger) {
-					logger.log(Level.INFO, "Converting BigInteger: " + id + " to Long");
-					//	TODO: find out why we get BigInteger instead of Long
-					realIds.add(Long.valueOf(((BigInteger) id).longValue()));
-				}
-			}
-			
-			return ListUtil.isEmpty(realIds) ? prolesIds : realIds;
+		if (ListUtil.isEmpty(prolesIds)) {
+			return null;
 		}
 		
-		return null;
+		List<Long> realIds = new ArrayList<Long>(prolesIds.size());
+		for (Object id: prolesIds) {
+			if (id instanceof BigInteger) {
+				logger.log(Level.INFO, "Converting BigInteger: " + id + " to Long");
+				realIds.add(Long.valueOf(((BigInteger) id).longValue()));
+			}
+			else if (id instanceof Long) {
+				realIds.add((Long) id);
+			}
+		}
+		
+		return ListUtil.isEmpty(realIds) ? null : realIds;
 	}
 	
 	public List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long taskInstanceId) {
