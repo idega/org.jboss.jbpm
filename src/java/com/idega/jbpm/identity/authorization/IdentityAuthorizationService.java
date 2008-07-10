@@ -6,6 +6,7 @@ import java.security.Permission;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.faces.context.FacesContext;
 
@@ -38,14 +39,15 @@ import com.idega.jbpm.identity.permission.BPMTaskVariableAccessPermission;
 import com.idega.presentation.IWContext;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Group;
+import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.28 $
+ * @version $Revision: 1.29 $
  *
- * Last modified: $Date: 2008/07/03 15:26:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/10 20:35:08 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -116,23 +118,15 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		
 		ProcessRole prole = proles.iterator().next();
 		
-		try {
-			int userId = new Integer(loggedInActorId);
+		int userId = new Integer(loggedInActorId);
 
-			UserBusiness userBusiness = getUserBusiness();
-			@SuppressWarnings("unchecked")
-			Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
-			AccessController ac = getAccessController();
-			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
-			
-			List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
-			
-			if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, usrGrps, userId, ac, iwac))
-				return;
-			
-		} catch (RemoteException e) {
-			throw new IBORuntimeException(e);
-		}
+		AccessController ac = getAccessController();
+		IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+		
+		List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
+		
+		if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
+			return;
 
 		throw new AccessControlException("No role access for user="+loggedInActorId+", for processInstanceId="+processInstanceId+", for role="+roleName);
 	}
@@ -172,24 +166,15 @@ public class IdentityAuthorizationService implements AuthorizationService {
 				
 				ProcessRole prole = proles.iterator().next();
 				
-				try {
-					
-					int userId = new Integer(loggedInActorId);
+				int userId = new Integer(loggedInActorId);
 
-					UserBusiness userBusiness = getUserBusiness();
-					@SuppressWarnings("unchecked")
-					Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
-					AccessController ac = getAccessController();
-					IWApplicationContext iwac = getIWMA().getIWApplicationContext();
-					
-					List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
-					
-					if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, usrGrps, userId, ac, iwac))
-						return;
-					
-				} catch (RemoteException e) {
-					throw new IBORuntimeException(e);
-				}
+				AccessController ac = getAccessController();
+				IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+				
+				List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
+				
+				if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
+					return;
 			}
 			
 			throw new AccessControlException("No rights management permission for user="+loggedInActorId+", for processInstanceId="+processInstanceId);
@@ -265,142 +250,109 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		boolean checkWriteAccess = accesses.contains(Access.write);
 		boolean checkReadAccess = accesses.contains(Access.read);
 		
-		try {
-			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
-			UserBusiness userBusiness = getUserBusiness();
+		IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+//		
+		Long taskId = taskInstance.getTask().getId();
+		Long taskInstanceId = taskInstance.getId();
+		
+		AccessController ac = getAccessController();
+		
+		for (ProcessRole processRole : roles) {
 			
-			@SuppressWarnings("unchecked")
-			Collection<Group> usrGrps = userBusiness.getUserGroups(userId);
-			Long taskId = taskInstance.getTask().getId();
-			Long taskInstanceId = taskInstance.getId();
+			List<ActorPermissions> perms = processRole.getActorPermissions();
 			
-			AccessController ac = getAccessController();
-			
-			for (ProcessRole processRole : roles) {
+			if(perms != null) {
 				
-				List<ActorPermissions> perms = processRole.getActorPermissions();
+				Boolean hasTaskInstanceScopeAccess = null;
+				Boolean hasTaskInstanceScopeANDVarAccess = null;
+				Boolean hasTaskScopeAccess = null;
+				Boolean hasTaskScopeANDVarAccess = null;
 				
-				if(perms != null) {
+				for (ActorPermissions perm : perms) {
 					
-					Boolean hasTaskInstanceScopeAccess = null;
-					Boolean hasTaskInstanceScopeANDVarAccess = null;
-					Boolean hasTaskScopeAccess = null;
-					Boolean hasTaskScopeANDVarAccess = null;
-					
-					for (ActorPermissions perm : perms) {
-						
-						if(taskInstanceId.equals(perm.getTaskInstanceId())) {
+					if(taskInstanceId.equals(perm.getTaskInstanceId())) {
 
-							if(variableIdentifier != null) {
+						if(variableIdentifier != null) {
 
-								if(variableIdentifier.equals(perm.getVariableIdentifier())) {
-									
-									hasTaskInstanceScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
-																	&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
-									break;
-								}
-							}
-							
-							if(perm.getVariableIdentifier() == null) {
+							if(variableIdentifier.equals(perm.getVariableIdentifier())) {
 								
-								hasTaskInstanceScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
-															&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
-								
-								if(variableIdentifier == null)
-									break;
-							}
-							
-						} else if(taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null) {
-							
-							if(variableIdentifier != null) {
-
-								if(variableIdentifier.equals(perm.getVariableIdentifier())) {
-									
-									hasTaskScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
-																	&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
-								}
-							}
-							
-							if(perm.getVariableIdentifier() == null) {
-								
-								hasTaskScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
-															&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+								hasTaskInstanceScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+																&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+								break;
 							}
 						}
-					}
+						
+						if(perm.getVariableIdentifier() == null) {
+							
+							hasTaskInstanceScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+														&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+							
+							if(variableIdentifier == null)
+								break;
+						}
+						
+					} else if(taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null) {
+						
+						if(variableIdentifier != null) {
 
-					if(
-							(variableIdentifier != null && (
-										(hasTaskInstanceScopeANDVarAccess != null && hasTaskInstanceScopeANDVarAccess) ||
-										(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
-										(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess != null && hasTaskScopeANDVarAccess) ||
-										(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
-									)
-							) ||
-							(variableIdentifier == null && (
-									(hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
-									(hasTaskInstanceScopeAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
-								)
-							)
-					) {
-						
-						List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
-						
-						if(checkFallsInRole(processRole.getProcessRoleName(), nativeIdentities, usrGrps, userId, ac, iwac))
-							return;
-						/*
-						if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
-							if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
-								return;
-						} else if(usrGrps != null) {
-						
-							String roleName = processRole.getProcessRoleName();
-							
-							@SuppressWarnings("unchecked")
-							Collection<Group> grps = ac.getAllGroupsForRoleKey(roleName, iwac);
-							
-							for (Group roleGrp : grps) {
+							if(variableIdentifier.equals(perm.getVariableIdentifier())) {
 								
-								if(usrGrps.contains(roleGrp)) {
-									
-//									falls in group satisfying permission
-									return;
-								}
+								hasTaskScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+																&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
 							}
 						}
-						*/
+						
+						if(perm.getVariableIdentifier() == null) {
+							
+							hasTaskScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+														&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+						}
 					}
 				}
+
+				if(
+						(variableIdentifier != null && (
+									(hasTaskInstanceScopeANDVarAccess != null && hasTaskInstanceScopeANDVarAccess) ||
+									(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
+									(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess != null && hasTaskScopeANDVarAccess) ||
+									(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
+								)
+						) ||
+						(variableIdentifier == null && (
+								(hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
+								(hasTaskInstanceScopeAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
+							)
+						)
+				) {
+					
+					List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
+					
+					if(checkFallsInRole(processRole.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
+						return;
+				}
 			}
-			
-		} catch (RemoteException e) {
-			throw new RuntimeException(e);
 		}
 		
 		throw new AccessControlException("No permission for user="+userId+", for taskInstance="+taskInstance.getId()+", variableIdentifier="+variableIdentifier);
 	}
 	
-	private boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, Collection<Group> usrGrps, int userId, AccessController ac, IWApplicationContext iwac) {
+	private boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, /*Collection<Group> usrGrps,*/ int userId, AccessController ac, IWApplicationContext iwac) {
 		
 		if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
 			if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
 				return true;
-		} else if(usrGrps != null) {
-		
-			@SuppressWarnings("unchecked")
-			Collection<Group> grps = ac.getAllGroupsForRoleKey(roleName, iwac);
+		} else {
 			
-			System.out.println("rolename="+roleName+"=");
-			
-			System.out.println("groups size="+grps.size());
-			
-			for (Group roleGrp : grps) {
+			try {
+				User usr = getUserBusiness().getUser(userId);
+				@SuppressWarnings("unchecked")
+				Set<String> roles = ac.getAllRolesForUser(usr);
 				
-				if(usrGrps.contains(roleGrp)) {
-					
-//					falls in group satisfying permission
+				if(roles.contains(roleName))
 					return true;
-				}
+				
+			} catch (RemoteException e) {
+				throw new IBORuntimeException(e);
 			}
 		}
 		
