@@ -57,9 +57,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.35 $
+ * @version $Revision: 1.36 $
  * 
- * Last modified: $Date: 2008/07/10 20:35:17 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/10 20:38:05 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -600,6 +600,9 @@ public class RolesManagerImpl implements RolesManager {
 					);
 			}
 		}
+		
+		System.out.println("AND GOT PROCESS INSTANCESIDS="+prolesIds);
+		System.out.println("WHERE INSTANCEID CLASS="+(prolesIds == null || prolesIds.isEmpty() ? "NO" : prolesIds.iterator().next().getClass().getName()));
 		
 		if (ListUtil.isEmpty(prolesIds)) {
 			return null;
