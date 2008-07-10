@@ -57,9 +57,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.34 $
+ * @version $Revision: 1.35 $
  * 
- * Last modified: $Date: 2008/07/08 08:10:20 $ by $Author: valdas $
+ * Last modified: $Date: 2008/07/10 20:35:17 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -579,6 +579,8 @@ public class RolesManagerImpl implements RolesManager {
 		
 			@SuppressWarnings("unchecked")
 			Set<String> userRoles = getAccessController().getAllRolesForUser(user);
+			
+			System.out.println("USER ROLES AT ROLESMANAGERIMPL="+userRoles);
 			
 			if(userRoles != null && !userRoles.isEmpty()) {
 				
