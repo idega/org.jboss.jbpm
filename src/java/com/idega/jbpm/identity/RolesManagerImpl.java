@@ -1,5 +1,6 @@
 package com.idega.jbpm.identity;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
@@ -57,9 +58,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.36 $
+ * @version $Revision: 1.37 $
  * 
- * Last modified: $Date: 2008/07/10 20:38:05 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/10 20:45:53 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -613,8 +614,10 @@ public class RolesManagerImpl implements RolesManager {
 			if (id instanceof BigInteger) {
 				logger.log(Level.INFO, "Converting BigInteger: " + id + " to Long");
 				realIds.add(Long.valueOf(((BigInteger) id).longValue()));
-			}
-			else if (id instanceof Long) {
+			} else if (id instanceof BigDecimal) {
+				logger.log(Level.INFO, "Converting BigDecimal: " + id + " to Long");
+				realIds.add(Long.valueOf(((BigDecimal) id).longValue()));
+			} else if (id instanceof Long) {
 				realIds.add((Long) id);
 			}
 		}
