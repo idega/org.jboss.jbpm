@@ -34,9 +34,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- * Last modified: $Date: 2008/07/04 12:42:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/11 09:12:29 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -122,10 +122,12 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		} else
 			personalIdToUse = pref;
 		
-		if(personalIdToUse.length() > 20) {
+		int truncateToLength = 19;
+		
+		if(personalIdToUse.length() > truncateToLength) {
 
-//			truncating to the limit of userbmpbean property length
-			personalIdToUse = personalIdToUse.substring(personalIdToUse.length()-20);
+//			truncating to the limit of userbmpbean property length or long length
+			personalIdToUse = personalIdToUse.substring(personalIdToUse.length()-truncateToLength);
 		}
 		
 		if(BPMUser.USER_TYPE_NATURAL.equals(upd.getUserType())) {
