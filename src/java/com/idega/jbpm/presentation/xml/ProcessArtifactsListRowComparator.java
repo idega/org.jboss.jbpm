@@ -58,7 +58,7 @@ public class ProcessArtifactsListRowComparator implements Comparator<ProcessArti
 			return 0;
 		}
 
-		return time1.compareTo(time2);
+		return -time1.compareTo(time2);
 	}
 
 }
