@@ -1,7 +1,5 @@
 package com.idega.jbpm.identity;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
@@ -58,9 +56,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.37 $
+ * @version $Revision: 1.38 $
  * 
- * Last modified: $Date: 2008/07/10 20:45:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/11 07:50:07 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -563,30 +561,28 @@ public class RolesManagerImpl implements RolesManager {
 	
 	//	TODO: find out why we get BigInteger instead of Long
 	public List<Long> getProcessInstancesIdsForUser(IWContext iwc, User user, boolean checkIfSuperAdmin) {
-		final List<Object> prolesIds;
+		final List<Long> processInstancesIds;
 		
 		if(checkIfSuperAdmin && iwc.isSuperAdmin()) {
 			
-			prolesIds = getBpmDAO().getResultList(ProcessRole.getAllProcessInstancesIds, Object.class);
+			processInstancesIds = getBpmDAO().getResultList(ProcessRole.getAllProcessInstancesIds, Long.class);
 			
 		} else {
 			
-			Integer userId = null;
+			final Integer userId;
 			try {
-				userId = Integer.valueOf(user.getId());
+				userId = Integer.valueOf(user.getPrimaryKey().toString());
 			} catch(NumberFormatException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		
 			@SuppressWarnings("unchecked")
 			Set<String> userRoles = getAccessController().getAllRolesForUser(user);
 			
-			System.out.println("USER ROLES AT ROLESMANAGERIMPL="+userRoles);
-			
 			if(userRoles != null && !userRoles.isEmpty()) {
 				
-				prolesIds = 
-					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserRolesAndUserIdentity, Object.class,
+				processInstancesIds = 
+					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserRolesAndUserIdentity, Long.class,
 							new Param(ProcessRole.processRoleNameProperty, userRoles),
 							new Param(NativeIdentityBind.identityIdProperty, userId),
 							new Param(NativeIdentityBind.identityTypeProperty, NativeIdentityBind.IdentityType.USER.toString())
@@ -594,35 +590,34 @@ public class RolesManagerImpl implements RolesManager {
 				
 			} else {
 				
-				prolesIds = 
-					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserIdentity, Object.class,
+				processInstancesIds = 
+					getBpmDAO().getResultList(ProcessRole.getProcessInstanceIdsByUserIdentity, Long.class,
 							new Param(NativeIdentityBind.identityIdProperty, userId),
 							new Param(NativeIdentityBind.identityTypeProperty, NativeIdentityBind.IdentityType.USER.toString())
 					);
 			}
 		}
 		
-		System.out.println("AND GOT PROCESS INSTANCESIDS="+prolesIds);
-		System.out.println("WHERE INSTANCEID CLASS="+(prolesIds == null || prolesIds.isEmpty() ? "NO" : prolesIds.iterator().next().getClass().getName()));
-		
-		if (ListUtil.isEmpty(prolesIds)) {
+		if (ListUtil.isEmpty(processInstancesIds)) {
 			return null;
 		}
 		
-		List<Long> realIds = new ArrayList<Long>(prolesIds.size());
-		for (Object id: prolesIds) {
-			if (id instanceof BigInteger) {
-				logger.log(Level.INFO, "Converting BigInteger: " + id + " to Long");
-				realIds.add(Long.valueOf(((BigInteger) id).longValue()));
-			} else if (id instanceof BigDecimal) {
-				logger.log(Level.INFO, "Converting BigDecimal: " + id + " to Long");
-				realIds.add(Long.valueOf(((BigDecimal) id).longValue()));
-			} else if (id instanceof Long) {
-				realIds.add((Long) id);
-			}
-		}
+//		List<Long> realIds = new ArrayList<Long>(processInstancesIds.size());
+//		for (Object id: processInstancesIds) {
+//			if (id instanceof BigInteger) {
+//				logger.log(Level.INFO, "Converting BigInteger: " + id + " to Long");
+//				realIds.add(Long.valueOf(((BigInteger) id).longValue()));
+//			} else if (id instanceof BigDecimal) {
+//				logger.log(Level.INFO, "Converting BigDecimal: " + id + " to Long");
+//				realIds.add(Long.valueOf(((BigDecimal) id).longValue()));
+//			} else if (id instanceof Long) {
+//				realIds.add((Long) id);
+//			} else {
+//				logger.log(Level.WARNING, "Unsupported process instance id type="+id.getClass().getName()+", id="+id);
+//			}
+//		}
 		
-		return ListUtil.isEmpty(realIds) ? null : realIds;
+		return ListUtil.isEmpty(processInstancesIds) ? null : processInstancesIds;
 	}
 	
 	public List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long taskInstanceId) {
