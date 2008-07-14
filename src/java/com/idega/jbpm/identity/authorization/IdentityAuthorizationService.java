@@ -3,6 +3,7 @@ package com.idega.jbpm.identity.authorization;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -45,9 +46,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.29 $
+ * @version $Revision: 1.30 $
  *
- * Last modified: $Date: 2008/07/10 20:35:08 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/14 18:49:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -150,8 +151,12 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			
 //			TODO: get roles that can edit permissions
 			
-			List<String> roleNames = getBpmBindsDAO().getResultList(ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, String.class,
-					new Param(ProcessRole.processInstanceIdProperty, processInstanceId));
+//			List<String> roleNames = getBpmBindsDAO().getResultList(ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, String.class,
+//					new Param(ProcessRole.processInstanceIdProperty, processInstanceId));
+			
+			List<String> roleNames = new ArrayList<String>(2);
+			roleNames.add("bpm_lawyers_handler");
+			roleNames.add("bpm_handler");
 			
 			if(roleNames != null && !roleNames.isEmpty()) {
 			
