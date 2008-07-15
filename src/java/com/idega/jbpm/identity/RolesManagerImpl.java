@@ -56,9 +56,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.39 $
+ * @version $Revision: 1.40 $
  * 
- * Last modified: $Date: 2008/07/15 12:51:23 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/15 13:04:27 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -389,16 +389,16 @@ public class RolesManagerImpl implements RolesManager {
 				rolesNames.add(role.getRoleName());
 			}
 						
-//			List<ActorPermissions> perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceId, ActorPermissions.class,
-//					new Param(ActorPermissions.roleNameProperty, rolesNames),
-//					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
-//			);
-			
-			List<ActorPermissions> perms = getBpmDAO().getResultListByInlineQuery("select ap from ActorPermissions ap, in (ap." + ActorPermissions.processRolesProperty + ") roles where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty,
-					ActorPermissions.class,
+			List<ActorPermissions> perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceId, ActorPermissions.class,
 					new Param(ActorPermissions.roleNameProperty, rolesNames),
 					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
 			);
+			
+//			List<ActorPermissions> perms = getBpmDAO().getResultListByInlineQuery("select ap from ActorPermissions ap, in (ap." + ActorPermissions.processRolesProperty + ") roles where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty,
+//					ActorPermissions.class,
+//					new Param(ActorPermissions.roleNameProperty, rolesNames),
+//					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+//			);
 			
 //			if eq, then all perms are created
 			if(perms.size() < rolesNames.size()) {
