@@ -56,9 +56,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.38 $
+ * @version $Revision: 1.39 $
  * 
- * Last modified: $Date: 2008/07/11 07:50:07 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/15 12:51:23 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -379,8 +379,8 @@ public class RolesManagerImpl implements RolesManager {
 	}
 	
 	@Transactional(readOnly=false)
-	public void createRolesPermissions(List<Role> roles) {
-		
+	public List<ActorPermissions> createRolesPermissions(List<Role> roles, long processInstanceId) {
+		List<ActorPermissions> createdPermissions = null;
 		if(!roles.isEmpty()) {
 		
 			HashSet<String> rolesNames = new HashSet<String>(roles.size());
@@ -388,9 +388,16 @@ public class RolesManagerImpl implements RolesManager {
 			for (Role role : roles) {
 				rolesNames.add(role.getRoleName());
 			}
+						
+//			List<ActorPermissions> perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceId, ActorPermissions.class,
+//					new Param(ActorPermissions.roleNameProperty, rolesNames),
+//					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+//			);
 			
-			List<ActorPermissions> perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessRoleNames, ActorPermissions.class,
-					new Param(ActorPermissions.roleNameProperty, rolesNames)
+			List<ActorPermissions> perms = getBpmDAO().getResultListByInlineQuery("select ap from ActorPermissions ap, in (ap." + ActorPermissions.processRolesProperty + ") roles where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty,
+					ActorPermissions.class,
+					new Param(ActorPermissions.roleNameProperty, rolesNames),
+					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
 			);
 			
 //			if eq, then all perms are created
@@ -411,9 +418,15 @@ public class RolesManagerImpl implements RolesManager {
 					perm.setModifyRightsPermission(role.getAccesses().contains(Access.modifyPermissions));
 					
 					getBpmDAO().persist(perm);
+					
+					if(createdPermissions == null) {
+						createdPermissions = new ArrayList<ActorPermissions>();
+					}
+					createdPermissions.add(perm);
 				}
 			}
 		}
+		return createdPermissions;
 	}
 	
 	@Transactional(readOnly=true)
@@ -514,7 +527,7 @@ public class RolesManagerImpl implements RolesManager {
 		if(roles.isEmpty())
 			return;
 		
-		createRolesPermissions(roles);
+		List<ActorPermissions> perms = createRolesPermissions(roles, processInstanceId);
 		
 		HashSet<String> rolesNames = new HashSet<String>(roles.size());
 		
@@ -526,9 +539,10 @@ public class RolesManagerImpl implements RolesManager {
 		
 		if(proles != null && !proles.isEmpty()) {
 				
-				List<ActorPermissions> perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessRoleNames, ActorPermissions.class,
-						new Param(ActorPermissions.roleNameProperty, rolesNames)
-				);
+//				List<ActorPermissions> perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceId, ActorPermissions.class,
+//						new Param(ActorPermissions.roleNameProperty, rolesNames),
+//						new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+//				);
 				
 				for (ProcessRole prole : proles) {
 					

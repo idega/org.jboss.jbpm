@@ -3,7 +3,6 @@ package com.idega.jbpm.identity.authorization;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -46,9 +45,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.30 $
+ * @version $Revision: 1.31 $
  *
- * Last modified: $Date: 2008/07/14 18:49:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/15 12:51:23 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -147,16 +146,8 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			if(processInstanceId == null)
 				throw new RuntimeException("No process instance id found in permission="+permission.getClass().getName());
 			
-//			String roleName = "bpm_handler";
-			
-//			TODO: get roles that can edit permissions
-			
-//			List<String> roleNames = getBpmBindsDAO().getResultList(ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, String.class,
-//					new Param(ProcessRole.processInstanceIdProperty, processInstanceId));
-			
-			List<String> roleNames = new ArrayList<String>(2);
-			roleNames.add("bpm_lawyers_handler");
-			roleNames.add("bpm_handler");
+			List<String> roleNames = getBpmBindsDAO().getResultList(ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, String.class,
+					new Param(ProcessRole.processInstanceIdProperty, processInstanceId));
 			
 			if(roleNames != null && !roleNames.isEmpty()) {
 			

@@ -20,9 +20,9 @@ import javax.persistence.Table;
  * If variableName is not null, then for taskInstance or task, the most permissive permission should be used.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/15 12:51:23 $ by $Author: anton $
  */
 @Entity
 @Table(name="BPM_ACTORS_PERMISSIONS")
@@ -30,8 +30,8 @@ import javax.persistence.Table;
 		{
 			//@NamedQuery(name=ActorPermissions.getSetByTaskIdAndProcessRole, query="from ActorPermissions ap where ap."+ActorPermissions.taskIdProperty+" = :"+ActorPermissions.taskIdProperty+" and "+ActorPermissions.processRoleProperty+" in (:"+ActorPermissions.processRoleProperty+")")
 			@NamedQuery(name=ActorPermissions.getSetByTaskIdAndProcessRoleNames, query="from ActorPermissions ap where ap."+ActorPermissions.taskIdProperty+" = :"+ActorPermissions.taskIdProperty+" and "+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+")"),
-			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNames, query="from ActorPermissions ap where "+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+")"),
-			@NamedQuery(name=ActorPermissions.getByProcessIdAndModifyRights, query="from ActorPermissions ap where "+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+")")
+			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceId, query="from ActorPermissions ap, in (ap." + ActorPermissions.processRolesProperty + ") roles where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty)
+//			@NamedQuery(name=ActorPermissions.getByProcessIdAndModifyRights, query="from ActorPermissions ap where "+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+")")
 		}
 )
 public class ActorPermissions implements Serializable {
@@ -40,8 +40,8 @@ public class ActorPermissions implements Serializable {
 	
 	//public static final String getSetByTaskIdAndProcessRole = "ActorPermissions.getSetByTaskIdAndProcessRole";
 	public static final String getSetByTaskIdAndProcessRoleNames = "ActorPermissions.getSetByTaskIdAndProcessRoleNames";
-	public static final String getSetByProcessRoleNames = "ActorPermissions.getSetByProcessRoleNames";
-	public static final String getByProcessIdAndModifyRights = "ActorPermissions.getSetByProcessRoleNames";
+	public static final String getSetByProcessRoleNamesAndProcessInstanceId = "ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceId";
+//	public static final String getByProcessIdAndModifyRights = "ActorPermissions.getByProcessIdAndModifyRights";
 
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="actperm_id")
@@ -79,6 +79,7 @@ public class ActorPermissions implements Serializable {
 //    @JoinColumn(name="process_role_actor_id", nullable=false)
 //	private ProcessRole processRole;
 	
+	public static final String processRolesProperty = "processRoles";
 	@ManyToMany(
 	        cascade = {CascadeType.PERSIST, CascadeType.MERGE},
 	        mappedBy = ProcessRole.actorPermissionsProperty,
