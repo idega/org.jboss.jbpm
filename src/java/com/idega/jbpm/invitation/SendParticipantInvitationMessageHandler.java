@@ -20,6 +20,7 @@ import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
+import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
 import com.idega.jbpm.identity.BPMUser;
 import com.idega.jbpm.identity.UserPersonalData;
 import com.idega.presentation.IWContext;
@@ -29,9 +30,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/06/21 16:48:36 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/18 11:34:18 $ by $Author: anton $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -58,6 +59,8 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 //			SendParticipantInvitationMessageHandlerBean bean = ELUtil.getInstance().getBean(SendParticipantInvitationMessageHandlerBean.beanIdentifier);
 //			bean.send(msg, upd, role, pi, ectx);
 			
+			
+			
 			final IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 			final IWResourceBundle iwrb = getResourceBundle(iwc);
 			
@@ -78,6 +81,9 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 			if(subject == null || CoreConstants.EMPTY.equals(subject)) {
 				subject = iwrb.getLocalizedString("cases_bpm.case_invitation", "You've been invited to participate in case");
 			}
+			
+			String caseIdentifier = (String)pi.getContextInstance().getVariable(ProcessArtifactsProvider.CASE_IDENTIFIER);
+			subject += CoreConstants.SPACE + caseIdentifier;
 			
 			if(text == null) {
 				text = CoreConstants.EMPTY;
