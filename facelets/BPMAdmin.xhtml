@@ -11,6 +11,8 @@
 
 	<h:form enctype="multipart/form-data">
         <h:commandButton value="Force all autoloaded processes redeploy" action="#{bpmProcessDefinitionsAutoloader.forceAutodeploy}" />
+        <t:inputFileUpload id="fileupload" value="#{bpmDeployProcess.processBundle}" storage="file" />
+        <h:commandButton value="Deploy bundle" action="#{bpmDeployProcess.deploy}" />
 	</h:form>
 </ws:page>
 </html>
