@@ -5,15 +5,14 @@ import java.util.List;
 
 import org.jbpm.graph.def.ProcessDefinition;
 
-import com.idega.idegaweb.IWBundle;
 import com.idega.jbpm.view.ViewResource;
 import com.idega.jbpm.view.ViewToTask;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/19 20:40:58 $ by $Author: civilis $
  */
 public interface ProcessBundle {
 
@@ -43,7 +42,9 @@ public interface ProcessBundle {
 	
 	public abstract ViewToTask getViewToTaskBinder();
 	
-	public abstract void setBundlePropertiesLocationWithinBundle(String bundlePropertiesLocationWithinBundle);
+//	public abstract void setBundlePropertiesLocationWithinBundle(String bundlePropertiesLocationWithinBundle);
+//	
+//	public abstract void setBundle(IWBundle bundle);
 	
-	public abstract void setBundle(IWBundle bundle);
+	public abstract void setBundleResources(ProcessBundleResources bundleResources);
 }
