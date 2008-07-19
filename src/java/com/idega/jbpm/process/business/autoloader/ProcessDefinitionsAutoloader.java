@@ -1,6 +1,5 @@
 package com.idega.jbpm.process.business.autoloader;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,15 +30,16 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainSlideStartedEvent;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.bundle.ProcessBundle;
+import com.idega.jbpm.bundle.ProcessBundleFactory;
 import com.idega.util.CoreConstants;
 import com.idega.util.xml.XPathUtil;
 import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/06/15 15:59:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/19 20:42:16 $ by $Author: civilis $
  */
 public abstract class ProcessDefinitionsAutoloader implements ApplicationListener, ApplicationContextAware {
 
@@ -48,6 +48,8 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 	private List<String> mappings;
 	private BPMContext idegaJbpmContext;
 	private ApplicationContext appCtx;
+	@Autowired
+	private ProcessBundleFactory processBundleFactory;
 	
 	public ProcessDefinitionsAutoloader() {
 		logger = Logger.getLogger(getClass().getName());
@@ -229,11 +231,20 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 					Properties props = new Properties();
 					props.load(is);
 					
-					ProcessBundle pb = createProcessBundle(iwma, props, new Integer(version), pathToPropsWithinBundle, bundleIdentifier);
-					
-					AutoDeployable auto = createAutoDeployable();
-					auto.setProcessBundle(pb);
-					autos.add(auto);
+					try {
+						
+						ProcessBundle pb = getProcessBundleFactory().createProcessBundle(bundle, props, new Integer(version), pathToPropsWithinBundle);
+						
+						if(pb != null) {
+						
+							AutoDeployable auto = createAutoDeployable();
+							auto.setProcessBundle(pb);
+							autos.add(auto);
+						}
+						
+					} catch (Exception e) {
+						getLogger().log(Level.WARNING, "Exception while resolving proces bundle", e);
+					}
 				}
 			}
 			
@@ -244,24 +255,24 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 		return autos;
 	}
 	
-	protected ProcessBundle createProcessBundle(IWMainApplication iwma, Properties props, Integer version, String pathToPropsWithinBundle, String bundleIdentifier) {
-		
-		String processBundleIdentifier = props.getProperty("process_definition.processBundle.beanIndentifier");
-		
-		try {
-			ProcessBundle procBundle = (ProcessBundle)getApplicationContext().getBean(processBundleIdentifier);
-			procBundle.setBundlePropertiesLocationWithinBundle(pathToPropsWithinBundle);
-			procBundle.setBundle(iwma.getBundle(bundleIdentifier));
-			ProcessDefinition pd = procBundle.getProcessDefinition();
-			pd.setVersion(version);
-			
-			return procBundle;
-			
-		} catch (IOException e) {
-			getLogger().log(Level.WARNING, "process definition not found", e);
-			return null;
-		}
-	}
+//	protected ProcessBundle createProcessBundle(IWMainApplication iwma, Properties props, Integer version, String pathToPropsWithinBundle, String bundleIdentifier) {
+//		
+//		String processBundleIdentifier = props.getProperty("process_definition.processBundle.beanIndentifier");
+//		
+//		try {
+//			ProcessBundle procBundle = (ProcessBundle)getApplicationContext().getBean(processBundleIdentifier);
+//			procBundle.setBundlePropertiesLocationWithinBundle(pathToPropsWithinBundle);
+//			procBundle.setBundle(iwma.getBundle(bundleIdentifier));
+//			ProcessDefinition pd = procBundle.getProcessDefinition();
+//			pd.setVersion(version);
+//			
+//			return procBundle;
+//			
+//		} catch (IOException e) {
+//			getLogger().log(Level.WARNING, "process definition not found", e);
+//			return null;
+//		}
+//	}
 	
 	protected Logger getLogger() {
 		
@@ -291,5 +302,9 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 	
 	public ApplicationContext getApplicationContext() {
 		return appCtx;
+	}
+
+	public ProcessBundleFactory getProcessBundleFactory() {
+		return processBundleFactory;
 	}
 }
