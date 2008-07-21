@@ -18,9 +18,9 @@ import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/07/01 19:39:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/21 08:53:18 $ by $Author: civilis $
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -39,7 +39,7 @@ public final class IdegaJbpmContextTest extends IdegaBaseTransactionalTest {
 		
 		try {
 			ProcessInstance pi = jctx.getProcessInstance(1);
-			assertNotNull(pi);
+			assertNull(pi);
 			 
 		} finally {
 			bpmContext.closeAndCommit(jctx);
