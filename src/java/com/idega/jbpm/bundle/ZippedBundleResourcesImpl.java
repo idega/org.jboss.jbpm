@@ -27,9 +27,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/07/19 20:41:08 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/21 08:53:30 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -54,18 +54,19 @@ public class ZippedBundleResourcesImpl implements ProcessBundleResources {
 			
 			while ((entry = zipInputStream.getNextEntry()) != null) {
 				
-				String entryName = entry.getName();
+				if(!entry.isDirectory()) {
 				
-				System.out.println("entry="+entryName);
-				
-				entryName = resolveFileName(entryName);
-				
-//				for now putting all files from all subfolders into one folder
-				ByteArrayOutputStream os = new ByteArrayOutputStream();
-				zip.writeFromStreamToStream(zipInputStream, os);
-				InputStream is = new ByteArrayInputStream(os.toByteArray());
+					String entryName = entry.getName();
+					
+					entryName = resolveFileName(entryName);
+					
+//					for now putting all files from all subfolders into one folder
+					ByteArrayOutputStream os = new ByteArrayOutputStream();
+					zip.writeFromStreamToStream(zipInputStream, os);
+					InputStream is = new ByteArrayInputStream(os.toByteArray());
 
-				fileUploadManager.uploadToTmpDir(folder, entryName, is, uploadedResourceResolver);
+					fileUploadManager.uploadToTmpDir(folder, entryName, is, uploadedResourceResolver);
+				}
 			}
 			
 		} catch (IOException e) {
@@ -84,7 +85,7 @@ public class ZippedBundleResourcesImpl implements ProcessBundleResources {
 	}
 	
 	public void close() {
-		
+//		TODO: implement, (cleanup of tmp files) and use the method
 	}
 	
 	public InputStream getResourceIS(String path) {
