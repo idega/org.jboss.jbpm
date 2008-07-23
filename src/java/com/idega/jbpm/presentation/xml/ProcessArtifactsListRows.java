@@ -22,9 +22,9 @@ import com.thoughtworks.xstream.XStream;
  * see http://www.trirand.com/blog/?page_id=4
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/06/02 09:00:39 $ by $Author: valdas $
+ * Last modified: $Date: 2008/07/23 10:13:46 $ by $Author: valdas $
  */
 public class ProcessArtifactsListRows {
 
@@ -60,6 +60,7 @@ public class ProcessArtifactsListRows {
 			throw new IllegalArgumentException("Illegal argument provided: total pages are less than page number provided. Total: "+totalPages+", pageNumber: "+pageNumber);
 		
 		total = String.valueOf(totalPages);
+		records = total;
 	}
 	
 	private static final String stringZero = "0";

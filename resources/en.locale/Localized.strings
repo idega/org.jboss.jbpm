@@ -17,3 +17,4 @@ _cases_bpm.process_resource_name_submitprocessruling=Submit process ruling
 _cases_bpm.process_resource_name_submitdefendantcaseanswer=Submit defendant case answer
 _cases_bpm.process_resource_name_setthedocumentkey=Set the document key
 cases_bpm.can_not_fulfill_action=Sorry, error occurred - can not fulfill your action
+no_tasks_available_currently=You currently don't have any tasks awaiting
