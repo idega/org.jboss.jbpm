@@ -80,9 +80,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.49 $
+ * @version $Revision: 1.50 $
  *
- * Last modified: $Date: 2008/07/23 10:13:46 $ by $Author: valdas $
+ * Last modified: $Date: 2008/07/25 16:30:58 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -650,7 +650,7 @@ public class ProcessArtifacts {
 			row.addCell(user.getName());
 			row.addCell(getUserEmails(user.getEmails(), caseIdentifier, systemEmail));
 			row.addCell(getUserPhones(user.getPhones()));
-			row.addCell(getUserAddress(user));
+			//row.addCell(getUserAddress(user));
 		}
 		
 		try {
