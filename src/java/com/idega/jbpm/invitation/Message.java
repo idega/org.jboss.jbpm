@@ -5,9 +5,9 @@ import java.io.Serializable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/07/28 15:34:14 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/29 07:58:44 $ by $Author: anton $
  */
 public class Message implements Serializable {
 
@@ -16,6 +16,7 @@ public class Message implements Serializable {
 	private String text;
 	private String from;
 	private String caseIdentifier;
+	private boolean setCaseIdentifier = true;
 	
 	public String getCaseIdentifier() {
 		return caseIdentifier;
@@ -40,5 +41,11 @@ public class Message implements Serializable {
 	}
 	public void setFrom(String from) {
 		this.from = from;
+	}
+	public boolean isSetCaseIdentifier() {
+		return setCaseIdentifier;
+	}
+	public void setSetCaseIdentifier(boolean setCaseIdentifier) {
+		this.setCaseIdentifier = setCaseIdentifier;
 	}
 }

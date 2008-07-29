@@ -30,9 +30,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/07/28 15:34:13 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/29 07:58:44 $ by $Author: anton $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -72,9 +72,8 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 			
 //			TODO: think about language choice
 			
-
-			
 			String caseIdentifier = msg != null ? msg.getCaseIdentifier() : null;
+			boolean setCaseIdentifier = msg != null ? msg.isSetCaseIdentifier() : false;
 			String subject = msg != null ? msg.getSubject() : null;
 			String text = msg != null ? msg.getText() : null;
 			String from = msg != null ? msg.getFrom() : null;
@@ -82,11 +81,12 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 			if(subject == null || CoreConstants.EMPTY.equals(subject)) {
 				subject = iwrb.getLocalizedString("cases_bpm.case_invitation", "You've been invited to participate in case");
 				
-				if(caseIdentifier == null || CoreConstants.EMPTY.equals(caseIdentifier)) {
+				if(caseIdentifier == null || CoreConstants.EMPTY.equals(caseIdentifier) ) {
 					caseIdentifier = (String)pi.getContextInstance().getVariable(ProcessArtifactsProvider.CASE_IDENTIFIER);
 				}
 				
-				subject += CoreConstants.SPACE + caseIdentifier;
+				if(setCaseIdentifier)
+					subject += CoreConstants.SPACE + caseIdentifier;
 			}
 									
 			if(text == null) {
