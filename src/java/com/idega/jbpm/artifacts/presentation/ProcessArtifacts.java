@@ -58,6 +58,7 @@ import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
+import com.idega.presentation.Image;
 import com.idega.presentation.Layer;
 import com.idega.presentation.Table2;
 import com.idega.presentation.TableBodyRowGroup;
@@ -69,6 +70,7 @@ import com.idega.presentation.text.Heading3;
 import com.idega.presentation.text.Link;
 import com.idega.presentation.text.Text;
 import com.idega.presentation.ui.CheckBox;
+import com.idega.presentation.ui.GenericButton;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.User;
 import com.idega.user.util.UserComparator;
@@ -81,9 +83,9 @@ import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.51 $
+ * @version $Revision: 1.52 $
  *
- * Last modified: $Date: 2008/07/25 16:50:07 $ by $Author: valdas $
+ * Last modified: $Date: 2008/07/30 08:51:37 $ by $Author: arunas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -892,7 +894,6 @@ public class ProcessArtifacts {
 			logger.log(Level.WARNING, "setAccessRightsForProcessResource called, but insufficient parameters provided. Got: roleName="+roleName+", taskInstanceId="+taskInstanceId);
 			return;
 		}
-		
 		getBpmFactory().getRolesManager().setTaskRolePermissionsTIScope(
 				new Role(roleName, hasReadAccess ? Access.read : null),
 				taskInstanceId, setSameRightsForAttachments, fileHashValue
@@ -904,14 +905,14 @@ public class ProcessArtifacts {
 		if (taskInstanceId == null) {
 			return null;
 		}
-		
 		IWContext iwc = CoreUtil.getIWContext();
 		if (iwc == null) {
 			return null;
 		}
-		
+
 		BuilderService builder = getBuilderService();
-		IWResourceBundle iwrb = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER).getResourceBundle(iwc);
+		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		if (builder == null) {
 			return null;
 		}
@@ -919,6 +920,7 @@ public class ProcessArtifacts {
 
 		List<Role> roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(taskInstanceId, CoreConstants.EMPTY.equals(fileHashValue) ? null : fileHashValue);
 		
+		List<String[]> accessParamsList = new ArrayList<String[]>();
 		if (roles == null || roles.isEmpty()) {
 			container.add(new Heading3(iwrb.getLocalizedString("no_roles_to_set_permissions", "There are no roles to set access rights")));
 		}
@@ -945,7 +947,7 @@ public class ProcessArtifacts {
 			
 			String roleName = null;
 			TableBodyRowGroup bodyRowGroup = table.createBodyRowGroup();
-			
+		
 			for (Role role : roles) {
 				roleName = role.getRoleName();
 				
@@ -953,13 +955,16 @@ public class ProcessArtifacts {
 				TableCell2 cell = bodyRow.createCell();
 				cell.add(new Text(iwrb.getLocalizedString(roleName, roleName)));
 				
-				CheckBox sameRigthsSetter = null;
+				GenericButton sameRigthsSetter = null;
 				if (setSameRightsForAttachments) {
-					sameRigthsSetter = new CheckBox();
+					sameRigthsSetter = new GenericButton();
+					Image setRightImage = new Image(bundle.getVirtualPathWithFileNameString("images/same_rights_button.png"));
+					setRightImage.setToolTip(iwrb.getLocalizedString("set_right", "Set right"));
+					sameRigthsSetter.setButtonImage(setRightImage);					
 				}
 				
 				CheckBox box = new CheckBox(roleName);
-				box.setChecked(role.getAccesses() != null && role.getAccesses().contains(Access.read));
+				box.setChecked(role.getAccesses() != null && role.getAccesses().contains(Access.read));		
 				StringBuilder action = new StringBuilder("CasesBPMAssets.setAccessRightsForBpmRelatedResource('").append(box.getId()).append("', ");
 				if (processInstanceId == null) {
 					action.append("null");
@@ -975,31 +980,58 @@ public class ProcessArtifacts {
 					action.append("'").append(fileHashValue).append("'");
 				}
 				action.append(", ");
-				if (sameRigthsSetter == null) {
-					action.append("null");
-				}
-				else {
-					action.append("'").append(sameRigthsSetter.getId()).append("'");
-				}
-				action.append(");");
-				box.setOnClick(action.toString());
+
+				StringBuilder actionForCheckbox = new StringBuilder(action);
+				box.setOnClick(actionForCheckbox.append("null").append(");").toString());
 				cell = bodyRow.createCell();
 				cell.add(box);
 				
 				if (setSameRightsForAttachments) {
+				    	String [] accessRightsParams = {box.getId(), processInstanceId.toString(), taskInstanceId.toString(), fileHashValue, sameRigthsSetter.getId()}; 
+					
+					accessParamsList.add(accessRightsParams);
+					
 					cell = bodyRow.createCell();
-					sameRigthsSetter.setChecked(true);
+					StringBuilder actionForButton = new StringBuilder(action);
+					sameRigthsSetter.setOnClick(actionForButton.append("'").append(sameRigthsSetter.getId()).append("'").append(");").toString());
 					cell.add(sameRigthsSetter);
-				}
+				}	
 			}
 		}
 		
 		Layer buttonsContainer = new Layer();
 		container.add(buttonsContainer);
+		
 		Link closeLink = new Link(iwrb.getLocalizedString("close", "Close"));
+		
 		container.add(closeLink);
+		
 		closeLink.setURL("javascript:void(0);");
 		closeLink.setOnClick("CasesBPMAssets.closeAccessRightsSetterBox();");
+		
+		if (setSameRightsForAttachments) {
+		    	GenericButton saveAllRightsButton = new GenericButton();
+		    	Image saveImage = new Image(bundle.getVirtualPathWithFileNameString("images/save_rights_button.png"));
+		    	saveImage.setToolTip(iwrb.getLocalizedString("set_rights", "Set rights"));
+			saveAllRightsButton.setButtonImage(saveImage);
+						
+			StringBuilder paramsArray = new StringBuilder("[ ");
+			
+			for (String [] params : accessParamsList ) {
+			    paramsArray.append(" [ ");
+			    paramsArray.append(params[0] == null ? "null ," : "'"+params[0]+"', ");
+			    paramsArray.append(params[1] == null ? "null ," : "'"+params[1]+"', ");
+			    paramsArray.append(params[2] == null ? "null ," : "'"+params[2]+"', ");
+			    paramsArray.append(params[3] == null ? "null ," : "'"+params[3]+"', ");
+			    paramsArray.append(params[4] == null ? "null" : "'"+params[4]+"'");
+			    paramsArray.append("] , ");
+			}
+			paramsArray.append("]");
+	
+			saveAllRightsButton.setOnClick("for each (params in "+ paramsArray.toString() +") {CasesBPMAssets.setAccessRightsForBpmRelatedResource(params[0] ,params[1] ,params[2] ,params[3] ,params[4]); }" );
+	
+			container.add(saveAllRightsButton);
+		}
 		
 		return builder.getRenderedComponent(iwc, container, false);
 	}
