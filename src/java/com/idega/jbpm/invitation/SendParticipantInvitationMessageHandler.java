@@ -30,9 +30,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/07/29 07:58:44 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/31 10:59:08 $ by $Author: anton $
  */
 public class SendParticipantInvitationMessageHandler implements ActionHandler {
 
@@ -81,12 +81,13 @@ public class SendParticipantInvitationMessageHandler implements ActionHandler {
 			if(subject == null || CoreConstants.EMPTY.equals(subject)) {
 				subject = iwrb.getLocalizedString("cases_bpm.case_invitation", "You've been invited to participate in case");
 				
-				if(caseIdentifier == null || CoreConstants.EMPTY.equals(caseIdentifier) ) {
-					caseIdentifier = (String)pi.getContextInstance().getVariable(ProcessArtifactsProvider.CASE_IDENTIFIER);
-				}
-				
-				if(setCaseIdentifier)
+				if(setCaseIdentifier) {
+					if(caseIdentifier == null || CoreConstants.EMPTY.equals(caseIdentifier) ) {
+						caseIdentifier = (String)pi.getContextInstance().getVariable(ProcessArtifactsProvider.CASE_IDENTIFIER);
+					}
+					
 					subject += CoreConstants.SPACE + caseIdentifier;
+				}
 			}
 									
 			if(text == null) {
