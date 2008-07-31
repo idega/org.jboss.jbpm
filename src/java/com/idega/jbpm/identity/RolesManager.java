@@ -9,15 +9,16 @@ import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
+import com.idega.jbpm.identity.permission.BPMRoleAccessPermission;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  * 
- * Last modified: $Date: 2008/07/04 15:19:09 $ by $Author: valdas $
+ * Last modified: $Date: 2008/07/31 10:56:29 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -30,6 +31,8 @@ public interface RolesManager {
 	public abstract void checkPermission(Permission permission) throws BPMAccessControlException;
 	
 	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi);
+	
+	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi, BPMRoleAccessPermission perm);
 	
 	public abstract void createNativeRolesFromProcessRoles(String processName, Collection<Role> roles);
 	

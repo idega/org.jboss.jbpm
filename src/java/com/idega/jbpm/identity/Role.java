@@ -9,9 +9,9 @@ import com.idega.jbpm.identity.permission.RoleScope;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/31 10:56:29 $ by $Author: civilis $
  */
 public class Role {
 
@@ -19,7 +19,16 @@ public class Role {
 	private List<String> assignIdentities;
 	private RoleScope scope;
 	private List<Access> accesses;
+	private List<String> rolesContacts;
 	
+	public List<String> getRolesContacts() {
+		return rolesContacts;
+	}
+
+	public void setRolesContacts(List<String> rolesContacts) {
+		this.rolesContacts = rolesContacts;
+	}
+
 	public Role() {	}
 	
 	public Role(String roleName, Access... accesses) {

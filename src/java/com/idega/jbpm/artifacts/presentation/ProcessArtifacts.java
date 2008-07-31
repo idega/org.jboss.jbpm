@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ejb.EJBException;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
@@ -33,8 +32,6 @@ import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.contact.data.Email;
 import com.idega.core.contact.data.Phone;
-import com.idega.core.location.data.Address;
-import com.idega.core.location.data.Country;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
@@ -50,6 +47,7 @@ import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.ProcessRightsMgmtPermission;
+import com.idega.jbpm.identity.permission.RoleAccessPermission;
 import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
 import com.idega.jbpm.identity.permission.ViewTaskVariablePermission;
@@ -79,13 +77,12 @@ import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
-import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.52 $
+ * @version $Revision: 1.53 $
  *
- * Last modified: $Date: 2008/07/30 08:51:37 $ by $Author: arunas $
+ * Last modified: $Date: 2008/07/31 10:56:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -577,7 +574,9 @@ public class ProcessArtifacts {
 		
 		try {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
-			users = getBpmFactory().getRolesManager().getAllUsersForRoles(null, processInstance);
+			
+			RoleAccessPermission perm = new RoleAccessPermission("roleAccess", null);
+			users = getBpmFactory().getRolesManager().getAllUsersForRoles(null, processInstance, perm);
 			
 		} catch(Exception e) {
 			logger.log(Level.SEVERE, "Exception while resolving all process instance users", e);
@@ -664,6 +663,7 @@ public class ProcessArtifacts {
 		return null;
 	}
 	
+	/*
 	private String getUserAddress(User user) {
 		UserBusiness userBusiness = null;
 		try {
@@ -711,6 +711,7 @@ public class ProcessArtifacts {
 		
 		return userAddress.toString();
 	}
+	*/
 	
 	private boolean canAddValueToCell(String value) {
 		if (value == null) {

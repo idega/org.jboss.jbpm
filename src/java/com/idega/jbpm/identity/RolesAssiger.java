@@ -16,9 +16,9 @@ import com.idega.jbpm.exe.BPMFactory;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  * 
- * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/31 10:56:28 $ by $Author: civilis $
  */
 public class RolesAssiger {
 	
@@ -28,6 +28,11 @@ public class RolesAssiger {
 	private RolesManager rolesManager;
 	private BPMFactory bpmFactory;
 
+	/**
+	 * creates roles for process instance
+	 * @param processInstance
+	 * @param roles
+	 */
 	public void assign(ProcessInstance processInstance, List<Role> roles) {
 		
 		if(roles == null || roles.isEmpty()) {
@@ -36,10 +41,7 @@ public class RolesAssiger {
 			return;
 		}
 		
-
-		
-		/*List<ProcessRole> processRoles = */getRolesManager().createProcessRoles(processInstance.getProcessDefinition().getName(), roles, processInstance.getId());
-		//setPooledActors(taskInstance, processRoles);
+		getRolesManager().createProcessRoles(processInstance.getProcessDefinition().getName(), roles, processInstance.getId());
 	}
 	
 	public void createRolesPermissions(TaskInstance taskInstance, List<Role> roles) {

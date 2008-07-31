@@ -45,13 +45,13 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.31 $
+ * @version $Revision: 1.32 $
  *
- * Last modified: $Date: 2008/07/15 12:51:23 $ by $Author: anton $
+ * Last modified: $Date: 2008/07/31 10:56:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
-@Transactional(readOnly=true)
+@Transactional(readOnly=true, noRollbackFor={AccessControlException.class})
 public class IdentityAuthorizationService implements AuthorizationService {
 
 	private static final long serialVersionUID = -7496842155073961922L;
@@ -104,31 +104,72 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		if(loggedInActorId == null)
 			throw new AccessControlException("Not logged in");
 		
-		Long processInstanceId = permission.getProcessInstanceId();
-		String roleName = permission.getRoleName();
-		
-		List<ProcessRole> proles = 
-			getBpmBindsDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
-					new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
-					new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {roleName}))
-			);
-		
-		if(proles == null || proles.isEmpty())
-			throw new AccessControlException("No process role found by role name="+roleName+" and process instance id = "+processInstanceId);
-		
-		ProcessRole prole = proles.iterator().next();
-		
-		int userId = new Integer(loggedInActorId);
-
 		AccessController ac = getAccessController();
 		IWApplicationContext iwac = getIWMA().getIWApplicationContext();
 		
-		List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
+		Long processInstanceId = permission.getProcessInstanceId();
+		String roleName = permission.getRoleName();
 		
-		if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
-			return;
+		if(permission.isCheckContactsForRole()) {
+			
+//			super admin always gets an access
+			if(!IWContext.getIWContext(fctx).isSuperAdmin()) {
+				
+				List<ActorPermissions> actPerm =
+					
+					getBpmBindsDAO().getResultList(
+							ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames,
+							ActorPermissions.class,
+							new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
+							new Param(ActorPermissions.canSeeContactsOfRoleNameProperty, Arrays.asList(new String[] {roleName, "all"}))
+					);
+				
+				if(actPerm != null) {
+					
+					int userId = new Integer(loggedInActorId);
+					
+//					find out what roles can see contacts of the role provided in permission
+					
+					for (ActorPermissions actorPermission : actPerm) {
+						
+						List<ProcessRole> proles = actorPermission.getProcessRoles();
+						
+						for (ProcessRole prole : proles) {
 
-		throw new AccessControlException("No role access for user="+loggedInActorId+", for processInstanceId="+processInstanceId+", for role="+roleName);
+//							and check if current user falls in any of those roles
+							if(checkFallsInRole(prole.getProcessRoleName(), prole.getNativeIdentities(), userId, ac, iwac))
+								return;
+						}
+					}
+				}
+				
+				throw new AccessControlException("No contacts for role access for user="+loggedInActorId+", for processInstanceId="+processInstanceId+", for role="+roleName);
+			}
+			
+		} else {
+			
+//			checking basic falling in role
+		
+			List<ProcessRole> proles = 
+				getBpmBindsDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
+						new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
+						new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {roleName}))
+				);
+			
+			if(proles == null || proles.isEmpty())
+				throw new AccessControlException("No process role found by role name="+roleName+" and process instance id = "+processInstanceId);
+			
+			ProcessRole prole = proles.iterator().next();
+			
+			int userId = new Integer(loggedInActorId);
+
+			List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
+			
+			if(checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
+				return;
+
+			throw new AccessControlException("No role access for user="+loggedInActorId+", for processInstanceId="+processInstanceId+", for role="+roleName);
+		}
 	}
 	
 	protected void checkRightsMgmtPermission(FacesContext fctx, BPMRightsMgmtPermission permission) throws AccessControlException {
