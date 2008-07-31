@@ -57,9 +57,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.41 $
+ * @version $Revision: 1.42 $
  * 
- * Last modified: $Date: 2008/07/31 10:56:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/31 11:46:45 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -234,8 +234,6 @@ public class RolesManagerImpl implements RolesManager {
 					authServ.checkPermission((Permission)perm);
 					filteredProles.add(processRole);
 				} catch (AccessControlException e) {
-					System.out.println("caught exception __________________");
-					//iterator.remove();
 				}
 			}
 			
