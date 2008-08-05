@@ -32,6 +32,7 @@ import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.permission.Access;
+import com.idega.jbpm.identity.permission.BPMGenericAccessPermission;
 import com.idega.jbpm.identity.permission.BPMRightsMgmtPermission;
 import com.idega.jbpm.identity.permission.BPMRoleAccessPermission;
 import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
@@ -45,9 +46,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.32 $
+ * @version $Revision: 1.33 $
  *
- * Last modified: $Date: 2008/07/31 10:56:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/05 07:22:39 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -95,6 +96,37 @@ public class IdentityAuthorizationService implements AuthorizationService {
 				}
 			}
 		}
+	}
+	
+	protected void checkGenericAccessPermission(FacesContext fctx, BPMGenericAccessPermission permission) throws AccessControlException {
+		
+		String loggedInActorId = getAuthenticationService().getActorId();
+		
+		if(loggedInActorId == null)
+			throw new AccessControlException("Not logged in");
+		
+		if(IWContext.getIWContext(fctx).isSuperAdmin())
+			return;
+		
+		List<ProcessRole> proles = 
+			getBpmBindsDAO().getResultList(ProcessRole.getRolesHavingCaseHandlerRights, ProcessRole.class,
+					new Param(ProcessRole.processInstanceIdProperty, permission.getProcessInstanceId())
+			);
+		
+		if(proles != null) {
+			
+			Integer userId = new Integer(loggedInActorId);
+			AccessController ac = getAccessController();
+			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+			
+			for (ProcessRole processRole : proles) {
+				
+				if(checkFallsInRole(processRole.getProcessRoleName(), processRole.getNativeIdentities(), userId, ac, iwac))
+					return;
+			}
+		}
+		
+		throw new AccessControlException("No "+permission.getAccess()+" access for user="+loggedInActorId);
 	}
 	
 	protected void checkRoleAccessPermission(FacesContext fctx, BPMRoleAccessPermission permission) throws AccessControlException {
@@ -226,14 +258,17 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		if(fctx == null)
 			return;
 		
+//		TODO: see permissionsfactory javadoc
 		if((perm instanceof BPMTaskAccessPermission)) {
 			checkTaskAccessPermission(fctx, (BPMTaskAccessPermission)perm);
 		} else if((perm instanceof BPMRightsMgmtPermission)) {
 			checkRightsMgmtPermission(fctx, (BPMRightsMgmtPermission)perm);
 		} else if((perm instanceof BPMRoleAccessPermission)) {
 			checkRoleAccessPermission(fctx, (BPMRoleAccessPermission)perm);
+		} else if((perm instanceof BPMGenericAccessPermission)) {
+			checkGenericAccessPermission(fctx, (BPMGenericAccessPermission)perm);
 		} else 
-			throw new IllegalArgumentException("Only permissions implementing "+BPMTaskAccessPermission.class.getName()+" or "+BPMRightsMgmtPermission.class.getName()+" supported");
+			throw new IllegalArgumentException("Only permissions implementing cool interfaces are supported");
 	}
 	
 	protected boolean fallsInGroups(int userId, List<NativeIdentityBind> nativeIdentities) {
