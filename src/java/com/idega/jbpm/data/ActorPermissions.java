@@ -21,9 +21,9 @@ import javax.persistence.Table;
  * Also used for contacts access management.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/07/31 10:56:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/05 07:16:41 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_ACTORS_PERMISSIONS")
@@ -34,7 +34,7 @@ import javax.persistence.Table;
 			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdPureRoles, query="from ActorPermissions ap, in (ap." + ActorPermissions.processRolesProperty + ") roles where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty +" and ap."+ActorPermissions.taskIdProperty+" is null and ap."+ActorPermissions.taskInstanceIdProperty+" is null and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is null"),
 			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdForContacts, query="from ActorPermissions ap, in (ap." + ActorPermissions.processRolesProperty + ") roles where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty +" and ap."+ActorPermissions.taskIdProperty+" is null and ap."+ActorPermissions.taskInstanceIdProperty+" is null and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is not null"),
 //			@NamedQuery(name=ActorPermissions.getByProcessIdAndModifyRights, query="from ActorPermissions ap where "+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+")")
-			@NamedQuery(name=ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames, query="select ap from ActorPermissions ap inner join ap."+ActorPermissions.processRolesProperty+" roles where roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty +" and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" in (:"+ActorPermissions.canSeeContactsOfRoleNameProperty+")")			
+			@NamedQuery(name=ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames, query="select ap from ActorPermissions ap inner join ap."+ActorPermissions.processRolesProperty+" roles where roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty +" and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" in (:"+ActorPermissions.canSeeContactsOfRoleNameProperty+")")
 		}
 )
 public class ActorPermissions implements Serializable {
@@ -45,6 +45,7 @@ public class ActorPermissions implements Serializable {
 	public static final String getSetByProcessRoleNamesAndProcessInstanceIdPureRoles = "ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceId";
 	public static final String getSetByProcessRoleNamesAndProcessInstanceIdForContacts = "ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdForContacts";
 	public static final String getSetByProcessInstanceIdAndContactPermissionsRolesNames = "ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames";
+	public static final String getSetByProcessInstanceIdAndAccess = "ActorPermissions.getSetByProcessInstanceIdAndAccess";
 
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="actperm_id")
@@ -76,6 +77,10 @@ public class ActorPermissions implements Serializable {
 	public static final String modifyRightsPermissionProperty = "modifyRightsPermission";
 	@Column(name="can_modify_rights_permission")
 	private Boolean modifyRightsPermission;
+	
+	public static final String caseHandlerPermissionProperty = "caseHandlerPermission";
+	@Column(name="case_handler_permission")
+	private Boolean caseHandlerPermission;
 	
 	public static final String canSeeContactsOfRoleNameProperty = "canSeeContactsOfRoleName";
 	@Column(name="can_see_contacts_of_role_name")
@@ -148,5 +153,11 @@ public class ActorPermissions implements Serializable {
 	}
 	public void setCanSeeContactsOfRoleName(String canSeeContactsOfRoleName) {
 		this.canSeeContactsOfRoleName = canSeeContactsOfRoleName;
+	}
+	public Boolean getCaseHandlerPermission() {
+		return caseHandlerPermission;
+	}
+	public void setCaseHandlerPermission(Boolean caseHandlerPermission) {
+		this.caseHandlerPermission = caseHandlerPermission;
 	}
 }
