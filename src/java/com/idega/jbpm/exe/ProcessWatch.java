@@ -1,17 +1,18 @@
-package com.idega.jbpm.artifacts.presentation.bean;
+package com.idega.jbpm.exe;
 
-public interface BPMProcessWatcher {
-	
-	public static final String SPRING_BEAN_IDENTIFIER = "BPMProcessWatcher";
+public interface ProcessWatch {
 	
 	public abstract boolean takeWatch(Long processInstanceId);
 	
+	public abstract boolean assignWatch(Long processInstanceId, Integer assignedUserId);
+	
 	public abstract boolean removeWatch(Long processInstanceId);
+	
+	public abstract boolean removeWatch(Long processInstanceId, Integer userIdToRemoveFrom);
 	
 	public abstract boolean isWatching(Long processInstanceId);
 	
 	public abstract String getWatchCaseStatusMessage(boolean isWatched);
 	
 	public abstract String getWatchCaseStatusLabel(boolean isWatched);
-
 }
