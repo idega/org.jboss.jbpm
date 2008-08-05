@@ -27,6 +27,8 @@
             <include method="getViewDisplay" />
             <include method="takeBPMProcessTask" />
             <include method="watchOrUnwatchBPMProcessTask" />
+            <include method="assignCase" />
+            <include method="getAllHandlerUsers" />
         </create>
         
         <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.ProcessArtifactsParamsBean" />
