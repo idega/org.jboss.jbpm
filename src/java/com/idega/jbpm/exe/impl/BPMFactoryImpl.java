@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +30,9 @@ import com.idega.jbpm.view.ViewFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/07/03 12:13:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/05 07:18:16 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -281,5 +282,20 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	@Autowired
 	public void setBpmUserFactory(BPMUserFactory bpmUserFactory) {
 		this.bpmUserFactory = bpmUserFactory;
+	}
+
+	public ProcessManager getProcessManagerByProcessInstanceId(long processInstanceId) {
+		
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			
+			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
+			long pdId = processInstance.getProcessDefinition().getId();
+			return getProcessManager(pdId);
+			
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
 	}
 }
