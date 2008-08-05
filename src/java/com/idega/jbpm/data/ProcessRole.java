@@ -31,9 +31,9 @@ import javax.persistence.Table;
  * If there are no permissions for actor with process instance id != null, then the permissions for process name are taken (i.e. the permissions are specified for process definition scope). 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/06/30 09:22:31 $ by $Author: anton $
+ * Last modified: $Date: 2008/08/05 07:16:57 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
@@ -46,9 +46,13 @@ import javax.persistence.Table;
 			@NamedQuery(name=ProcessRole.getAllProcessInstancesIds, query="select pr."+ProcessRole.processInstanceIdProperty+" from ProcessRole pr"),
 			@NamedQuery(name=ProcessRole.getSetByPIId, query="from ProcessRole b where b."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty),
 			
-//			TODO verify that works with different databases
+//			TODO verify that works with different databases (true thingy)
 			@NamedQuery(name=ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, query=
-				"select pr." + ProcessRole.processRoleNameProperty + " from ProcessRole pr, in (pr." + ProcessRole.actorPermissionsProperty + ") permissions where pr."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty + " and permissions." + ActorPermissions.modifyRightsPermissionProperty + " = true")
+				"select pr." + ProcessRole.processRoleNameProperty + " from ProcessRole pr, in (pr." + ProcessRole.actorPermissionsProperty + ") permissions where pr."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty + " and permissions." + ActorPermissions.modifyRightsPermissionProperty + " = true"),
+		    @NamedQuery(name=ProcessRole.getRolesNamesHavingCaseHandlerRights, query=
+					"select pr." + ProcessRole.processRoleNameProperty + " from ProcessRole pr inner join pr." + ProcessRole.actorPermissionsProperty + " permissions where pr."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty + " and permissions." + ActorPermissions.caseHandlerPermissionProperty + " = true"),
+			@NamedQuery(name=ProcessRole.getRolesHavingCaseHandlerRights, query=
+					"select pr from ProcessRole pr inner join pr." + ProcessRole.actorPermissionsProperty + " permissions where pr."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty + " and permissions." + ActorPermissions.caseHandlerPermissionProperty + " = true")
 			
 			/*, TODO: remove
 			@NamedQuery(name=ProcessRole.getSetHavingPermissionsByTaskIdAndRoleName, query=
@@ -106,18 +110,20 @@ public class ProcessRole implements Serializable {
 	
 	public static final String TABLE_NAME = "BPM_PROCESS_ROLES";
 	
-	public static final String getAllGeneral = "ProcessRoleNativeIdentityBind.getAllGeneral";
-	public static final String getSetByPIId = "ProcessRoleNativeIdentityBind.getSetByPIId";
-	public static final String getSetByRoleNamesAndPIId = "ProcessRoleNativeIdentityBind.getSetByRoleNamesAndPIId";
-//	public static final String getAllByRoleNamesAndPIIdIsNull = "ProcessRoleNativeIdentityBind.getAllByRoleNamesAndPIIdIsNull";
-	///public static final String getSetByRoleNamesAndProcessNameAndPIIdIsNull = "ProcessRoleNativeIdentityBind.getSetByRoleNamesAndProcessNameAndPIIdIsNull";
+	public static final String getAllGeneral = "ProcessRole.getAllGeneral";
+	public static final String getSetByPIId = "ProcessRole.getSetByPIId";
+	public static final String getSetByRoleNamesAndPIId = "ProcessRole.getSetByRoleNamesAndPIId";
+//	public static final String getAllByRoleNamesAndPIIdIsNull = "ProcessRole.getAllByRoleNamesAndPIIdIsNull";
+	///public static final String getSetByRoleNamesAndProcessNameAndPIIdIsNull = "ProcessRole.getSetByRoleNamesAndProcessNameAndPIIdIsNull";
 	public static final String getProcessInstanceIdsByUserIdentity = "ProcessRole.getProcessInstanceIdsByUserIdentity";
 	public static final String getProcessInstanceIdsByUserRolesAndUserIdentity = "ProcessRole.getProcessInstanceIdsByUserRolesAndUserIdentity";
 
-	public static final String getAllByActorIds = "ProcessRoleNativeIdentityBind.getAllByActorIds";
-	public static final String getAllProcessInstancesIds = "ProcessRoleNativeIdentityBind.getAllProcessInstancesIds";
-	public static final String getSetHavingPermissionsByTaskIdAndRoleName = "ProcessRoleNativeIdentityBind.getSetRolesNamesHavingPermissionsByTaskIdAndRoleName";
-	public static final String getRoleNameHavingRightsModifyPermissionByPIId = "ProcessRoleNativeIdentityBind.getHavingRightsModifyPermissionByPIId";
+	public static final String getAllByActorIds = "ProcessRole.getAllByActorIds";
+	public static final String getAllProcessInstancesIds = "ProcessRole.getAllProcessInstancesIds";
+	public static final String getSetHavingPermissionsByTaskIdAndRoleName = "ProcessRole.getSetRolesNamesHavingPermissionsByTaskIdAndRoleName";
+	public static final String getRoleNameHavingRightsModifyPermissionByPIId = "ProcessRole.getHavingRightsModifyPermissionByPIId";
+	public static final String getRolesNamesHavingCaseHandlerRights = "ProcessRole.getRolesNamesHavingCaseHandlerRights";
+	public static final String getRolesHavingCaseHandlerRights = "ProcessRole.getRolesHavingCaseHandlerRights";
 	
 	public static final String processRoleNameProperty = "processRoleName";
 	@Column(name="role_name", nullable=false)
