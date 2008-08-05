@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
+import com.idega.builder.bean.AdvancedProperty;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
@@ -37,8 +38,8 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
-import com.idega.jbpm.artifacts.presentation.bean.BPMProcessWatcher;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.ProcessWatch;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.identity.BPMAccessControlException;
@@ -46,11 +47,8 @@ import com.idega.jbpm.identity.BPMUser;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.Access;
-import com.idega.jbpm.identity.permission.ProcessRightsMgmtPermission;
+import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.jbpm.identity.permission.RoleAccessPermission;
-import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
-import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
-import com.idega.jbpm.identity.permission.ViewTaskVariablePermission;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
 import com.idega.jbpm.variables.BinaryVariable;
@@ -80,9 +78,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.54 $
+ * @version $Revision: 1.55 $
  *
- * Last modified: $Date: 2008/08/04 11:28:56 $ by $Author: arunas $
+ * Last modified: $Date: 2008/08/05 07:15:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -92,8 +90,8 @@ public class ProcessArtifacts {
 	private BPMContext idegaJbpmContext;
 	private VariablesHandler variablesHandler;
 	private ProcessArtifactsProvider processArtifactsProvider;
-	private BPMProcessWatcher processWatcher = null;
-	
+	@Autowired
+	private PermissionsFactory permissionsFactory;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
@@ -114,7 +112,7 @@ public class ProcessArtifacts {
 		for (TaskInstanceW submittedDocument : processDocuments) {
 			
 			try {
-				Permission permission = getTaskViewPermission(true, submittedDocument.getTaskInstance());
+				Permission permission = getPermissionsFactory().getTaskViewPermission(true, submittedDocument.getTaskInstance());
 				rolesManager.checkPermission(permission);
 				
 			} catch (BPMAccessControlException e) {
@@ -184,7 +182,7 @@ public class ProcessArtifacts {
 			
 			try {
 				
-				Permission permission = getTaskViewPermission(true, email);
+				Permission permission = getPermissionsFactory().getTaskViewPermission(true, email);
 				rolesManager.checkPermission(permission);
 				
 			} catch (BPMAccessControlException e) {
@@ -254,43 +252,6 @@ public class ProcessArtifacts {
 		return getDocumentsListDocument(processDocuments, processInstanceId, params.isRightsChanger(), params.getDownloadDocument());
 	}
 	
-	
-//	TODO: create something similar to permissions factory, and use them in more standard way
-	
-	protected Permission getTaskSubmitPermission(boolean authPooledActorsOnly, TaskInstance taskInstance) {
-		
-		SubmitTaskParametersPermission permission = new SubmitTaskParametersPermission("taskInstance", null, taskInstance);
-		permission.setCheckOnlyInActorsPool(authPooledActorsOnly);
-		
-		return permission;
-	}
-	
-	protected Permission getRightsMgmtPermission(Long processInstanceId) {
-		
-		ProcessRightsMgmtPermission permission = new ProcessRightsMgmtPermission("procRights", null);
-		permission.setChangeTaskRights(true);
-		permission.setProcessInstanceId(processInstanceId);
-		
-		return permission;
-	}
-	
-	protected Permission getTaskViewPermission(boolean authPooledActorsOnly, TaskInstance taskInstance) {
-		
-		ViewTaskParametersPermission permission = new ViewTaskParametersPermission("taskInstance", null, taskInstance);
-		permission.setCheckOnlyInActorsPool(authPooledActorsOnly);
-		
-		return permission;
-	}
-	
-	protected Permission getTaskVariableViewPermission(boolean authPooledActorsOnly, TaskInstance taskInstance, String variableIdentifier) {
-		
-		ViewTaskVariablePermission permission = new ViewTaskVariablePermission("taskInstance", null, taskInstance);
-		permission.setCheckOnlyInActorsPool(authPooledActorsOnly);
-		permission.setVariableIndentifier(variableIdentifier);
-		
-		return permission;
-	}
-	
 	public Document getProcessTasksList(ProcessArtifactsParamsBean params) {
 		
 		Long processInstanceId = params.getPiId();
@@ -327,7 +288,7 @@ public class ProcessArtifacts {
 			
 			try {
 				
-				Permission permission = getTaskSubmitPermission(false, taskInstance.getTaskInstance());
+				Permission permission = getPermissionsFactory().getTaskSubmitPermission(false, taskInstance.getTaskInstance());
 				rolesManager.checkPermission(permission);
 				
 			} catch (BPMAccessControlException e) {
@@ -496,7 +457,7 @@ public class ProcessArtifacts {
 					continue;
 				
 				try {
-					Permission permission = getTaskVariableViewPermission(true, taskInstance, binaryVariable.getHash().toString());
+					Permission permission = getPermissionsFactory().getTaskVariableViewPermission(true, taskInstance, binaryVariable.getHash().toString());
 					rolesManager.checkPermission(permission);
 					
 				} catch (BPMAccessControlException e) {
@@ -570,19 +531,14 @@ public class ProcessArtifacts {
 	private List<User> getPeopleConnectedToProcess(long processInstanceId) {
 		
 		final Collection<User> users;
-		final JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
-			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
-			
 			RoleAccessPermission perm = new RoleAccessPermission("roleAccess", null);
-			users = getBpmFactory().getRolesManager().getAllUsersForRoles(null, processInstance, perm);
+			users = getBpmFactory().getRolesManager().getAllUsersForRoles(null, processInstanceId, perm);
 			
 		} catch(Exception e) {
 			logger.log(Level.SEVERE, "Exception while resolving all process instance users", e);
 			return null;
-		} finally {
-			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
 		
 		if(users != null && !users.isEmpty()) {
@@ -878,7 +834,7 @@ public class ProcessArtifacts {
 			return false;
 		
 		try {
-			Permission perm = getRightsMgmtPermission(processInstanceId);
+			Permission perm = getPermissionsFactory().getRightsMgmtPermission(processInstanceId);
 			getBpmFactory().getRolesManager().checkPermission(perm);
 			
 		} catch(AccessControlException e) {
@@ -1121,21 +1077,93 @@ public class ProcessArtifacts {
 			return errorMessage;
 		}
 		
-		if (getProcessWatcher().isWatching(processInstanceId)) {
+		ProcessWatch pwatch = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getProcessWatcher();
+		
+		if (pwatch.isWatching(processInstanceId)) {
 			//	Remove
-			if (getProcessWatcher().removeWatch(processInstanceId)) {
-				return getProcessWatcher().getWatchCaseStatusLabel(false);
+			if (pwatch.removeWatch(processInstanceId)) {
+				return pwatch.getWatchCaseStatusLabel(false);
 			}
 			
 			return errorMessage;
 		}
 		
 		//	Add
-		if (getProcessWatcher().takeWatch(processInstanceId)) {
-			return getProcessWatcher().getWatchCaseStatusLabel(true);
+		if (pwatch.takeWatch(processInstanceId)) {
+			return pwatch.getWatchCaseStatusLabel(true);
 		}
 		
 		return errorMessage;
+	}
+	
+	public String assignCase(String handlerIdStr, Long processInstanceId) {
+
+		if(hasCaseHandlerRights(processInstanceId)) {
+			
+			Integer handlerId = handlerIdStr == null ? null : new Integer(handlerIdStr);
+			
+			getBpmFactory()
+			.getProcessManagerByProcessInstanceId(processInstanceId)
+			.getProcessInstance(processInstanceId)
+			.assignHandler(handlerId);
+		
+			return "great success";
+		}
+		
+		return "no rights to take case";
+	}
+	
+	public List<AdvancedProperty> getAllHandlerUsers(Long processInstanceId) {
+		
+		if(hasCaseHandlerRights(processInstanceId)) {
+		
+			RolesManager rolesManager = getBpmFactory().getRolesManager();
+			
+			List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.caseHandler);
+			Collection<User> users = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
+			
+			Integer assignedCaseHandlerId = getBpmFactory()
+			.getProcessManagerByProcessInstanceId(processInstanceId)
+			.getProcessInstance(processInstanceId)
+			.getHandlerId();
+			
+			String assignedCaseHandlerIdStr = assignedCaseHandlerId == null ? null : String.valueOf(assignedCaseHandlerId);
+			
+			ArrayList<AdvancedProperty> allHandlers = new ArrayList<AdvancedProperty>(1);
+			
+			AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, "Assign handler to this case");
+			allHandlers.add(ap);
+			
+			for (User user : users) {
+			
+				String pk = String.valueOf(user.getPrimaryKey());
+				
+				ap = new AdvancedProperty(pk, user.getName());
+				
+				if(pk.equals(assignedCaseHandlerIdStr)) {
+					
+					ap.setSelected(true);
+				}
+				
+				allHandlers.add(ap);
+			}
+			
+			return allHandlers;
+		}
+		
+		return null;
+	}
+	
+	public boolean hasCaseHandlerRights(Long processInstanceId) {
+		
+		try {
+			Permission perm = getPermissionsFactory().getAccessPermission(processInstanceId, Access.caseHandler);
+			getBpmFactory().getRolesManager().checkPermission(perm);
+			return true;
+			
+		} catch (AccessControlException e) {
+			return false;
+		}
 	}
 	
 	private String getAssignedToYouLocalizedString(IWResourceBundle iwrb) {
@@ -1188,13 +1216,7 @@ public class ProcessArtifacts {
 		this.processArtifactsProvider = processArtifactsProvider;
 	}
 
-	public BPMProcessWatcher getProcessWatcher() {
-		return processWatcher;
+	public PermissionsFactory getPermissionsFactory() {
+		return permissionsFactory;
 	}
-
-	@Autowired
-	public void setProcessWatcher(BPMProcessWatcher processWatcher) {
-		this.processWatcher = processWatcher;
-	}
-	
 }
