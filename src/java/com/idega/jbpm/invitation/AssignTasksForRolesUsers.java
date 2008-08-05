@@ -22,9 +22,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/07/03 15:25:19 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/05 07:23:41 $ by $Author: civilis $
  */
 public class AssignTasksForRolesUsers implements ActionHandler {
 
@@ -52,7 +52,7 @@ public class AssignTasksForRolesUsers implements ActionHandler {
 					List<String> rolesNames = Arrays.asList(tb.getRoles());
 					ProcessInstance pi = tb.getToken().getProcessInstance();
 					
-					Collection<User> users = rolesManager.getAllUsersForRoles(rolesNames, pi);
+					Collection<User> users = rolesManager.getAllUsersForRoles(rolesNames, pi.getId());
 					
 					if(users != null) {
 					
