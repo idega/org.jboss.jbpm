@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import javax.faces.context.FacesContext;
 
 import org.jbpm.JbpmContext;
-import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.security.AuthorizationService;
 import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -57,9 +56,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.42 $
+ * @version $Revision: 1.43 $
  * 
- * Last modified: $Date: 2008/07/31 11:46:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/05 07:19:00 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -192,13 +191,37 @@ public class RolesManagerImpl implements RolesManager {
 		}
 	}
 	
-	public Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi) {
+	public Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId) {
 		
-		return getAllUsersForRoles(rolesNames, pi, null);
+		return getAllUsersForRoles(rolesNames, piId, null);
 	}
 	
-	//@Transactional(readOnly=true, noRollbackFor={AccessControlException.class})
-	public Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi, BPMRoleAccessPermission perm) {
+	public List<String> getRolesForAccess(long processInstanceId, Access access) {
+		
+		final String queryName;
+		
+		switch (access) {
+			case caseHandler:
+				
+				queryName = ProcessRole.getRolesNamesHavingCaseHandlerRights;
+				break;
+				
+			case modifyPermissions:
+				queryName = ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId;
+	
+			default:
+				throw new UnsupportedOperationException("Not supported for access="+access+", just add another query");
+		}
+		
+		List<String> rolesNames =
+			getBpmDAO().getResultList(queryName, String.class, 
+					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+			);
+		
+		return rolesNames;
+	}
+	
+	public Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId, BPMRoleAccessPermission perm) {
 
 		List<ProcessRole> proles;
 		
@@ -207,13 +230,13 @@ public class RolesManagerImpl implements RolesManager {
 		
 			proles =
 				getBpmDAO().getResultList(ProcessRole.getSetByPIId, ProcessRole.class, 
-						new Param(ProcessRole.processInstanceIdProperty, pi.getId())
+						new Param(ProcessRole.processInstanceIdProperty, piId)
 				);
 		} else
 			proles =
 				getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class, 
 						new Param(ProcessRole.processRoleNameProperty, rolesNames),
-						new Param(ProcessRole.processInstanceIdProperty, pi.getId())
+						new Param(ProcessRole.processInstanceIdProperty, piId)
 				);
 		
 		if(perm != null && proles != null && !proles.isEmpty()) {
@@ -401,6 +424,7 @@ public class RolesManagerImpl implements RolesManager {
 					perm.setReadPermission(role.getAccesses().contains(Access.read));
 					perm.setWritePermission(role.getAccesses().contains(Access.write));
 					perm.setModifyRightsPermission(role.getAccesses().contains(Access.modifyPermissions));
+					perm.setCaseHandlerPermission(role.getAccesses().contains(Access.caseHandler));
 					
 					getBpmDAO().persist(perm);
 				}
@@ -445,6 +469,7 @@ public class RolesManagerImpl implements RolesManager {
 					perm.setReadPermission(role.getAccesses().contains(Access.read));
 					perm.setWritePermission(role.getAccesses().contains(Access.write));
 					perm.setModifyRightsPermission(role.getAccesses().contains(Access.modifyPermissions));
+					perm.setCaseHandlerPermission(role.getAccesses().contains(Access.caseHandler));
 					
 					getBpmDAO().persist(perm);
 					
@@ -512,6 +537,7 @@ public class RolesManagerImpl implements RolesManager {
 							perm.setReadPermission(role.getAccesses().contains(Access.read));
 							perm.setWritePermission(role.getAccesses().contains(Access.write));
 							perm.setModifyRightsPermission(role.getAccesses().contains(Access.modifyPermissions));
+							perm.setCaseHandlerPermission(role.getAccesses().contains(Access.caseHandler));
 							perm.setCanSeeContactsOfRoleName(roleContact);
 							
 							getBpmDAO().persist(perm);
