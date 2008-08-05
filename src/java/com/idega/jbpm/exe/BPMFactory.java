@@ -8,23 +8,30 @@ import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/05/24 10:25:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/05 07:17:15 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
 	/**
 	 * 
 	 * @param processDefinitionId
-	 * @return View manager bound to process definition
+	 * @return Process manager bound to process definition
 	 */
 	public abstract ProcessManager getProcessManager(long processDefinitionId);
 	
 	/**
 	 * 
+	 * @param processInstanceId
+	 * @return Process manager bound to process definition found by processInstanceId
+	 */
+	public abstract ProcessManager getProcessManagerByProcessInstanceId(long processInstanceId);
+	
+	/**
+	 * 
 	 * @param taskInstanceId
-	 * @return View manager bound to process definition found by taskInstanceId
+	 * @return Process manager bound to process definition found by taskInstanceId
 	 */
 	public abstract ProcessManager getProcessManagerByTaskInstanceId(long taskInstanceId);
 	
