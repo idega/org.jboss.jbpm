@@ -4,11 +4,11 @@ import java.security.Permission;
 import java.util.Collection;
 import java.util.List;
 
-import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
+import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMRoleAccessPermission;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
@@ -16,9 +16,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  * 
- * Last modified: $Date: 2008/07/31 10:56:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/05 07:18:43 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -30,9 +30,9 @@ public interface RolesManager {
 	
 	public abstract void checkPermission(Permission permission) throws BPMAccessControlException;
 	
-	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi);
+	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId);
 	
-	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, ProcessInstance pi, BPMRoleAccessPermission perm);
+	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId, BPMRoleAccessPermission perm);
 	
 	public abstract void createNativeRolesFromProcessRoles(String processName, Collection<Role> roles);
 	
@@ -62,4 +62,6 @@ public interface RolesManager {
 	public abstract List<Role> getRolesPermissionsForTaskInstance(Long taskInstanceId, String variableName);
 	
 	public abstract List<Long> getProcessInstancesIdsForUser(IWContext iwc, User user, boolean checkIfSuperAdmin);
+	
+	public abstract List<String> getRolesForAccess(long processInstanceId, Access access);
 }
