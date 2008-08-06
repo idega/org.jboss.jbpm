@@ -16,9 +16,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  * 
- * Last modified: $Date: 2008/08/05 07:18:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/06 10:48:11 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -44,7 +44,13 @@ public interface RolesManager {
 	
 	public abstract void assignRolesPermissions(List<Role> roles, Long processInstanceId);
 
-	public abstract List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long taskInstanceId);
+	/**
+	 * taskInstance could be not from the same processInstance, but we should provide roles from both, with the precedence of task instance process instance
+	 * @param processInstanceId
+	 * @param taskInstanceId
+	 * @return
+	 */
+	public abstract List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long processInstanceId, Long taskInstanceId, String processRoleName);
 	
 	public abstract List<Long> getProcessInstancesIdsForCurrentUser();
 	
@@ -53,13 +59,14 @@ public interface RolesManager {
 	/**
 	 * creates or updates task instance scope permissions for role.
 	 * @param role - role object, containing role name, and accesses to set
+	 * @param processInstanceId
 	 * @param taskInstanceId
 	 * @param setSameForAttachments - set the same access rights for binary variables of the task instance 
 	 * @param variableName - if provided, set rights for variable for that task instance. This is usually used for task attachments.
 	 */
-	public abstract void setTaskRolePermissionsTIScope(Role role, Long taskInstanceId, boolean setSameForAttachments, String variableName);
+	public abstract void setTaskRolePermissionsTIScope(Role role, Long processInstanceId, Long taskInstanceId, boolean setSameForAttachments, String variableName);
 	
-	public abstract List<Role> getRolesPermissionsForTaskInstance(Long taskInstanceId, String variableName);
+	public abstract List<Role> getRolesPermissionsForTaskInstance(Long processInstanceId, Long taskInstanceId, String variableName);
 	
 	public abstract List<Long> getProcessInstancesIdsForUser(IWContext iwc, User user, boolean checkIfSuperAdmin);
 	

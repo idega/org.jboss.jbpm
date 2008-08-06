@@ -56,9 +56,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.43 $
+ * @version $Revision: 1.44 $
  * 
- * Last modified: $Date: 2008/08/05 07:19:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/06 10:48:11 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -733,17 +733,64 @@ public class RolesManagerImpl implements RolesManager {
 		return ListUtil.isEmpty(processInstancesIds) ? null : processInstancesIds;
 	}
 	
-	public List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long taskInstanceId) {
+	public List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long processInstanceId, Long taskInstanceId, String processRoleName) {
 		
 		JbpmContext jctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
-			long processInstanceId = jctx.getTaskInstance(taskInstanceId).getProcessInstance().getId();
+			Long taskInstanceProcessInstanceId = jctx.getTaskInstance(taskInstanceId).getProcessInstance().getId();
 			
-			final List<ProcessRole> proles = 
-				getBpmDAO().getResultList(ProcessRole.getSetByPIId, ProcessRole.class,
-						new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
-				);
+			List<ProcessRole> proles;
+			
+			if(processInstanceId == null || processInstanceId.equals(taskInstanceProcessInstanceId)) {
+				
+				if(processRoleName == null) {
+				
+					proles = 
+						getBpmDAO().getResultList(ProcessRole.getSetByPIId, ProcessRole.class,
+								new Param(ProcessRole.processInstanceIdProperty, taskInstanceProcessInstanceId)
+						);
+				} else {
+
+					proles = getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
+							new Param(ProcessRole.processInstanceIdProperty, taskInstanceProcessInstanceId),
+							new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {processRoleName}))
+					);
+				}
+				
+			} else {
+				
+				if(processRoleName == null) {
+					
+					proles = getBpmDAO().getResultList(ProcessRole.getSetByPIIds, ProcessRole.class,
+							new Param(ProcessRole.processInstanceIdProperty, Arrays.asList(new Long[] {taskInstanceProcessInstanceId, processInstanceId}))
+					);
+					
+				} else {
+					
+					proles = getBpmDAO().getResultList(ProcessRole.getSetByPIIdsAndRoleNames, ProcessRole.class,
+							new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {processRoleName})),
+							new Param(ProcessRole.processInstanceIdProperty, Arrays.asList(new Long[] {taskInstanceProcessInstanceId, processInstanceId}))
+					);
+				}
+				
+				if(proles != null) {
+					
+					HashMap<String, ProcessRole> prolesMap = new HashMap<String, ProcessRole>(proles.size());
+				
+					for (ProcessRole prole : proles) {
+
+//						checking, if role is with taskinstance processinstanceid - that's the preferred. keeping only one prole for role name
+						if(taskInstanceProcessInstanceId.equals(prole.getProcessInstanceId()) || !prolesMap.containsKey(prole.getProcessRoleName())) {
+						
+							prolesMap.put(prole.getProcessRoleName(), prole);
+						}
+					}
+					
+					proles = new ArrayList<ProcessRole>(prolesMap.values());
+				}
+			}
+			
 			
 			return proles;
 		} finally {
@@ -759,7 +806,7 @@ public class RolesManagerImpl implements RolesManager {
 	 * @param variableIdentifier - if provided, set rights for variable for that task instance. This is usually used for task attachments.
 	 */
 	@Transactional(readOnly = false)
-	public void setTaskRolePermissionsTIScope(Role role, Long taskInstanceId, boolean setSameForAttachments, String variableIdentifier) {
+	public void setTaskRolePermissionsTIScope(Role role, Long processInstanceId, Long taskInstanceId, boolean setSameForAttachments, String variableIdentifier) {
 	
 //		TODO: check permissions if rights can be changed
 		String roleName = role.getRoleName();
@@ -773,10 +820,7 @@ public class RolesManagerImpl implements RolesManager {
 				TaskInstance ti = jctx.getTaskInstance(taskInstanceId);
 				long piId = ti.getProcessInstance().getId();
 			
-				final List<ProcessRole> proles = getBpmDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
-						new Param(ProcessRole.processInstanceIdProperty, piId),
-						new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {roleName}))
-				);
+				final List<ProcessRole> proles = getProcessRolesForProcessInstanceByTaskInstance(processInstanceId, taskInstanceId, roleName);
 				
 				if(proles != null && !proles.isEmpty()) {
 					
@@ -924,7 +968,7 @@ public class RolesManagerImpl implements RolesManager {
 			logger.log(Level.WARNING, "-RolesManagerImpl.setTaskRolePermissionsTIScope- Insufficient info provided");
 	}
 	
-	public List<Role> getRolesPermissionsForTaskInstance(Long taskInstanceId, String variableIdentifier) {
+	public List<Role> getRolesPermissionsForTaskInstance(Long processInstanceId, Long taskInstanceId, String variableIdentifier) {
 		
 //		TODO: check permissions if rights can be seen
 		if(taskInstanceId == null)
@@ -935,7 +979,7 @@ public class RolesManagerImpl implements RolesManager {
 		try {
 			Long taskId = jctx.getTaskInstance(taskInstanceId).getTask().getId();
 			
-			List<ProcessRole> proles = getProcessRolesForProcessInstanceByTaskInstance(taskInstanceId);
+			List<ProcessRole> proles = getProcessRolesForProcessInstanceByTaskInstance(processInstanceId, taskInstanceId, null);
 			
 			ArrayList<Role> roles = new ArrayList<Role>(proles.size());
 			

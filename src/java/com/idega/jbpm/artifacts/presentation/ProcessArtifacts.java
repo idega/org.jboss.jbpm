@@ -78,9 +78,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.56 $
+ * @version $Revision: 1.57 $
  *
- * Last modified: $Date: 2008/08/06 09:39:41 $ by $Author: arunas $
+ * Last modified: $Date: 2008/08/06 10:46:49 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -845,9 +845,9 @@ public class ProcessArtifacts {
 		return true;
 	}
 
-	public String setAccessRightsForProcessResource(String roleName, Long taskInstanceId, String fileHashValue, boolean hasReadAccess, boolean setSameRightsForAttachments) {
+	public String setAccessRightsForProcessResource(String roleName, Long processInstanceId, Long taskInstanceId, String fileHashValue, boolean hasReadAccess, boolean setSameRightsForAttachments) {
 		
-	    	IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+    	IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 	    
@@ -857,7 +857,7 @@ public class ProcessArtifacts {
 		}
 		getBpmFactory().getRolesManager().setTaskRolePermissionsTIScope(
 				new Role(roleName, hasReadAccess ? Access.read : null),
-				taskInstanceId, setSameRightsForAttachments, fileHashValue
+				processInstanceId, taskInstanceId, setSameRightsForAttachments, fileHashValue
 		);
 		
 		return iwrb.getLocalizedString("attachments_permissions_successfully_updated", "Attachments permissions successfully updated.");
@@ -880,8 +880,8 @@ public class ProcessArtifacts {
 			return null;
 		}
 		Layer container = new Layer();
-
-		List<Role> roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(taskInstanceId, CoreConstants.EMPTY.equals(fileHashValue) ? null : fileHashValue);
+		
+		List<Role> roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(processInstanceId, taskInstanceId, CoreConstants.EMPTY.equals(fileHashValue) ? null : fileHashValue);
 		
 		List<String[]> accessParamsList = new ArrayList<String[]>();
 		
@@ -1102,7 +1102,7 @@ public class ProcessArtifacts {
 
 		if(hasCaseHandlerRights(processInstanceId)) {
 			
-			Integer handlerId = handlerIdStr == null ? null : new Integer(handlerIdStr);
+			Integer handlerId = handlerIdStr == null || CoreConstants.EMPTY.equals(handlerIdStr) ? null : new Integer(handlerIdStr);
 			
 			getBpmFactory()
 			.getProcessManagerByProcessInstanceId(processInstanceId)
