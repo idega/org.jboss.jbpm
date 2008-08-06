@@ -5,6 +5,7 @@ import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -46,9 +47,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.33 $
+ * @version $Revision: 1.34 $
  *
- * Last modified: $Date: 2008/08/05 07:22:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/06 10:48:53 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -310,97 +311,107 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		return false;
 	}
 	
+//	TODO: make this more effective, as it was changed in a rush
 	protected void checkPermissionsForTaskInstance(int userId, TaskInstance taskInstance, Collection<Access> accesses, String variableIdentifier) throws AccessControlException {
 		
-		long processInstanceId = taskInstance.getProcessInstance().getId();
-		
-		List<ProcessRole> roles = 
-			getBpmBindsDAO().getResultList(ProcessRole.getSetByPIId, ProcessRole.class,
-					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
-			);
-		
-		boolean checkWriteAccess = accesses.contains(Access.write);
-		boolean checkReadAccess = accesses.contains(Access.read);
-		
-		IWApplicationContext iwac = getIWMA().getIWApplicationContext();
-//		
 		Long taskId = taskInstance.getTask().getId();
 		Long taskInstanceId = taskInstance.getId();
 		
-		AccessController ac = getAccessController();
+		final List<ActorPermissions> allPerms = getBpmBindsDAO().getResultList(ActorPermissions.getSetByTaskIdOrTaskInstanceId, ActorPermissions.class,
+				new Param(ActorPermissions.taskIdProperty, taskId),
+				new Param(ActorPermissions.taskInstanceIdProperty, taskInstanceId)
+		);
 		
-		for (ProcessRole processRole : roles) {
+		if(allPerms != null) {
 			
-			List<ActorPermissions> perms = processRole.getActorPermissions();
+			boolean checkWriteAccess = accesses.contains(Access.write);
+			boolean checkReadAccess = accesses.contains(Access.read);
 			
-			if(perms != null) {
+			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+			
+			AccessController ac = getAccessController();
+			
+			HashSet<ProcessRole> roles = new HashSet<ProcessRole>(allPerms.size()+10);
+			
+			for (ActorPermissions perm : allPerms) {
 				
-				Boolean hasTaskInstanceScopeAccess = null;
-				Boolean hasTaskInstanceScopeANDVarAccess = null;
-				Boolean hasTaskScopeAccess = null;
-				Boolean hasTaskScopeANDVarAccess = null;
+				if(perm.getProcessRoles() != null)
+					roles.addAll(perm.getProcessRoles());
+			}
+			
+			for (ProcessRole processRole : roles) {
 				
-				for (ActorPermissions perm : perms) {
+				List<ActorPermissions> perms = processRole.getActorPermissions();
+				
+				if(perms != null) {
 					
-					if(taskInstanceId.equals(perm.getTaskInstanceId())) {
+					Boolean hasTaskInstanceScopeAccess = null;
+					Boolean hasTaskInstanceScopeANDVarAccess = null;
+					Boolean hasTaskScopeAccess = null;
+					Boolean hasTaskScopeANDVarAccess = null;
+					
+					for (ActorPermissions perm : perms) {
+						
+						if(taskInstanceId.equals(perm.getTaskInstanceId())) {
 
-						if(variableIdentifier != null) {
+							if(variableIdentifier != null) {
 
-							if(variableIdentifier.equals(perm.getVariableIdentifier())) {
-								
-								hasTaskInstanceScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
-																&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
-								break;
+								if(variableIdentifier.equals(perm.getVariableIdentifier())) {
+									
+									hasTaskInstanceScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+																	&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+									break;
+								}
 							}
-						}
-						
-						if(perm.getVariableIdentifier() == null) {
 							
-							hasTaskInstanceScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
-														&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
-							
-							if(variableIdentifier == null)
-								break;
-						}
-						
-					} else if(taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null) {
-						
-						if(variableIdentifier != null) {
-
-							if(variableIdentifier.equals(perm.getVariableIdentifier())) {
+							if(perm.getVariableIdentifier() == null) {
 								
-								hasTaskScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
-																&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+								hasTaskInstanceScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+															&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+								
+								if(variableIdentifier == null)
+									break;
 							}
-						}
-						
-						if(perm.getVariableIdentifier() == null) {
 							
-							hasTaskScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
-														&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+						} else if(taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null) {
+							
+							if(variableIdentifier != null) {
+
+								if(variableIdentifier.equals(perm.getVariableIdentifier())) {
+									
+									hasTaskScopeANDVarAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+																	&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+								}
+							}
+							
+							if(perm.getVariableIdentifier() == null) {
+								
+								hasTaskScopeAccess = (!checkReadAccess || (perm.getReadPermission() != null && perm.getReadPermission()))
+															&& (!checkWriteAccess || (perm.getWritePermission() != null && perm.getWritePermission()));
+							}
 						}
 					}
-				}
 
-				if(
-						(variableIdentifier != null && (
-									(hasTaskInstanceScopeANDVarAccess != null && hasTaskInstanceScopeANDVarAccess) ||
-									(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
-									(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess != null && hasTaskScopeANDVarAccess) ||
-									(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
+					if(
+							(variableIdentifier != null && (
+										(hasTaskInstanceScopeANDVarAccess != null && hasTaskInstanceScopeANDVarAccess) ||
+										(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
+										(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess != null && hasTaskScopeANDVarAccess) ||
+										(hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
+									)
+							) ||
+							(variableIdentifier == null && (
+									(hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
+									(hasTaskInstanceScopeAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
 								)
-						) ||
-						(variableIdentifier == null && (
-								(hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) ||
-								(hasTaskInstanceScopeAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)
 							)
-						)
-				) {
-					
-					List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
-					
-					if(checkFallsInRole(processRole.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
-						return;
+					) {
+						
+						List<NativeIdentityBind> nativeIdentities = processRole.getNativeIdentities();
+						
+						if(checkFallsInRole(processRole.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
+							return;
+					}
 				}
 			}
 		}
