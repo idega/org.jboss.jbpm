@@ -31,9 +31,9 @@ import javax.persistence.Table;
  * If there are no permissions for actor with process instance id != null, then the permissions for process name are taken (i.e. the permissions are specified for process definition scope). 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/08/05 07:16:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/06 10:47:22 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_PROCESS_ROLES")
@@ -45,6 +45,9 @@ import javax.persistence.Table;
 			@NamedQuery(name=ProcessRole.getAllByActorIds, query="from ProcessRole b where b."+ProcessRole.actorIdProperty+" in(:"+ProcessRole.actorIdProperty+")"),
 			@NamedQuery(name=ProcessRole.getAllProcessInstancesIds, query="select pr."+ProcessRole.processInstanceIdProperty+" from ProcessRole pr"),
 			@NamedQuery(name=ProcessRole.getSetByPIId, query="from ProcessRole b where b."+ProcessRole.processInstanceIdProperty+" = :"+ProcessRole.processInstanceIdProperty),
+			@NamedQuery(name=ProcessRole.getSetByPIIds, query="from ProcessRole pr where pr."+ProcessRole.processInstanceIdProperty+" in(:"+ProcessRole.processInstanceIdProperty+")"),
+			@NamedQuery(name=ProcessRole.getSetByPIIdsAndRoleNames, query="from ProcessRole pr where pr."+ProcessRole.processInstanceIdProperty+" in(:"+ProcessRole.processInstanceIdProperty+") and pr."+ProcessRole.processRoleNameProperty+" in (:"+ProcessRole.processRoleNameProperty+")"),
+			
 			
 //			TODO verify that works with different databases (true thingy)
 			@NamedQuery(name=ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, query=
@@ -113,6 +116,8 @@ public class ProcessRole implements Serializable {
 	public static final String getAllGeneral = "ProcessRole.getAllGeneral";
 	public static final String getSetByPIId = "ProcessRole.getSetByPIId";
 	public static final String getSetByRoleNamesAndPIId = "ProcessRole.getSetByRoleNamesAndPIId";
+	public static final String getSetByPIIds = "ProcessRole.getSetByPIIds";
+	public static final String getSetByPIIdsAndRoleNames = "ProcessRole.getSetByPIIdsAndRoleNames";
 //	public static final String getAllByRoleNamesAndPIIdIsNull = "ProcessRole.getAllByRoleNamesAndPIIdIsNull";
 	///public static final String getSetByRoleNamesAndProcessNameAndPIIdIsNull = "ProcessRole.getSetByRoleNamesAndProcessNameAndPIIdIsNull";
 	public static final String getProcessInstanceIdsByUserIdentity = "ProcessRole.getProcessInstanceIdsByUserIdentity";
