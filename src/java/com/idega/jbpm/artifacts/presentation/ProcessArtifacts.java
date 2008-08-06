@@ -78,9 +78,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.55 $
+ * @version $Revision: 1.56 $
  *
- * Last modified: $Date: 2008/08/05 07:15:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/06 09:39:41 $ by $Author: arunas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -927,13 +927,12 @@ public class ProcessArtifacts {
 				TableRow bodyRow = bodyRowGroup.createRow();
 				TableCell2 cell = bodyRow.createCell();
 				cell.add(new Text(iwrb.getLocalizedString(roleName, roleName)));
-				
 				GenericButton sameRigthsSetter = null;
 				if (setSameRightsForAttachments) {
 					sameRigthsSetter = new GenericButton();
 					Image setRightImage = new Image(bundle.getVirtualPathWithFileNameString("images/same_rights_button.png"));
 					setRightImage.setToolTip(iwrb.getLocalizedString("set_same_access_to_attachments_for_this_role", "Set same access to attachments for this role"));
-					setRightImage.setStyleAttribute("cursor : pointer;");
+					setRightImage.setStyleClass("setSameAccessRightsStyle");
 					sameRigthsSetter.setButtonImage(setRightImage);	
 				}
 				
@@ -958,6 +957,7 @@ public class ProcessArtifacts {
 				StringBuilder actionForCheckbox = new StringBuilder(action);
 				box.setOnClick(actionForCheckbox.append("null").append(");").toString());
 				cell = bodyRow.createCell();
+				cell.setStyleClass("alignCenterText");
 				cell.add(box);
 				
 				if (setSameRightsForAttachments) {
@@ -967,7 +967,8 @@ public class ProcessArtifacts {
 					
 					cell = bodyRow.createCell();
 					StringBuilder actionForButton = new StringBuilder(action);
-					sameRigthsSetter.setOnClick(actionForButton.append("'").append(sameRigthsSetter.getId()).append("'").append(");").toString());		
+					sameRigthsSetter.setOnClick(actionForButton.append("'").append(sameRigthsSetter.getId()).append("'").append(");").toString());
+					cell.setStyleClass("alignCenterText");
 					cell.add(sameRigthsSetter);
 				}	
 			}
@@ -982,7 +983,7 @@ public class ProcessArtifacts {
 			    GenericButton saveAllRightsButton = new GenericButton();
 			    Image saveRigtsImage = new Image(bundle.getVirtualPathWithFileNameString("images/save_rights_button.png"));
 			    saveRigtsImage.setToolTip(iwrb.getLocalizedString("set_same_access_to_attachments_for_all_roles", "Set same access to attachments for all roles"));
-			    saveRigtsImage.setStyleAttribute("cursor : pointer;");
+			    saveRigtsImage.setStyleClass("setSameAccessRightsStyle");
 			    saveAllRightsButton.setButtonImage(saveRigtsImage);
 							
 			    StringBuilder paramsArray = new StringBuilder("[ ");
@@ -999,10 +1000,11 @@ public class ProcessArtifacts {
 			    paramsArray.append("]");
 		
 			    saveAllRightsButton.setOnClick("for each (params in "+ paramsArray.toString() +") {CasesBPMAssets.setAccessRightsForBpmRelatedResource(params[0] ,params[1] ,params[2] ,params[3] ,params[4]); }" );
-			  
+			    
 			    cell = bodyRow.createCell();
 			    cell.empty();
 			    cell = bodyRow.createCell();
+			    cell.setStyleClass("alignCenterText");
 			    cell.add(saveAllRightsButton);
 			    
 				
