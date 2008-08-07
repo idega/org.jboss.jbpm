@@ -14,9 +14,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/04/26 02:48:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/07 09:33:06 $ by $Author: civilis $
  */
 public class AssignAccountToParticipantHandler implements ActionHandler {
 
@@ -28,10 +28,10 @@ public class AssignAccountToParticipantHandler implements ActionHandler {
 	
 	public AssignAccountToParticipantHandler(String parm) { }
 
-	public void execute(ExecutionContext ctx) throws Exception {
+	public void execute(ExecutionContext ectx) throws Exception {
 
-		Integer userId = (Integer)ctx.getVariable(participantUserIdVarName);
-		String roleName = (String)ctx.getVariable(participantRoleNameVarName);
+		Integer userId = (Integer)ectx.getVariable(participantUserIdVarName);
+		String roleName = (String)ectx.getVariable(participantRoleNameVarName);
 		
 		if(userId == null || roleName == null) {
 			throw new IllegalArgumentException("Either is not provided - userId: "+userId+", roleName: "+roleName);
@@ -44,7 +44,7 @@ public class AssignAccountToParticipantHandler implements ActionHandler {
 		ArrayList<Role> rolz = new ArrayList<Role>(1);
 		rolz.add(role);
 		
-		ProcessInstance parentPI = ctx.getProcessInstance().getSuperProcessToken().getProcessInstance();
+		ProcessInstance parentPI = ectx.getProcessInstance().getSuperProcessToken().getProcessInstance();
 		long parentProcessInstanceId = parentPI.getId();
 		
 		getRolesManager().createProcessRoles(parentPI.getProcessDefinition().getName(), rolz, parentProcessInstanceId);
