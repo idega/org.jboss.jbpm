@@ -17,9 +17,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/05/16 18:18:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/08 16:16:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -27,7 +27,6 @@ public class MessageValueHandler {
 
 	private Map<String, MessageValueResolver> resolvers;
 	private static final String messageValueObj = "mv";
-	private static final String beanTokenIdentifier = "bean:token";
 
 	@Autowired(required = false)
 	public void setValueResolvers(List<MessageValueResolver> resolvers) {
@@ -68,9 +67,9 @@ public class MessageValueHandler {
 	
 	protected MessageValueContext updateContext(Token tkn, MessageValueContext mvCtx) {
 		
-		if(!mvCtx.containsKey(beanTokenIdentifier)) {
+		if(!mvCtx.contains(MessageValueContext.tokenBean)) {
 
-			mvCtx.put(beanTokenIdentifier, tkn);
+			mvCtx.setValue(MessageValueContext.tokenBean, tkn);
 		}
 		
 		return mvCtx;

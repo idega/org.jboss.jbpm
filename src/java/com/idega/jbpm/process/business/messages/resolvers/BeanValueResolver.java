@@ -1,6 +1,5 @@
 package com.idega.jbpm.process.business.messages.resolvers;
 
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,29 +14,22 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/05/16 18:18:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/08 16:16:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
 public class BeanValueResolver implements MessageValueResolver {
 	
-	private static final String beanKeyStart = "bean:";
+	private static final String beanType = "bean";
 	
 	public String getResolverType() {
-		return "bean";
-	}
-
-	public String getValue(String key) {
-		
-		Logger.getLogger(getClass().getName()).log(Level.WARNING, "getValue(String key) called for BeanValueResolver. getValue(String key, Object context) should be used instead");
-		return null;
+		return beanType;
 	}
 
 	public String getValue(String key, MessageValueContext mvCtx) {
 		
-		//bean:user
 		String beanName;
 		
 		boolean beanOnly = false;
@@ -54,26 +46,18 @@ public class BeanValueResolver implements MessageValueResolver {
 			beanOnly = true;
 		}
 	
-		String shouldStart = beanKeyStart+beanName;
+		Object mvVal = mvCtx.getValue(beanType, beanName);
 		
-		for (Entry<String, Object> entry : mvCtx.entrySet()) {
-			
-			String entryKey = entry.getKey();
-			
-			if(entryKey.startsWith(shouldStart)) {
+		if(beanOnly)
+			return mvVal.toString();
+		else {
+
+			try {
+				String val = BeanUtils.getProperty(mvVal, key);
+				return val;
 				
-				if(beanOnly)
-					return entry.getValue().toString();
-				else {
-		
-					try {
-						String val = BeanUtils.getProperty(entry.getValue(), key);
-						return val;
-						
-					} catch (Exception e) {
-						Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving property from object: "+entry.getValue()+", property: "+key, e);
-					}
-				}
+			} catch (Exception e) {
+				Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving property from object: "+mvVal+", property: "+key, e);
 			}
 		}
 		
