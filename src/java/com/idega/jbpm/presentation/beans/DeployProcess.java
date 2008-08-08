@@ -23,9 +23,9 @@ import com.idega.presentation.IWContext;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/07/19 20:41:37 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/08 16:16:18 $ by $Author: civilis $
  *
  */
 @Scope("request")
@@ -59,7 +59,6 @@ public class DeployProcess {
 				
 				ProcessBundle pb = getProcessBundleFactory().createProcessBundle(resources);
 				getProcessBundleManager().createBundle(pb, iwma);
-				System.out.println("__deployed");
 
 			} catch (IOException e) {
 				
