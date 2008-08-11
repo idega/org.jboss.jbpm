@@ -9,9 +9,9 @@ import org.jbpm.graph.exe.Token;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/08/05 07:17:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/11 13:31:17 $ by $Author: civilis $
  */
 public interface ProcessInstanceW {
 	
@@ -35,4 +35,10 @@ public interface ProcessInstanceW {
 	public abstract void assignHandler(Integer handlerUserId);
 	
 	public abstract ProcessWatch getProcessWatcher();
+	
+	/**
+	 * 
+	 * @return if the process can be assigned to the case handler
+	 */
+	public abstract boolean hasHandlerAssignmentSupport();
 }
