@@ -39,6 +39,7 @@ import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.ProcessWatch;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.TaskInstanceW;
@@ -78,9 +79,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.57 $
+ * @version $Revision: 1.58 $
  *
- * Last modified: $Date: 2008/08/06 10:46:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/11 13:32:50 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -1117,40 +1118,44 @@ public class ProcessArtifacts {
 	
 	public List<AdvancedProperty> getAllHandlerUsers(Long processInstanceId) {
 		
-		if(hasCaseHandlerRights(processInstanceId)) {
-		
-			RolesManager rolesManager = getBpmFactory().getRolesManager();
+		if(processInstanceId != null) {
 			
-			List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.caseHandler);
-			Collection<User> users = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
-			
-			Integer assignedCaseHandlerId = getBpmFactory()
+			ProcessInstanceW piw = getBpmFactory()
 			.getProcessManagerByProcessInstanceId(processInstanceId)
-			.getProcessInstance(processInstanceId)
-			.getHandlerId();
+			.getProcessInstance(processInstanceId);
 			
-			String assignedCaseHandlerIdStr = assignedCaseHandlerId == null ? null : String.valueOf(assignedCaseHandlerId);
+			if(hasCaseHandlerRights(processInstanceId) && piw.hasHandlerAssignmentSupport()) {
 			
-			ArrayList<AdvancedProperty> allHandlers = new ArrayList<AdvancedProperty>(1);
-			
-			AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, "Assign handler to this case");
-			allHandlers.add(ap);
-			
-			for (User user : users) {
-			
-				String pk = String.valueOf(user.getPrimaryKey());
+				RolesManager rolesManager = getBpmFactory().getRolesManager();
 				
-				ap = new AdvancedProperty(pk, user.getName());
+				List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.caseHandler);
+				Collection<User> users = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
 				
-				if(pk.equals(assignedCaseHandlerIdStr)) {
+				Integer assignedCaseHandlerId = piw.getHandlerId();
+				
+				String assignedCaseHandlerIdStr = assignedCaseHandlerId == null ? null : String.valueOf(assignedCaseHandlerId);
+				
+				ArrayList<AdvancedProperty> allHandlers = new ArrayList<AdvancedProperty>(1);
+				
+				AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, "Assign handler to this case");
+				allHandlers.add(ap);
+				
+				for (User user : users) {
+				
+					String pk = String.valueOf(user.getPrimaryKey());
 					
-					ap.setSelected(true);
+					ap = new AdvancedProperty(pk, user.getName());
+					
+					if(pk.equals(assignedCaseHandlerIdStr)) {
+						
+						ap.setSelected(true);
+					}
+					
+					allHandlers.add(ap);
 				}
 				
-				allHandlers.add(ap);
+				return allHandlers;
 			}
-			
-			return allHandlers;
 		}
 		
 		return null;
