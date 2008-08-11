@@ -25,3 +25,4 @@ _cases_bpm.process_resource_name_owneractiontaken=Svar vegna eftirfylgnifyrirspu
 _cases_bpm.process_resource_name_completeprocess=Loka m\u00E1li
 cases_bpm.can_not_fulfill_action=Sorry, error occurred - can not fulfill your action
 no_tasks_available_currently=Engin a\u00f0ger\u00f0 b\u00ed\u00f0ur \u00fe\u00edn eins og er
+bpm.caseHandler=Umsj\u00F3narma\u00F0ur
