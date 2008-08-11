@@ -79,9 +79,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.58 $
+ * @version $Revision: 1.59 $
  *
- * Last modified: $Date: 2008/08/11 13:32:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/11 13:58:10 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -1137,7 +1137,11 @@ public class ProcessArtifacts {
 				
 				ArrayList<AdvancedProperty> allHandlers = new ArrayList<AdvancedProperty>(1);
 				
-				AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, "Assign handler to this case");
+				IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+				IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+				IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
+				
+				AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, iwrb.getLocalizedString("bpm.caseHandler", "Case handler"));
 				allHandlers.add(ap);
 				
 				for (User user : users) {
