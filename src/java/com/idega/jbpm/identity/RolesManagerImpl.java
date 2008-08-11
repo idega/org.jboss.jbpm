@@ -56,9 +56,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.44 $
+ * @version $Revision: 1.45 $
  * 
- * Last modified: $Date: 2008/08/06 10:48:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/11 13:33:10 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -74,6 +74,18 @@ public class RolesManagerImpl implements RolesManager {
 
 	@Transactional(readOnly=false)
 	public void createIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId) {
+		
+		modifyIdentitiesForRoles(roles, identityId, identityType, processInstanceId, false);
+	}
+	
+	@Transactional(readOnly=false)
+	public void removeIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId) {
+		
+		modifyIdentitiesForRoles(roles, identityId, identityType, processInstanceId, true);
+	}
+	
+	@Transactional(readOnly=false)
+	void modifyIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId, boolean remove) {
 		
 		if(roles.isEmpty())
 			return;
@@ -100,22 +112,29 @@ public class RolesManagerImpl implements RolesManager {
 				
 				boolean contains = false;
 				
-				for (NativeIdentityBind nativeIdentityBind : identities) {
-					
+				for (Iterator<NativeIdentityBind> iterator = identities.iterator(); iterator.hasNext();) {
+					NativeIdentityBind nativeIdentityBind = iterator.next();
+				
 					if(identityType == nativeIdentityBind.getIdentityType() && identityId.equals(nativeIdentityBind.getIdentityId())) {
+						
+						if(remove) {
+							getBpmDAO().remove(nativeIdentityBind);
+							iterator.remove();
+						}
+						
 						contains = true;
 						break;
 					}
 				}
 				
-				if(contains)
-					continue;
+				if(!remove && !contains) {
 				
-				NativeIdentityBind nidentity = new NativeIdentityBind();
-				nidentity.setIdentityId(identityId);
-				nidentity.setIdentityType(identityType);
-				nidentity.setProcessRole(getBpmDAO().merge(role));
-				getBpmDAO().persist(nidentity);
+					NativeIdentityBind nidentity = new NativeIdentityBind();
+					nidentity.setIdentityId(identityId);
+					nidentity.setIdentityType(identityType);
+					nidentity.setProcessRole(getBpmDAO().merge(role));
+					getBpmDAO().persist(nidentity);
+				}
 			}
 		}
 	}
@@ -466,10 +485,10 @@ public class RolesManagerImpl implements RolesManager {
 					ActorPermissions perm = new ActorPermissions();
 					perm.setTaskId(null);
 					perm.setRoleName(role.getRoleName());
-					perm.setReadPermission(role.getAccesses().contains(Access.read));
-					perm.setWritePermission(role.getAccesses().contains(Access.write));
-					perm.setModifyRightsPermission(role.getAccesses().contains(Access.modifyPermissions));
-					perm.setCaseHandlerPermission(role.getAccesses().contains(Access.caseHandler));
+					perm.setReadPermission(role.getAccesses() != null && role.getAccesses().contains(Access.read));
+					perm.setWritePermission(role.getAccesses() != null && role.getAccesses().contains(Access.write));
+					perm.setModifyRightsPermission(role.getAccesses() != null && role.getAccesses().contains(Access.modifyPermissions));
+					perm.setCaseHandlerPermission(role.getAccesses() != null && role.getAccesses().contains(Access.caseHandler));
 					
 					getBpmDAO().persist(perm);
 					
@@ -534,10 +553,10 @@ public class RolesManagerImpl implements RolesManager {
 							ActorPermissions perm = new ActorPermissions();
 							perm.setTaskId(null);
 							perm.setRoleName(role.getRoleName());
-							perm.setReadPermission(role.getAccesses().contains(Access.read));
-							perm.setWritePermission(role.getAccesses().contains(Access.write));
-							perm.setModifyRightsPermission(role.getAccesses().contains(Access.modifyPermissions));
-							perm.setCaseHandlerPermission(role.getAccesses().contains(Access.caseHandler));
+							perm.setReadPermission(role.getAccesses() != null && role.getAccesses().contains(Access.read));
+							perm.setWritePermission(role.getAccesses() != null && role.getAccesses().contains(Access.write));
+							perm.setModifyRightsPermission(role.getAccesses() != null && role.getAccesses().contains(Access.modifyPermissions));
+							perm.setCaseHandlerPermission(role.getAccesses() != null && role.getAccesses().contains(Access.caseHandler));
 							perm.setCanSeeContactsOfRoleName(roleContact);
 							
 							getBpmDAO().persist(perm);

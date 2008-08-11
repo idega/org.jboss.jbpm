@@ -16,13 +16,15 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  * 
- * Last modified: $Date: 2008/08/06 10:48:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/11 13:33:10 $ by $Author: civilis $
  */
 public interface RolesManager {
 
 	public abstract void createIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId);
+	
+	public abstract void removeIdentitiesForRoles(Collection<Role> roles, String identityId, IdentityType identityType, long processInstanceId);
 	
 	public abstract void hasRightsToStartTask(long taskInstanceId, int userId) throws BPMAccessControlException;
 	
