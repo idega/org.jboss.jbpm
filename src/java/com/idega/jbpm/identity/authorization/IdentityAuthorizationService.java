@@ -1,19 +1,17 @@
 package com.idega.jbpm.identity.authorization;
 
-import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
 
 import org.jbpm.security.AuthenticationService;
 import org.jbpm.security.AuthorizationService;
-import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -23,33 +21,19 @@ import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.AccessController;
-import com.idega.core.persistence.Param;
-import com.idega.data.IDORuntimeException;
-import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.data.ActorPermissions;
-import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRole;
-import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.jbpm.identity.permission.Access;
-import com.idega.jbpm.identity.permission.BPMGenericAccessPermission;
-import com.idega.jbpm.identity.permission.BPMRightsMgmtPermission;
-import com.idega.jbpm.identity.permission.BPMRoleAccessPermission;
-import com.idega.jbpm.identity.permission.BPMTaskAccessPermission;
-import com.idega.jbpm.identity.permission.BPMTaskVariableAccessPermission;
-import com.idega.presentation.IWContext;
+import com.idega.jbpm.identity.permission.BPMTypedHandler;
+import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.user.business.UserBusiness;
-import com.idega.user.data.Group;
-import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.34 $
+ * @version $Revision: 1.35 $
  *
- * Last modified: $Date: 2008/08/06 10:48:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -60,7 +44,9 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	
 	private AuthenticationService authenticationService;
 	private BPMDAO bpmBindsDAO;
+	private Map<String, BPMTypedHandler> handlers;
 	
+	/*
 	protected void checkTaskAccessPermission(FacesContext fctx, BPMTaskAccessPermission permission) throws AccessControlException {
 		
 		String loggedInActorId = getAuthenticationService().getActorId();
@@ -98,7 +84,8 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			}
 		}
 	}
-	
+	*/
+	/*
 	protected void checkGenericAccessPermission(FacesContext fctx, BPMGenericAccessPermission permission) throws AccessControlException {
 		
 		String loggedInActorId = getAuthenticationService().getActorId();
@@ -129,7 +116,9 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		
 		throw new AccessControlException("No "+permission.getAccess()+" access for user="+loggedInActorId);
 	}
+	*/
 	
+	/*
 	protected void checkRoleAccessPermission(FacesContext fctx, BPMRoleAccessPermission permission) throws AccessControlException {
 		
 		String loggedInActorId = getAuthenticationService().getActorId();
@@ -204,7 +193,8 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			throw new AccessControlException("No role access for user="+loggedInActorId+", for processInstanceId="+processInstanceId+", for role="+roleName);
 		}
 	}
-	
+	*/
+	/*
 	protected void checkRightsMgmtPermission(FacesContext fctx, BPMRightsMgmtPermission permission) throws AccessControlException {
 		
 		String loggedInActorId = getAuthenticationService().getActorId();
@@ -250,6 +240,33 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			throw new AccessControlException("No rights management permission for user="+loggedInActorId+", for processInstanceId="+processInstanceId);
 		}
 	}
+	*/
+
+	@Autowired
+	public void setHandlers(List<BPMTypedHandler> handlers) {
+		
+		if(handlers != null) {
+			
+//			double size here, as some handlers might support more than one permission type
+			this.handlers = new HashMap<String, BPMTypedHandler>(handlers.size()*2);
+			
+			for (BPMTypedHandler handler : handlers) {
+				
+				String[] handledTypes = handler.getHandledTypes();
+				
+				if(handledTypes != null) {
+					
+					for (String handledType : handledTypes) {
+						
+						if(handledType != null && !CoreConstants.EMPTY.equals(handledType))
+							this.handlers.put(handledType, handler);
+					}
+					
+				} else
+					Logger.getLogger(getClass().getName()).log(Level.WARNING, "Typed permissions handler registered, but no supported permissions types returned. Handler class="+handler.getClass().getName());
+			}
+		}
+	}
 
 	public void checkPermission(Permission perm) throws AccessControlException {
 		
@@ -259,19 +276,37 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		if(fctx == null)
 			return;
 		
-//		TODO: see permissionsfactory javadoc
-		if((perm instanceof BPMTaskAccessPermission)) {
-			checkTaskAccessPermission(fctx, (BPMTaskAccessPermission)perm);
-		} else if((perm instanceof BPMRightsMgmtPermission)) {
-			checkRightsMgmtPermission(fctx, (BPMRightsMgmtPermission)perm);
-		} else if((perm instanceof BPMRoleAccessPermission)) {
-			checkRoleAccessPermission(fctx, (BPMRoleAccessPermission)perm);
-		} else if((perm instanceof BPMGenericAccessPermission)) {
-			checkGenericAccessPermission(fctx, (BPMGenericAccessPermission)perm);
+		if((perm instanceof BPMTypedPermission)) {
+			
+			BPMTypedHandler handler = getHandlers().get(((BPMTypedPermission)perm).getType());
+			
+			if(handler != null) {
+				
+				handler.handle(perm);
+				
+			} else {
+				throw new AccessControlException("No handler resolved for the permission type="+((BPMTypedPermission)perm).getType());
+			}
+			
 		} else 
 			throw new IllegalArgumentException("Only permissions implementing cool interfaces are supported");
+		
+//		TODO: see permissionsfactory javadoc
+		/*
+		if((perm instanceof BPMTaskAccessPermission)) {
+			//checkTaskAccessPermission(fctx, (BPMTaskAccessPermission)perm);
+		} else if((perm instanceof BPMRightsMgmtPermission)) {
+			//checkRightsMgmtPermission(fctx, (BPMRightsMgmtPermission)perm);
+		} else if((perm instanceof BPMRoleAccessPermission)) {
+			//checkRoleAccessPermission(fctx, (BPMRoleAccessPermission)perm);
+		} else if((perm instanceof BPMGenericAccessPermission)) {
+			//checkGenericAccessPermission(fctx, (BPMGenericAccessPermission)perm);
+		} else 
+			throw new IllegalArgumentException("Only permissions implementing cool interfaces are supported");
+		 */
 	}
 	
+	/*
 	protected boolean fallsInGroups(int userId, List<NativeIdentityBind> nativeIdentities) {
 	
 		try {
@@ -310,7 +345,10 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		
 		return false;
 	}
+	*/
 	
+	
+	/*
 //	TODO: make this more effective, as it was changed in a rush
 	protected void checkPermissionsForTaskInstance(int userId, TaskInstance taskInstance, Collection<Access> accesses, String variableIdentifier) throws AccessControlException {
 		
@@ -419,7 +457,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		throw new AccessControlException("No permission for user="+userId+", for taskInstance="+taskInstance.getId()+", variableIdentifier="+variableIdentifier);
 	}
 	
-	private boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, /*Collection<Group> usrGrps,*/ int userId, AccessController ac, IWApplicationContext iwac) {
+	private boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, int userId, AccessController ac, IWApplicationContext iwac) {
 		
 		if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
 			if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
@@ -441,6 +479,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		
 		return false;
 	}
+	*/
 
 	public AuthenticationService getAuthenticationService() {
 		return authenticationService;
@@ -488,4 +527,8 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	}
 
 	public void close() { }
+
+	public Map<String, BPMTypedHandler> getHandlers() {
+		return handlers;
+	}
 }

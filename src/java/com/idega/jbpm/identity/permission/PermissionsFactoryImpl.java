@@ -1,6 +1,7 @@
 package com.idega.jbpm.identity.permission;
 
 import java.security.Permission;
+import java.util.ArrayList;
 
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.context.annotation.Scope;
@@ -8,56 +9,93 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/08/05 07:23:09 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
  */
 @Service
 @Scope("singleton")
 public class PermissionsFactoryImpl implements PermissionsFactory {
-
-	public Permission getTaskSubmitPermission(boolean authPooledActorsOnly, TaskInstance taskInstance) {
+	
+	public static final String genericAccessPermType = 				"genericAccess";
+	public static final String accessManagementPermType = 			"accessManagement";
+	public static final String submitTaskParametersPermType = 		"submitTaskParameters";
+	public static final String viewTaskParametersPermType = 		"viewTaskParameters";
+	public static final String viewTaskVariableParametersType = 	"viewTaskVariableParameters";
+	public static final String roleAccessPermType = 				"roleAccess";
+	
+	public Permission getTaskSubmitPermission(Boolean authPooledActorsOnly, TaskInstance taskInstance) {
 		
-		SubmitTaskParametersPermission permission = new SubmitTaskParametersPermission("taskInstance", null, taskInstance);
-		permission.setCheckOnlyInActorsPool(authPooledActorsOnly);
+		BPMTypedPermission perm = getTypedPermission(submitTaskParametersPermType);
+		perm.setAttribute(TaskAccessPermissionsHandler.checkOnlyInActorsPoolAtt, authPooledActorsOnly);
+		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstance);
 		
-		return permission;
+		ArrayList<Access> accesses = new ArrayList<Access>(2);
+		accesses.add(Access.read);
+		accesses.add(Access.write);
+		
+		perm.setAttribute(TaskAccessPermissionsHandler.accessesWantedAtt, accesses);
+		
+		return (Permission)perm;
 	}
 	
 	public Permission getRightsMgmtPermission(Long processInstanceId) {
 		
-		ProcessRightsMgmtPermission permission = new ProcessRightsMgmtPermission("procRights", null);
-		permission.setChangeTaskRights(true);
-		permission.setProcessInstanceId(processInstanceId);
+		BPMTypedPermission perm = getTypedPermission(accessManagementPermType);
+		perm.setAttribute(AccessManagementPermissionsHandler.processInstanceIdAtt, processInstanceId);
 		
-		return permission;
+		return (Permission)perm;
 	}
 	
-	public Permission getAccessPermission(long processInstanceId, Access access) {
+	public Permission getAccessPermission(Long processInstanceId, Access access) {
 		
-		GenericAccessPermission permission = new GenericAccessPermission("bpmGenericAccess", null);
-		permission.setAccess(access);
-		permission.setProcessInstanceId(processInstanceId);
+		BPMTypedPermission perm = getTypedPermission(genericAccessPermType);
+		perm.setAttribute(GenericAccessPermissionsHandler.processInstanceIdAtt, processInstanceId);
 		
-		return permission;
+		return (Permission)perm;
 	}
 	
-	public Permission getTaskViewPermission(boolean authPooledActorsOnly, TaskInstance taskInstance) {
+	public Permission getTaskViewPermission(Boolean authPooledActorsOnly, TaskInstance taskInstance) {
 		
-		ViewTaskParametersPermission permission = new ViewTaskParametersPermission("taskInstance", null, taskInstance);
-		permission.setCheckOnlyInActorsPool(authPooledActorsOnly);
+		BPMTypedPermission perm = getTypedPermission(viewTaskParametersPermType);
+		perm.setAttribute(TaskAccessPermissionsHandler.checkOnlyInActorsPoolAtt, authPooledActorsOnly);
+		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstance);
 		
-		return permission;
+		ArrayList<Access> accesses = new ArrayList<Access>(1);
+		accesses.add(Access.read);
+		
+		perm.setAttribute(TaskAccessPermissionsHandler.accessesWantedAtt, accesses);
+		
+		return (Permission)perm;
 	}
 	
-	public Permission getTaskVariableViewPermission(boolean authPooledActorsOnly, TaskInstance taskInstance, String variableIdentifier) {
+	public Permission getTaskVariableViewPermission(Boolean authPooledActorsOnly, TaskInstance taskInstance, String variableIdentifier) {
 		
-		ViewTaskVariablePermission permission = new ViewTaskVariablePermission("taskInstance", null, taskInstance);
-		permission.setCheckOnlyInActorsPool(authPooledActorsOnly);
-		permission.setVariableIndentifier(variableIdentifier);
+		BPMTypedPermission perm = getTypedPermission(viewTaskParametersPermType);
+		perm.setAttribute(TaskAccessPermissionsHandler.checkOnlyInActorsPoolAtt, authPooledActorsOnly);
+		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstance);
+		perm.setAttribute(TaskAccessPermissionsHandler.variableIdentifierAtt, variableIdentifier);
 		
-		return permission;
+		ArrayList<Access> accesses = new ArrayList<Access>(1);
+		accesses.add(Access.read);
+		
+		perm.setAttribute(TaskAccessPermissionsHandler.accessesWantedAtt, accesses);
+		
+		return (Permission)perm;
 	}
 	
+	public Permission getRoleAccessPermission(Long processInstanceId, String roleName, Boolean checkContactsForRole) {
+		
+		BPMTypedPermission perm = getTypedPermission(roleAccessPermType);
+		perm.setAttribute(RoleAccessPermissionsHandler.processInstanceIdAtt, processInstanceId);
+		perm.setAttribute(RoleAccessPermissionsHandler.roleNameAtt, roleName);
+		perm.setAttribute(RoleAccessPermissionsHandler.checkContactsForRoleAtt, checkContactsForRole);
+		
+		return (Permission)perm;
+	}
 	
+	public BPMTypedPermission getTypedPermission(String type) {
+
+		return new BPMTypedPermissionImpl(type, null);
+	}
 }

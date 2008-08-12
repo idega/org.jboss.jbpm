@@ -1,6 +1,7 @@
 package com.idega.jbpm.identity.authentication;
 
 import java.security.AccessControlException;
+import java.security.Permission;
 
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.node.DecisionHandler;
@@ -10,16 +11,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.idega.jbpm.identity.JSONExpHandler;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
-import com.idega.jbpm.identity.permission.RoleAccessPermission;
+import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.util.expression.ELUtil;
 
 /**
  * Jbpm action handler, checks if <b>current</b> user belongs to process role provided. Output is boolean string expression (true/false)
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/06/15 11:58:15 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
  */
 public class BelongsToRoleDecisionHandler implements DecisionHandler {
 
@@ -29,6 +30,8 @@ public class BelongsToRoleDecisionHandler implements DecisionHandler {
 	private RolesManager rolesManager;
 	private static final String booleanTrue = 	"true";
 	private static final String booleanFalse = 	"false";
+	@Autowired
+	private PermissionsFactory permissionsFactory;
 	
 	public String decide(ExecutionContext ectx) throws Exception {
 		
@@ -42,9 +45,7 @@ public class BelongsToRoleDecisionHandler implements DecisionHandler {
 		final Long processInstanceId =		(Long)JbpmExpressionEvaluator.evaluate(getProcessInstanceIdExp(), ectx);
 		
 //		create permission to check against, only process id and role name is used, as only currently logged in user is checked
-		final RoleAccessPermission perm = new RoleAccessPermission("roleAccess", null);
-		perm.setProcessInstanceId(processInstanceId);
-		perm.setRoleName(role.getRoleName());
+		Permission perm = getPermissionsFactory().getRoleAccessPermission(processInstanceId, role.getRoleName(), false);
 		
 		try {
 			getRolesManager().checkPermission(perm);
@@ -80,5 +81,13 @@ public class BelongsToRoleDecisionHandler implements DecisionHandler {
 
 	public void setProcessInstanceIdExp(String processInstanceIdExp) {
 		this.processInstanceIdExp = processInstanceIdExp;
+	}
+
+	public PermissionsFactory getPermissionsFactory() {
+		return permissionsFactory;
+	}
+
+	public void setPermissionsFactory(PermissionsFactory permissionsFactory) {
+		this.permissionsFactory = permissionsFactory;
 	}
 }

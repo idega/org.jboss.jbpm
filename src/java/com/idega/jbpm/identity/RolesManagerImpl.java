@@ -31,6 +31,7 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.core.persistence.Param;
+import com.idega.data.IDORuntimeException;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.BPMContext;
@@ -40,9 +41,10 @@ import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.permission.Access;
-import com.idega.jbpm.identity.permission.BPMRoleAccessPermission;
+import com.idega.jbpm.identity.permission.BPMTypedPermission;
+import com.idega.jbpm.identity.permission.PermissionsFactory;
+import com.idega.jbpm.identity.permission.RoleAccessPermissionsHandler;
 import com.idega.jbpm.identity.permission.RoleScope;
-import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
@@ -56,9 +58,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.45 $
+ * @version $Revision: 1.46 $
  * 
- * Last modified: $Date: 2008/08/11 13:33:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/12 10:58:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -69,6 +71,8 @@ public class RolesManagerImpl implements RolesManager {
 	private BPMContext idegaJbpmContext;
 	private AuthorizationService authorizationService;
 	private VariablesHandler variablesHandler;
+	@Autowired
+	private PermissionsFactory permissionsFactory;
 	
 	private static final Logger logger = Logger.getLogger(RolesManagerImpl.class.getName());
 
@@ -160,8 +164,8 @@ public class RolesManagerImpl implements RolesManager {
 			
 			if(taskInstance.getActorId() == null || !taskInstance.getActorId().equals(String.valueOf(userId)))
 				throw new BPMAccessControlException("User ("+userId+") tried to start task, but not assigned to the user provided. Assigned: "+taskInstance.getActorId(), "User should be taken or assigned of the task first to start working on it");
-			
-			SubmitTaskParametersPermission permission = new SubmitTaskParametersPermission("taskInstance", null, taskInstance);
+	
+			Permission permission = getPermissionsFactory().getTaskSubmitPermission(false, taskInstance);
 			getAuthorizationService().checkPermission(permission);
 		
 		} catch (BPMAccessControlException e) {
@@ -197,7 +201,7 @@ public class RolesManagerImpl implements RolesManager {
 			if(taskInstance.getActorId() != null)
 				throw new BPMAccessControlException("Task ("+taskInstanceId+") is already assigned to: "+taskInstance.getActorId(), "This task has been assigned already");
 			
-			SubmitTaskParametersPermission permission = new SubmitTaskParametersPermission("taskInstance", null, taskInstance);
+			Permission permission = getPermissionsFactory().getTaskSubmitPermission(false, taskInstance);
 			getAuthorizationService().checkPermission(permission);
 		
 		} catch (BPMAccessControlException e) {
@@ -240,7 +244,7 @@ public class RolesManagerImpl implements RolesManager {
 		return rolesNames;
 	}
 	
-	public Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId, BPMRoleAccessPermission perm) {
+	public Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId, BPMTypedPermission perm) {
 
 		List<ProcessRole> proles;
 		
@@ -267,9 +271,9 @@ public class RolesManagerImpl implements RolesManager {
 			
 			for (Iterator<ProcessRole> iterator = proles.iterator(); iterator.hasNext();) {
 				ProcessRole processRole = iterator.next();
-				perm.setCheckContactsForRole(true);
-				perm.setRoleName(processRole.getProcessRoleName());
-				perm.setProcessInstanceId(processRole.getProcessInstanceId());
+				perm.setAttribute(RoleAccessPermissionsHandler.processInstanceIdAtt, processRole.getProcessInstanceId());
+				perm.setAttribute(RoleAccessPermissionsHandler.roleNameAtt, processRole.getProcessRoleName());
+				perm.setAttribute(RoleAccessPermissionsHandler.checkContactsForRoleAtt, true);
 				
 				try {
 //					check, if current user can see contacts of the role (set to the permission)
@@ -1106,6 +1110,68 @@ public class RolesManagerImpl implements RolesManager {
 		}
 	}
 	
+	public boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, /*Collection<Group> usrGrps,*/ int userId, AccessController ac, IWApplicationContext iwac) {
+		
+		if(nativeIdentities != null && !nativeIdentities.isEmpty()) {
+			if(fallsInUsers(userId, nativeIdentities) || fallsInGroups(userId, nativeIdentities))
+				return true;
+		} else {
+			
+			try {
+				User usr = getUserBusiness(IWContext.getCurrentInstance()).getUser(userId);
+				@SuppressWarnings("unchecked")
+				Set<String> roles = ac.getAllRolesForUser(usr);
+				
+				if(roles.contains(roleName))
+					return true;
+				
+			} catch (RemoteException e) {
+				throw new IBORuntimeException(e);
+			}
+		}
+		
+		return false;
+	}
+	
+	protected boolean fallsInGroups(int userId, List<NativeIdentityBind> nativeIdentities) {
+		
+		try {
+			UserBusiness ub = getUserBusiness(IWContext.getCurrentInstance());
+			@SuppressWarnings("unchecked")
+			Collection<Group> userGroups = ub.getUserGroups(userId);
+			
+			if(userGroups != null) {
+			
+				for (Group group : userGroups) {
+					
+					String groupId = group.getPrimaryKey().toString();
+					
+					for (NativeIdentityBind nativeIdentity : nativeIdentities) {
+						
+						if(nativeIdentity.getIdentityType() == IdentityType.GROUP && nativeIdentity.getIdentityId().equals(groupId))
+							return true;
+					}
+				}
+			}
+			
+			return false;
+			
+		} catch (RemoteException e) {
+			throw new IDORuntimeException(e);
+		}
+	}
+	
+	protected boolean fallsInUsers(int userId, List<NativeIdentityBind> nativeIdentities) {
+		
+		for (NativeIdentityBind nativeIdentity : nativeIdentities) {
+			
+			if(nativeIdentity.getIdentityType() == IdentityType.USER && nativeIdentity.getIdentityId().equals(String.valueOf(userId)))
+				return true;
+		}
+		
+		return false;
+	}
+	
 	protected IWMainApplication getIWMA() {
 		
 		IWMainApplication iwma;
@@ -1158,5 +1224,13 @@ public class RolesManagerImpl implements RolesManager {
 	@Autowired
 	public void setVariablesHandler(VariablesHandler variablesHandler) {
 		this.variablesHandler = variablesHandler;
+	}
+
+	public PermissionsFactory getPermissionsFactory() {
+		return permissionsFactory;
+	}
+
+	public void setPermissionsFactory(PermissionsFactory permissionsFactory) {
+		this.permissionsFactory = permissionsFactory;
 	}
 }

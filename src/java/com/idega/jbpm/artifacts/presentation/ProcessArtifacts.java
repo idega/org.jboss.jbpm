@@ -40,16 +40,16 @@ import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessInstanceW;
-import com.idega.jbpm.exe.ProcessWatch;
 import com.idega.jbpm.exe.ProcessManager;
+import com.idega.jbpm.exe.ProcessWatch;
 import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.identity.BPMAccessControlException;
 import com.idega.jbpm.identity.BPMUser;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.Access;
+import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
-import com.idega.jbpm.identity.permission.RoleAccessPermission;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
 import com.idega.jbpm.variables.BinaryVariable;
@@ -79,9 +79,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.59 $
+ * @version $Revision: 1.60 $
  *
- * Last modified: $Date: 2008/08/11 13:58:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -534,7 +534,7 @@ public class ProcessArtifacts {
 		final Collection<User> users;
 		
 		try {
-			RoleAccessPermission perm = new RoleAccessPermission("roleAccess", null);
+			BPMTypedPermission perm = (BPMTypedPermission)getPermissionsFactory().getRoleAccessPermission(processInstanceId, null, false);
 			users = getBpmFactory().getRolesManager().getAllUsersForRoles(null, processInstanceId, perm);
 			
 		} catch(Exception e) {

@@ -6,19 +6,22 @@ import java.util.List;
 
 import org.jbpm.taskmgmt.def.Task;
 
+import com.idega.core.accesscontrol.business.AccessController;
+import com.idega.idegaweb.IWApplicationContext;
+import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.identity.permission.Access;
-import com.idega.jbpm.identity.permission.BPMRoleAccessPermission;
+import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  * 
- * Last modified: $Date: 2008/08/11 13:33:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/12 10:58:29 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -34,7 +37,7 @@ public interface RolesManager {
 	
 	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId);
 	
-	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId, BPMRoleAccessPermission perm);
+	public abstract Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId, BPMTypedPermission perm);
 	
 	public abstract void createNativeRolesFromProcessRoles(String processName, Collection<Role> roles);
 	
@@ -73,4 +76,6 @@ public interface RolesManager {
 	public abstract List<Long> getProcessInstancesIdsForUser(IWContext iwc, User user, boolean checkIfSuperAdmin);
 	
 	public abstract List<String> getRolesForAccess(long processInstanceId, Access access);
+	
+	public abstract boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, int userId, AccessController ac, IWApplicationContext iwac);
 }

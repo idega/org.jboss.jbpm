@@ -14,14 +14,13 @@ import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.business.BPMPointcuts;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.TaskInstanceW;
-import com.idega.jbpm.identity.permission.SubmitTaskParametersPermission;
-import com.idega.jbpm.identity.permission.ViewTaskParametersPermission;
+import com.idega.jbpm.identity.permission.PermissionsFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/06/15 15:58:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
  */
 @Aspect
 public class IdentityAuthorizationAspect {
@@ -29,6 +28,8 @@ public class IdentityAuthorizationAspect {
 	private BPMContext idegaJbpmContext;
 	private BPMDAO bpmBindsDAO;
 	private AuthorizationService authorizationService;
+	@Autowired
+	private PermissionsFactory permissionsFactory;
 
 	/*
 	@Before(BPMPointcuts.startProcessAtProcessManager+" && args(processDefinitionId, ..)")
@@ -56,10 +57,10 @@ public class IdentityAuthorizationAspect {
 			Permission permission;
 			
 			if(taskInstance.hasEnded()) {
-				permission = new ViewTaskParametersPermission("taskInstance", null, taskInstance);
+				permission = getPermissionsFactory().getTaskViewPermission(false, taskInstance);
 				
 			} else {
-				permission = new SubmitTaskParametersPermission("taskInstance", null, taskInstance);
+				permission = getPermissionsFactory().getTaskSubmitPermission(false, taskInstance);
 			}
 			
 			getAuthorizationService().checkPermission(permission);
@@ -93,5 +94,13 @@ public class IdentityAuthorizationAspect {
 	@Autowired
 	public void setAuthorizationService(AuthorizationService authorizationService) {
 		this.authorizationService = authorizationService;
+	}
+
+	public PermissionsFactory getPermissionsFactory() {
+		return permissionsFactory;
+	}
+
+	public void setPermissionsFactory(PermissionsFactory permissionsFactory) {
+		this.permissionsFactory = permissionsFactory;
 	}
 }
