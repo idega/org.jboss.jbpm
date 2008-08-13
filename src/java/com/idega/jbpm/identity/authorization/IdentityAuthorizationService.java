@@ -31,9 +31,9 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.35 $
+ * @version $Revision: 1.36 $
  *
- * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/13 12:58:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -242,7 +242,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	}
 	*/
 
-	@Autowired
+	@Autowired(required=false)
 	public void setHandlers(List<BPMTypedHandler> handlers) {
 		
 		if(handlers != null) {
