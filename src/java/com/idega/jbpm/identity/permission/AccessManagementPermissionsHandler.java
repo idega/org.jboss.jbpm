@@ -16,7 +16,7 @@ import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.presentation.IWContext;
@@ -24,9 +24,9 @@ import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/08/12 10:58:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:05:54 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -67,21 +67,21 @@ public class AccessManagementPermissionsHandler implements BPMTypedHandler {
 			if(processInstanceId == null)
 				throw new RuntimeException("No process instance id found in permission="+permission.getClass().getName());
 			
-			List<String> roleNames = getBpmBindsDAO().getResultList(ProcessRole.getRoleNameHavingRightsModifyPermissionByPIId, String.class,
-					new Param(ProcessRole.processInstanceIdProperty, processInstanceId));
+			List<String> roleNames = getBpmBindsDAO().getResultList(Actor.getRoleNameHavingRightsModifyPermissionByPIId, String.class,
+					new Param(Actor.processInstanceIdProperty, processInstanceId));
 			
 			if(roleNames != null && !roleNames.isEmpty()) {
 			
-				List<ProcessRole> proles = 
-					getBpmBindsDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
-							new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
-							new Param(ProcessRole.processRoleNameProperty, roleNames)
+				List<Actor> proles = 
+					getBpmBindsDAO().getResultList(Actor.getSetByRoleNamesAndPIId, Actor.class,
+							new Param(Actor.processInstanceIdProperty, processInstanceId),
+							new Param(Actor.processRoleNameProperty, roleNames)
 					);
 				
 				if(proles == null || proles.isEmpty())
 					throw new AccessControlException("No process role found by role names="+roleNames.toString() +" and process instance id = "+processInstanceId);
 				
-				ProcessRole prole = proles.iterator().next();
+				Actor prole = proles.iterator().next();
 				
 				int userId = new Integer(loggedInActorId);
 

@@ -9,16 +9,16 @@ import org.jbpm.taskmgmt.def.Task;
 import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:03:01 $ by $Author: civilis $
  */
 public interface BPMDAO extends GenericDao {
 
@@ -40,13 +40,13 @@ public interface BPMDAO extends GenericDao {
 	
 	public abstract List<ProcessDefinition> getAllManagersTypeProcDefs();
 	
-	public abstract List<ProcessRole> getAllGeneralProcessRoles();
+	public abstract List<Actor> getAllGeneralProcessRoles();
 	
 	public abstract void updateAddGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds);
 	
 	public abstract List<NativeIdentityBind> getNativeIdentities(long processRoleIdentityId);
 	
-	public abstract List<ProcessRole> getProcessRoles(Collection<Long> actorIds);
+	public abstract List<Actor> getProcessRoles(Collection<Long> actorIds);
 	
 	public abstract List<NativeIdentityBind> getNativeIdentities(Collection<Long> actorsIds, IdentityType identityType);
 	

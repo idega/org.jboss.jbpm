@@ -15,7 +15,7 @@ import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.presentation.IWContext;
@@ -23,9 +23,9 @@ import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:05:54 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -63,9 +63,9 @@ public class GenericAccessPermissionsHandler implements BPMTypedHandler {
 		
 		Long processInstanceId = permission.getAttribute(processInstanceIdAtt);
 		
-		List<ProcessRole> proles = 
-			getBpmBindsDAO().getResultList(ProcessRole.getRolesHavingCaseHandlerRights, ProcessRole.class,
-					new Param(ProcessRole.processInstanceIdProperty, processInstanceId)
+		List<Actor> proles = 
+			getBpmBindsDAO().getResultList(Actor.getRolesHavingCaseHandlerRights, Actor.class,
+					new Param(Actor.processInstanceIdProperty, processInstanceId)
 			);
 		
 		if(proles != null) {
@@ -74,7 +74,7 @@ public class GenericAccessPermissionsHandler implements BPMTypedHandler {
 			AccessController ac = getAccessController();
 			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
 			
-			for (ProcessRole processRole : proles) {
+			for (Actor processRole : proles) {
 				
 				if(getRolesManager().checkFallsInRole(processRole.getProcessRoleName(), processRole.getNativeIdentities(), userId, ac, iwac))
 					return;

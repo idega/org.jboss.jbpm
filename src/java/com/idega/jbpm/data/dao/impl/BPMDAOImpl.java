@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -21,9 +21,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/05/26 11:03:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:02:58 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -116,23 +116,23 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return all;
 	}
 	
-	public List<ProcessRole> getAllGeneralProcessRoles() {
+	public List<Actor> getAllGeneralProcessRoles() {
 		
 		@SuppressWarnings("unchecked")
-		List<ProcessRole> all = getEntityManager().createNamedQuery(ProcessRole.getAllGeneral)
+		List<Actor> all = getEntityManager().createNamedQuery(Actor.getAllGeneral)
 		.getResultList();
 		
 		return all;
 	}
 	
-	public List<ProcessRole> getProcessRoles(Collection<Long> actorIds) {
+	public List<Actor> getProcessRoles(Collection<Long> actorIds) {
 		
 		if(actorIds == null || actorIds.isEmpty())
 			throw new IllegalArgumentException("ActorIds should contain values");
 		
 		@SuppressWarnings("unchecked")
-		List<ProcessRole> all = getEntityManager().createNamedQuery(ProcessRole.getAllByActorIds)
-		.setParameter(ProcessRole.actorIdProperty, actorIds)
+		List<Actor> all = getEntityManager().createNamedQuery(Actor.getAllByActorIds)
+		.setParameter(Actor.actorIdProperty, actorIds)
 		.getResultList();
 		
 		return all;
@@ -141,7 +141,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	@Transactional(readOnly = false)
 	public void updateAddGrpsToRole(Long roleActorId, Collection<String> selectedGroupsIds) {
 		
-		ProcessRole roleIdentity = find(ProcessRole.class, roleActorId);
+		Actor roleIdentity = find(Actor.class, roleActorId);
 		
 		List<NativeIdentityBind> nativeIdentities = new ArrayList<NativeIdentityBind>(selectedGroupsIds.size());
 		
@@ -150,7 +150,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			NativeIdentityBind nativeIdentity = new NativeIdentityBind();
 			nativeIdentity.setIdentityId(groupId);
 			nativeIdentity.setIdentityType(IdentityType.GROUP);
-			nativeIdentity.setProcessRole(roleIdentity);
+			nativeIdentity.setActor(roleIdentity);
 			nativeIdentities.add(nativeIdentity);
 		}
 		
@@ -198,7 +198,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		@SuppressWarnings("unchecked")
 		List<NativeIdentityBind> binds = getEntityManager().createNamedQuery(NativeIdentityBind.getByTypesAndProceIdentities)
 		.setParameter(NativeIdentityBind.identityTypeProperty, identityType)
-		.setParameter(ProcessRole.actorIdProperty, actorsIds)
+		.setParameter(Actor.actorIdProperty, actorsIds)
 		.getResultList();
 		
 		return binds;
@@ -209,7 +209,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		
 		for (Role role : rolesNames) {
 			
-			ProcessRole prole = new ProcessRole();
+			Actor prole = new Actor();
 			prole.setProcessRoleName(role.getRoleName());
 			prole.setProcessInstanceId(processInstanceId);
 			

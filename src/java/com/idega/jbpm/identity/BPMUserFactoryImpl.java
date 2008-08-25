@@ -21,7 +21,7 @@ import com.idega.core.contact.data.EmailHome;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
@@ -34,9 +34,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  * 
- * Last modified: $Date: 2008/07/11 09:12:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:03:30 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -229,11 +229,11 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 				ArrayList<String> prn = new ArrayList<String>(1);
 				prn.add(roleName);
 				
-				List<ProcessRole> proles = getBPMFactory().getRolesManager().getProcessRoles(prn, processInstanceId);
+				List<Actor> proles = getBPMFactory().getRolesManager().getProcessRoles(prn, processInstanceId);
 				
 				if(proles != null && !proles.isEmpty()) {
 					
-					ProcessRole prole = proles.iterator().next();
+					Actor prole = proles.iterator().next();
 					
 					List<NativeIdentityBind> nis = prole.getNativeIdentities();
 					
@@ -267,7 +267,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 							NativeIdentityBind ni = new NativeIdentityBind();
 							ni.setIdentityId(realUsr.getPrimaryKey().toString());
 							ni.setIdentityType(IdentityType.USER);
-							ni.setProcessRole(prole);
+							ni.setActor(prole);
 							nis.add(ni);
 						}
 						
@@ -276,7 +276,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 							NativeIdentityBind ni = new NativeIdentityBind();
 							ni.setIdentityId(bpmUsr.getPrimaryKey().toString());
 							ni.setIdentityType(IdentityType.USER);
-							ni.setProcessRole(prole);
+							ni.setActor(prole);
 							nis.add(ni);
 						}
 						

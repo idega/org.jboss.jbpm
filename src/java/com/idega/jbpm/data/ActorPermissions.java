@@ -21,21 +21,19 @@ import javax.persistence.Table;
  * Also used for contacts access management.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/08/06 10:47:06 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:02:33 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_ACTORS_PERMISSIONS")
 @NamedQueries(
 		{
-			//@NamedQuery(name=ActorPermissions.getSetByTaskIdAndProcessRole, query="from ActorPermissions ap where ap."+ActorPermissions.taskIdProperty+" = :"+ActorPermissions.taskIdProperty+" and "+ActorPermissions.processRoleProperty+" in (:"+ActorPermissions.processRoleProperty+")")
 			@NamedQuery(name=ActorPermissions.getSetByTaskIdAndProcessRoleNames, query="from ActorPermissions ap where ap."+ActorPermissions.taskIdProperty+" = :"+ActorPermissions.taskIdProperty+" and "+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+")"),
 			@NamedQuery(name=ActorPermissions.getSetByTaskIdOrTaskInstanceId, query="from ActorPermissions ap where ap."+ActorPermissions.taskIdProperty+" = :"+ActorPermissions.taskIdProperty+" or ap."+ActorPermissions.taskInstanceIdProperty+" = :"+ActorPermissions.taskInstanceIdProperty),
-			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdPureRoles, query="from ActorPermissions ap, in (ap." + ActorPermissions.processRolesProperty + ") roles where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty +" and ap."+ActorPermissions.taskIdProperty+" is null and ap."+ActorPermissions.taskInstanceIdProperty+" is null and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is null"),
-			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdForContacts, query="from ActorPermissions ap, in (ap." + ActorPermissions.processRolesProperty + ") roles where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty +" and ap."+ActorPermissions.taskIdProperty+" is null and ap."+ActorPermissions.taskInstanceIdProperty+" is null and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is not null"),
-//			@NamedQuery(name=ActorPermissions.getByProcessIdAndModifyRights, query="from ActorPermissions ap where "+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+")")
-			@NamedQuery(name=ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames, query="select ap from ActorPermissions ap inner join ap."+ActorPermissions.processRolesProperty+" roles where roles." + ProcessRole.processInstanceIdProperty + " = :" + ProcessRole.processInstanceIdProperty +" and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" in (:"+ActorPermissions.canSeeContactsOfRoleNameProperty+")")
+			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdPureRoles, query="from ActorPermissions ap inner join ap." + ActorPermissions.actorsProperty + " actors where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and actors." + Actor.processInstanceIdProperty + " = :" + Actor.processInstanceIdProperty +" and ap."+ActorPermissions.taskIdProperty+" is null and ap."+ActorPermissions.taskInstanceIdProperty+" is null and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is null"),
+			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdForContacts, query="from ActorPermissions ap inner join ap." + ActorPermissions.actorsProperty + " actors where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and actors." + Actor.processInstanceIdProperty + " = :" + Actor.processInstanceIdProperty +" and ap."+ActorPermissions.taskIdProperty+" is null and ap."+ActorPermissions.taskInstanceIdProperty+" is null and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is not null"),
+			@NamedQuery(name=ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames, query="select ap from ActorPermissions ap inner join ap."+ActorPermissions.actorsProperty+" actors where actors." + Actor.processInstanceIdProperty + " = :" + Actor.processInstanceIdProperty +" and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" in (:"+ActorPermissions.canSeeContactsOfRoleNameProperty+")")
 		}
 )
 public class ActorPermissions implements Serializable {
@@ -69,11 +67,11 @@ public class ActorPermissions implements Serializable {
 	private String roleName;
 	
 	public static final String readPermissionProperty = "readPermission";
-	@Column(name="has_read_permission", nullable=false)
+	@Column(name="has_read_permission")
 	private Boolean readPermission;
 	
 	public static final String writePermissionProperty = "writePermission";
-	@Column(name="has_write_permission", nullable=false)
+	@Column(name="has_write_permission")
 	private Boolean writePermission;
 	
 	public static final String modifyRightsPermissionProperty = "modifyRightsPermission";
@@ -88,14 +86,24 @@ public class ActorPermissions implements Serializable {
 	@Column(name="can_see_contacts_of_role_name")
 	private String canSeeContactsOfRoleName;
 	
-	public static final String processRolesProperty = "processRoles";
+	public static final String canSeeContactsProperty = "canSeeContacts";
+	@Column(name="can_see_contacts")
+	private Boolean canSeeContacts;
+	
+	public static final String actorsProperty = "actors";
 	@ManyToMany(
 	        cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-	        mappedBy = ProcessRole.actorPermissionsProperty,
-	        targetEntity = ProcessRole.class
+	        mappedBy = Actor.actorPermissionsProperty,
+	        targetEntity = Actor.class
 	)
-	private List<ProcessRole> processRoles;
+	private List<Actor> actors;
 	
+	public List<Actor> getActors() {
+		return actors;
+	}
+	public void setActors(List<Actor> actors) {
+		this.actors = actors;
+	}
 	public Long getId() {
 		return id;
 	}
@@ -132,12 +140,6 @@ public class ActorPermissions implements Serializable {
 	public void setModifyRightsPermission(Boolean modifyRightsPermission) {
 		this.modifyRightsPermission = modifyRightsPermission;
 	}
-	public List<ProcessRole> getProcessRoles() {
-		return processRoles;
-	}
-	public void setProcessRoles(List<ProcessRole> processRoles) {
-		this.processRoles = processRoles;
-	}
 	public String getRoleName() {
 		return roleName;
 	}
@@ -161,5 +163,11 @@ public class ActorPermissions implements Serializable {
 	}
 	public void setCaseHandlerPermission(Boolean caseHandlerPermission) {
 		this.caseHandlerPermission = caseHandlerPermission;
+	}
+	public Boolean getCanSeeContacts() {
+		return canSeeContacts;
+	}
+	public void setCanSeeContacts(Boolean canSeeContacts) {
+		this.canSeeContacts = canSeeContacts;
 	}
 }

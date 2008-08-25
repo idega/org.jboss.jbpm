@@ -20,7 +20,7 @@ import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.presentation.IWContext;
@@ -29,9 +29,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:05:54 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -122,15 +122,15 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 			
 			AccessController ac = getAccessController();
 			
-			HashSet<ProcessRole> roles = new HashSet<ProcessRole>(allPerms.size()+10);
+			HashSet<Actor> roles = new HashSet<Actor>(allPerms.size()+10);
 			
 			for (ActorPermissions perm : allPerms) {
 				
-				if(perm.getProcessRoles() != null)
-					roles.addAll(perm.getProcessRoles());
+				if(perm.getActors() != null)
+					roles.addAll(perm.getActors());
 			}
 			
-			for (ProcessRole processRole : roles) {
+			for (Actor processRole : roles) {
 				
 				List<ActorPermissions> perms = processRole.getActorPermissions();
 				

@@ -17,20 +17,20 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
- * Used additionally to roles + ic_permit_role. In general use case, the identity type is user.
+ * Used additionally to roles + ic_permit_role. In common use case, the identity type is user.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/05/19 13:52:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:02:33 $ by $Author: civilis $
  */
 @Entity
 @Table(name=NativeIdentityBind.TABLE_NAME)
 @NamedQueries(
 		{
 			@NamedQuery(name=NativeIdentityBind.deleteByIds, query="delete from NativeIdentityBind b where b.id in (:"+NativeIdentityBind.idsParam+")"),
-			@NamedQuery(name=NativeIdentityBind.getByProcIdentity, query="from NativeIdentityBind b where b."+NativeIdentityBind.processRoleProperty+"."+ProcessRole.actorIdProperty+" = :"+NativeIdentityBind.procIdentityParam),
-			@NamedQuery(name=NativeIdentityBind.getByTypesAndProceIdentities, query="select ni from NativeIdentityBind ni, com.idega.jbpm.data.ProcessRole prni where ni."+NativeIdentityBind.processRoleProperty+" = prni and ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty+" and prni."+ProcessRole.actorIdProperty+" in (:"+ProcessRole.actorIdProperty+")")
+			@NamedQuery(name=NativeIdentityBind.getByProcIdentity, query="from NativeIdentityBind b where b."+NativeIdentityBind.actorProperty+"."+Actor.actorIdProperty+" = :"+NativeIdentityBind.procIdentityParam),
+			@NamedQuery(name=NativeIdentityBind.getByTypesAndProceIdentities, query="select ni from NativeIdentityBind ni, com.idega.jbpm.data.Actor prni where ni."+NativeIdentityBind.actorProperty+" = prni and ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty+" and prni."+Actor.actorIdProperty+" in (:"+Actor.actorIdProperty+")")
 		}
 )
 public class NativeIdentityBind implements Serializable {
@@ -66,10 +66,10 @@ public class NativeIdentityBind implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private IdentityType identityType;
 
-	public static final String processRoleProperty = "processRole";
+	public static final String actorProperty = "actor";
 	@ManyToOne(cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE})
-    @JoinColumn(name="process_role_fk", nullable=false)
-	private ProcessRole processRole;
+    @JoinColumn(name="actor_fk", nullable=false)
+	private Actor actor;
 
 	public Long getId() {
 		return id;
@@ -95,18 +95,14 @@ public class NativeIdentityBind implements Serializable {
 		this.identityType = identityType;
 	}
 
-	public ProcessRole getProcessRole() {
-		return processRole;
+	public Actor getActor() {
+		return actor;
 	}
 
-	public void setProcessRole(ProcessRole processRole) {
-		this.processRole = processRole;
+	public void setActor(Actor actor) {
+		this.actor = actor;
 	}
 
-	public static String getProcessRoleNativeIdentityProp() {
-		return processRoleProperty;
-	}
-	
 	@Override
 	public boolean equals(Object arg0) {
 		
