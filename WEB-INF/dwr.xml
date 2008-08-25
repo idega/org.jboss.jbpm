@@ -24,6 +24,7 @@
             <include method="hasUserRolesEditorRights" />
             <include method="setAccessRightsForProcessResource" />
             <include method="getAccessRightsSetterBox" />
+            <include method="getContactsAccessRightsSetterBox" />
             <include method="getViewDisplay" />
             <include method="takeBPMProcessTask" />
             <include method="watchOrUnwatchBPMProcessTask" />
