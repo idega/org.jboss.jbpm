@@ -79,9 +79,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.60 $
+ * @version $Revision: 1.61 $
  *
- * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:01:47 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -153,7 +153,7 @@ public class ProcessArtifacts {
 				row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri).append("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
 			
 			if (rightsChanger) {
-				addRightsChangerCell(row, processInstanceId, tidStr, null, true);
+				addRightsChangerCell(row, processInstanceId, tidStr, null, null, true);
 			}
 		}
 		
@@ -220,7 +220,7 @@ public class ProcessArtifacts {
 			row.setDateCellIndex(row.getCells().size() - 1);
 			
 			if (rightsChanger) {
-				addRightsChangerCell(row, processInstanceId, tidStr, null, true);
+				addRightsChangerCell(row, processInstanceId, tidStr, null, null, true);
 			}
 		}
 		
@@ -352,7 +352,7 @@ public class ProcessArtifacts {
 			}
 			
 			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, processInstanceId, tidStr, null, true);
+				addRightsChangerCell(row, processInstanceId, tidStr, null, null, true);
 			}
 		}
 			
@@ -392,38 +392,33 @@ public class ProcessArtifacts {
 		row.setDisabledSelection(true);
 	}
 	
-//	private String getLocalizedName(IWResourceBundle iwrb, String name) {
-//		if (iwrb == null || name == null) {
-//			return null;
-//		}
-//		
-//		//String nameForKey = StringHandler.stripNonRomanCharacters(name, new char[] {' '});
-//		String nameForKey = StringHandler.replace(name, CoreConstants.SPACE, CoreConstants.EMPTY);
-//		
-//		String key = new StringBuilder("cases_bpm.process_resource_name_").append(nameForKey.toLowerCase()).toString();
-//		return iwrb.getLocalizedString(key, name);
-//	}
-	
-	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, Integer variableIdentifier, boolean setSameRightsForAttachments) {		
-		String id = new StringBuilder("idPrefImg").append(taskInstanceId).toString();
+	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, Integer variableIdentifier, String userId, boolean setSameRightsForAttachments) {
+		
+		final String id;
+		
+		if(taskInstanceId != null)
+			id = "idPrefImg"+taskInstanceId;
+		else
+			id = "idPrefImg"+userId;
+		 
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		StringBuilder image = new StringBuilder("<img id=\"").append(id).append("\" class=\"caseProcessResourceAccessRightsStyle\" src=\"");
 		image.append(bundle.getVirtualPathWithFileNameString("images/preferences.png")).append("\" ondblclick=\"function() {}\"");
-		image.append(" onclick=\"CasesBPMAssets.changeAccessRightsForBpmRelatedResource(event, ");
-		if (processInstanceId == null) {
-			image.append("null");
-		}
-		else {
-			image.append("'").append(processInstanceId).append("'");
-		}
-		image.append(", '").append(taskInstanceId).append("', '").append(id).append("', ");
+		
+		image.append(" onclick=\"CasesBPMAssets.showAccessRightsForBpmRelatedResourceChangeMenu(event, ");
+		
+		image.append(processInstanceId).append(", ").append(taskInstanceId)
+		.append(", '").append(id).append("', ");
+		
 		if (variableIdentifier == null) {
 			image.append("null");
 		}
 		else {
 			image.append("'").append(variableIdentifier).append("'");
 		}
-		image.append(", ").append(setSameRightsForAttachments).append(");\" />");
+		image.append(", ").append(setSameRightsForAttachments)
+		.append(", ").append(userId)
+		.append(");\" />");
 		row.addCell(image.toString());
 	}
 	
@@ -478,7 +473,7 @@ public class ProcessArtifacts {
 				row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
 				
 				if (params.isRightsChanger()) {
-					addRightsChangerCell(row, params.getPiId(), tidStr, binaryVariable.getHash(), false);
+					addRightsChangerCell(row, params.getPiId(), tidStr, binaryVariable.getHash(), null, false);
 				}
 			}
 			
@@ -609,6 +604,10 @@ public class ProcessArtifacts {
 			row.addCell(getUserEmails(user.getEmails(), caseIdentifier, systemEmail));
 			row.addCell(getUserPhones(user.getPhones()));
 			//row.addCell(getUserAddress(user));
+			
+			if (params.isRightsChanger()) {
+				addRightsChangerCell(row, processInstanceId, null, null, user.getPrimaryKey().toString(), false);
+			}
 		}
 		
 		try {
@@ -846,30 +845,49 @@ public class ProcessArtifacts {
 		return true;
 	}
 
-	public String setAccessRightsForProcessResource(String roleName, Long processInstanceId, Long taskInstanceId, String fileHashValue, boolean hasReadAccess, boolean setSameRightsForAttachments) {
+	public String setAccessRightsForProcessResource(String roleName, Long processInstanceId, Long taskInstanceId, String fileHashValue, boolean hasReadAccess, boolean setSameRightsForAttachments, Integer userId) {
 		
     	IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-	    
-		if (roleName == null || CoreConstants.EMPTY.equals(roleName) || taskInstanceId == null) {
-			logger.log(Level.WARNING, "setAccessRightsForProcessResource called, but insufficient parameters provided. Got: roleName="+roleName+", taskInstanceId="+taskInstanceId);
+		
+		if (roleName == null || CoreConstants.EMPTY.equals(roleName) || (taskInstanceId == null && userId == null)) {
+			logger.log(Level.WARNING, "setAccessRightsForProcessResource called, but insufficient parameters provided. Got: roleName="+roleName+", taskInstanceId="+taskInstanceId+", userId="+userId);
 			return iwrb.getLocalizedString("attachments_permissions_update_failed", "Attachments permissions update failed!");
 		}
-		getBpmFactory().getRolesManager().setTaskRolePermissionsTIScope(
-				new Role(roleName, hasReadAccess ? Access.read : null),
-				processInstanceId, taskInstanceId, setSameRightsForAttachments, fileHashValue
-		);
 		
-		return iwrb.getLocalizedString("attachments_permissions_successfully_updated", "Attachments permissions successfully updated.");
+		if(taskInstanceId != null) {
+			
+			getBpmFactory().getRolesManager().setTaskRolePermissionsTIScope(
+					new Role(roleName, hasReadAccess ? Access.read : null),
+					processInstanceId, taskInstanceId, setSameRightsForAttachments, fileHashValue
+			);
+		} else {
+			
+			getBpmFactory().getRolesManager().setContactsPermission(
+					new Role(roleName, hasReadAccess ? Access.contactsCanBeSeen : null), processInstanceId, userId
+			);
+		}
+		
+		return iwrb.getLocalizedString("attachments_permissions_successfully_updated", "Permissions successfully updated.");	    
 	}
 	
-//	TODO: processInstanceId is not needed (anywhere regarding permissions)
 	public org.jdom.Document getAccessRightsSetterBox(Long processInstanceId, Long taskInstanceId, String fileHashValue, boolean setSameRightsForAttachments) {
-		if (taskInstanceId == null) {
+		
+		return getAccessRightsSetterBox(processInstanceId, taskInstanceId, fileHashValue, setSameRightsForAttachments, null);
+	}
+	
+	public org.jdom.Document getContactsAccessRightsSetterBox(Long processInstanceId, Integer userId) {
+		
+		return getAccessRightsSetterBox(processInstanceId, null, null, null, userId);
+	}
+	
+	private org.jdom.Document getAccessRightsSetterBox(Long processInstanceId, Long taskInstanceId, String fileHashValue, Boolean setSameRightsForAttachments, Integer userId) {
+		
+		if (taskInstanceId == null && userId == null) {
 			return null;
 		}
-		IWContext iwc = CoreUtil.getIWContext();
+		IWContext iwc = IWContext.getCurrentInstance();
 		if (iwc == null) {
 			return null;
 		}
@@ -882,9 +900,18 @@ public class ProcessArtifacts {
 		}
 		Layer container = new Layer();
 		
-		List<Role> roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(processInstanceId, taskInstanceId, CoreConstants.EMPTY.equals(fileHashValue) ? null : fileHashValue);
+		final Collection<Role> roles;
 		
-		List<String[]> accessParamsList = new ArrayList<String[]>();
+		if(taskInstanceId != null) {
+		
+			roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(processInstanceId, taskInstanceId, CoreConstants.EMPTY.equals(fileHashValue) ? null : fileHashValue);
+		} else {
+
+//			get from the user
+			roles = getBpmFactory().getRolesManager().getUserPermissionsForRolesContacts(processInstanceId, userId);
+		}
+		
+		ArrayList<String[]> accessParamsList = new ArrayList<String[]>();
 		
 		Link closeLink = new Link(iwrb.getLocalizedString("close", "Close"));
 		closeLink.setURL("javascript:void(0);");
@@ -897,8 +924,11 @@ public class ProcessArtifacts {
 			container.add(buttonsContainer);
 			
 			container.add(closeLink);
-		}
-		else {
+		} else {
+			
+			if(userId == null || setSameRightsForAttachments == null)
+				setSameRightsForAttachments = false;
+			
 			container.add(new Heading3(iwrb.getLocalizedString("set_access_rights", "Set access rights")));
 			
 			Layer checkBoxes = new Layer();
@@ -912,18 +942,22 @@ public class ProcessArtifacts {
 			headerCell.add(new Text(iwrb.getLocalizedString("role_name", "Role name")));
 			//	Permission to read
 			headerCell = headerRow.createHeaderCell();
-			headerCell.add(new Text(iwrb.getLocalizedString("allow_disallow_to_read", "Allow/disallow to read")));
+			
+			if(taskInstanceId != null)
+				headerCell.add(new Text(iwrb.getLocalizedString("allow_disallow_to_read", "Allow/disallow to read")));
+			else
+				headerCell.add(new Text(iwrb.getLocalizedString("allow_disallow_to_see_role_contacts", "Allow/disallow to see contacts of role")));
+			
 			//	Set same rights for attachments
 			if (setSameRightsForAttachments) {
 				headerCell = headerRow.createHeaderCell();
 				headerCell.add(new Text(iwrb.getLocalizedString("set_same_permission_for_attachements", "Set same access rights to attachments")));
 			}
 			
-			String roleName = null;
 			TableBodyRowGroup bodyRowGroup = table.createBodyRowGroup();
 		
 			for (Role role : roles) {
-				roleName = role.getRoleName();
+				String roleName = role.getRoleName();
 				
 				TableRow bodyRow = bodyRowGroup.createRow();
 				TableCell2 cell = bodyRow.createCell();
@@ -938,15 +972,17 @@ public class ProcessArtifacts {
 				}
 				
 				CheckBox box = new CheckBox(roleName);
-				box.setChecked(role.getAccesses() != null && role.getAccesses().contains(Access.read));		
+				
+				if(taskInstanceId != null)
+					box.setChecked(role.getAccesses() != null && role.getAccesses().contains(Access.read));
+				else
+					box.setChecked(role.getAccesses() != null && role.getAccesses().contains(Access.contactsCanBeSeen));
+				
 				StringBuilder action = new StringBuilder("CasesBPMAssets.setAccessRightsForBpmRelatedResource('").append(box.getId()).append("', ");
-				if (processInstanceId == null) {
-					action.append("null");
-				}
-				else {
-					action.append("'").append(processInstanceId).append("'");
-				}
-				action.append(", '").append(taskInstanceId).append("', ");
+				action.append(processInstanceId);
+				action.append(", ").append(taskInstanceId).append(", ")
+				.append(userId).append(", ");
+				
 				if (fileHashValue == null) {
 					action.append("null");
 				}
@@ -1007,10 +1043,7 @@ public class ProcessArtifacts {
 			    cell = bodyRow.createCell();
 			    cell.setStyleClass("alignCenterText");
 			    cell.add(saveAllRightsButton);
-			    
-				
 			}
-			
 		}
 		
 		return builder.getRenderedComponent(iwc, container, false);

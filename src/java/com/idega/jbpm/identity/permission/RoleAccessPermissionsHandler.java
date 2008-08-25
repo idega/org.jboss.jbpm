@@ -3,6 +3,7 @@ package com.idega.jbpm.identity.permission;
 import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.faces.context.FacesContext;
@@ -16,19 +17,19 @@ import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.data.ActorPermissions;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRole;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.presentation.IWContext;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:05:20 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -78,31 +79,28 @@ public class RoleAccessPermissionsHandler implements BPMTypedHandler {
 //			super admin always gets an access
 			if(!IWContext.getCurrentInstance().isSuperAdmin()) {
 				
-				List<ActorPermissions> actPerm =
-					
-					getBpmBindsDAO().getResultList(
-							ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames,
-							ActorPermissions.class,
-							new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
-							new Param(ActorPermissions.canSeeContactsOfRoleNameProperty, Arrays.asList(new String[] {roleName, "all"}))
-					);
+				int userId = new Integer(loggedInActorId);
 				
-				if(actPerm != null) {
+//				get all roles, the user can see/not see
+				Collection<Role> rolesUserCanSee = getRolesManager().getUserPermissionsForRolesContacts(processInstanceId, userId);
+				
+				if(rolesUserCanSee != null) {
 					
-					int userId = new Integer(loggedInActorId);
+					Role roleToCheckFor = new Role(roleName);
 					
-//					find out what roles can see contacts of the role provided in permission
-					
-					for (ActorPermissions actorPermission : actPerm) {
+					if(rolesUserCanSee.contains(roleToCheckFor)) {
 						
-						List<ProcessRole> proles = actorPermission.getProcessRoles();
-						
-						for (ProcessRole prole : proles) {
-
-//							and check if current user falls in any of those roles
-							if(getRolesManager().checkFallsInRole(prole.getProcessRoleName(), prole.getNativeIdentities(), userId, ac, iwac))
-								return;
+						for (Role role : rolesUserCanSee) {
+							
+							if(roleToCheckFor.equals(role)) {
+								
+								if(role.getAccesses() != null && role.getAccesses().contains(Access.contactsCanBeSeen))
+									return;
+								
+								break;
+							}
 						}
+						
 					}
 				}
 				
@@ -113,16 +111,16 @@ public class RoleAccessPermissionsHandler implements BPMTypedHandler {
 			
 //			checking basic falling in role
 		
-			List<ProcessRole> proles = 
-				getBpmBindsDAO().getResultList(ProcessRole.getSetByRoleNamesAndPIId, ProcessRole.class,
-						new Param(ProcessRole.processInstanceIdProperty, processInstanceId),
-						new Param(ProcessRole.processRoleNameProperty, Arrays.asList(new String[] {roleName}))
+			List<Actor> proles = 
+				getBpmBindsDAO().getResultList(Actor.getSetByRoleNamesAndPIId, Actor.class,
+						new Param(Actor.processInstanceIdProperty, processInstanceId),
+						new Param(Actor.processRoleNameProperty, Arrays.asList(new String[] {roleName}))
 				);
 			
 			if(proles == null || proles.isEmpty())
 				throw new AccessControlException("No process role found by role name="+roleName+" and process instance id = "+processInstanceId);
 			
-			ProcessRole prole = proles.iterator().next();
+			Actor prole = proles.iterator().next();
 			
 			int userId = new Integer(loggedInActorId);
 

@@ -9,7 +9,7 @@ import org.jbpm.taskmgmt.def.Task;
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.ProcessRole;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTypedPermission;
@@ -19,9 +19,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.24 $
+ * @version $Revision: 1.25 $
  * 
- * Last modified: $Date: 2008/08/12 10:58:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/25 19:03:38 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -43,7 +43,7 @@ public interface RolesManager {
 	
 	public abstract void createTaskRolesPermissions(Task task, List<Role> roles);
 	
-	public abstract List<ProcessRole> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId);
+	public abstract List<Actor> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId);
 	
 	public abstract void assignTaskRolesPermissions(Task task, List<Role> roles, Long processInstanceId);
 	
@@ -55,11 +55,11 @@ public interface RolesManager {
 	 * @param taskInstanceId
 	 * @return
 	 */
-	public abstract List<ProcessRole> getProcessRolesForProcessInstanceByTaskInstance(Long processInstanceId, Long taskInstanceId, String processRoleName);
+	public abstract List<Actor> getProcessRolesForProcessInstanceByTaskInstance(Long processInstanceId, Long taskInstanceId, String processRoleName);
 	
 	public abstract List<Long> getProcessInstancesIdsForCurrentUser();
 	
-	public abstract List<ProcessRole> getProcessRoles(Collection<String> rolesNames, Long processInstanceId);
+	public abstract List<Actor> getProcessRoles(Collection<String> rolesNames, Long processInstanceId);
 
 	/**
 	 * creates or updates task instance scope permissions for role.
@@ -71,7 +71,11 @@ public interface RolesManager {
 	 */
 	public abstract void setTaskRolePermissionsTIScope(Role role, Long processInstanceId, Long taskInstanceId, boolean setSameForAttachments, String variableName);
 	
+	public abstract void setContactsPermission(Role role, Long processInstanceId, Integer userId);
+	
 	public abstract List<Role> getRolesPermissionsForTaskInstance(Long processInstanceId, Long taskInstanceId, String variableName);
+	
+	public abstract Collection<Role> getUserPermissionsForRolesContacts(Long processInstanceId, Integer userId);
 	
 	public abstract List<Long> getProcessInstancesIdsForUser(IWContext iwc, User user, boolean checkIfSuperAdmin);
 	
