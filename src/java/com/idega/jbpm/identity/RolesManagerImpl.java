@@ -59,9 +59,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.47 $
+ * @version $Revision: 1.48 $
  * 
- * Last modified: $Date: 2008/08/25 19:03:37 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/26 15:20:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -1085,9 +1085,11 @@ public class RolesManagerImpl implements RolesManager {
 				new Param(NativeIdentityBind.identityIdProperty, userId.toString())
 		);
 		
+		boolean setDefault = "default".equals(role.getRoleName());
+		
 		final Actor actor;
 		
-		if(actors == null || actors.isEmpty()) {
+		if((actors == null || actors.isEmpty()) && !setDefault) {
 
 //			creating new actor for the user
 			JbpmContext jctx = getIdegaJbpmContext().createJbpmContext();
@@ -1118,11 +1120,29 @@ public class RolesManagerImpl implements RolesManager {
 			
 		} else {
 			
-//			should be only one result
-			actor = actors.iterator().next();
+			actor = actors == null || actors.isEmpty() ? null : actors.iterator().next();
 		}
 		
-		if("all".equals(role.getRoleName())) {
+		if(setDefault) {
+			
+			if(actor != null) {
+				
+//				only caring if there's an specific actor for the user
+				
+				List<ActorPermissions> perms = actor.getActorPermissions();
+				
+				if(perms != null) {
+					
+					for (ActorPermissions perm : perms) {
+						
+						getBpmDAO().remove(perm);
+					}
+					
+					actor.setActorPermissions(null);
+				}
+			}
+			
+		} else if("all".equals(role.getRoleName())) {
 			
 		} else {
 			

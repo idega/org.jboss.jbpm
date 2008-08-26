@@ -79,9 +79,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.61 $
+ * @version $Revision: 1.62 $
  *
- * Last modified: $Date: 2008/08/25 19:01:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/26 15:20:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -394,32 +394,19 @@ public class ProcessArtifacts {
 	
 	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, Integer variableIdentifier, String userId, boolean setSameRightsForAttachments) {
 		
-		final String id;
+		final IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		
-		if(taskInstanceId != null)
-			id = "idPrefImg"+taskInstanceId;
-		else
-			id = "idPrefImg"+userId;
-		 
-		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-		StringBuilder image = new StringBuilder("<img id=\"").append(id).append("\" class=\"caseProcessResourceAccessRightsStyle\" src=\"");
-		image.append(bundle.getVirtualPathWithFileNameString("images/preferences.png")).append("\" ondblclick=\"function() {}\"");
+		final StringBuilder imageHtml = new StringBuilder("<img class=\"caseProcessResourceAccessRightsStyle\" src=\"");
 		
-		image.append(" onclick=\"CasesBPMAssets.showAccessRightsForBpmRelatedResourceChangeMenu(event, ");
+		imageHtml.append(bundle.getVirtualPathWithFileNameString("images/preferences.png")).append("\" ondblclick=\"function() {}\"")
+			.append(" onclick=\"CasesBPMAssets.showAccessRightsForBpmRelatedResourceChangeMenu(event, ")
+			.append(processInstanceId).append(", ").append(taskInstanceId).append(", this, ")
+			.append(variableIdentifier)
+			.append(", ").append(setSameRightsForAttachments)
+			.append(", ").append(userId)
+			.append(");\" />");
 		
-		image.append(processInstanceId).append(", ").append(taskInstanceId)
-		.append(", '").append(id).append("', ");
-		
-		if (variableIdentifier == null) {
-			image.append("null");
-		}
-		else {
-			image.append("'").append(variableIdentifier).append("'");
-		}
-		image.append(", ").append(setSameRightsForAttachments)
-		.append(", ").append(userId)
-		.append(");\" />");
-		row.addCell(image.toString());
+		row.addCell(imageHtml.toString());
 	}
 	
 	public Document getTaskAttachments(ProcessArtifactsParamsBean params) {
@@ -872,6 +859,15 @@ public class ProcessArtifacts {
 		return iwrb.getLocalizedString("attachments_permissions_successfully_updated", "Permissions successfully updated.");	    
 	}
 	
+	public org.jdom.Document setRoleDefaultContactsForUser(Long processInstanceId, Integer userId) {
+
+		getBpmFactory().getRolesManager().setContactsPermission(
+				new Role("default"), processInstanceId, userId
+		);
+		
+		return getContactsAccessRightsSetterBox(processInstanceId, userId);
+	}
+	
 	public org.jdom.Document getAccessRightsSetterBox(Long processInstanceId, Long taskInstanceId, String fileHashValue, boolean setSameRightsForAttachments) {
 		
 		return getAccessRightsSetterBox(processInstanceId, taskInstanceId, fileHashValue, setSameRightsForAttachments, null);
@@ -887,7 +883,7 @@ public class ProcessArtifacts {
 		if (taskInstanceId == null && userId == null) {
 			return null;
 		}
-		IWContext iwc = IWContext.getCurrentInstance();
+		final IWContext iwc = IWContext.getCurrentInstance();
 		if (iwc == null) {
 			return null;
 		}
@@ -915,7 +911,7 @@ public class ProcessArtifacts {
 		
 		Link closeLink = new Link(iwrb.getLocalizedString("close", "Close"));
 		closeLink.setURL("javascript:void(0);");
-		closeLink.setOnClick("CasesBPMAssets.closeAccessRightsSetterBox();");
+		closeLink.setOnClick("CasesBPMAssets.closeAccessRightsSetterBox(this);");
 		
 		if (roles == null || roles.isEmpty()) {
 			container.add(new Heading3(iwrb.getLocalizedString("no_roles_to_set_permissions", "There are no roles to set access rights")));
@@ -1014,6 +1010,21 @@ public class ProcessArtifacts {
 			TableCell2 cell = bodyRow.createCell();
 		
 			cell.add(closeLink);
+			
+			if(taskInstanceId == null) {
+			
+				Link setDefaultsLink = new Link(iwrb.getLocalizedString("bpm_resetToDefault", "Reset to default"));
+				setDefaultsLink.setURL("javascript:void(0);");
+				
+				StringBuffer onclick = new StringBuffer("CasesBPMAssets.setRoleDefaultContactsForUser(this, ");
+				
+				onclick.append(processInstanceId).append(", ").append(userId).append(");");
+				
+				setDefaultsLink.setOnClick(onclick.toString());
+				setDefaultsLink.setStyleClass("setRoleDefaults");
+				
+				cell.add(setDefaultsLink);
+			}
 			    
 			if (setSameRightsForAttachments) {
 			    
