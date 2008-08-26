@@ -30,6 +30,7 @@
             <include method="watchOrUnwatchBPMProcessTask" />
             <include method="assignCase" />
             <include method="getAllHandlerUsers" />
+            <include method="setRoleDefaultContactsForUser" />
         </create>
         
         <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.ProcessArtifactsParamsBean" />
