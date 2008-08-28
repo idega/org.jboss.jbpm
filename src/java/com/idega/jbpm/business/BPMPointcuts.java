@@ -2,14 +2,18 @@ package com.idega.jbpm.business;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/05/04 18:12:27 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/28 12:09:23 $ by $Author: civilis $
  */
+@Scope("singleton")
+@Service
 @Aspect
 public class BPMPointcuts {
 
@@ -28,4 +32,12 @@ public class BPMPointcuts {
 	public static final String loadViewAtTaskInstanceW = "com.idega.jbpm.business.BPMPointcuts.loadViewAtTaskInstanceW()";
 	@Pointcut("execution(* com.idega.jbpm.exe.TaskInstanceW.loadView(..))")
 	public void loadViewAtTaskInstanceW() { }
+	
+	public static final String setContactsPermissionAtProcessInstanceW = "com.idega.jbpm.business.BPMPointcuts.setContactsPermissionAtProcessInstanceW()";
+	@Pointcut("execution(* com.idega.jbpm.exe.ProcessInstanceW.setContactsPermission(..))")
+	public void setContactsPermissionAtProcessInstanceW() { }
+	
+	public static final String setTaskRolePermissionsAtTaskInstanceW = "com.idega.jbpm.business.BPMPointcuts.setTaskRolePermissionsAtTaskInstanceW()";
+	@Pointcut("execution(* com.idega.jbpm.exe.TaskInstanceW.setTaskRolePermissions(..))")
+	public void setTaskRolePermissionsAtTaskInstanceW() { }
 }
