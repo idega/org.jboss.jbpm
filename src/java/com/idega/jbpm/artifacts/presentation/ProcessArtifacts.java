@@ -5,7 +5,6 @@ import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +47,6 @@ import com.idega.jbpm.identity.BPMUser;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.Access;
-import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
@@ -70,7 +68,6 @@ import com.idega.presentation.ui.CheckBox;
 import com.idega.presentation.ui.GenericButton;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.User;
-import com.idega.user.util.UserComparator;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
@@ -79,17 +76,21 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.62 $
+ * @version $Revision: 1.63 $
  *
- * Last modified: $Date: 2008/08/26 15:20:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/28 12:09:02 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
 public class ProcessArtifacts {
-	
+
+	@Autowired
 	private BPMFactory bpmFactory;
+	@Autowired
 	private BPMContext idegaJbpmContext;
+	@Autowired
 	private VariablesHandler variablesHandler;
+	@Autowired
 	private ProcessArtifactsProvider processArtifactsProvider;
 	@Autowired
 	private PermissionsFactory permissionsFactory;
@@ -192,9 +193,9 @@ public class ProcessArtifacts {
 			
 			Map<String, Object> vars = variablesHandler.populateVariables(email.getId());
 			
-			String subject = (String)vars.get("string:subject");
-			String fromPersonal = (String)vars.get("string:fromPersonal");
-			String fromAddress = (String)vars.get("string:fromAddress");
+			String subject = (String)vars.get("string_subject");
+			String fromPersonal = (String)vars.get("string_fromPersonal");
+			String fromAddress = (String)vars.get("string_fromAddress");
 			
 			String fromStr = fromPersonal;
 			
@@ -511,46 +512,6 @@ public class ProcessArtifacts {
 			return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger());
 	}
 	
-	private List<User> getPeopleConnectedToProcess(long processInstanceId) {
-		
-		final Collection<User> users;
-		
-		try {
-			BPMTypedPermission perm = (BPMTypedPermission)getPermissionsFactory().getRoleAccessPermission(processInstanceId, null, false);
-			users = getBpmFactory().getRolesManager().getAllUsersForRoles(null, processInstanceId, perm);
-			
-		} catch(Exception e) {
-			logger.log(Level.SEVERE, "Exception while resolving all process instance users", e);
-			return null;
-		}
-		
-		if(users != null && !users.isEmpty()) {
-
-//			using separate list, as the resolved one could be cashed (shared) and so
-			ArrayList<User> connectedPeople = new ArrayList<User>(users);
-
-			for (Iterator<User> iterator = connectedPeople.iterator(); iterator.hasNext();) {
-				
-				User user = iterator.next();
-				String hideInContacts = user.getMetaData(BPMUser.HIDE_IN_CONTACTS);
-				
-				if(hideInContacts != null)
-//					excluding ones, that should be hidden in contacts list
-					iterator.remove();
-			}
-			
-			try {
-				Collections.sort(connectedPeople, new UserComparator(CoreUtil.getIWContext().getCurrentLocale()));
-			} catch(Exception e) {
-				logger.log(Level.SEVERE, "Exception while sorting contacts list ("+connectedPeople+")", e);
-			}
-			
-			return connectedPeople; 
-		}
-		
-		return null;
-	}
-	
 	@SuppressWarnings("unchecked")
 	public Document getProcessContactsList(ProcessArtifactsParamsBean params) {
 		if (params == null) {
@@ -562,7 +523,11 @@ public class ProcessArtifacts {
 			return null;
 		}
 		
-		Collection<User> peopleConnectedToProcess = getPeopleConnectedToProcess(processInstanceId);
+		ProcessInstanceW piw = getBpmFactory()
+		.getProcessManagerByProcessInstanceId(processInstanceId)
+		.getProcessInstance(processInstanceId);
+		
+		Collection<User> peopleConnectedToProcess = piw.getUsersConnectedToProcess();
 		List<User> uniqueUsers = new ArrayList<User>();
 		if (peopleConnectedToProcess != null) {
 			for(User user: peopleConnectedToProcess) {
@@ -832,7 +797,7 @@ public class ProcessArtifacts {
 		return true;
 	}
 
-	public String setAccessRightsForProcessResource(String roleName, Long processInstanceId, Long taskInstanceId, String fileHashValue, boolean hasReadAccess, boolean setSameRightsForAttachments, Integer userId) {
+	public String setAccessRightsForProcessResource(String roleName, Long processInstanceId, Long taskInstanceId, String variableIdentifier, boolean hasReadAccess, boolean setSameRightsForAttachments, Integer userId) {
 		
     	IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
@@ -845,14 +810,24 @@ public class ProcessArtifacts {
 		
 		if(taskInstanceId != null) {
 			
-			getBpmFactory().getRolesManager().setTaskRolePermissionsTIScope(
+			TaskInstanceW tiw = getBpmFactory()
+			.getProcessManagerByProcessInstanceId(processInstanceId)
+			.getTaskInstance(taskInstanceId);
+			
+			tiw.setTaskRolePermissions(
 					new Role(roleName, hasReadAccess ? Access.read : null),
-					processInstanceId, taskInstanceId, setSameRightsForAttachments, fileHashValue
+					setSameRightsForAttachments, variableIdentifier
 			);
+			
 		} else {
 			
-			getBpmFactory().getRolesManager().setContactsPermission(
-					new Role(roleName, hasReadAccess ? Access.contactsCanBeSeen : null), processInstanceId, userId
+			ProcessInstanceW piw = getBpmFactory()
+			.getProcessManagerByProcessInstanceId(processInstanceId)
+			.getProcessInstance(processInstanceId);
+			
+			piw.setContactsPermission(
+					new Role(roleName, hasReadAccess ? Access.contactsCanBeSeen : null),
+					userId
 			);
 		}
 		
@@ -1229,7 +1204,6 @@ public class ProcessArtifacts {
 		return idegaJbpmContext;
 	}
 
-	@Autowired
 	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
@@ -1238,7 +1212,6 @@ public class ProcessArtifacts {
 		return bpmFactory;
 	}
 
-	@Autowired
 	public void setBpmFactory(BPMFactory bpmFactory) {
 		this.bpmFactory = bpmFactory;
 	}
@@ -1256,7 +1229,6 @@ public class ProcessArtifacts {
 		return variablesHandler;
 	}
 
-	@Autowired
 	public void setVariablesHandler(VariablesHandler variablesHandler) {
 		this.variablesHandler = variablesHandler;
 	}
@@ -1265,7 +1237,6 @@ public class ProcessArtifacts {
 		return processArtifactsProvider;
 	}
 
-	@Autowired
 	public void setProcessArtifactsProvider(
 			ProcessArtifactsProvider processArtifactsProvider) {
 		this.processArtifactsProvider = processArtifactsProvider;
