@@ -9,6 +9,8 @@ import org.jbpm.JbpmContext;
 import org.jbpm.security.AuthorizationService;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.business.BPMPointcuts;
@@ -18,15 +20,20 @@ import com.idega.jbpm.identity.permission.PermissionsFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/28 12:10:24 $ by $Author: civilis $
  */
+@Scope("singleton")
+@Service
 @Aspect
 public class IdentityAuthorizationAspect {
 
+	@Autowired
 	private BPMContext idegaJbpmContext;
+	@Autowired
 	private BPMDAO bpmBindsDAO;
+	@Autowired
 	private AuthorizationService authorizationService;
 	@Autowired
 	private PermissionsFactory permissionsFactory;
@@ -82,7 +89,6 @@ public class IdentityAuthorizationAspect {
 		return bpmBindsDAO;
 	}
 
-	@Autowired
 	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
 		this.bpmBindsDAO = bpmBindsDAO;
 	}
@@ -91,7 +97,6 @@ public class IdentityAuthorizationAspect {
 		return authorizationService;
 	}
 
-	@Autowired
 	public void setAuthorizationService(AuthorizationService authorizationService) {
 		this.authorizationService = authorizationService;
 	}
