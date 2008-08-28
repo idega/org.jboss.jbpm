@@ -26,11 +26,6 @@
     
     <bean id="bpmRolesAssiger" class="com.idega.jbpm.identity.RolesAssiger" scope="singleton" />
     
-    <bean id="bpmIdentityAuthorizationAspect" class="com.idega.jbpm.identity.authorization.IdentityAuthorizationAspect" scope="singleton" >
-        <property name="idegaJbpmContext" ref="idegaJbpmContext" />
-    </bean>
-    <bean id="bpmPointcuts" class="com.idega.jbpm.business.BPMPointcuts" scope="singleton" />
-    
     <bean id="bpmProcessDefinitionsAutoloader" class="com.idega.jbpm.process.business.autoloader.ProcessDefinitionsAutoloader" scope="singleton">
         <property name="mappings">
 	        <list>
