@@ -25,16 +25,16 @@ import com.idega.util.URIUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/06/15 15:58:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/28 12:10:41 $ by $Author: civilis $
  */
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service(ProcessParticipantRegistrationMgmntBean.beanIdentifier)
 public class ProcessParticipantRegistrationMgmntBean {
 	
 	public static final String beanIdentifier = "ProcessParticipantRegistrationMgmntBean";
-	public static final String redirectURLVariable = "string:participantInvitationRedirectURL";
+	public static final String redirectURLVariable = "string_participantInvitationRedirectURL";
 	public static final String egovBPMAssetsView = "bpm_assets_view";
 	
 	

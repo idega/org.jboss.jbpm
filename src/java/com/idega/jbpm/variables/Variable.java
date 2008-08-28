@@ -4,9 +4,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/19 13:52:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/28 12:11:21 $ by $Author: civilis $
  */
 public class Variable {
 
@@ -53,12 +53,12 @@ public class Variable {
 	
 	public String getDefaultStringRepresentation() {
 		
-		return new StringBuilder(getDataType().toString()).append(CoreConstants.COLON).append(getName()).toString();
+		return new StringBuilder(getDataType().toString()).append(CoreConstants.UNDER).append(getName()).toString();
 	}
 	
 	public static Variable parseDefaultStringRepresentation(String representation) {
 		
-		String[] splitted = representation.split(CoreConstants.COLON);
+		String[] splitted = representation.split(CoreConstants.UNDER);
 		
 		String dataTypeStr = splitted[0];
 		VariableDataType dataType = VariableDataType.getByStringRepresentation(dataTypeStr);

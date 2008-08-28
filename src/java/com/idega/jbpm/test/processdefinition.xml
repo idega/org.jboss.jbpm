@@ -5,10 +5,10 @@
    <start-state name="submitNewCase">
       <task name="Submit New Case">
          <controller>
-            <variable name="string:ownerFirstName" access="read,write,required"></variable>
-            <variable name="string:ownerLastName" access="read,write,required"></variable>
-            <variable name="string:defendantName" access="read,write,required"></variable>
-            <variable name="string:ownerCaseInformation" access="read,write,required"></variable>
+            <variable name="string_ownerFirstName" access="read,write,required"></variable>
+            <variable name="string_ownerLastName" access="read,write,required"></variable>
+            <variable name="string_defendantName" access="read,write,required"></variable>
+            <variable name="string_ownerCaseInformation" access="read,write,required"></variable>
          </controller>
          <assignment class="com.idega.jbpm.identity.JSONAssignmentHandler">
             <expression>
@@ -27,7 +27,7 @@
    <task-node name="requestAdditionalInformation">
       <task name="Request Additional Information">
          <controller>
-            <variable name="string:additionalInformationRequestText" access="read,write,required"></variable>
+            <variable name="string_additionalInformationRequestText" access="read,write,required"></variable>
          </controller>
          <assignment class="com.idega.jbpm.identity.JSONAssignmentHandler">
             <expression>
@@ -52,8 +52,8 @@
    <task-node name="submitAdditionalInformation">
       <task name="Submit Additional Information">
          <controller>
-            <variable name="string:additionalInformationRequestText" access="read"></variable>
-            <variable name="string:additionalInformation" access="read,write,required"></variable>
+            <variable name="string_additionalInformationRequestText" access="read"></variable>
+            <variable name="string_additionalInformation" access="read,write,required"></variable>
          </controller>
          <assignment class="com.idega.jbpm.identity.JSONAssignmentHandler">
             <expression>
@@ -81,7 +81,7 @@
    <task-node name="submitProcessRuling">
       <task name="Submit Process Ruling">
          <controller>
-            <variable name="string:rulingText" access="read,write,required"></variable>
+            <variable name="string_rulingText" access="read,write,required"></variable>
          </controller>
          <assignment class="com.idega.jbpm.identity.JSONAssignmentHandler">
             <expression>
@@ -108,8 +108,8 @@
    <task-node name="inviteDefandant">
       <task name="Invite Defendant">
          <controller>
-            <variable name="string:inviteText" access="read,write,required"></variable>
-            <variable name="string:defendantEmail" access="read,write,required"></variable>
+            <variable name="string_inviteText" access="read,write,required"></variable>
+            <variable name="string_defendantEmail" access="read,write,required"></variable>
          </controller>
          <assignment class="com.idega.jbpm.identity.JSONAssignmentHandler">
             <expression>

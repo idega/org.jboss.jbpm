@@ -14,14 +14,14 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/06/15 11:58:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/28 12:11:10 $ by $Author: civilis $
  *
  */
 public class Mockup {
 	
-	public static final String plaintiffVarName = "string:plaintiffFirstName";
+	public static final String plaintiffVarName = "string_plaintiffFirstName";
 	
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) {

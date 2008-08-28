@@ -14,15 +14,15 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/08/07 09:33:06 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/28 12:10:59 $ by $Author: civilis $
  */
 public class AssignAccountToParticipantHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -4163428065244816522L;
-	public static final String participantUserIdVarName = "int:participantUserId";
-	public static final String participantRoleNameVarName = "string:participantRoleName";
+	public static final String participantUserIdVarName = "int_participantUserId";
+	public static final String participantRoleNameVarName = "string_participantRoleName";
 	
 	public AssignAccountToParticipantHandler() { }
 	
