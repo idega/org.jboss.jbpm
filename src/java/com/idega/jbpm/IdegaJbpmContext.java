@@ -10,9 +10,9 @@ import org.jbpm.JbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/06/15 15:56:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/02 12:59:31 $ by $Author: civilis $
  */
 public class IdegaJbpmContext implements BPMContext {
 	
@@ -90,5 +90,16 @@ public class IdegaJbpmContext implements BPMContext {
 
 	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
 		this.entityManagerFactory = entityManagerFactory;
+	}
+	
+	public void saveProcessEntity(Object entity) {
+
+		JbpmContext current = getJbpmConfiguration().getCurrentJbpmContext();
+		
+		if(current != null) {
+		
+			current.getSession().save(entity);
+		} else
+			throw new IllegalStateException("No current JbpmContext resolved. Create JbpmContext around calling this method");
 	}
 }
