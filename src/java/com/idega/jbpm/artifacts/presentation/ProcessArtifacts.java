@@ -76,24 +76,19 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.63 $
+ * @version $Revision: 1.64 $
  *
- * Last modified: $Date: 2008/08/28 12:09:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/03 13:47:39 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
 public class ProcessArtifacts {
 
-	@Autowired
-	private BPMFactory bpmFactory;
-	@Autowired
-	private BPMContext idegaJbpmContext;
-	@Autowired
-	private VariablesHandler variablesHandler;
-	@Autowired
-	private ProcessArtifactsProvider processArtifactsProvider;
-	@Autowired
-	private PermissionsFactory permissionsFactory;
+	@Autowired private BPMFactory bpmFactory;
+	@Autowired private BPMContext idegaJbpmContext;
+	@Autowired private VariablesHandler variablesHandler;
+	@Autowired private ProcessArtifactsProvider processArtifactsProvider;
+	@Autowired private PermissionsFactory permissionsFactory;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	

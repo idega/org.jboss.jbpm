@@ -29,20 +29,17 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/08/25 19:05:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/03 13:47:22 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
 public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 	
-	@Autowired
-	private AuthenticationService authenticationService;
-	@Autowired
-	private BPMDAO bpmBindsDAO;
-	@Autowired
-	private RolesManager rolesManager;
+	@Autowired private AuthenticationService authenticationService;
+	@Autowired private BPMDAO bpmBindsDAO;
+	@Autowired private RolesManager rolesManager;
 	
 	public static final String taskInstanceAtt = 					"taskInstance";
 	public static final String checkOnlyInActorsPoolAtt = 			"checkOnlyInActorsPool";
