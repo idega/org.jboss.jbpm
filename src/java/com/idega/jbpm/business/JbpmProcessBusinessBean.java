@@ -23,7 +23,9 @@ import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.jbpm.BPMContext;
+import com.idega.util.CoreConstants;
 
+//TODO: re-make this completely: use the standard way of resolving/creating variables etc
 @SuppressWarnings("unchecked")
 public class JbpmProcessBusinessBean {
 	
@@ -88,7 +90,7 @@ public class JbpmProcessBusinessBean {
 					if(qualified) {
 						variables.add(fullName);
 					} else {
-						StringTokenizer stk = new StringTokenizer(fullName, ":");
+						StringTokenizer stk = new StringTokenizer(fullName, CoreConstants.UNDER);
 						/*String type =*/ stk.nextToken();
 						String name = stk.nextToken();
 						variables.add(name);
@@ -124,7 +126,7 @@ public class JbpmProcessBusinessBean {
 				for(Iterator<VariableAccess> it2 = list.iterator(); it2.hasNext(); ) {
 					VariableAccess va = it2.next();
 					String fullName = va.getVariableName();
-					StringTokenizer stk = new StringTokenizer(fullName, ":");
+					StringTokenizer stk = new StringTokenizer(fullName, CoreConstants.UNDER);
 					String type = stk.nextToken();
 					String name = stk.nextToken();
 					if(variables.containsKey(type)) {
@@ -162,7 +164,7 @@ public class JbpmProcessBusinessBean {
 				for(Iterator<VariableAccess> it2 = list.iterator(); it2.hasNext(); ) {
 					VariableAccess va = it2.next();
 					String fullName = va.getVariableName();
-					StringTokenizer stk = new StringTokenizer(fullName, ":");
+					StringTokenizer stk = new StringTokenizer(fullName, CoreConstants.UNDER);
 					String type = stk.nextToken();
 					String name = stk.nextToken();
 					if(type.equals(datatype)) {
@@ -196,7 +198,7 @@ public class JbpmProcessBusinessBean {
 				for(Iterator<VariableAccess> it2 = list.iterator(); it2.hasNext(); ) {
 					VariableAccess va = it2.next();
 					String fullName = va.getVariableName();
-					StringTokenizer stk = new StringTokenizer(fullName, ":");
+					StringTokenizer stk = new StringTokenizer(fullName, CoreConstants.UNDER);
 					String type = stk.nextToken();
 					if(datatypes.contains(type)) {
 						variables.add(fullName);
@@ -266,7 +268,7 @@ public class JbpmProcessBusinessBean {
 			ProcessDefinition pd = getProcessDefinition(processId, ctx);
 			Task task = pd.getTaskMgmtDefinition().getTask(taskName);
 			if(task != null) {
-				VariableAccess newVariable = new VariableAccess(datatype + ":" + variableName, "rw", "");
+				VariableAccess newVariable = new VariableAccess(datatype + CoreConstants.UNDER + variableName, "rw", "");
 				TaskController controller = task.getTaskController();
 				List list = new ArrayList();
 				if(controller == null) {
@@ -323,7 +325,7 @@ public class JbpmProcessBusinessBean {
 			for(Iterator it = list.iterator(); it.hasNext(); ) {
 				VariableAccess va = (VariableAccess) it.next();
 				String fullName = va.getVariableName();
-				StringTokenizer stk = new StringTokenizer(fullName, ":");
+				StringTokenizer stk = new StringTokenizer(fullName, CoreConstants.UNDER);
 				String type = stk.nextToken();
 				String name = stk.nextToken();
 				if(variables.containsKey(type)) {
@@ -355,7 +357,7 @@ public class JbpmProcessBusinessBean {
 					for(Iterator it = list.iterator(); it.hasNext(); ) {
 						VariableAccess va = (VariableAccess) it.next();
 						String fullName = va.getVariableName();
-						StringTokenizer stk = new StringTokenizer(fullName, ":");
+						StringTokenizer stk = new StringTokenizer(fullName, CoreConstants.UNDER);
 						String type = stk.nextToken();
 						if(type.equals(datatype)) {
 							variables.add(stk.nextToken());
