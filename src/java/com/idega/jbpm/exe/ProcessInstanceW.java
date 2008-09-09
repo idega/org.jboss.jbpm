@@ -13,9 +13,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/08/28 12:10:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/09 05:59:47 $ by $Author: arunas $
  */
 public interface ProcessInstanceW {
 	
@@ -51,4 +51,9 @@ public interface ProcessInstanceW {
 	public abstract void setContactsPermission(Role role, Integer userId);
 	
 	public abstract ProcessInstance getProcessInstance();
+	
+	public abstract String getCaseIdentifier();
+	
+	public abstract String getProcessDescription();
+
 }
