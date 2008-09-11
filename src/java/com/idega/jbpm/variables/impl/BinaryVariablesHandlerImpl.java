@@ -38,9 +38,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/06/28 19:15:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/11 18:17:39 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -151,7 +151,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
 	protected VariableDataType getDataType(String mapping) {
 		
-		String strRepr = mapping.contains(CoreConstants.COLON) ? mapping.substring(0, mapping.indexOf(CoreConstants.COLON)) : "string";
+		String strRepr = mapping.contains(CoreConstants.UNDER) ? mapping.substring(0, mapping.indexOf(CoreConstants.UNDER)) : "string";
 		return VariableDataType.getByStringRepresentation(strRepr);
 	}
 	
