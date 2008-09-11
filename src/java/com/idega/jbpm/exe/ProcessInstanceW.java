@@ -13,9 +13,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/09/09 05:59:47 $ by $Author: arunas $
+ * Last modified: $Date: 2008/09/11 13:32:18 $ by $Author: arunas $
  */
 public interface ProcessInstanceW {
 	
@@ -55,5 +55,7 @@ public interface ProcessInstanceW {
 	public abstract String getCaseIdentifier();
 	
 	public abstract String getProcessDescription();
+	
+	public abstract String getStartedTaskName();
 
 }
