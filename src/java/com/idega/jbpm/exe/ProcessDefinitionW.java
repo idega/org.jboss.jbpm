@@ -8,9 +8,9 @@ import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/09/11 11:14:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/11 14:39:12 $ by $Author: civilis $
  */
 public interface ProcessDefinitionW {
 	
@@ -27,4 +27,6 @@ public interface ProcessDefinitionW {
 	public abstract void setRolesCanStartProcess(List<String> roles, Object context);
 	
 	public abstract List<String> getRolesCanStartProcess(Object context);
+	
+	public abstract String getStartTaskName();
 }
