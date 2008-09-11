@@ -2,13 +2,15 @@ package com.idega.jbpm.exe;
 
 import java.util.List;
 
+import org.jbpm.graph.def.ProcessDefinition;
+
 import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/09/02 12:59:58 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/11 11:14:12 $ by $Author: civilis $
  */
 public interface ProcessDefinitionW {
 	
@@ -19,6 +21,8 @@ public interface ProcessDefinitionW {
 	public abstract void setProcessDefinitionId(Long processDefinitionId);
 	
 	public abstract Long getProcessDefinitionId();
+	
+	public abstract ProcessDefinition getProcessDefinition();
 	
 	public abstract void setRolesCanStartProcess(List<String> roles, Object context);
 	
