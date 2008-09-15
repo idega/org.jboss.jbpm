@@ -4,32 +4,25 @@ import java.util.Stack;
 
 import javax.persistence.EntityManagerFactory;
 
-import org.hibernate.Session;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/09/02 12:59:31 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/15 15:44:57 $ by $Author: civilis $
  */
 public class IdegaJbpmContext implements BPMContext {
 	
 	public static final String beanIdentifier = "idegaJbpmContext";
-	private static final String mainJbpmContext = "idegaMain";
-	private JbpmConfiguration jbpmConfiguration;
 	private EntityManagerFactory entityManagerFactory;
 	private ThreadLocal<Stack<Boolean>> doCommitStackLocal = new ThreadLocal<Stack<Boolean>>();
 
 	public JbpmConfiguration getJbpmConfiguration() {
-		return jbpmConfiguration;
+		return JbpmConfiguration.getInstance();
 	}
 
-	public void setJbpmConfiguration(JbpmConfiguration jbpmConfiguration) {
-		this.jbpmConfiguration = jbpmConfiguration;
-	}
-	
 	protected Stack<Boolean> getDoCommitStack() {
 		
 		Stack<Boolean> stack = doCommitStackLocal.get();
@@ -45,43 +38,12 @@ public class IdegaJbpmContext implements BPMContext {
 	
 	public JbpmContext createJbpmContext() {
 		
-		JbpmConfiguration cfg = getJbpmConfiguration();
-		
-		JbpmContext current = cfg.getCurrentJbpmContext();
-		JbpmContext context;
-		
-		if(current != null) {
-			context = current;
-		} else {
-			context = cfg.createJbpmContext(mainJbpmContext);
-			Session hibernateSession = (Session)getEntityManagerFactory().createEntityManager().getDelegate();
-			context.setSession(hibernateSession);
-		}
-		
-		Session hibernateSession = context.getSession();
-		
-		if(hibernateSession.getTransaction().isActive()) {
-			
-			getDoCommitStack().push(false);
-			
-		} else {
-		
-			hibernateSession.getTransaction().begin();
-			getDoCommitStack().clear();
-			getDoCommitStack().push(true);
-		}
-		
-		return context;
+		return JbpmConfiguration.getInstance().createJbpmContext();
 	}
 	
 	public void closeAndCommit(JbpmContext ctx) {
-	
-//		empty if there were failure only
-		if(getDoCommitStack().isEmpty() || getDoCommitStack().pop()) {
-			
-			ctx.close();
-			ctx.getSession().getTransaction().commit();
-		}
+		
+		ctx.close();
 	}
 
 	public EntityManagerFactory getEntityManagerFactory() {
