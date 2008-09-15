@@ -9,19 +9,21 @@
                             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
                             http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
         ">
-        
-        <!-- 
+
+<!--          
         <bean id="defaultJbpmConfiguration" class="org.jbpm.JbpmConfiguration" factory-method="getInstance" scope="singleton">
             <constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
         </bean>
+-->
         
-        <bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
-	        <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
-	        <property name="entityManagerFactory" ref="entityManagerFactory" />
-        </bean>
-        
+        <!--  
         <bean id="jbpmConfigurationWrapper" class="org.jbpm.JbpmConfigurationW" factory-method="createJbpmConfiguration" scope="singleton">
             <constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
+        </bean>
+        
+        
+        <bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
+	        <property name="entityManagerFactory" ref="entityManagerFactory" />
         </bean>
         -->
         
@@ -32,5 +34,4 @@
         <bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
             <property name="entityManagerFactory" ref="entityManagerFactory" />
         </bean>
-        
 </beans>
