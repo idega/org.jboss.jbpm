@@ -7,10 +7,12 @@ import java.util.Stack;
 import javax.persistence.EntityManagerFactory;
 
 import org.hibernate.Session;
+import org.hibernate.StaleObjectStateException;
 import org.jbpm.configuration.ObjectFactory;
 import org.jbpm.configuration.ObjectFactoryImpl;
 import org.jbpm.configuration.ObjectInfo;
 import org.jbpm.configuration.ValueInfo;
+import org.jbpm.persistence.JbpmPersistenceException;
 import org.jbpm.util.ClassLoaderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,9 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * We need this, because we can manage, how (and which) jbpmContext is created.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/09/15 15:45:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/16 14:21:35 $ by $Author: civilis $
  */
 public class JbpmConfigurationW extends JbpmConfiguration {
 
@@ -70,8 +72,8 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	void jbpmContextCreated(JbpmContext jbpmContext) {
 		super.jbpmContextCreated(jbpmContext);
 		
-		if(!getJobExecutor().isStarted())
-			startJobExecutor();
+//		if(!getJobExecutor().isStarted())
+//			startJobExecutor();
 	}
 	
 	public Stack<Boolean> getDoCommitStack() {
@@ -112,12 +114,12 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 		
 		if(hibernateSession.getTransaction().isActive()) {
 		
-//			System.out.println("_____create context");
+//			System.out.println("_____create context. Thread is = "+Thread.currentThread().getName());
 			getDoCommitStack().push(false);
 			
 		} else {
 		
-//			System.out.println("_____create context NEW TRANSACTION. Thread is = "+Thread.currentThread().getId());
+//			System.out.println("_____create context NEW TRANSACTION. Thread is = "+Thread.currentThread().getName());
 			hibernateSession.getTransaction().begin();
 			getDoCommitStack().clear();
 			getDoCommitStack().push(true);
@@ -131,12 +133,21 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 		
 		if(getDoCommitStack().isEmpty() || getDoCommitStack().pop()) {
 			
-//			System.out.println("_____jbpmContextClosed and commiting_____. Thread is = "+Thread.currentThread().getId());
-			jbpmContext.getSession().getTransaction().commit();
-			super.jbpmContextClosed(jbpmContext);
+//			if ("org.hibernate.StaleObjectStateException".equals(e.getCause().getClass().getName())) {
+			
+//			System.out.println("_____jbpmContextClosed and commiting_____. Thread is = "+Thread.currentThread().getName());
+			try {
+				jbpmContext.getSession().getTransaction().commit();
+				
+			} catch (StaleObjectStateException e) {
+				throw new JbpmPersistenceException("Exception while commiting jbpmContext transaction", e);
+
+			} finally {
+				super.jbpmContextClosed(jbpmContext);
+			}
 		}
 //		} else
-//			System.out.println("____jbpmContextClosed");
+//			System.out.println("____jbpmContextClosed. Thread is = "+Thread.currentThread().getName());
 	}
 
 	public EntityManagerFactory getEntityManagerFactory() {

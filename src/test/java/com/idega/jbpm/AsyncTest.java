@@ -9,7 +9,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hibernate.Session;
-import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.Action;
 import org.jbpm.graph.def.ActionHandler;
@@ -28,9 +27,9 @@ import com.idega.core.test.base.IdegaBaseTransactionalTest;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- *          Last modified: $Date: 2008/09/15 15:46:37 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/09/16 14:22:02 $ by $Author: civilis $
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -49,7 +48,7 @@ public final class AsyncTest extends IdegaBaseTransactionalTest {
 		JbpmContext jctx = bpmContext.createJbpmContext();
 
 		try {
-			ProcessDefinition superProcess = ProcessDefinition
+			ProcessDefinition simpleAsyncProcess = ProcessDefinition
 					.parseXmlString("<process-definition name='bulk messages'>"
 							+ "  <start-state>"
 							+ "    <transition to='b' />"
@@ -61,8 +60,8 @@ public final class AsyncTest extends IdegaBaseTransactionalTest {
 							// + "    <transition to='b' />"
 							// + "  </node>"
 							+ "  <node name='b' >"
-							+ "    <event type='node-enter' async='true'>"
-							+ "      <action name='X' class='"
+							+ "    <event type='node-enter'>"
+							+ "      <action name='X' async='true' class='"
 							+ AsyncAction.class.getName()
 							+ "' />"
 							+ "    </event>"
@@ -100,7 +99,53 @@ public final class AsyncTest extends IdegaBaseTransactionalTest {
 							// + "  </node>"
 							+ "  <end-state name='end'/>"
 							+ "</process-definition>");
-			jctx.deployProcessDefinition(superProcess);
+			jctx.deployProcessDefinition(simpleAsyncProcess);
+			
+			/*
+			ProcessDefinition asyncBetweenForksProcess = ProcessDefinition
+			.parseXmlString("<process-definition name='asyncBetweenForks'>"
+					+ "  <start-state>"
+					+ "    <transition to='b' />"
+					+ "  </start-state>"
+//							+"<fork name='fork1'>"
+//							+"<transition name='toB' to='b'></transition>"
+//							+"<transition name='toNotimportant' to='notimportant'></transition>"
+//							+ "</fork>"
+					+ "  <node name='b'>"
+					+ "    <event type='node-leave'>"
+					+ "      <action name='asyncAction' async='true' class='"
+							+ AsyncAction.class.getName()
+							+ "' />"
+					+ "    </event>"
+					+ "    <transition to='fork2' />"
+					+ "  </node>"
+					+ "  <node name='notimportant'>"
+					+ "    <transition to='end' />"
+					+ "  </node>"
+						+"<fork name='fork2'>"
+						+"<transition name='toSomeTask2' to='sometask2'></transition>"
+						+"<transition name='toSomeTask3' to='sometask3'></transition>"
+						+ "</fork>"
+						+"<task-node name='sometask2'>"
+						+"<task name='st2'>"
+						+"<controller>"
+						+"<variable name='string_documentKey' access='read,write,required'></variable>"
+						+"</controller>"
+						+"</task>" +
+								"<transition to='end' name='toEnd'></transition>"
+						+"</task-node>"
+						+"<task-node name='sometask3'>"
+						+"<task name='st3'>"
+						+"<controller>"
+						+"<variable name='string_documentKey' access='read,write,required'></variable>"
+						+"</controller>"
+						+"</task>"
+						+"<transition to='end' name='toEnd'></transition>"
+						+"</task-node>"
+					+ "  <end-state name='end'/>"
+					+ "</process-definition>");
+			jctx.deployProcessDefinition(asyncBetweenForksProcess);
+			*/
 
 		} finally {
 			bpmContext.closeAndCommit(jctx);
@@ -109,6 +154,9 @@ public final class AsyncTest extends IdegaBaseTransactionalTest {
 
 	@Test
 	public void testAsync() throws Exception {
+		
+//		if(true)
+//			return;
 
 		deployProcessDefinitions();
 		
@@ -128,6 +176,33 @@ public final class AsyncTest extends IdegaBaseTransactionalTest {
 		
 		processJobs(maxWaitTime);
 	}
+	
+	/*
+	@Test
+	public void testAsyncBetweenForks() throws Exception {
+		
+		if(true)
+			return;
+
+		deployProcessDefinitions();
+		
+		JbpmContext jbpmContext = bpmContext.createJbpmContext();
+
+		try {
+			jobExecutor = jbpmContext.getJbpmConfiguration().getJobExecutor();
+			
+			ProcessInstance pi = jbpmContext.newProcessInstance("asyncBetweenForks");
+			pi.signal();
+			
+//			jbpmContext.getJobSession().
+
+		} finally {
+			bpmContext.closeAndCommit(jbpmContext);
+		}
+		
+		processJobs(maxWaitTime);
+	}
+	*/
 
 	public static class AsyncAction implements ActionHandler {
 		private static final long serialVersionUID = 1L;
