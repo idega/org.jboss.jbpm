@@ -37,9 +37,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/07/19 20:42:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/16 18:22:22 $ by $Author: civilis $
  */
 public abstract class ProcessDefinitionsAutoloader implements ApplicationListener, ApplicationContextAware {
 
@@ -254,25 +254,6 @@ public abstract class ProcessDefinitionsAutoloader implements ApplicationListene
 		
 		return autos;
 	}
-	
-//	protected ProcessBundle createProcessBundle(IWMainApplication iwma, Properties props, Integer version, String pathToPropsWithinBundle, String bundleIdentifier) {
-//		
-//		String processBundleIdentifier = props.getProperty("process_definition.processBundle.beanIndentifier");
-//		
-//		try {
-//			ProcessBundle procBundle = (ProcessBundle)getApplicationContext().getBean(processBundleIdentifier);
-//			procBundle.setBundlePropertiesLocationWithinBundle(pathToPropsWithinBundle);
-//			procBundle.setBundle(iwma.getBundle(bundleIdentifier));
-//			ProcessDefinition pd = procBundle.getProcessDefinition();
-//			pd.setVersion(version);
-//			
-//			return procBundle;
-//			
-//		} catch (IOException e) {
-//			getLogger().log(Level.WARNING, "process definition not found", e);
-//			return null;
-//		}
-//	}
 	
 	protected Logger getLogger() {
 		
