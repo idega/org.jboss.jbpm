@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.idega.block.process.variables.VariableDataType;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
@@ -27,7 +28,6 @@ import com.idega.core.file.util.FileURIHandlerFactory;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
-import com.idega.jbpm.variables.VariableDataType;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
@@ -38,9 +38,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/09/11 18:17:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/17 13:22:05 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
