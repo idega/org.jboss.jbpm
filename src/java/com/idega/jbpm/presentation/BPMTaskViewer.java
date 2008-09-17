@@ -22,9 +22,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  *
- * Last modified: $Date: 2008/06/19 07:52:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/17 18:18:53 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 	
@@ -38,7 +38,8 @@ public class BPMTaskViewer extends IWBaseComponent {
 	public static final String idegaJbpmContext_PROPERTY = "idegaJbpmContext";
 	
 	private static final String VIEWER_FACET = "viewer";
-	
+
+	private String processName;
 	private String processDefinitionId;
 	private Long taskInstanceId;
 	
@@ -61,12 +62,15 @@ public class BPMTaskViewer extends IWBaseComponent {
 		
 		super.encodeBegin(context);
 		
+		String processName = getProcessName();
 		String processDefinitionId = getProcessDefinitionId(context);
 		Long taskInstanceId = getTaskInstanceId(context);
 		
 		UIComponent viewer = null;
 		
-		if(processDefinitionId != null)
+		if(processName != null && !CoreConstants.EMPTY.equals(processName))
+			viewer = loadViewerFromProcessName(context, processName);
+		else if(processDefinitionId != null && !CoreConstants.EMPTY.equals(processDefinitionId))
 			viewer = loadViewerFromDefinition(context, processDefinitionId);
 		else if(taskInstanceId != null)
 			viewer = loadViewerFromTaskInstance(context, taskInstanceId);
@@ -92,6 +96,20 @@ public class BPMTaskViewer extends IWBaseComponent {
 		long pdId = Long.parseLong(processDefinitionId);
 		
 		View initView = getBpmFactory(context).getProcessManager(pdId).getProcessDefinition(pdId).loadInitView(initiatorId);
+		return initView.getViewForDisplay();
+	}
+	
+	private UIComponent loadViewerFromProcessName(FacesContext context, String processName) {
+
+		final IWContext iwc = IWContext.getIWContext(context);
+		final Integer initiatorId;
+		
+		if(iwc.isLoggedOn())
+			initiatorId = IWContext.getIWContext(context).getCurrentUserId();
+		else
+			initiatorId = null;
+		
+		View initView = getBpmFactory(context).getProcessManager(processName).getProcessDefinition(processName).loadInitView(initiatorId);
 		return initView.getViewForDisplay();
 	}
 
@@ -232,5 +250,13 @@ public class BPMTaskViewer extends IWBaseComponent {
 
 	public void setTaskInstanceId(Long taskInstanceId) {
 		this.taskInstanceId = taskInstanceId;
+	}
+
+	public String getProcessName() {
+		return processName;
+	}
+
+	public void setProcessName(String processName) {
+		this.processName = processName;
 	}
 }
