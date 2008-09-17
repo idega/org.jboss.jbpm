@@ -8,9 +8,9 @@ import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/08/05 07:17:15 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/17 18:17:14 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
@@ -20,6 +20,13 @@ public interface BPMFactory {
 	 * @return Process manager bound to process definition
 	 */
 	public abstract ProcessManager getProcessManager(long processDefinitionId);
+	
+	/**
+	 * 
+	 * @param processDefinitionId
+	 * @return Process manager bound to latest process definition found by name
+	 */
+	public abstract ProcessManager getProcessManager(String processName);
 	
 	/**
 	 * 
