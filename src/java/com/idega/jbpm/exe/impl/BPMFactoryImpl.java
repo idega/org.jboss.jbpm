@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
+import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.BeansException;
@@ -30,9 +31,9 @@ import com.idega.jbpm.view.ViewFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/08/05 07:18:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/17 18:18:26 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -152,10 +153,6 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	protected BPMManagersFactory getManagersCreator(long processDefinitionId) {
 		
 		String managersType = resolveManagersType(processDefinitionId);
-		
-		if("default".equals(managersType))
-//			TODO: support this
-			throw new UnsupportedOperationException("No managers type found for process definition id provided: "+processDefinitionId+". Default managers implementation not supported yet");
 		
 		BPMManagersFactory creator;
 		
@@ -293,6 +290,19 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
 			long pdId = processInstance.getProcessDefinition().getId();
 			return getProcessManager(pdId);
+			
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
+	}
+
+	public ProcessManager getProcessManager(String processName) {
+
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			ProcessDefinition pd = ctx.getGraphSession().findLatestProcessDefinition(processName);
+			return getProcessManager(pd.getId());
 			
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
