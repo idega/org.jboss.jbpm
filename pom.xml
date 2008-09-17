@@ -67,6 +67,10 @@
     </dependency>
     <dependency>
       <groupId>com.idega.block.platform</groupId>
+      <artifactId>com.idega.block.process</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.block.login</artifactId>
     </dependency>
     <dependency>
