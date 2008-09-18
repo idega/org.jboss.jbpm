@@ -5,13 +5,14 @@ import java.io.Serializable;
 /**
  *  
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/06/21 16:47:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/18 17:09:37 $ by $Author: civilis $
  */
 public class UserPersonalData implements Serializable {
 	
 	private static final long serialVersionUID = -5359330743741377568L;
+	private String userName;
 	private String personalId;
 	private String firstName;
 	private String lastName;
@@ -23,6 +24,7 @@ public class UserPersonalData implements Serializable {
 	private String userMunicipality;
 	private String userPhone;
 	private Boolean hideInContacts;
+	private Boolean createWithLogin;
 	
 	private Integer userId;
 	
@@ -97,5 +99,17 @@ public class UserPersonalData implements Serializable {
 	}
 	public void setHideInContacts(Boolean hideInContacts) {
 		this.hideInContacts = hideInContacts;
+	}
+	public Boolean getCreateWithLogin() {
+		return createWithLogin != null && createWithLogin;
+	}
+	public void setCreateWithLogin(Boolean createWithLogin) {
+		this.createWithLogin = createWithLogin;
+	}
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
 }
