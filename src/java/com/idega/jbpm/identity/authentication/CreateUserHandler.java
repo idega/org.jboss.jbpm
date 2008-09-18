@@ -19,15 +19,17 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.identity.UserPersonalData;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.User;
+import com.idega.util.IWTimestamp;
+import com.idega.util.text.Name;
 
 /**
  *  Jbpm action handler, which creates ic_user by user personal data object information.
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/06/19 10:09:17 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/18 17:10:03 $ by $Author: civilis $
  */
 public class CreateUserHandler implements ActionHandler {
 
@@ -58,12 +60,43 @@ public class CreateUserHandler implements ActionHandler {
 					
 					final User usrCreated;
 					
-					if(upd.getFullName() != null) {
+					if(upd.getCreateWithLogin()) {
 						
-						usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFullName(), personalId, null, null);
+						String firstName;
+						String middleName;
+						String lastName;
+						String userName;
 						
+						if(upd.getFullName() != null) {
+							
+							Name name = new Name(upd.getFullName());
+							firstName = name.getFirstName();
+							middleName = name.getMiddleName();
+							lastName = name.getLastName();
+							
+						} else {
+							
+							firstName = upd.getFirstName();
+							middleName = null;
+							lastName = upd.getLastName();
+						}
+						
+						if((userName = upd.getUserName()) == null)
+							userName = upd.getPersonalId();
+						
+						String password = "generate";
+						
+//						doesn't check if login already exists, therefore this check needs to be made before calling this
+						usrCreated = userBusiness.createUserWithLogin(
+								firstName, middleName, lastName, null, null, null, null, null, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.TRUE, null);
 					} else {
-						usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFirstName(), null, upd.getLastName(), personalId, null, null);
+					
+						if(upd.getFullName() != null) {
+						
+							usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFullName(), personalId, null, null);
+						} else {
+							usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFirstName(), null, upd.getLastName(), personalId, null, null);							
+						}
 					}
 					
 //					TODO: populated user with other personal data here
