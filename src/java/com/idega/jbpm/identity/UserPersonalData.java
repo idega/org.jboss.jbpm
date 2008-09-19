@@ -5,14 +5,15 @@ import java.io.Serializable;
 /**
  *  
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/09/18 17:09:37 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/19 16:30:43 $ by $Author: civilis $
  */
 public class UserPersonalData implements Serializable {
 	
 	private static final long serialVersionUID = -5359330743741377568L;
 	private String userName;
+	private String userPassword;
 	private String personalId;
 	private String firstName;
 	private String lastName;
@@ -111,5 +112,11 @@ public class UserPersonalData implements Serializable {
 	}
 	public void setUserName(String userName) {
 		this.userName = userName;
+	}
+	public String getUserPassword() {
+		return userPassword;
+	}
+	public void setUserPassword(String userPassword) {
+		this.userPassword = userPassword;
 	}
 }
