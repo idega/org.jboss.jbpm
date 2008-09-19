@@ -4,14 +4,15 @@ import java.util.HashMap;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/09/09 05:59:47 $ by $Author: arunas $
+ * Last modified: $Date: 2008/09/19 15:18:32 $ by $Author: civilis $
  */
 public class MessageValueContext {
 
 //	standard values
 	public static final TypeRef userBean 			= new TypeRef("bean", "user");
+	public static final TypeRef updBean 			= new TypeRef("bean", "upd");
 	public static final TypeRef tokenBean 			= new TypeRef("bean", "token");
 	public static final TypeRef piwBean 			= new TypeRef("bean", "piw");
 		
