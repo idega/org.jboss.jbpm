@@ -12,6 +12,7 @@ import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
+import com.idega.core.accesscontrol.business.LoginDBHandler;
 import com.idega.core.contact.data.Email;
 import com.idega.core.contact.data.EmailHome;
 import com.idega.idegaweb.IWApplicationContext;
@@ -27,9 +28,9 @@ import com.idega.util.text.Name;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/09/18 17:10:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/19 16:31:09 $ by $Author: civilis $
  */
 public class CreateUserHandler implements ActionHandler {
 
@@ -84,7 +85,8 @@ public class CreateUserHandler implements ActionHandler {
 						if((userName = upd.getUserName()) == null)
 							userName = upd.getPersonalId();
 						
-						String password = "generate";
+						String password = LoginDBHandler.getGeneratedPasswordForUser();
+						upd.setUserPassword(password);
 						
 //						doesn't check if login already exists, therefore this check needs to be made before calling this
 						usrCreated = userBusiness.createUserWithLogin(
