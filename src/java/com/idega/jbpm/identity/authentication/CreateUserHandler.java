@@ -8,6 +8,7 @@ import javax.faces.context.FacesContext;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -18,9 +19,11 @@ import com.idega.core.contact.data.EmailHome;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.identity.UserPersonalData;
+import com.idega.user.business.StandardGroup;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.User;
 import com.idega.util.IWTimestamp;
+import com.idega.util.expression.ELUtil;
 import com.idega.util.text.Name;
 
 /**
@@ -28,14 +31,16 @@ import com.idega.util.text.Name;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/09/19 16:31:09 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/22 12:04:44 $ by $Author: civilis $
  */
 public class CreateUserHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -1181069105207752204L;
 	private String userDataExp;
+	@Autowired(required=false)
+	private StandardGroup standardGroup;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
 
@@ -88,9 +93,17 @@ public class CreateUserHandler implements ActionHandler {
 						String password = LoginDBHandler.getGeneratedPasswordForUser();
 						upd.setUserPassword(password);
 						
+						StandardGroup standardGroup = getStandardGroup();
+						final Integer standardGroupPK;
+						
+						if(standardGroup != null)
+							standardGroupPK = new Integer(standardGroup.getGroup().getPrimaryKey().toString());
+						else
+							standardGroupPK = null;
+						
 //						doesn't check if login already exists, therefore this check needs to be made before calling this
 						usrCreated = userBusiness.createUserWithLogin(
-								firstName, middleName, lastName, null, null, null, null, null, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.TRUE, null);
+								firstName, middleName, lastName, upd.getPersonalId(), null, null, null, null, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.TRUE, null);
 					} else {
 					
 						if(upd.getFullName() != null) {
@@ -151,5 +164,17 @@ public class CreateUserHandler implements ActionHandler {
 
 	public void setUserDataExp(String userDataExp) {
 		this.userDataExp = userDataExp;
+	}
+
+	public StandardGroup getStandardGroup() {
+		
+		if(standardGroup == null)
+			ELUtil.getInstance().autowire(this);
+		
+		return standardGroup;
+	}
+
+	public void setStandardGroup(StandardGroup standardGroup) {
+		this.standardGroup = standardGroup;
 	}
 }
