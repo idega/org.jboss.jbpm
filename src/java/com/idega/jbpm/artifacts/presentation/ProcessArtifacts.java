@@ -23,7 +23,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
+import com.idega.ascertia.AscertiaConstants;
+import com.idega.ascertia.presentation.AscertiaSigningForm;
 import com.idega.builder.bean.AdvancedProperty;
+import com.idega.builder.business.BuilderLogicWrapper;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
@@ -76,9 +79,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.64 $
+ * @version $Revision: 1.65 $
  *
- * Last modified: $Date: 2008/09/03 13:47:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/26 15:04:21 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -89,10 +92,11 @@ public class ProcessArtifacts {
 	@Autowired private VariablesHandler variablesHandler;
 	@Autowired private ProcessArtifactsProvider processArtifactsProvider;
 	@Autowired private PermissionsFactory permissionsFactory;
+	@Autowired private BuilderLogicWrapper builderLogicWrapper;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
-	private Document getDocumentsListDocument(Collection<TaskInstanceW> processDocuments, Long processInstanceId, boolean rightsChanger, boolean dlDoc) {
+	private Document getDocumentsListDocument(Collection<TaskInstanceW> processDocuments, Long processInstanceId, ProcessArtifactsParamsBean params) {
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
@@ -104,8 +108,13 @@ public class ProcessArtifacts {
 		RolesManager rolesManager = getBpmFactory().getRolesManager();
 
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
+		String message = iwrb.getLocalizedString("generating", "Generating...");
+		String lightBoxTitle = iwrb.getLocalizedString("document_signing_form", "Document signing form");
 		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
+		String signPdfUri = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
+		String uriToPO = getBuilderLogicWrapper().getBuilderService(iwc).getUriToObject(AscertiaSigningForm.class, null);
 		for (TaskInstanceW submittedDocument : processDocuments) {
 			
 			try {
@@ -145,10 +154,18 @@ public class ProcessArtifacts {
 			);
 			row.setDateCellIndex(row.getCells().size() - 1);
 			
-			if(dlDoc)
-				row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri).append("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
-			
-			if (rightsChanger) {
+			if (params.getDownloadDocument()) {
+				row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri)
+								.append("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
+			}
+			if (params.getAllowPDFSigning()) {
+				row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
+									.append("\" onclick=\"CasesBPMAssets.signCaseDocument(event, '").append(tidStr).append("', '").append(uriToPO).append("', '")
+									.append(AscertiaConstants.UNSIGNED_DOCUMENT_URL).append("', '").append(message).append("', '").append(lightBoxTitle)
+									.append("');\" />")
+								.toString());
+			}
+			if (params.isRightsChanger()) {
 				addRightsChangerCell(row, processInstanceId, tidStr, null, null, true);
 			}
 		}
@@ -246,7 +263,7 @@ public class ProcessArtifacts {
 		
 		Collection<TaskInstanceW> processDocuments = getProcessArtifactsProvider().getSubmittedTaskInstances(processInstanceId);
 		
-		return getDocumentsListDocument(processDocuments, processInstanceId, params.isRightsChanger(), params.getDownloadDocument());
+		return getDocumentsListDocument(processDocuments, processInstanceId, params);
 	}
 	
 	public Document getProcessTasksList(ProcessArtifactsParamsBean params) {
@@ -310,7 +327,8 @@ public class ProcessArtifacts {
 					try {
 						assignedToName = getUserBusiness().getUser(Integer.parseInt(taskInstance.getTaskInstance().getActorId())).getName();
 					} catch (Exception e) {
-						Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving actor name for actorId: "+taskInstance.getTaskInstance().getActorId(), e);
+						Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving actor name for actorId: " + 
+								taskInstance.getTaskInstance().getActorId(), e);
 						assignedToName = CoreConstants.EMPTY;
 					}
 				}
@@ -335,7 +353,8 @@ public class ProcessArtifacts {
 
 			row.addCell(taskInstance.getName(iwc.getCurrentLocale()));
 			row.addCell(taskInstance.getTaskInstance().getCreate() == null ? CoreConstants.EMPTY :
-						new IWTimestamp(taskInstance.getTaskInstance().getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
+						new IWTimestamp(taskInstance.getTaskInstance().getCreate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT,
+								IWTimestamp.SHORT)
 			);
 			row.setDateCellIndex(row.getCells().size() - 1);
 			
@@ -357,7 +376,8 @@ public class ProcessArtifacts {
 			if (params.isRightsChanger()) {
 				cellsCount++;
 			}
-			addMessageIfNoContentExists(rows, iwrb.getLocalizedString("no_tasks_available_currently", "You currently don't have any tasks awaiting"), cellsCount);
+			addMessageIfNoContentExists(rows, iwrb.getLocalizedString("no_tasks_available_currently", "You currently don't have any tasks awaiting"),
+					cellsCount);
 		}
 		
 		try {
@@ -388,7 +408,8 @@ public class ProcessArtifacts {
 		row.setDisabledSelection(true);
 	}
 	
-	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, Integer variableIdentifier, String userId, boolean setSameRightsForAttachments) {
+	private void addRightsChangerCell(ProcessArtifactsListRow row, Long processInstanceId, String taskInstanceId, Integer variableIdentifier, String userId,
+										boolean setSameRightsForAttachments) {
 		
 		final IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		
@@ -724,7 +745,8 @@ public class ProcessArtifacts {
 	
 	public org.jdom.Document getViewDisplay(Long taskInstanceId) {
 		try {
-			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), getViewInUIComponent(taskInstanceId), true);
+			return getBuilderService().getRenderedComponent(IWContext.getIWContext(FacesContext.getCurrentInstance()), getViewInUIComponent(taskInstanceId),
+					true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -792,14 +814,16 @@ public class ProcessArtifacts {
 		return true;
 	}
 
-	public String setAccessRightsForProcessResource(String roleName, Long processInstanceId, Long taskInstanceId, String variableIdentifier, boolean hasReadAccess, boolean setSameRightsForAttachments, Integer userId) {
+	public String setAccessRightsForProcessResource(String roleName, Long processInstanceId, Long taskInstanceId, String variableIdentifier,
+			boolean hasReadAccess, boolean setSameRightsForAttachments, Integer userId) {
 		
     	IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
 		if (roleName == null || CoreConstants.EMPTY.equals(roleName) || (taskInstanceId == null && userId == null)) {
-			logger.log(Level.WARNING, "setAccessRightsForProcessResource called, but insufficient parameters provided. Got: roleName="+roleName+", taskInstanceId="+taskInstanceId+", userId="+userId);
+			logger.log(Level.WARNING, "setAccessRightsForProcessResource called, but insufficient parameters provided. Got: roleName="+roleName+
+										", taskInstanceId="+taskInstanceId+", userId="+userId);
 			return iwrb.getLocalizedString("attachments_permissions_update_failed", "Attachments permissions update failed!");
 		}
 		
@@ -848,7 +872,8 @@ public class ProcessArtifacts {
 		return getAccessRightsSetterBox(processInstanceId, null, null, null, userId);
 	}
 	
-	private org.jdom.Document getAccessRightsSetterBox(Long processInstanceId, Long taskInstanceId, String fileHashValue, Boolean setSameRightsForAttachments, Integer userId) {
+	private org.jdom.Document getAccessRightsSetterBox(Long processInstanceId, Long taskInstanceId, String fileHashValue, Boolean setSameRightsForAttachments,
+														Integer userId) {
 		
 		if (taskInstanceId == null && userId == null) {
 			return null;
@@ -870,7 +895,8 @@ public class ProcessArtifacts {
 		
 		if(taskInstanceId != null) {
 		
-			roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(processInstanceId, taskInstanceId, CoreConstants.EMPTY.equals(fileHashValue) ? null : fileHashValue);
+			roles = getBpmFactory().getRolesManager().getRolesPermissionsForTaskInstance(processInstanceId, taskInstanceId,
+																						CoreConstants.EMPTY.equals(fileHashValue) ? null : fileHashValue);
 		} else {
 
 //			get from the user
@@ -932,7 +958,8 @@ public class ProcessArtifacts {
 				if (setSameRightsForAttachments) {
 					sameRigthsSetter = new GenericButton();
 					Image setRightImage = new Image(bundle.getVirtualPathWithFileNameString("images/same_rights_button.png"));
-					setRightImage.setToolTip(iwrb.getLocalizedString("set_same_access_to_attachments_for_this_role", "Set same access to attachments for this role"));
+					setRightImage.setToolTip(iwrb.getLocalizedString("set_same_access_to_attachments_for_this_role",
+																	"Set same access to attachments for this role"));
 					setRightImage.setStyleClass("setSameAccessRightsStyle");
 					sameRigthsSetter.setButtonImage(setRightImage);	
 				}
@@ -964,7 +991,8 @@ public class ProcessArtifacts {
 				cell.add(box);
 				
 				if (setSameRightsForAttachments) {
-				    	String [] accessRightsParams = {box.getId(), processInstanceId.toString(), taskInstanceId.toString(), fileHashValue, sameRigthsSetter.getId()}; 
+				    	String [] accessRightsParams = {box.getId(), processInstanceId.toString(), taskInstanceId.toString(), fileHashValue,
+				    									sameRigthsSetter.getId()}; 
 					
 					accessParamsList.add(accessRightsParams);
 					
@@ -1000,7 +1028,8 @@ public class ProcessArtifacts {
 			    
 			    GenericButton saveAllRightsButton = new GenericButton();
 			    Image saveRigtsImage = new Image(bundle.getVirtualPathWithFileNameString("images/save_rights_button.png"));
-			    saveRigtsImage.setToolTip(iwrb.getLocalizedString("set_same_access_to_attachments_for_all_roles", "Set same access to attachments for all roles"));
+			    saveRigtsImage.setToolTip(iwrb.getLocalizedString("set_same_access_to_attachments_for_all_roles",
+			    													"Set same access to attachments for all roles"));
 			    saveRigtsImage.setStyleClass("setSameAccessRightsStyle");
 			    saveAllRightsButton.setButtonImage(saveRigtsImage);
 							
@@ -1017,7 +1046,8 @@ public class ProcessArtifacts {
 			    }
 			    paramsArray.append("]");
 		
-			    saveAllRightsButton.setOnClick("for each (params in "+ paramsArray.toString() +") {CasesBPMAssets.setAccessRightsForBpmRelatedResource(params[0] ,params[1] ,params[2] ,params[3] ,params[4]); }" );
+			    saveAllRightsButton.setOnClick("for each (params in "+ paramsArray.toString() +
+			    							") {CasesBPMAssets.setAccessRightsForBpmRelatedResource(params[0] ,params[1] ,params[2] ,params[3] ,params[4]); }" );
 			    
 			    cell = bodyRow.createCell();
 			    cell.empty();
@@ -1240,4 +1270,13 @@ public class ProcessArtifacts {
 	public PermissionsFactory getPermissionsFactory() {
 		return permissionsFactory;
 	}
+
+	public BuilderLogicWrapper getBuilderLogicWrapper() {
+		return builderLogicWrapper;
+	}
+
+	public void setBuilderLogicWrapper(BuilderLogicWrapper builderLogicWrapper) {
+		this.builderLogicWrapper = builderLogicWrapper;
+	}
+	
 }

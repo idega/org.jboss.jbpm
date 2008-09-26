@@ -2,9 +2,9 @@ package com.idega.jbpm.artifacts.presentation;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/27 12:29:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/26 15:04:21 $ by $Author: valdas $
  */
 public class ProcessArtifactsParamsBean {
 
@@ -17,6 +17,7 @@ public class ProcessArtifactsParamsBean {
 	private boolean rightsChanger = false;
 	private String identifier;
 	private Boolean downloadDocument;
+	private Boolean allowPDFSigning = Boolean.TRUE;
 	
 	public Integer getPage() {
 		return page;
@@ -71,5 +72,11 @@ public class ProcessArtifactsParamsBean {
 	}
 	public void setDownloadDocument(Boolean downloadDocument) {
 		this.downloadDocument = downloadDocument;
+	}
+	public Boolean getAllowPDFSigning() {
+		return allowPDFSigning;
+	}
+	public void setAllowPDFSigning(Boolean allowPDFSigning) {
+		this.allowPDFSigning = allowPDFSigning;
 	}
 }
