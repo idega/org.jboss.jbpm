@@ -4,9 +4,9 @@ import java.util.HashMap;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/09/19 15:18:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/27 13:43:44 $ by $Author: civilis $
  */
 public class MessageValueContext {
 
@@ -15,6 +15,7 @@ public class MessageValueContext {
 	public static final TypeRef updBean 			= new TypeRef("bean", "upd");
 	public static final TypeRef tokenBean 			= new TypeRef("bean", "token");
 	public static final TypeRef piwBean 			= new TypeRef("bean", "piw");
+	public static final TypeRef iwcBean 			= new TypeRef("bean", "iwc");
 		
 	private final HashMap<TypeRef, Object> ctx;
 	
@@ -49,7 +50,6 @@ public class MessageValueContext {
 		return contains(new TypeRef(handlerType, ref));
 	}
 	
-	@SuppressWarnings("unchecked")
 	public boolean contains(TypeRef tr) {
 		return ctx.containsKey(tr);
 	}
