@@ -79,9 +79,9 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.65 $
+ * @version $Revision: 1.66 $
  *
- * Last modified: $Date: 2008/09/26 15:04:21 $ by $Author: valdas $
+ * Last modified: $Date: 2008/09/29 13:48:46 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -112,6 +112,7 @@ public class ProcessArtifacts {
 		
 		String message = iwrb.getLocalizedString("generating", "Generating...");
 		String lightBoxTitle = iwrb.getLocalizedString("document_signing_form", "Document signing form");
+		String closeLightBoxTitle = iwrb.getLocalizedString("close_signing_form", "Close signing form");
 		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
 		String signPdfUri = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
 		String uriToPO = getBuilderLogicWrapper().getBuilderService(iwc).getUriToObject(AscertiaSigningForm.class, null);
@@ -162,7 +163,7 @@ public class ProcessArtifacts {
 				row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
 									.append("\" onclick=\"CasesBPMAssets.signCaseDocument(event, '").append(tidStr).append("', '").append(uriToPO).append("', '")
 									.append(AscertiaConstants.UNSIGNED_DOCUMENT_URL).append("', '").append(message).append("', '").append(lightBoxTitle)
-									.append("');\" />")
+									.append("', '").append(closeLightBoxTitle).append("');\" />")
 								.toString());
 			}
 			if (params.isRightsChanger()) {
