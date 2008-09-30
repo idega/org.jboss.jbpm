@@ -11,9 +11,9 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/09/30 12:20:07 $ by $Author: valdas $
+ * Last modified: $Date: 2008/09/30 12:30:38 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
 	
@@ -41,5 +41,5 @@ public interface TaskInstanceW {
 	
 	public abstract void setTaskRolePermissions(Role role, boolean setSameForAttachments, String variableIdentifier);
 	
-	public abstract void addAttachment(Long taskInstanceId, BinaryVariable attachment);
+	public abstract void addAttachment(String variableName, BinaryVariable attachment);
 }

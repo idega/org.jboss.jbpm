@@ -22,9 +22,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/06/15 15:59:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/30 12:30:38 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -74,6 +74,24 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			
 			ti.setVariables(variables);
 			///tiController.submitParameters(ti);
+			
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
+	}
+	
+	public void submitVariablesExplicitly(Map<String, Object> variables, long taskInstanceId) {
+		
+		if(variables == null || variables.isEmpty())
+			return;
+		
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			variables = getBinaryVariablesHandler().storeBinaryVariables(String.valueOf(taskInstanceId), variables);
+
+			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
+			ti.setVariables(variables);
 			
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
