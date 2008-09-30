@@ -23,8 +23,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
-import com.idega.ascertia.AscertiaConstants;
-import com.idega.ascertia.presentation.AscertiaSigningForm;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.builder.business.BuilderLogicWrapper;
 import com.idega.business.IBOLookup;
@@ -53,6 +51,7 @@ import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
+import com.idega.jbpm.signing.Signsdf;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
@@ -80,9 +79,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.67 $
+ * @version $Revision: 1.68 $
  *
- * Last modified: $Date: 2008/09/30 15:33:44 $ by $Author: valdas $
+ * Last modified: $Date: 2008/09/30 18:05:09 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -94,6 +93,7 @@ public class ProcessArtifacts {
 	@Autowired private ProcessArtifactsProvider processArtifactsProvider;
 	@Autowired private PermissionsFactory permissionsFactory;
 	@Autowired private BuilderLogicWrapper builderLogicWrapper;
+	@Autowired private Signsdf signingHandler;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
@@ -111,7 +111,7 @@ public class ProcessArtifacts {
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
-		String uriToPO = getUriToSignerObject();
+//		String uriToPO = getUriToSignerObject();
 		String message = iwrb.getLocalizedString("generating", "Generating...");
 		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
 		String signPdfUri = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
@@ -145,7 +145,8 @@ public class ProcessArtifacts {
 			
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
-			String tidStr = String.valueOf(submittedDocument.getTaskInstance().getId());
+			Long taskInstanceId = submittedDocument.getTaskInstance().getId();
+			String tidStr = String.valueOf(taskInstanceId);
 			row.setId(tidStr);
 						
 			row.addCell(submittedDocument.getName(iwc.getCurrentLocale()));
@@ -159,11 +160,18 @@ public class ProcessArtifacts {
 				row.addCell(new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri)
 								.append("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
 			}
+			
+			String uri = getSigningHandler().getSigningAction(taskInstanceId, null, message, errorMessage); 
+				
 			if (params.getAllowPDFSigning()) {
+//				row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
+//									.append("\" onclick=\"CasesBPMAssets.signCaseDocument").append(getSignerAction(iwrb, tidStr, null, signPdfUri, uriToPO,
+//											message, errorMessage)).append("\" />")
+//								.toString());
+				
 				row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
-									.append("\" onclick=\"CasesBPMAssets.signCaseDocument").append(getSignerAction(iwrb, tidStr, null, signPdfUri, uriToPO,
-											message, errorMessage)).append("\" />")
-								.toString());
+						.append("\" onclick=\"CasesBPMAssets.signCaseDocument").append(uri).append("\" />")
+					.toString());
 			}
 			if (params.isRightsChanger()) {
 				addRightsChangerCell(row, processInstanceId, tidStr, null, null, true);
@@ -457,10 +465,11 @@ public class ProcessArtifacts {
 			
 			String variableHash = null;
 			String tidStr = taskInstanceId.toString();
-			String signerUri = getUriToSignerObject();
+//			String signerUri = getUriToSignerObject();
 			String message = iwrb.getLocalizedString("signing", "Signing...");
 			String image = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
 			String errorMessage = iwrb.getLocalizedString("unable_to_sign_attachment", "Sorry, unable to sign selected attachment");
+			
 			for (BinaryVariable binaryVariable : binaryVariables) {
 				
 				if(binaryVariable.getHash() == null)
@@ -488,8 +497,11 @@ public class ProcessArtifacts {
 				
 				if (params.getAllowPDFSigning()) {
 					if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
+						
+						String uri = getSigningHandler().getSigningAction(taskInstanceId, variableHash, message, errorMessage);
+						
 						row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
-									.append(getSignerAction(iwrb, tidStr, variableHash, image, signerUri, message, errorMessage)).append("\" />").toString());
+									.append(uri).append("\" />").toString());
 					}
 					else {
 						row.addCell(CoreConstants.EMPTY);
@@ -512,21 +524,21 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	private String getUriToSignerObject() {
-		return getBuilderLogicWrapper().getBuilderService(IWMainApplication.getDefaultIWApplicationContext()).getUriToObject(AscertiaSigningForm.class, null);
-	}
+//	private String getUriToSignerObject() {
+//		return getBuilderLogicWrapper().getBuilderService(IWMainApplication.getDefaultIWApplicationContext()).getUriToObject(AscertiaSigningForm.class, null);
+//	}
 	
-	private String getSignerAction(IWResourceBundle iwrb, String taskInstanceId, String hashValue, String image, String uri, String message,
-			String errorMessage) {
-		String parameters = new StringBuilder("['").append(AscertiaConstants.PARAM_TASK_ID).append("', '").append(AscertiaConstants.PARAM_VARIABLE_HASH)
-									.append("']").toString();
-		hashValue = StringUtil.isEmpty(hashValue) ? CoreConstants.MINUS : hashValue;
-		String values = new StringBuilder("['").append(taskInstanceId).append("', '").append(hashValue).append("']").toString();
-		return new StringBuilder("(event, '").append(uri).append("', ").append(parameters).append(", ").append(values).append(", '").append(message)
-						.append("', '").append(iwrb.getLocalizedString("document_signing_form", "Document signing form")).append("', '")
-						.append(iwrb.getLocalizedString("close_signing_form", "Close signing form")).append("', '").append(errorMessage).append("');")
-						.toString();
-	}
+//	private String getSignerAction(IWResourceBundle iwrb, String taskInstanceId, String hashValue, String image, String uri, String message,
+//			String errorMessage) {
+//		String parameters = new StringBuilder("['").append(AscertiaConstants.PARAM_TASK_ID).append("', '").append(AscertiaConstants.PARAM_VARIABLE_HASH)
+//									.append("']").toString();
+//		hashValue = StringUtil.isEmpty(hashValue) ? CoreConstants.MINUS : hashValue;
+//		String values = new StringBuilder("['").append(taskInstanceId).append("', '").append(hashValue).append("']").toString();
+//		return new StringBuilder("(event, '").append(uri).append("', ").append(parameters).append(", ").append(values).append(", '").append(message)
+//						.append("', '").append(iwrb.getLocalizedString("document_signing_form", "Document signing form")).append("', '")
+//						.append(iwrb.getLocalizedString("close_signing_form", "Close signing form")).append("', '").append(errorMessage).append("');")
+//						.toString();
+//	}
 	
 	private boolean isPDFFile(String fileName) {
 		if (StringUtil.isEmpty(fileName) || fileName.indexOf(CoreConstants.DOT) == -1) {
@@ -1321,6 +1333,14 @@ public class ProcessArtifacts {
 
 	public void setBuilderLogicWrapper(BuilderLogicWrapper builderLogicWrapper) {
 		this.builderLogicWrapper = builderLogicWrapper;
+	}
+
+	Signsdf getSigningHandler() {
+		return signingHandler;
+	}
+
+	void setSigningHandler(Signsdf signingHandler) {
+		this.signingHandler = signingHandler;
 	}
 	
 }
