@@ -4,9 +4,9 @@ package com.idega.jbpm.variables;
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/05/26 14:13:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/30 12:20:07 $ by $Author: valdas $
  */
 public interface BinaryVariable {
 	
@@ -31,4 +31,13 @@ public interface BinaryVariable {
 	public abstract String getMimeType();
 	
 	public abstract Long getContentLength();
+	
+	public abstract Boolean getSigned();
+	
+	public abstract void setSigned(Boolean signed);
+	
+	public abstract Boolean getHidden();
+
+	public abstract void setHidden(Boolean hidden);
+
 }
