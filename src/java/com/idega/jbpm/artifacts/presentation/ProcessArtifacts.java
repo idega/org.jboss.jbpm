@@ -76,12 +76,13 @@ import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
+import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.66 $
+ * @version $Revision: 1.67 $
  *
- * Last modified: $Date: 2008/09/29 13:48:46 $ by $Author: valdas $
+ * Last modified: $Date: 2008/09/30 15:33:44 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -110,12 +111,11 @@ public class ProcessArtifacts {
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
+		String uriToPO = getUriToSignerObject();
 		String message = iwrb.getLocalizedString("generating", "Generating...");
-		String lightBoxTitle = iwrb.getLocalizedString("document_signing_form", "Document signing form");
-		String closeLightBoxTitle = iwrb.getLocalizedString("close_signing_form", "Close signing form");
 		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
 		String signPdfUri = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
-		String uriToPO = getBuilderLogicWrapper().getBuilderService(iwc).getUriToObject(AscertiaSigningForm.class, null);
+		String errorMessage = iwrb.getLocalizedString("error_generating_pdf", "Sorry, unable to generate PDF file from selected document");
 		for (TaskInstanceW submittedDocument : processDocuments) {
 			
 			try {
@@ -161,9 +161,8 @@ public class ProcessArtifacts {
 			}
 			if (params.getAllowPDFSigning()) {
 				row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
-									.append("\" onclick=\"CasesBPMAssets.signCaseDocument(event, '").append(tidStr).append("', '").append(uriToPO).append("', '")
-									.append(AscertiaConstants.UNSIGNED_DOCUMENT_URL).append("', '").append(message).append("', '").append(lightBoxTitle)
-									.append("', '").append(closeLightBoxTitle).append("');\" />")
+									.append("\" onclick=\"CasesBPMAssets.signCaseDocument").append(getSignerAction(iwrb, tidStr, null, signPdfUri, uriToPO,
+											message, errorMessage)).append("\" />")
 								.toString());
 			}
 			if (params.isRightsChanger()) {
@@ -452,13 +451,24 @@ public class ProcessArtifacts {
 			rows.setTotal(size);
 			rows.setPage(size == 0 ? 0 : 1);
 			
+			IWContext iwc = CoreUtil.getIWContext();
+			IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+			IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
+			
+			String variableHash = null;
+			String tidStr = taskInstanceId.toString();
+			String signerUri = getUriToSignerObject();
+			String message = iwrb.getLocalizedString("signing", "Signing...");
+			String image = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
+			String errorMessage = iwrb.getLocalizedString("unable_to_sign_attachment", "Sorry, unable to sign selected attachment");
 			for (BinaryVariable binaryVariable : binaryVariables) {
 				
 				if(binaryVariable.getHash() == null)
 					continue;
 				
+				variableHash = binaryVariable.getHash().toString();
 				try {
-					Permission permission = getPermissionsFactory().getTaskVariableViewPermission(true, taskInstance, binaryVariable.getHash().toString());
+					Permission permission = getPermissionsFactory().getTaskVariableViewPermission(true, taskInstance, variableHash);
 					rolesManager.checkPermission(permission);
 					
 				} catch (BPMAccessControlException e) {
@@ -467,16 +477,24 @@ public class ProcessArtifacts {
 				
 				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 				rows.addRow(row);
-				String tidStr = taskInstanceId.toString();
-				row.setId(binaryVariable.getHash().toString());
+				row.setId(variableHash);
 				
 				String description = binaryVariable.getDescription();
-				row.addCell(description != null && !CoreConstants.EMPTY.equals(description) ? description : binaryVariable.getFileName());
+				row.addCell(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
 				row.addCell(binaryVariable.getFileName());
 				
 				Long fileSize = binaryVariable.getContentLength();
 				row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
 				
+				if (params.getAllowPDFSigning()) {
+					if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
+						row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
+									.append(getSignerAction(iwrb, tidStr, variableHash, image, signerUri, message, errorMessage)).append("\" />").toString());
+					}
+					else {
+						row.addCell(CoreConstants.EMPTY);
+					}
+				}
 				if (params.isRightsChanger()) {
 					addRightsChangerCell(row, params.getPiId(), tidStr, binaryVariable.getHash(), null, false);
 				}
@@ -492,6 +510,31 @@ public class ProcessArtifacts {
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(jctx);
 		}
+	}
+	
+	private String getUriToSignerObject() {
+		return getBuilderLogicWrapper().getBuilderService(IWMainApplication.getDefaultIWApplicationContext()).getUriToObject(AscertiaSigningForm.class, null);
+	}
+	
+	private String getSignerAction(IWResourceBundle iwrb, String taskInstanceId, String hashValue, String image, String uri, String message,
+			String errorMessage) {
+		String parameters = new StringBuilder("['").append(AscertiaConstants.PARAM_TASK_ID).append("', '").append(AscertiaConstants.PARAM_VARIABLE_HASH)
+									.append("']").toString();
+		hashValue = StringUtil.isEmpty(hashValue) ? CoreConstants.MINUS : hashValue;
+		String values = new StringBuilder("['").append(taskInstanceId).append("', '").append(hashValue).append("']").toString();
+		return new StringBuilder("(event, '").append(uri).append("', ").append(parameters).append(", ").append(values).append(", '").append(message)
+						.append("', '").append(iwrb.getLocalizedString("document_signing_form", "Document signing form")).append("', '")
+						.append(iwrb.getLocalizedString("close_signing_form", "Close signing form")).append("', '").append(errorMessage).append("');")
+						.toString();
+	}
+	
+	private boolean isPDFFile(String fileName) {
+		if (StringUtil.isEmpty(fileName) || fileName.indexOf(CoreConstants.DOT) == -1) {
+			return false;
+		}
+		
+		String fileNameEnd = fileName.substring(fileName.indexOf(CoreConstants.DOT));
+		return StringUtil.isEmpty(fileNameEnd) ? false : fileNameEnd.equalsIgnoreCase(".pdf");
 	}
 	
 	public Document getEmailAttachments(ProcessArtifactsParamsBean params) {
