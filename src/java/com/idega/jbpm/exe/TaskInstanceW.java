@@ -1,19 +1,20 @@
 package com.idega.jbpm.exe;
 
+import java.io.InputStream;
 import java.util.Locale;
-
-import com.idega.jbpm.identity.Role;
-import com.idega.jbpm.variables.BinaryVariable;
-import com.idega.jbpm.view.View;
-import com.idega.user.data.User;
 
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
+import com.idega.block.process.variables.Variable;
+import com.idega.jbpm.identity.Role;
+import com.idega.jbpm.view.View;
+import com.idega.user.data.User;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/09/30 12:30:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/30 13:19:45 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
 	
@@ -41,5 +42,5 @@ public interface TaskInstanceW {
 	
 	public abstract void setTaskRolePermissions(Role role, boolean setSameForAttachments, String variableIdentifier);
 	
-	public abstract void addAttachment(String variableName, BinaryVariable attachment);
+	public abstract void addAttachment(Variable variable, String fileName, InputStream is);
 }
