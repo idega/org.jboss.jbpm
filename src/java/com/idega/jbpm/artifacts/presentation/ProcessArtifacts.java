@@ -79,9 +79,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.69 $
+ * @version $Revision: 1.70 $
  * 
- *          Last modified: $Date: 2008/10/01 07:43:57 $ by $Author: juozas $
+ *          Last modified: $Date: 2008/10/01 08:03:15 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -496,17 +496,11 @@ public class ProcessArtifacts {
 				if (params.getAllowPDFSigning()) {
 					if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
 
-						String uri = "";// getSigningHandler().getSigningAction(
-						// taskInstanceId, variableHash);
 
-						System.out.println(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
-							.append(new StringBuilder("(event, '").append(uri).append("', '").append(message).append("', '")
-								.append(iwrb.getLocalizedString("document_signing_form", "Document signing form")).append("', '")
-								.append(iwrb.getLocalizedString("close_signing_form", "Close signing form")).append("', '")
-								.append(errorMessage).append("');").toString()).append("\" />").toString());
 
 						row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
-							.append(new StringBuilder("(event, '").append(uri).append("', '").append(message).append("', '")
+							.append(new StringBuilder("(event, '").append(tidStr).append("','")
+								.append(variableHash).append("','").append(message).append("', '")
 								.append(iwrb.getLocalizedString("document_signing_form", "Document signing form")).append("', '")
 								.append(iwrb.getLocalizedString("close_signing_form", "Close signing form")).append("', '")
 								.append(errorMessage).append("');").toString()).append("\" />").toString());
