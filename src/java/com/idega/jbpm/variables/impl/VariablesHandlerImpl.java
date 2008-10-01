@@ -3,12 +3,14 @@ package com.idega.jbpm.variables.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.context.def.VariableAccess;
 import org.jbpm.context.exe.VariableInstance;
+import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +24,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/09/30 13:55:13 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/01 09:31:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -91,7 +93,19 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			variables = getBinaryVariablesHandler().storeBinaryVariables(String.valueOf(taskInstanceId), variables);
 
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
-			ti.setVariables(variables);
+			Token taskInstanceToken = ti.getToken();
+			
+			@SuppressWarnings("unchecked")
+			Map<String, VariableInstance> varInstances = ti.getVariableInstances();
+			
+			for (Entry<String, Object> entry : variables.entrySet()) {
+				
+				if(!varInstances.containsKey(entry.getKey())) {
+				
+					VariableInstance vi = VariableInstance.create(taskInstanceToken, entry.getKey(), entry.getValue());
+					ti.addVariableInstance(vi);
+				}
+			}
 			
 			return variables;
 			
