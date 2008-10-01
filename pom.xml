@@ -77,10 +77,7 @@
       <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.slide</artifactId>
     </dependency>
-    <dependency>
-    	<groupId>com.idega.block.addon</groupId>
-		<artifactId>com.idega.ascertia</artifactId>
-    </dependency>
+   
     <dependency>
     <!-- dependency has some modifications, see idegaChanges.txt at jar -->
       <groupId>org.jbpm</groupId>
