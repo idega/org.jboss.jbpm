@@ -79,9 +79,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.71 $
+ * @version $Revision: 1.72 $
  *
- * Last modified: $Date: 2008/10/01 09:55:11 $ by $Author: juozas $
+ * Last modified: $Date: 2008/10/01 14:47:54 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -111,7 +111,6 @@ public class ProcessArtifacts {
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
-//		String uriToPO = getUriToSignerObject();
 		String message = iwrb.getLocalizedString("generating", "Generating...");
 		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
 		String signPdfUri = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
@@ -161,18 +160,16 @@ public class ProcessArtifacts {
 								.append("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").append(tidStr).append("');\" />").toString());
 			}
 			
-			//String uri = getSigningHandler().getSigningAction(taskInstanceId, null, message, errorMessage); 
-				
 			if (params.getAllowPDFSigning()) {
-//				row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
-//									.append("\" onclick=\"CasesBPMAssets.signCaseDocument").append(getSignerAction(iwrb, tidStr, null, signPdfUri, uriToPO,
-//											message, errorMessage)).append("\" />")
-//								.toString());
-				
-				row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri).
-					append("\" onclick=\"CasesBPMAssets.signCaseDocument(").append("event,")
-					.append(tidStr).append(",'").append(iwrb.getLocalizedString("document_signing_form", "Document signing form"))
-					.append("', '").append(iwrb.getLocalizedString("close_signing_form", "Close signing form")).append("','"+ message+ "');\" />").toString());
+				if (hasDocumentGeneratedPDF(taskInstanceId)) {
+					//	Sign icon will be in attachments' list (if not signed)
+					row.addCell(CoreConstants.EMPTY);
+				}
+				else {
+					row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
+								.append("\" onclick=\"CasesBPMAssets.signCaseDocument")
+								.append(getJavaScriptActionForPDF(iwrb, tidStr, null, message, errorMessage)).append("\" />").toString());
+				}
 			}
 			if (params.isRightsChanger()) {
 				addRightsChangerCell(row, processInstanceId, tidStr, null, null, true);
@@ -186,6 +183,33 @@ public class ProcessArtifacts {
 			logger.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
+	}
+	
+	private boolean hasDocumentGeneratedPDF(Long taskInstanceId) {
+		JbpmContext jctx = getIdegaJbpmContext().createJbpmContext();
+		try {
+			List<BinaryVariable> binaryVariables = getProcessArtifactsProvider().getTaskAttachments(taskInstanceId);
+			if (ListUtil.isEmpty(binaryVariables)) {
+				return false;
+			}
+			
+			String expectedName = getFileNameForGeneratedPDFFromTaskInstance(taskInstanceId.toString());
+			for (BinaryVariable bv: binaryVariables) {
+				if (expectedName.equals(bv.getFileName())) {
+					return true;
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(jctx);
+		}
+		
+		return false;
+	}
+	
+	public String getFileNameForGeneratedPDFFromTaskInstance(String taskInstanceId) {
+		return new StringBuilder("Document_").append(taskInstanceId).append(".pdf").toString();
 	}
 	
 	private Document getEmailsListDocument(Collection<TaskInstance> processEmails, Long processInstanceId, boolean rightsChanger) {
@@ -466,7 +490,6 @@ public class ProcessArtifacts {
 			
 			String variableHash = null;
 			String tidStr = taskInstanceId.toString();
-//			String signerUri = getUriToSignerObject();
 			String message = iwrb.getLocalizedString("signing", "Signing...");
 			String image = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
 			String errorMessage = iwrb.getLocalizedString("unable_to_sign_attachment", "Sorry, unable to sign selected attachment");
@@ -498,15 +521,8 @@ public class ProcessArtifacts {
 				
 				if (params.getAllowPDFSigning()) {
 					if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
-						
-						//String uri = getSigningHandler().getSigningAction(taskInstanceId, variableHash, message, errorMessage);
-						
 						row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
-							.append(new StringBuilder("(event, '").append(tidStr).append("','")
-								.append(variableHash).append("','").append(message).append("', '")
-								.append(iwrb.getLocalizedString("document_signing_form", "Document signing form")).append("', '")
-								.append(iwrb.getLocalizedString("close_signing_form", "Close signing form")).append("', '")
-								.append(errorMessage).append("');").toString()).append("\" />").toString());
+							.append(getJavaScriptActionForPDF(iwrb, tidStr, variableHash, message, errorMessage)).append("\" />").toString());
 					}
 					else {
 						row.addCell(CoreConstants.EMPTY);
@@ -529,21 +545,13 @@ public class ProcessArtifacts {
 		}
 	}
 	
-//	private String getUriToSignerObject() {
-//		return getBuilderLogicWrapper().getBuilderService(IWMainApplication.getDefaultIWApplicationContext()).getUriToObject(AscertiaSigningForm.class, null);
-//	}
-	
-//	private String getSignerAction(IWResourceBundle iwrb, String taskInstanceId, String hashValue, String image, String uri, String message,
-//			String errorMessage) {
-//		String parameters = new StringBuilder("['").append(AscertiaConstants.PARAM_TASK_ID).append("', '").append(AscertiaConstants.PARAM_VARIABLE_HASH)
-//									.append("']").toString();
-//		hashValue = StringUtil.isEmpty(hashValue) ? CoreConstants.MINUS : hashValue;
-//		String values = new StringBuilder("['").append(taskInstanceId).append("', '").append(hashValue).append("']").toString();
-//		return new StringBuilder("(event, '").append(uri).append("', ").append(parameters).append(", ").append(values).append(", '").append(message)
-//						.append("', '").append(iwrb.getLocalizedString("document_signing_form", "Document signing form")).append("', '")
-//						.append(iwrb.getLocalizedString("close_signing_form", "Close signing form")).append("', '").append(errorMessage).append("');")
-//						.toString();
-//	}
+	private String getJavaScriptActionForPDF(IWResourceBundle iwrb, String taskInstanceId, String hashValue, String message, String errorMessage) {
+		hashValue = StringUtil.isEmpty(hashValue) ? CoreConstants.MINUS : hashValue;
+		
+		return new StringBuilder("(event, '").append(taskInstanceId).append("', '").append(hashValue).append("','").append(message).append("', '")
+			.append(iwrb.getLocalizedString("document_signing_form", "Document signing form")).append("', '")
+			.append(iwrb.getLocalizedString("close_signing_form", "Close signing form")).append("', '").append(errorMessage).append("');").toString();
+	}
 	
 	private boolean isPDFFile(String fileName) {
 		if (StringUtil.isEmpty(fileName) || fileName.indexOf(CoreConstants.DOT) == -1) {
