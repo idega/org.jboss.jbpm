@@ -13,9 +13,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/09/30 13:55:13 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/01 13:44:17 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
 	
@@ -43,5 +43,5 @@ public interface TaskInstanceW {
 	
 	public abstract void setTaskRolePermissions(Role role, boolean setSameForAttachments, String variableIdentifier);
 	
-	public abstract BinaryVariable addAttachment(Variable variable, String fileName, InputStream is);
+	public abstract BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is);
 }
