@@ -79,9 +79,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.72 $
+ * @version $Revision: 1.73 $
  *
- * Last modified: $Date: 2008/10/01 14:47:54 $ by $Author: valdas $
+ * Last modified: $Date: 2008/10/02 14:00:13 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -93,7 +93,7 @@ public class ProcessArtifacts {
 	@Autowired private ProcessArtifactsProvider processArtifactsProvider;
 	@Autowired private PermissionsFactory permissionsFactory;
 	@Autowired private BuilderLogicWrapper builderLogicWrapper;
-	@Autowired private SigningHandler signingHandler;
+	@Autowired(required = false) private SigningHandler signingHandler;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
@@ -165,7 +165,7 @@ public class ProcessArtifacts {
 					//	Sign icon will be in attachments' list (if not signed)
 					row.addCell(CoreConstants.EMPTY);
 				}
-				else {
+				else if(getSigningHandler() !=null) {
 					row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
 								.append("\" onclick=\"CasesBPMAssets.signCaseDocument")
 								.append(getJavaScriptActionForPDF(iwrb, tidStr, null, message, errorMessage)).append("\" />").toString());
@@ -519,7 +519,7 @@ public class ProcessArtifacts {
 				Long fileSize = binaryVariable.getContentLength();
 				row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
 				
-				if (params.getAllowPDFSigning()) {
+				if (params.getAllowPDFSigning() && getSigningHandler() !=null) {
 					if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
 						row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
 							.append(getJavaScriptActionForPDF(iwrb, tidStr, variableHash, message, errorMessage)).append("\" />").toString());
