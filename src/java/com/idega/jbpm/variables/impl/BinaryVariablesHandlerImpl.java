@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.idega.block.process.variables.Variable;
 import com.idega.block.process.variables.VariableDataType;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -38,9 +39,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/10/01 13:44:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/03 12:44:55 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -49,9 +50,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	public static final String BPM_UPLOADED_FILES_PATH = "/files/bpm/uploadedFiles/";
 	public static final String STORAGE_TYPE = "slide";
 	public static final String BINARY_VARIABLE = "binaryVariable";
+	public static final String VARIABLE = "variable";
 	
 	private FileURIHandlerFactory fileURIHandlerFactory;
-	
 	public Map<String, Object> storeBinaryVariables(Object identifier, Map<String, Object> variables) {
 		
 		HashMap<String, Object> newVars = new HashMap<String, Object>(variables);
@@ -68,21 +69,27 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			VariableDataType dataType = getDataType(key);
 			
 			if(dataType == VariableDataType.FILE) {
-
 				if(val instanceof URI) {
 					ArrayList<String> binaryVariables = new ArrayList<String>(1);
 					BinaryVariable binaryVariable = storeFile((String)identifier, (URI)val);
+					binaryVariable.setVariable(new Variable(getDataName(key), VariableDataType.FILE));
 					binaryVariables.add(convertToJSON(binaryVariable));
 					
 					entry.setValue(binaryVariables);
-					
+				
 				} else if(val instanceof ExtendedFile) {
 					
 					ExtendedFile ef = (ExtendedFile)val;
 					ArrayList<String> binaryVariables = new ArrayList<String>(1);
-					BinaryVariable binaryVariable = storeFile((String)identifier, ef.getFileUri());
+					BinaryVariable binaryVariable = storeFile(identifier, ef.getFileUri());
 					binaryVariable.setDescription(ef.getFileInfo());
 					binaryVariables.add(convertToJSON(binaryVariable));
+					
+					entry.setValue(binaryVariables);
+						
+				} else if(val instanceof BinaryVariable) {
+					ArrayList<String> binaryVariables = new ArrayList<String>(1);
+					binaryVariables.add(convertToJSON((BinaryVariable)val));
 					
 					entry.setValue(binaryVariables);
 					
@@ -102,7 +109,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					} else {
 						
 						ArrayList<String> binaryVariables = new ArrayList<String>(files.size());
-						
+						Variable var = new Variable(getDataName(key), VariableDataType.FILES);
 						for (Iterator<Object> iterator = files.iterator(); iterator.hasNext();) {
 							Object o = iterator.next();
 							
@@ -112,6 +119,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 								
 								BinaryVariable binaryVariable = storeFile(identifier, ef.getFileUri());
 								binaryVariable.setDescription(ef.getFileInfo());
+								binaryVariable.setVariable(var);
 								binaryVariables.add(convertToJSON(binaryVariable));
 							} else if(o instanceof URI) {
 								
@@ -121,6 +129,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 								
 								BinaryVariable binaryVariable = storeFile(identifier, u);
 								binaryVariable.setDescription(fName);
+								binaryVariable.setVariable(var);
 								binaryVariables.add(convertToJSON(binaryVariable));
 							}
 						}
@@ -148,7 +157,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 						}
 						*/
 					}
-					
+				} else if(val instanceof BinaryVariable) {
+					ArrayList<String> binaryVariables = new ArrayList<String>(1);
+					binaryVariables.add(convertToJSON((BinaryVariable) val));	
 				} else {
 					entry.setValue(null);
 					Logger.getLogger(getClass().getName()).log(Level.WARNING, "Variable data type resolved: "+dataType+", but value data type didn't match ("+val.getClass().getName()+"), variable name: "+key);
@@ -163,6 +174,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		
 		String strRepr = mapping.contains(CoreConstants.UNDER) ? mapping.substring(0, mapping.indexOf(CoreConstants.UNDER)) : "string";
 		return VariableDataType.getByStringRepresentation(strRepr);
+	}
+	
+	protected String getDataName(String mapping) {
+		
+		String strRepr = mapping.contains(CoreConstants.UNDER) ? mapping.substring(mapping.indexOf(CoreConstants.UNDER) + 1) : "";
+		return strRepr;
 	}
 	
 	private String concPF(String path, String fileName) {
@@ -220,6 +237,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			}
 			
 			BinaryVariableImpl binaryVariable = new BinaryVariableImpl();
+			binaryVariable.setTaskInstanceId(Long.parseLong((String) identifier));
 			binaryVariable.setFileName(fileName);
 			binaryVariable.setIdentifier(concPF(path, fileName));
 			binaryVariable.setStorageType(STORAGE_TYPE);
@@ -236,6 +254,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	protected String convertToJSON(BinaryVariable binVar) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
 		xstream.alias(BINARY_VARIABLE, BinaryVariableImpl.class);
+		xstream.alias(VARIABLE, Variable.class);
 		String jsonStr = xstream.toXML(binVar);
 		return jsonStr;
 	}
@@ -243,6 +262,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	protected BinaryVariable convertToBinaryVariable(String jsonStr) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
 		xstream.alias(BINARY_VARIABLE, BinaryVariableImpl.class);
+		xstream.alias(VARIABLE, Variable.class);
 		BinaryVariable binVar = (BinaryVariable)xstream.fromXML(jsonStr);
 		return binVar;
 	}

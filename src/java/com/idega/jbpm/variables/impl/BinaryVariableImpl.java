@@ -1,16 +1,22 @@
 package com.idega.jbpm.variables.impl;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.idega.block.process.variables.Variable;
 import com.idega.jbpm.variables.BinaryVariable;
-
+import com.idega.jbpm.variables.VariablesHandler;
+import com.idega.util.expression.ELUtil;
 /**
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/09/30 12:20:07 $ by $Author: valdas $
+ * Last modified: $Date: 2008/10/03 12:44:55 $ by $Author: anton $
  */
 public class BinaryVariableImpl implements Serializable, BinaryVariable {
 
@@ -26,6 +32,20 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	private Boolean signed;
 	private Boolean hidden;
 	
+	@Autowired
+	private transient VariablesHandler variablesHandler;
+
+	private Variable variable;
+	private long taskInstanceId;
+	
+	public long getTaskInstanceId() {
+		return taskInstanceId;
+	}
+
+	public void setTaskInstanceId(long taskInstanceId) {
+		this.taskInstanceId = taskInstanceId;
+	}
+
 	public String getDescription() {
 		return description;
 	}
@@ -119,5 +139,26 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	public void setHidden(Boolean hidden) {
 		this.hidden = hidden;
 	}
+
+	public Variable getVariable() {
+		return variable;
+	}
+
+	public void setVariable(Variable variable) {
+		this.variable = variable;
+	}
 	
+	public void store() {
+		Map<String, Object> variable = new HashMap<String, Object>(1);
+		variable.put(getVariable().getDefaultStringRepresentation(), this);
+		getVariablesHandler().submitVariablesExplicitly(variable, getTaskInstanceId());
+	}
+
+	private VariablesHandler getVariablesHandler() {
+		if(variablesHandler == null) {
+			ELUtil.getInstance().autowire(this);
+		} 
+		
+		return variablesHandler;
+	}
 }

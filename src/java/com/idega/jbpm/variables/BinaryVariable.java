@@ -1,12 +1,14 @@
 package com.idega.jbpm.variables;
 
+import com.idega.block.process.variables.Variable;
+
 /**
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/09/30 12:20:07 $ by $Author: valdas $
+ * Last modified: $Date: 2008/10/03 12:44:55 $ by $Author: anton $
  */
 public interface BinaryVariable {
 	
@@ -39,5 +41,14 @@ public interface BinaryVariable {
 	public abstract Boolean getHidden();
 
 	public abstract void setHidden(Boolean hidden);
-
+	
+	public abstract Variable getVariable();
+	
+	public abstract void setVariable(Variable var);
+	
+	public abstract void store();
+	
+	public abstract void setTaskInstanceId(long taskInstanceId);
+	
+	public abstract long getTaskInstanceId();
 }
