@@ -39,9 +39,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/10/03 12:44:55 $ by $Author: anton $
+ * Last modified: $Date: 2008/10/06 11:15:35 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -82,6 +82,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					ExtendedFile ef = (ExtendedFile)val;
 					ArrayList<String> binaryVariables = new ArrayList<String>(1);
 					BinaryVariable binaryVariable = storeFile(identifier, ef.getFileUri());
+					binaryVariable.setVariable(new Variable(getDataName(key), VariableDataType.FILE));
 					binaryVariable.setDescription(ef.getFileInfo());
 					binaryVariables.add(convertToJSON(binaryVariable));
 					
@@ -168,6 +169,18 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		}
 		
 		return newVars;
+	}
+	
+	public static void main(String[] args) {
+		Variable var = new Variable("testVar", VariableDataType.FILES);
+		BinaryVariable binVar = new BinaryVariableImpl();
+		binVar.setVariable(var);
+		
+		XStream xstream = new XStream(new JettisonMappedXmlDriver());
+		xstream.alias(BINARY_VARIABLE, BinaryVariableImpl.class);
+		xstream.alias(VARIABLE, Variable.class);
+		String jsonStr = xstream.toXML(binVar);
+		System.out.println(jsonStr);
 	}
 	
 	protected VariableDataType getDataType(String mapping) {
