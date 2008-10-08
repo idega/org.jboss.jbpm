@@ -23,7 +23,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
-import com.idega.block.process.business.CaseManager;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.builder.business.BuilderLogicWrapper;
 import com.idega.business.IBOLookup;
@@ -52,6 +51,7 @@ import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
+import com.idega.jbpm.rights.Right;
 import com.idega.jbpm.signing.SigningHandler;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
@@ -80,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.77 $
+ * @version $Revision: 1.78 $
  *
- * Last modified: $Date: 2008/10/08 17:24:22 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/08 18:49:33 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -94,7 +94,6 @@ public class ProcessArtifacts {
 	@Autowired private ProcessArtifactsProvider processArtifactsProvider;
 	@Autowired private PermissionsFactory permissionsFactory;
 	@Autowired private BuilderLogicWrapper builderLogicWrapper;
-	@Autowired private CaseManager caseManager;
 	@Autowired(required = false) private SigningHandler signingHandler;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
@@ -1215,15 +1214,16 @@ public class ProcessArtifacts {
 	}
 	
 	public String assignCase(String handlerIdStr, Long processInstanceId) {
-
-		if(hasCaseHandlerRights(processInstanceId)) {
-			
-			Integer handlerId = handlerIdStr == null || CoreConstants.EMPTY.equals(handlerIdStr) ? null : new Integer(handlerIdStr);
-			
-			getBpmFactory()
+		
+		ProcessInstanceW piw = getBpmFactory()
 			.getProcessManagerByProcessInstanceId(processInstanceId)
-			.getProcessInstance(processInstanceId)
-			.assignHandler(handlerId);
+			.getProcessInstance(processInstanceId);
+
+		if(piw.hasRight(Right.processHandler)) {
+			
+			Integer handlerId = handlerIdStr == null || handlerIdStr.length() == 0 ? null : new Integer(handlerIdStr);
+			
+			piw.assignHandler(handlerId);
 		
 			return "great success";
 		}
@@ -1239,11 +1239,11 @@ public class ProcessArtifacts {
 			.getProcessManagerByProcessInstanceId(processInstanceId)
 			.getProcessInstance(processInstanceId);
 			
-			if(hasCaseHandlerRights(processInstanceId) && piw.hasHandlerAssignmentSupport()) {
+			if(piw.hasRight(Right.processHandler) && piw.hasHandlerAssignmentSupport()) {
 			
 				RolesManager rolesManager = getBpmFactory().getRolesManager();
 				
-				List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.caseHandler);
+				List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.processHandler);
 				Collection<User> users = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
 				
 				Integer assignedCaseHandlerId = piw.getHandlerId();
@@ -1278,10 +1278,6 @@ public class ProcessArtifacts {
 		}
 		
 		return null;
-	}
-	
-	public boolean hasCaseHandlerRights(Long processInstanceId) {
-		return getCaseManager().hasCaseHandlerRights(processInstanceId);
 	}
 	
 	private String getAssignedToYouLocalizedString(IWResourceBundle iwrb) {
@@ -1352,15 +1348,5 @@ public class ProcessArtifacts {
 
 	public String getSigningAction(String taskInstanceId, String hashValue) {
 		return getSigningHandler().getSigningAction(Long.valueOf(taskInstanceId), hashValue);
-
 	}
-
-	public CaseManager getCaseManager() {
-		return caseManager;
-	}
-
-	public void setCaseManager(CaseManager caseManager) {
-		this.caseManager = caseManager;
-	}
-	
 }
