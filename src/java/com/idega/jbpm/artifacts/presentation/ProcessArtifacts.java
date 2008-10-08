@@ -79,9 +79,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.74 $
+ * @version $Revision: 1.75 $
  *
- * Last modified: $Date: 2008/10/08 10:57:43 $ by $Author: anton $
+ * Last modified: $Date: 2008/10/08 12:01:19 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -390,6 +390,7 @@ public class ProcessArtifacts {
 								IWTimestamp.SHORT)
 			);
 			row.setDateCellIndex(row.getCells().size() - 1);
+//			TODO commented for future use. 'Taken by' column isn't shown now
 //			row.addCell(assignedToName);
 	
 			if(disableSelection) {
