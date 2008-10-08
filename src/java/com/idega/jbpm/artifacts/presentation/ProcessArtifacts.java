@@ -80,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.76 $
+ * @version $Revision: 1.77 $
  *
- * Last modified: $Date: 2008/10/08 15:33:14 $ by $Author: valdas $
+ * Last modified: $Date: 2008/10/08 17:24:22 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -407,7 +407,7 @@ public class ProcessArtifacts {
 		}
 			
 		if (ListUtil.isEmpty(rows.getRows())) {
-			int cellsCount = 3;
+			int cellsCount = 2;
 			if (params.isRightsChanger()) {
 				cellsCount++;
 			}
