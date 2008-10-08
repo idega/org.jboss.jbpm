@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
+import com.idega.block.process.business.CaseManager;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.builder.business.BuilderLogicWrapper;
 import com.idega.business.IBOLookup;
@@ -79,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.75 $
+ * @version $Revision: 1.76 $
  *
- * Last modified: $Date: 2008/10/08 12:01:19 $ by $Author: anton $
+ * Last modified: $Date: 2008/10/08 15:33:14 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -93,6 +94,7 @@ public class ProcessArtifacts {
 	@Autowired private ProcessArtifactsProvider processArtifactsProvider;
 	@Autowired private PermissionsFactory permissionsFactory;
 	@Autowired private BuilderLogicWrapper builderLogicWrapper;
+	@Autowired private CaseManager caseManager;
 	@Autowired(required = false) private SigningHandler signingHandler;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
@@ -1279,15 +1281,7 @@ public class ProcessArtifacts {
 	}
 	
 	public boolean hasCaseHandlerRights(Long processInstanceId) {
-		
-		try {
-			Permission perm = getPermissionsFactory().getAccessPermission(processInstanceId, Access.caseHandler);
-			getBpmFactory().getRolesManager().checkPermission(perm);
-			return true;
-			
-		} catch (AccessControlException e) {
-			return false;
-		}
+		return getCaseManager().hasCaseHandlerRights(processInstanceId);
 	}
 	
 	private String getAssignedToYouLocalizedString(IWResourceBundle iwrb) {
@@ -1359,6 +1353,14 @@ public class ProcessArtifacts {
 	public String getSigningAction(String taskInstanceId, String hashValue) {
 		return getSigningHandler().getSigningAction(Long.valueOf(taskInstanceId), hashValue);
 
+	}
+
+	public CaseManager getCaseManager() {
+		return caseManager;
+	}
+
+	public void setCaseManager(CaseManager caseManager) {
+		this.caseManager = caseManager;
 	}
 	
 }
