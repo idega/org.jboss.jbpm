@@ -59,9 +59,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.48 $
+ * @version $Revision: 1.49 $
  * 
- * Last modified: $Date: 2008/08/26 15:20:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/08 11:55:23 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -758,7 +758,6 @@ public class RolesManagerImpl implements RolesManager {
 				throw new RuntimeException(e);
 			}
 		
-			@SuppressWarnings("unchecked")
 			Set<String> userRoles = getAccessController().getAllRolesForUser(user);
 			
 			/*
@@ -1508,7 +1507,6 @@ public class RolesManagerImpl implements RolesManager {
 			
 			try {
 				User usr = getUserBusiness(IWContext.getCurrentInstance()).getUser(userId);
-				@SuppressWarnings("unchecked")
 				Set<String> roles = ac.getAllRolesForUser(usr);
 				
 				if(roles.contains(roleName))
