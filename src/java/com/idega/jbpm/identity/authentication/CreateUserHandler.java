@@ -31,9 +31,9 @@ import com.idega.util.text.Name;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/09/22 12:04:44 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/08 11:55:54 $ by $Author: civilis $
  */
 public class CreateUserHandler implements ActionHandler {
 
@@ -103,7 +103,7 @@ public class CreateUserHandler implements ActionHandler {
 						
 //						doesn't check if login already exists, therefore this check needs to be made before calling this
 						usrCreated = userBusiness.createUserWithLogin(
-								firstName, middleName, lastName, upd.getPersonalId(), null, null, null, null, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.TRUE, null);
+								firstName, middleName, lastName, upd.getPersonalId(), null, null, null, null, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null);
 					} else {
 					
 						if(upd.getFullName() != null) {
