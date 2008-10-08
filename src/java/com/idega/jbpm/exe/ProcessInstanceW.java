@@ -8,15 +8,16 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 
 import com.idega.jbpm.identity.Role;
+import com.idega.jbpm.rights.Right;
 import com.idega.user.data.User;
 
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/10/08 10:58:06 $ by $Author: anton $
+ * Last modified: $Date: 2008/10/08 18:49:45 $ by $Author: civilis $
  */
 public interface ProcessInstanceW {
 	
@@ -60,4 +61,6 @@ public interface ProcessInstanceW {
 	public abstract ProcessDefinitionW getProcessDefinitionW();
 	
 	public abstract String getName(Locale locale);
+	
+	public abstract boolean hasRight(Right right);
 }
