@@ -27,6 +27,7 @@ import com.idega.core.file.util.FileInfo;
 import com.idega.core.file.util.FileURIHandler;
 import com.idega.core.file.util.FileURIHandlerFactory;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.slide.business.IWSlideService;
@@ -39,15 +40,15 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/10/06 11:15:35 $ by $Author: anton $
+ * Last modified: $Date: 2008/10/08 15:32:14 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service
 public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
-	public static final String BPM_UPLOADED_FILES_PATH = "/files/bpm/uploadedFiles/";
+	public static final String BPM_UPLOADED_FILES_PATH = JBPMConstants.BPM_PATH + "/uploadedFiles/";
 	public static final String STORAGE_TYPE = "slide";
 	public static final String BINARY_VARIABLE = "binaryVariable";
 	public static final String VARIABLE = "variable";
