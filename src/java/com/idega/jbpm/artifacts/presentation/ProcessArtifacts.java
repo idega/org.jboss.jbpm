@@ -79,9 +79,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.73 $
+ * @version $Revision: 1.74 $
  *
- * Last modified: $Date: 2008/10/02 14:00:13 $ by $Author: juozas $
+ * Last modified: $Date: 2008/10/08 10:57:43 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -390,8 +390,7 @@ public class ProcessArtifacts {
 								IWTimestamp.SHORT)
 			);
 			row.setDateCellIndex(row.getCells().size() - 1);
-			
-			row.addCell(assignedToName);
+//			row.addCell(assignedToName);
 	
 			if(disableSelection) {
 				

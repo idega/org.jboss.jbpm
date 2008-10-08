@@ -2,6 +2,7 @@ package com.idega.jbpm.exe;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
@@ -13,9 +14,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/09/17 13:21:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/08 10:58:06 $ by $Author: anton $
  */
 public interface ProcessInstanceW {
 	
@@ -56,5 +57,7 @@ public interface ProcessInstanceW {
 	
 	public abstract String getProcessDescription();
 	
-	public abstract ProcessDefinitionW getProcessDefinitionW(); 
+	public abstract ProcessDefinitionW getProcessDefinitionW();
+	
+	public abstract String getName(Locale locale);
 }
