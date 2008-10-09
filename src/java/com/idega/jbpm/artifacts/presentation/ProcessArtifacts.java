@@ -80,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.78 $
+ * @version $Revision: 1.79 $
  *
- * Last modified: $Date: 2008/10/08 18:49:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/09 11:41:49 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -1243,7 +1243,7 @@ public class ProcessArtifacts {
 			
 				RolesManager rolesManager = getBpmFactory().getRolesManager();
 				
-				List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.processHandler);
+				List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.caseHandler);
 				Collection<User> users = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
 				
 				Integer assignedCaseHandlerId = piw.getHandlerId();

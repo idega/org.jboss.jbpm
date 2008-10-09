@@ -59,9 +59,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.50 $
+ * @version $Revision: 1.51 $
  * 
- * Last modified: $Date: 2008/10/08 18:50:22 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/09 11:41:49 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -225,7 +225,7 @@ public class RolesManagerImpl implements RolesManager {
 		final String queryName;
 		
 		switch (access) {
-			case processHandler:
+			case caseHandler:
 				
 				queryName = Actor.getRolesNamesHavingCaseHandlerRights;
 				break;
@@ -460,7 +460,7 @@ public class RolesManagerImpl implements RolesManager {
 					perm.setReadPermission(role.getAccesses().contains(Access.read));
 					perm.setWritePermission(role.getAccesses().contains(Access.write));
 					perm.setModifyRightsPermission(role.getAccesses().contains(Access.modifyPermissions));
-					perm.setCaseHandlerPermission(role.getAccesses().contains(Access.processHandler));
+					perm.setCaseHandlerPermission(role.getAccesses().contains(Access.caseHandler));
 					
 					getBpmDAO().persist(perm);
 				}
@@ -511,7 +511,7 @@ public class RolesManagerImpl implements RolesManager {
 					perm.setReadPermission(role.getAccesses() != null && role.getAccesses().contains(Access.read));
 					perm.setWritePermission(role.getAccesses() != null && role.getAccesses().contains(Access.write));
 					perm.setModifyRightsPermission(role.getAccesses() != null && role.getAccesses().contains(Access.modifyPermissions));
-					perm.setCaseHandlerPermission(role.getAccesses() != null && role.getAccesses().contains(Access.processHandler));
+					perm.setCaseHandlerPermission(role.getAccesses() != null && role.getAccesses().contains(Access.caseHandler));
 					
 					getBpmDAO().persist(perm);
 					
