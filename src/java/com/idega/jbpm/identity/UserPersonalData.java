@@ -1,13 +1,22 @@
 package com.idega.jbpm.identity;
 
 import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.FinderException;
+
+import com.idega.data.IDOLookup;
+import com.idega.user.data.Gender;
+import com.idega.user.data.GenderHome;
 
 /**
  *  
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/09/19 16:30:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/09 18:30:13 $ by $Author: civilis $
  */
 public class UserPersonalData implements Serializable {
 	
@@ -24,6 +33,7 @@ public class UserPersonalData implements Serializable {
 	private String userPostalCode;
 	private String userMunicipality;
 	private String userPhone;
+	private String genderName;
 	private Boolean hideInContacts;
 	private Boolean createWithLogin;
 	
@@ -118,5 +128,42 @@ public class UserPersonalData implements Serializable {
 	}
 	public void setUserPassword(String userPassword) {
 		this.userPassword = userPassword;
+	}
+	public String getGenderName() {
+		return genderName;
+	}
+	public void setGenderName(String genderName) {
+		this.genderName = genderName;
+	}
+	public Gender getGender() {
+		
+		if(getGenderName() != null && getGenderName().length() != 0) {
+			
+			Gender gender;
+	
+			try {
+				gender = getGenderHome().findByGenderName(getGenderName());
+				
+			} catch (FinderException e) {
+				gender = null;
+			}
+			
+			if(gender == null)
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "No gender found by gender name="+getGenderName());
+			else
+				return gender;
+		}
+		
+		return null;
+	}
+	
+	public GenderHome getGenderHome() {
+		
+		try {
+			return (GenderHome) IDOLookup.getHome(Gender.class);
+			
+		} catch (RemoteException rme) {
+			throw new RuntimeException(rme.getMessage());
+		}
 	}
 }

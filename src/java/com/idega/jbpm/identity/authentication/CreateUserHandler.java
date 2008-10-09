@@ -21,6 +21,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.identity.UserPersonalData;
 import com.idega.user.business.StandardGroup;
 import com.idega.user.business.UserBusiness;
+import com.idega.user.data.Gender;
 import com.idega.user.data.User;
 import com.idega.util.IWTimestamp;
 import com.idega.util.expression.ELUtil;
@@ -31,9 +32,9 @@ import com.idega.util.text.Name;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- * Last modified: $Date: 2008/10/08 11:55:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/09 18:30:13 $ by $Author: civilis $
  */
 public class CreateUserHandler implements ActionHandler {
 
@@ -101,9 +102,13 @@ public class CreateUserHandler implements ActionHandler {
 						else
 							standardGroupPK = null;
 						
+						Gender gender = upd.getGender();
+						
 //						doesn't check if login already exists, therefore this check needs to be made before calling this
 						usrCreated = userBusiness.createUserWithLogin(
-								firstName, middleName, lastName, upd.getPersonalId(), null, null, null, null, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null);
+								firstName, middleName, lastName, upd.getPersonalId(), null, null, 
+								gender != null ? new Integer(gender.getPrimaryKey().toString()) : null,
+										null, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null);
 					} else {
 					
 						if(upd.getFullName() != null) {
