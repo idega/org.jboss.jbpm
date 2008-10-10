@@ -40,9 +40,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/10/08 15:32:14 $ by $Author: valdas $
+ * Last modified: $Date: 2008/10/10 12:34:53 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -161,7 +161,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					}
 				} else if(val instanceof BinaryVariable) {
 					ArrayList<String> binaryVariables = new ArrayList<String>(1);
-					binaryVariables.add(convertToJSON((BinaryVariable) val));	
+					binaryVariables.add(convertToJSON((BinaryVariable) val));
+					
+					entry.setValue(binaryVariables);
 				} else {
 					entry.setValue(null);
 					Logger.getLogger(getClass().getName()).log(Level.WARNING, "Variable data type resolved: "+dataType+", but value data type didn't match ("+val.getClass().getName()+"), variable name: "+key);
@@ -324,6 +326,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 						BinaryVariable var;
 						try {
 							var = convertToBinaryVariable((String)object);
+//							---------------testing--------------
+							//var.setSigned(true);
+							//var.store();
+//							------------------------------------
 						} catch(StreamException e) {
 							continue;
 						} catch(ClassCastException e) {
