@@ -1,5 +1,6 @@
 package com.idega.jbpm.identity.authentication;
 
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,9 +33,9 @@ import com.idega.util.text.Name;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- * Last modified: $Date: 2008/10/09 18:30:13 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/10 07:53:10 $ by $Author: civilis $
  */
 public class CreateUserHandler implements ActionHandler {
 
@@ -104,11 +105,21 @@ public class CreateUserHandler implements ActionHandler {
 						
 						Gender gender = upd.getGender();
 						
+						IWTimestamp dateOfBirth = null;
+						
+						if(upd.getPersonalId() != null && upd.getPersonalId().length() != 0) {
+
+							Date dob = userBusiness.getUserDateOfBirthFromPersonalId(upd.getPersonalId());
+							
+							if(dob != null)
+								dateOfBirth = new IWTimestamp(dob);
+						}
+						
 //						doesn't check if login already exists, therefore this check needs to be made before calling this
 						usrCreated = userBusiness.createUserWithLogin(
 								firstName, middleName, lastName, upd.getPersonalId(), null, null, 
 								gender != null ? new Integer(gender.getPrimaryKey().toString()) : null,
-										null, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null);
+										dateOfBirth, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null);
 					} else {
 					
 						if(upd.getFullName() != null) {
