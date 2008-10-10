@@ -27,9 +27,9 @@ import com.idega.core.test.base.IdegaBaseTransactionalTest;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2008/09/16 14:22:02 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/10/10 11:06:41 $ by $Author: civilis $
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -155,8 +155,8 @@ public final class AsyncTest extends IdegaBaseTransactionalTest {
 	@Test
 	public void testAsync() throws Exception {
 		
-//		if(true)
-//			return;
+		if(true)
+			return;
 
 		deployProcessDefinitions();
 		
