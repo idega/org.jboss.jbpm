@@ -1,6 +1,7 @@
 package com.idega.jbpm.variables.impl;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.idega.block.process.variables.Variable;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
@@ -24,9 +26,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/10/13 10:44:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/13 13:32:12 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -163,6 +165,26 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	
 		Map<String, Object> variables = populateVariables(taskInstanceId);
 		return getBinaryVariablesHandler().resolveBinaryVariablesAsList(variables);
+	}
+	
+	public List<BinaryVariable> resolveBinaryVariables(long taskInstanceId, Variable variable) {
+		
+//		tmp solution
+		Map<String, Object> variables = populateVariables(taskInstanceId);
+		List<BinaryVariable> binVars = getBinaryVariablesHandler().resolveBinaryVariablesAsList(variables);
+		
+		if(binVars != null) {
+
+			for (Iterator<BinaryVariable> iterator = binVars.iterator(); iterator.hasNext();) {
+				BinaryVariable binaryVariable = iterator.next();
+				
+				if(!variable.equals(binaryVariable.getVariable().getDefaultStringRepresentation())) {
+					iterator.remove();
+				}
+			}
+		}
+		
+		return binVars;
 	}
 	
 	public BPMContext getIdegaJbpmContext() {
