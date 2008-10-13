@@ -40,9 +40,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/10/13 11:53:03 $ by $Author: anton $
+ * Last modified: $Date: 2008/10/13 13:30:41 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -289,9 +289,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return null;
 	}
 	
+//	TODO: FIX this method no classcast exceptions should happen end etc
 	public List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables) {
 		
-		ArrayList<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>(5);
+		ArrayList<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
 		
 		for (Object varVal : variables.values()) {
 			
