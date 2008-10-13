@@ -2,6 +2,8 @@ package com.idega.jbpm.variables.impl;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +16,9 @@ import com.idega.util.expression.ELUtil;
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/10/03 12:44:55 $ by $Author: anton $
+ * Last modified: $Date: 2008/10/13 13:32:38 $ by $Author: civilis $
  */
 public class BinaryVariableImpl implements Serializable, BinaryVariable {
 
@@ -31,12 +33,11 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	private String variableName;
 	private Boolean signed;
 	private Boolean hidden;
+	private long taskInstanceId;
 	
 	@Autowired
 	private transient VariablesHandler variablesHandler;
-
-	private Variable variable;
-	private long taskInstanceId;
+	private transient Variable variable;
 	
 	public long getTaskInstanceId() {
 		return taskInstanceId;
@@ -56,6 +57,10 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 
 	public Integer getHash() {
 		return hash;
+	}
+	
+	public void setHash(int hash) {
+		this.hash = hash;
 	}
 
 	public String getIdentifier() {
@@ -141,16 +146,41 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	}
 
 	public Variable getVariable() {
+		
+		if(variable == null && getVariableName() != null) {
+			
+			variable = Variable.parseDefaultStringRepresentation(getVariableName());
+		}
+		
 		return variable;
 	}
 
 	public void setVariable(Variable variable) {
 		this.variable = variable;
+		setVariableName(variable.getDefaultStringRepresentation());
 	}
 	
 	public void store() {
 		Map<String, Object> variable = new HashMap<String, Object>(1);
-		variable.put(getVariable().getDefaultStringRepresentation(), this);
+		List<BinaryVariable> binVars = getVariablesHandler().resolveBinaryVariables(getTaskInstanceId(), getVariable());
+		
+		if(binVars != null && !binVars.isEmpty()) {
+			
+			for (Iterator<BinaryVariable> iterator = binVars.iterator(); iterator.hasNext();) {
+				BinaryVariable binVar = iterator.next();
+				
+				if(binVar.getHash().equals(getHash())) {
+					iterator.remove();
+					binVars.add(this);
+					break;
+				}
+			}
+			
+			variable.put(getVariable().getDefaultStringRepresentation(), binVars);
+		} else {
+			variable.put(getVariable().getDefaultStringRepresentation(), this);
+		}
+		
 		getVariablesHandler().submitVariablesExplicitly(variable, getTaskInstanceId());
 	}
 
