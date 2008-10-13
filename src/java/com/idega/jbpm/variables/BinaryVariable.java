@@ -6,9 +6,9 @@ import com.idega.block.process.variables.Variable;
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/10/03 12:44:55 $ by $Author: anton $
+ * Last modified: $Date: 2008/10/13 13:31:42 $ by $Author: civilis $
  */
 public interface BinaryVariable {
 	
@@ -29,6 +29,8 @@ public interface BinaryVariable {
 	public abstract void setStorageType(String storageType);
 	
 	public abstract Integer getHash();
+	
+	public abstract void setHash(int hash);
 	
 	public abstract String getMimeType();
 	
