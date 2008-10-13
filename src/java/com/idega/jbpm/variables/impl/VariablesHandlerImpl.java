@@ -24,9 +24,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/10/12 18:01:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/13 10:44:57 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -107,7 +107,10 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				}
 			}
 			
-			ti.setVariables(variables);
+			@SuppressWarnings("unchecked")
+			Map<String, Object> vars = ti.getVariables();
+			vars.putAll(variables);
+			ti.setVariables(vars);
 			
 			return variables;
 			
