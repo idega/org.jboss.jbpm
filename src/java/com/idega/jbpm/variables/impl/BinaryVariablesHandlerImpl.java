@@ -40,9 +40,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2008/10/14 11:43:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/14 12:37:18 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service
@@ -135,6 +135,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 								binaryVariable.setDescription(fName);
 								binaryVariable.setVariable(var);
 								binaryVariables.add(convertToJSON(binaryVariable));
+							} else if (o instanceof BinaryVariable){
+								binaryVariables.add(convertToJSON((BinaryVariable)o));
 							}
 						}
 						
