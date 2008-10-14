@@ -3,12 +3,10 @@ package com.idega.jbpm.variables;
 import com.idega.block.process.variables.Variable;
 
 /**
- * the actual persisting and resolving is left to BinaryVariableHandler
- * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/10/13 13:31:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/14 18:30:47 $ by $Author: civilis $
  */
 public interface BinaryVariable {
 	
@@ -34,6 +32,8 @@ public interface BinaryVariable {
 	
 	public abstract String getMimeType();
 	
+	public abstract void setContentLength(Long contentLength);
+	
 	public abstract Long getContentLength();
 	
 	public abstract Boolean getSigned();
@@ -48,9 +48,13 @@ public interface BinaryVariable {
 	
 	public abstract void setVariable(Variable var);
 	
-	public abstract void store();
+	public abstract void update();
+	
+	public abstract void persist();
 	
 	public abstract void setTaskInstanceId(long taskInstanceId);
 	
 	public abstract long getTaskInstanceId();
+	
+	public abstract boolean isPersisted();
 }

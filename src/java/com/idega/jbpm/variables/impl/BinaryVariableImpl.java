@@ -1,10 +1,13 @@
 package com.idega.jbpm.variables.impl;
 
 import java.io.Serializable;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -16,9 +19,9 @@ import com.idega.util.expression.ELUtil;
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/10/13 13:32:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/14 18:30:57 $ by $Author: civilis $
  */
 public class BinaryVariableImpl implements Serializable, BinaryVariable {
 
@@ -38,6 +41,7 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	@Autowired
 	private transient VariablesHandler variablesHandler;
 	private transient Variable variable;
+	private transient URI uri;
 	
 	public long getTaskInstanceId() {
 		return taskInstanceId;
@@ -56,6 +60,8 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	}
 
 	public Integer getHash() {
+		
+		checkGenHash();
 		return hash;
 	}
 	
@@ -110,7 +116,7 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		if(super.equals(obj))
 			return true;
 		
-		return obj instanceof BinaryVariable && ((BinaryVariable)obj).getStorageType().equals(getStorageType()) && ((BinaryVariable)obj).getIdentifier().equals(getIdentifier());
+		return obj instanceof BinaryVariable && getStorageType() != null && getStorageType().equals(((BinaryVariable)obj).getStorageType()) && getIdentifier() != null && getIdentifier().equals(((BinaryVariable)obj).getIdentifier());
 	}
 
 	public Long getContentLength() {
@@ -160,8 +166,27 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		setVariableName(variable.getDefaultStringRepresentation());
 	}
 	
-	public void store() {
-		Map<String, Object> variable = new HashMap<String, Object>(1);
+	public boolean isPersisted() {
+		return getIdentifier() != null; 
+	}
+	
+	public void persist() {
+		
+		if(!isPersisted()) {
+			
+			if(getUri() != null) {
+			
+				getVariablesHandler().getBinaryVariablesHandler().persistBinaryVariable(this, getUri());
+			} else {
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to persist, but no uri provided");
+			}
+		} else {
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Called persist on already persisted binary variable");
+		}
+	}
+	
+	public void update() {
+		
 		List<BinaryVariable> binVars = getVariablesHandler().resolveBinaryVariables(getTaskInstanceId(), getVariable());
 		
 		if(binVars != null && !binVars.isEmpty()) {
@@ -172,16 +197,16 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 				if(binVar.getHash().equals(getHash())) {
 					iterator.remove();
 					binVars.add(this);
-					break;
+					
+					Map<String, Object> variable = new HashMap<String, Object>(1);
+					variable.put(getVariable().getDefaultStringRepresentation(), binVars);
+					getVariablesHandler().submitVariablesExplicitly(variable, getTaskInstanceId());
+					return;
 				}
 			}
-			
-			variable.put(getVariable().getDefaultStringRepresentation(), binVars);
-		} else {
-			variable.put(getVariable().getDefaultStringRepresentation(), this);
 		}
 		
-		getVariablesHandler().submitVariablesExplicitly(variable, getTaskInstanceId());
+		Logger.getLogger(getClass().getName()).log(Level.WARNING, "Called update, but no matching binary variable resolved by variable hash="+getHash()+". Variable name="+getVariable().getDefaultStringRepresentation()+" and task instanceid="+getTaskInstanceId());
 	}
 
 	private VariablesHandler getVariablesHandler() {
@@ -190,5 +215,13 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		} 
 		
 		return variablesHandler;
+	}
+
+	public URI getUri() {
+		return uri;
+	}
+
+	public void setUri(URI uri) {
+		this.uri = uri;
 	}
 }
