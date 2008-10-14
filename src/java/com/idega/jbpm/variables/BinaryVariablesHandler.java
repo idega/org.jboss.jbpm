@@ -5,14 +5,12 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import com.idega.block.process.variables.Variable;
-
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/10/14 11:43:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/14 18:30:18 $ by $Author: civilis $
  */
 public interface BinaryVariablesHandler {
 
@@ -23,7 +21,7 @@ public interface BinaryVariablesHandler {
 	 * @param variables
 	 * @return new map with binary variables values changed to string identifier(s)
 	 */
-	public abstract Map<String, Object> storeBinaryVariables(Object identifier,
+	public abstract Map<String, Object> storeBinaryVariables(long taskInstanceId,
 			Map<String, Object> variables);
 
 	public abstract InputStream getBinaryVariableContent(BinaryVariable variable);
@@ -33,5 +31,5 @@ public interface BinaryVariablesHandler {
 	
 	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables);
 	
-	public abstract BinaryVariable createStoreBinaryVariable(Variable variable, String identifier, URI uri);
+	public abstract void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri);
 }
