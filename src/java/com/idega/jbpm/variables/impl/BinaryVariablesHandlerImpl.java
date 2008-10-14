@@ -40,9 +40,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  *
- * Last modified: $Date: 2008/10/14 12:37:18 $ by $Author: juozas $
+ * Last modified: $Date: 2008/10/14 12:43:32 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -96,6 +96,33 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					binaryVariables.add(convertToJSON((BinaryVariable)val));
 					
 					entry.setValue(binaryVariables);
+					
+				} else if(val instanceof Collection) {
+					
+					@SuppressWarnings("unchecked")
+					Collection<Object> files = (Collection<Object>)val;
+					
+					if(files.isEmpty()) {
+						entry.setValue(null);
+					} else {
+						
+						ArrayList<String> binaryVariables = new ArrayList<String>(files.size());
+						
+//						Variable var = new Variable(getDataName(key), VariableDataType.FILES);
+						for (Iterator<Object> iterator = files.iterator(); iterator.hasNext();) {
+							
+							Object o = iterator.next();
+							
+							if (o instanceof BinaryVariable) {
+								binaryVariables.add(convertToJSON((BinaryVariable)o));
+							} else {
+								
+								Logger.getLogger(getClass().getName()).log(Level.WARNING, "Collection item of type="+o.getClass().getName()+" not supported");
+							}
+						}
+						
+						entry.setValue(binaryVariables);
+					}
 					
 				} else {
 					entry.setValue(null);
