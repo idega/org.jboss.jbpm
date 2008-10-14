@@ -40,9 +40,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  *
- * Last modified: $Date: 2008/10/13 13:30:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/14 11:43:42 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -72,8 +72,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if(dataType == VariableDataType.FILE) {
 				if(val instanceof URI) {
 					ArrayList<String> binaryVariables = new ArrayList<String>(1);
-					BinaryVariable binaryVariable = storeFile((String)identifier, (URI)val);
-					binaryVariable.setVariable(new Variable(getDataName(key), VariableDataType.FILE));
+					BinaryVariable binaryVariable = createStoreBinaryVariable(
+							new Variable(getDataName(key), VariableDataType.FILE), (String)identifier, (URI)val
+					);
+					
 					binaryVariables.add(convertToJSON(binaryVariable));
 					
 					entry.setValue(binaryVariables);
@@ -172,6 +174,13 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		}
 		
 		return newVars;
+	}
+	
+	public BinaryVariable createStoreBinaryVariable(Variable variable, String identifier, URI uri) {
+		BinaryVariable binaryVariable = storeFile(identifier, uri);
+		binaryVariable.setVariable(variable);
+		
+		return binaryVariable;
 	}
 	
 	public static void main(String[] args) {

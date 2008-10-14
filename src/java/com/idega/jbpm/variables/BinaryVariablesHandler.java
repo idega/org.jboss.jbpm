@@ -1,15 +1,18 @@
 package com.idega.jbpm.variables;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
+
+import com.idega.block.process.variables.Variable;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/19 13:52:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/14 11:43:46 $ by $Author: civilis $
  */
 public interface BinaryVariablesHandler {
 
@@ -29,4 +32,6 @@ public interface BinaryVariablesHandler {
 			Map<String, Object> variables);
 	
 	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables);
+	
+	public abstract BinaryVariable createStoreBinaryVariable(Variable variable, String identifier, URI uri);
 }
