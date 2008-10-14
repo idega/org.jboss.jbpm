@@ -26,9 +26,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/10/13 13:32:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/14 18:31:18 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -74,7 +74,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				}
 			}
 			
-			variables = getBinaryVariablesHandler().storeBinaryVariables(String.valueOf(taskInstanceId), variables);
+			variables = getBinaryVariablesHandler().storeBinaryVariables(taskInstanceId, variables);
 			
 			ti.setVariables(variables);
 			///tiController.submitParameters(ti);
@@ -92,7 +92,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
-			variables = getBinaryVariablesHandler().storeBinaryVariables(String.valueOf(taskInstanceId), variables);
+			variables = getBinaryVariablesHandler().storeBinaryVariables(taskInstanceId, variables);
 
 			TaskInstance ti = ctx.getTaskInstance(taskInstanceId);
 			Token taskInstanceToken = ti.getToken();
