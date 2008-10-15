@@ -13,9 +13,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/10/01 13:44:17 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/15 14:56:40 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
 	
@@ -43,5 +43,14 @@ public interface TaskInstanceW {
 	
 	public abstract void setTaskRolePermissions(Role role, boolean setSameForAttachments, String variableIdentifier);
 	
+	/**
+	 * creates, stores and adds binary variable to the variable specified. If the variable is not found in the process instance 
+	 * (not necessary in the task instance scope), it is created for the task instance.
+	 * @param variable
+	 * @param fileName
+	 * @param description
+	 * @param is
+	 * @return
+	 */
 	public abstract BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is);
 }

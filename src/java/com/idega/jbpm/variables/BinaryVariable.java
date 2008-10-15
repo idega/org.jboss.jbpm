@@ -4,9 +4,9 @@ import com.idega.block.process.variables.Variable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/10/14 18:30:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/15 14:56:40 $ by $Author: civilis $
  */
 public interface BinaryVariable {
 	
@@ -48,8 +48,15 @@ public interface BinaryVariable {
 	
 	public abstract void setVariable(Variable var);
 	
+	/**
+	 * updates existing binary variable values - doesn't persist if the variable isn't already persisted
+	 */
 	public abstract void update();
 	
+	/**
+	 * persists variable using it's internal persisting logic. 
+	 * Should be called after it has been created only. Shouldn't work after resolving it from persistent state.
+	 */
 	public abstract void persist();
 	
 	public abstract void setTaskInstanceId(long taskInstanceId);
