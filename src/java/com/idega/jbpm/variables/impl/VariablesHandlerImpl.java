@@ -26,9 +26,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/10/14 18:31:18 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/16 17:46:27 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -178,7 +178,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			for (Iterator<BinaryVariable> iterator = binVars.iterator(); iterator.hasNext();) {
 				BinaryVariable binaryVariable = iterator.next();
 				
-				if(!variable.equals(binaryVariable.getVariable().getDefaultStringRepresentation())) {
+				if(!variable.getDefaultStringRepresentation().equals(binaryVariable.getVariable().getDefaultStringRepresentation())) {
 					iterator.remove();
 				}
 			}

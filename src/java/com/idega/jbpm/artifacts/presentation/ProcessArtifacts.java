@@ -80,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.79 $
+ * @version $Revision: 1.80 $
  *
- * Last modified: $Date: 2008/10/09 11:41:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/16 17:46:27 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -497,7 +497,7 @@ public class ProcessArtifacts {
 			
 			for (BinaryVariable binaryVariable : binaryVariables) {
 				
-				if(binaryVariable.getHash() == null)
+				if(binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true))
 					continue;
 				
 				variableHash = binaryVariable.getHash().toString();
