@@ -34,9 +34,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  * 
- * Last modified: $Date: 2008/08/25 19:03:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/19 10:57:47 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -71,12 +71,15 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 				Collection<User> users = userBusiness.getUserHome().findUsersByEmail(email);
 				
 				if(users != null) {
+					
+					String processInstanceIdStr = String.valueOf(processInstanceId);
 				
 					for (User user : users) {
 
 						String usrType = user.getMetaData(BPMUser.USER_TYPE);
+						String userProcessInstanceIdStr = user.getMetaData(BPMUser.PROCESS_INSTANCE_ID);
 						
-						if(BPMUser.USER_TYPE_NATURAL.equals(usrType) || BPMUser.USER_TYPE_LEGAL.equals(usrType)) {
+						if(processInstanceIdStr.equals(userProcessInstanceIdStr) && (BPMUser.USER_TYPE_NATURAL.equals(usrType) || BPMUser.USER_TYPE_LEGAL.equals(usrType))) {
 //							found bpmUser 
 							bpmUserAcc = user;
 							break;
@@ -95,6 +98,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 					uEmail.store();
 					bpmUserAcc.addEmail(uEmail);
 				}
+//				TODO: add support for possible invitation for more than one role for the same email, i.e. bpm user account found by personal id, but the role doesn't match - add another
 				
 			} else {
 //				no email found to look for existing bpm users -> just create new bpmUser
@@ -176,6 +180,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		if(iwc == null)
 			return null;
 		
+//		TODO: perhaps cache this bpmUser somewhere
 		BPMUserImpl bpmUsr = createUser();
 		
 		if(bpmUserPK != null && (bpmUsr.getBpmUser() == null || !bpmUsr.getBpmUser().getPrimaryKey().equals(bpmUserPK))) {
@@ -219,10 +224,10 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 			return true;
 		
 		try {
-			String roleName = bpmUsr.getLastName();
-			String processInstanceIdStr = bpmUsr.getPersonalID();
+			String roleName = bpmUsr.getMetaData(BPMUser.USER_ROLE);
+			String processInstanceIdStr = bpmUsr.getMetaData(BPMUser.PROCESS_INSTANCE_ID);
 			
-			if(roleName != null && !roleName.equals(CoreConstants.EMPTY) && processInstanceIdStr != null && !processInstanceIdStr.equals(CoreConstants.EMPTY)) {
+			if(roleName != null && roleName.length() != 0 && processInstanceIdStr != null && processInstanceIdStr.length() != 0) {
 
 				Long processInstanceId = new Long(processInstanceIdStr);
 
@@ -280,7 +285,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 							nis.add(ni);
 						}
 						
-						getGenericDao().persist(prole);
+						getBpmDAO().persist(prole);
 						return true;
 					}
 				}
