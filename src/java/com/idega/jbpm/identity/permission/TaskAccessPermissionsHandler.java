@@ -29,9 +29,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/09/03 13:47:22 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:13:46 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -59,21 +59,28 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 		
 		BPMTypedPermission permission = (BPMTypedPermission)perm;
 	
-		String loggedInActorId = getAuthenticationService().getActorId();
+		Integer userId = permission.getUserId();
 		
-		if(loggedInActorId == null)
-			throw new AccessControlException("Not logged in");
+		if(userId == null) {
+		
+			String loggedInActorId = getAuthenticationService().getActorId();
+			
+			if(loggedInActorId == null)
+				throw new AccessControlException("Not logged in");
+			
+			userId = new Integer(loggedInActorId);
+		}
 		
 		TaskInstance taskInstance = permission.getAttribute(taskInstanceAtt);
 		
-		if(loggedInActorId.equals(taskInstance.getActorId()))
+		if(userId.toString().equals(taskInstance.getActorId()))
 			return;
 		
 		Boolean checkOnlyInActorsPool = permission.getAttribute(checkOnlyInActorsPoolAtt);
 		
 		if(!taskInstance.hasEnded() && taskInstance.getActorId() != null && !checkOnlyInActorsPool) {
 			
-			if(!loggedInActorId.equals(taskInstance.getActorId()))
+			if(!userId.toString().equals(taskInstance.getActorId()))
 				throw new AccessControlException("You shall not pass. Logged in actor id doesn't match the assigned actor id. Assigned: "+taskInstance.getActorId()+", taskInstanceId: "+taskInstance.getId());
 			
 		} else {
@@ -90,10 +97,10 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 					if(variableIdentifier == null || CoreConstants.EMPTY.equals(variableIdentifier))
 						throw new IllegalArgumentException("Illegal permission passed. Passed of type="+PermissionsFactoryImpl.viewTaskVariableParametersType+", but not variable identifier provided");
 					
-					checkPermissionsForTaskInstance(new Integer(loggedInActorId), taskInstance, accessesWanted, variableIdentifier);
+					checkPermissionsForTaskInstance(userId, taskInstance, accessesWanted, variableIdentifier);
 				} else {
 
-					checkPermissionsForTaskInstance(new Integer(loggedInActorId), taskInstance, accessesWanted, null);
+					checkPermissionsForTaskInstance(userId, taskInstance, accessesWanted, null);
 				}
 			}
 		}

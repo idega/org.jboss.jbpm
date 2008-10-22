@@ -23,9 +23,9 @@ import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/08/25 19:05:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:13:46 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -39,6 +39,7 @@ public class GenericAccessPermissionsHandler implements BPMTypedHandler {
 	private RolesManager rolesManager;
 	
 	public static final String processInstanceIdAtt = 				"processInstanceId";
+	public static final String userAtt = 							"user";
 
 	public String[] getHandledTypes() {
 		return new String[] {PermissionsFactoryImpl.genericAccessPermType};
@@ -53,10 +54,17 @@ public class GenericAccessPermissionsHandler implements BPMTypedHandler {
 		
 		BPMTypedPermission permission = (BPMTypedPermission)perm;
 		
-		String loggedInActorId = getAuthenticationService().getActorId();
+		Integer userId = permission.getUserId();
 		
-		if(loggedInActorId == null)
-			throw new AccessControlException("Not logged in");
+		if(userId == null) {
+		
+			String loggedInActorId = getAuthenticationService().getActorId();
+			
+			if(loggedInActorId == null)
+				throw new AccessControlException("Not logged in");
+			
+			userId = new Integer(loggedInActorId);
+		}
 		
 		if(IWContext.getCurrentInstance().isSuperAdmin())
 			return;
@@ -70,7 +78,6 @@ public class GenericAccessPermissionsHandler implements BPMTypedHandler {
 		
 		if(proles != null) {
 			
-			Integer userId = new Integer(loggedInActorId);
 			AccessController ac = getAccessController();
 			IWApplicationContext iwac = getIWMA().getIWApplicationContext();
 			
@@ -81,7 +88,7 @@ public class GenericAccessPermissionsHandler implements BPMTypedHandler {
 			}
 		}
 		
-		throw new AccessControlException("No generic access for user="+loggedInActorId);
+		throw new AccessControlException("No generic access for user="+userId);
 	}
 	
 	public AuthenticationService getAuthenticationService() {

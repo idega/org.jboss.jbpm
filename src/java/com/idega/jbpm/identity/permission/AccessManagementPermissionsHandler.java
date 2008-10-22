@@ -24,9 +24,9 @@ import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/08/25 19:05:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:12:51 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -54,10 +54,17 @@ public class AccessManagementPermissionsHandler implements BPMTypedHandler {
 		
 		BPMTypedPermission permission = (BPMTypedPermission)perm;
 		
-		String loggedInActorId = getAuthenticationService().getActorId();
+		Integer userId = permission.getUserId();
 		
-		if(loggedInActorId == null)
-			throw new AccessControlException("Not logged in");
+		if(userId == null) {
+		
+			String loggedInActorId = getAuthenticationService().getActorId();
+			
+			if(loggedInActorId == null)
+				throw new AccessControlException("Not logged in");
+			
+			userId = new Integer(loggedInActorId);
+		}
 		
 //		super admin always gets an access
 		if(!IWContext.getCurrentInstance().isSuperAdmin()) {
@@ -83,8 +90,6 @@ public class AccessManagementPermissionsHandler implements BPMTypedHandler {
 				
 				Actor prole = proles.iterator().next();
 				
-				int userId = new Integer(loggedInActorId);
-
 				AccessController ac = getAccessController();
 				IWApplicationContext iwac = getIWMA().getIWApplicationContext();
 				
@@ -94,7 +99,7 @@ public class AccessManagementPermissionsHandler implements BPMTypedHandler {
 					return;
 			}
 			
-			throw new AccessControlException("No access management permission for user="+loggedInActorId+", for processInstanceId="+processInstanceId);
+			throw new AccessControlException("No access management permission for user="+userId+", for processInstanceId="+processInstanceId);
 		}
 	}
 	

@@ -27,9 +27,9 @@ import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/08/25 19:05:20 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:13:46 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -59,10 +59,17 @@ public class RoleAccessPermissionsHandler implements BPMTypedHandler {
 		
 		BPMTypedPermission permission = (BPMTypedPermission)perm;
 		
-		String loggedInActorId = getAuthenticationService().getActorId();
+		Integer userId = permission.getUserId();
 		
-		if(loggedInActorId == null)
-			throw new AccessControlException("Not logged in");
+		if(userId == null) {
+		
+			String loggedInActorId = getAuthenticationService().getActorId();
+			
+			if(loggedInActorId == null)
+				throw new AccessControlException("Not logged in");
+			
+			userId = new Integer(loggedInActorId);
+		}
 		
 		AccessController ac = getAccessController();
 		IWApplicationContext iwac = getIWMA().getIWApplicationContext();
@@ -78,8 +85,6 @@ public class RoleAccessPermissionsHandler implements BPMTypedHandler {
 			
 //			super admin always gets an access
 			if(!IWContext.getCurrentInstance().isSuperAdmin()) {
-				
-				int userId = new Integer(loggedInActorId);
 				
 //				get all roles, the user can see/not see
 				Collection<Role> rolesUserCanSee = getRolesManager().getUserPermissionsForRolesContacts(processInstanceId, userId);
@@ -104,7 +109,7 @@ public class RoleAccessPermissionsHandler implements BPMTypedHandler {
 					}
 				}
 				
-				throw new AccessControlException("No contacts for role access for user="+loggedInActorId+", for processInstanceId="+processInstanceId+", for role="+roleName);
+				throw new AccessControlException("No contacts for role access for user="+userId+", for processInstanceId="+processInstanceId+", for role="+roleName);
 			}
 			
 		} else {
@@ -122,14 +127,12 @@ public class RoleAccessPermissionsHandler implements BPMTypedHandler {
 			
 			Actor prole = proles.iterator().next();
 			
-			int userId = new Integer(loggedInActorId);
-
 			List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
 			
 			if(getRolesManager().checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
 				return;
 
-			throw new AccessControlException("No role access for user="+loggedInActorId+", for processInstanceId="+processInstanceId+", for role="+roleName);
+			throw new AccessControlException("No role access for user="+userId+", for processInstanceId="+processInstanceId+", for role="+roleName);
 		}
 	}
 	
