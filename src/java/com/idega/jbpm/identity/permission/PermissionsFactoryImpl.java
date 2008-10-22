@@ -7,11 +7,13 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.idega.user.data.User;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:14:37 $ by $Author: civilis $
  */
 @Service
 @Scope("singleton")
@@ -51,6 +53,17 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 		
 		BPMTypedPermission perm = getTypedPermission(genericAccessPermType);
 		perm.setAttribute(GenericAccessPermissionsHandler.processInstanceIdAtt, processInstanceId);
+		
+		return (Permission)perm;
+	}
+	
+	public Permission getAccessPermission(Long processInstanceId, Access access, User user) {
+		
+		BPMTypedPermission perm = getTypedPermission(genericAccessPermType);
+		perm.setAttribute(GenericAccessPermissionsHandler.processInstanceIdAtt, processInstanceId);
+		
+		if(user != null)
+			perm.setAttribute(GenericAccessPermissionsHandler.userAtt, new Integer(user.getPrimaryKey().toString()));
 		
 		return (Permission)perm;
 	}

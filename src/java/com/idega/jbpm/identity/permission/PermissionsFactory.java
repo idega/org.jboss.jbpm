@@ -4,12 +4,14 @@ import java.security.Permission;
 
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
+import com.idega.user.data.User;
+
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:14:37 $ by $Author: civilis $
  */
 public interface PermissionsFactory {
 
@@ -20,6 +22,9 @@ public interface PermissionsFactory {
 
 	public abstract Permission getAccessPermission(Long processInstanceId,
 			Access access);
+	
+	public abstract Permission getAccessPermission(Long processInstanceId,
+			Access access, User user);
 
 	public abstract Permission getTaskViewPermission(
 			Boolean authPooledActorsOnly, TaskInstance taskInstance);
