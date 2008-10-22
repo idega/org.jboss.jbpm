@@ -31,9 +31,9 @@ import javax.persistence.Table;
  * If there are no permissions for actor with process instance id != null, then the permissions for process name are taken (i.e. the permissions are specified for process definition scope). 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/08/25 19:02:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:09:23 $ by $Author: civilis $
  */
 @Entity
 @Table(name=Actor.TABLE_NAME)
@@ -60,7 +60,12 @@ import javax.persistence.Table;
 			@NamedQuery(name=Actor.getProcessInstanceIdsByUserIdentity, query=
 				"select act."+Actor.processInstanceIdProperty+" as piid from Actor act "+
 				"inner join act."+Actor.nativeIdentitiesProperty+" ni "+ 
-				"where ni."+NativeIdentityBind.identityIdProperty+" = :"+NativeIdentityBind.identityIdProperty+" and ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty) 
+				"where ni."+NativeIdentityBind.identityIdProperty+" = :"+NativeIdentityBind.identityIdProperty+" and ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty),
+				
+			@NamedQuery(name=Actor.getActorsByUserIdentityAndProcessInstanceId, query=
+				"select act from Actor act "+
+				"inner join act."+Actor.nativeIdentitiesProperty+" ni "+ 
+				"where act."+Actor.processInstanceIdProperty+" = :"+Actor.processInstanceIdProperty+" and ni."+NativeIdentityBind.identityIdProperty+" = :"+NativeIdentityBind.identityIdProperty+" and ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty)
 		}
 )
 @SqlResultSetMapping(name="processInstanceId", columns=@ColumnResult(name="processInstanceId"))
@@ -103,6 +108,7 @@ public class Actor implements Serializable {
 	public static final String getSetByPIIdsAndRoleNames = "Actor.getSetByPIIdsAndRoleNames";
 	public static final String getProcessInstanceIdsByUserIdentity = "Actor.getProcessInstanceIdsByUserIdentity";
 	public static final String getProcessInstanceIdsByUserRolesAndUserIdentity = "Actor.getProcessInstanceIdsByUserRolesAndUserIdentity";
+	public static final String getActorsByUserIdentityAndProcessInstanceId = "Actor.getActorsByUserIdentity";
 
 	public static final String getAllByActorIds = "Actor.getAllByActorIds";
 	public static final String getAllProcessInstancesIdsHavingRoleName = "Actor.getAllProcessInstancesIds";
