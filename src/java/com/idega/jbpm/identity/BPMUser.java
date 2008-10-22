@@ -10,11 +10,14 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- * Last modified: $Date: 2008/06/21 16:47:17 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:10:34 $ by $Author: civilis $
  */
 public interface BPMUser {
+
+	public static final String defaultAssetsViewPageType = "bpm_assets_view";
+	public static final String processInstanceIdParam = "piId";
 	
 	public static final String bpmUsrParam = "bpmusr";
 	public static final String USER_TYPE_NATURAL = "BPM_USER_NATURAL";
@@ -33,4 +36,6 @@ public interface BPMUser {
 	public abstract Boolean getIsAssociated(boolean clean);
 
 	public abstract Integer getIdToUse();
+	
+	public abstract String getUrlToTheProcess();
 }

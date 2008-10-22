@@ -1,10 +1,18 @@
 package com.idega.jbpm.identity;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.idega.business.IBORuntimeException;
+import com.idega.core.builder.business.BuilderService;
+import com.idega.core.builder.business.BuilderServiceFactory;
+import com.idega.idegaweb.IWApplicationContext;
+import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
+import com.idega.util.URIUtil;
 
 /**
  *  
@@ -14,25 +22,25 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/06/16 13:03:13 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:11:52 $ by $Author: civilis $
  */
-@Scope("session")
-//TODO: change scope to prototype and use seam conversation scope (after seam integration of course) 
-@Service("BPMUser")
 public class BPMUserImpl implements BPMUser {
 	
 	private Boolean isAssociated;
 	private User bpmUser;
 	private User realUser;
 	private BPMUserFactory bpmUserFactory;
+	private IWContext iwc;
+	private Long processInstanceId;
 	
 	public User getBpmUser() {
 		return bpmUser;
 	}
 	public void setBpmUser(User bpmUser) {
 		setIsAssociated(null);
+		processInstanceId = null;
 		this.bpmUser = bpmUser;
 	}
 	public User getRealUser() {
@@ -90,5 +98,65 @@ public class BPMUserImpl implements BPMUser {
 		}
 		
 		return null;
+	}
+	
+	public String getUrlToTheProcess() {
+		
+		IWContext iwc = getIwc();
+		
+		if(iwc == null) {
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to get url to the process, but no IWContext set");
+		}
+		
+		if(getProcessInstanceId() == null) {
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to get url to the process, but no process instance id resolved from bpm user="+getBpmUser().getPrimaryKey());
+		}
+		
+		String fullUrl = getAssetsUrl(iwc);
+		
+		final URIUtil uriUtil = new URIUtil(fullUrl);
+		
+		uriUtil.setParameter(processInstanceIdParam, getProcessInstanceId().toString());
+		uriUtil.setParameter(BPMUser.bpmUsrParam, getBpmUser().getPrimaryKey().toString());
+		fullUrl = uriUtil.getUri();
+		
+		return fullUrl;
+	}
+	
+	private String getAssetsUrl(IWContext iwc) {
+		
+//		TODO: try to resolve url from app prop, if fail, then use default page type, and resolve from it (as it is now)
+		String fullUrl = getBuilderService(iwc).getFullPageUrlByPageType(iwc, defaultAssetsViewPageType, true);
+		return fullUrl;
+	}
+	
+	private BuilderService getBuilderService(IWApplicationContext iwc) {
+		try {
+			return BuilderServiceFactory.getBuilderService(iwc);
+			
+		} catch (RemoteException e) {
+			throw new IBORuntimeException(e);
+		}
+	}
+	public void setIwc(IWContext iwc) {
+		this.iwc = iwc;
+	}
+	IWContext getIwc() {
+		
+		if(iwc == null)
+			iwc = IWContext.getCurrentInstance();
+		
+		return iwc;
+	}
+	Long getProcessInstanceId() {
+		
+		if(processInstanceId == null) {
+		
+			User usr = getBpmUser();
+			String processInstanceIdStr = usr.getMetaData(BPMUser.PROCESS_INSTANCE_ID);
+			processInstanceId = new Long(processInstanceIdStr);
+		}
+		
+		return processInstanceId;
 	}
 }
