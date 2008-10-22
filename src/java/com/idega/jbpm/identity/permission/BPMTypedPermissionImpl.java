@@ -7,9 +7,9 @@ import java.util.Map;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/08/12 10:58:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:13:10 $ by $Author: civilis $
  */
 public class BPMTypedPermissionImpl extends BasicPermission implements BPMTypedPermission {
 	
@@ -25,7 +25,6 @@ public class BPMTypedPermissionImpl extends BasicPermission implements BPMTypedP
 	
 	@Override
 	public boolean implies(Permission permission) {
-
 		return false;
 	}
 
@@ -47,5 +46,9 @@ public class BPMTypedPermissionImpl extends BasicPermission implements BPMTypedP
 
 	public void setAttribute(String key, Object value) {
 		attributes.put(key, value);
+	}
+
+	public Integer getUserId() {
+		return getAttribute(GenericAccessPermissionsHandler.userAtt);
 	}
 }
