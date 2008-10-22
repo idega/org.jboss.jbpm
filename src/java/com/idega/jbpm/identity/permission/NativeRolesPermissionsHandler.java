@@ -27,9 +27,9 @@ import com.idega.user.data.User;
  * checks, if the user provided falls in any of idega native roles provided
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/09/03 13:47:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:14:12 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -74,7 +74,6 @@ public class NativeRolesPermissionsHandler implements BPMTypedHandler {
 			
 			AccessController ac = getAccessController();
 			
-			@SuppressWarnings("unchecked")
 			Set<String> userRoles = ac.getAllRolesForUser(usr);
 			
 			if(userRoles != null) {
