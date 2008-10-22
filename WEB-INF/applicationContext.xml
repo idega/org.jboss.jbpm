@@ -45,6 +45,10 @@
     </bean>
     
     <bean id="bpmUserFactory" class="com.idega.jbpm.identity.BPMUserFactoryImpl" scope="singleton">
-        <lookup-method name="createUser" bean="BPMUser" />
+        <lookup-method name="createBPMUser" bean="BPMUser" />
+        <lookup-method name="createLoggedInBPMUser" bean="LoggedInBPMUser" />
     </bean>
+    
+    <bean id="BPMUser" class="com.idega.jbpm.identity.BPMUserImpl" scope="prototype" />
+    <bean id="LoggedInBPMUser" class="com.idega.jbpm.identity.BPMUserImpl" scope="session" />
 </beans>
