@@ -15,22 +15,47 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/10/08 18:49:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:10:07 $ by $Author: civilis $
  */
 public interface ProcessInstanceW {
 	
+	/**
+	 * 
+	 * @return all task instances, including the ended ones
+	 */
 	public abstract Collection<TaskInstanceW> getAllTaskInstances();
 	
+	/**
+	 * 
+	 * @param rootToken
+	 * @return not ended task instances for the token provided
+	 */
 	public abstract Collection<TaskInstanceW> getUnfinishedTaskInstances(Token rootToken);
 	
+	/**
+	 * 
+	 * @return all process instance task instances, that are has not ended yet (end == null)
+	 */
 	public abstract List<TaskInstanceW> getAllUnfinishedTaskInstances();
 	
+	/**
+	 * the same as calling getProcessInstance().getId()
+	 * @return
+	 */
 	public abstract Long getProcessInstanceId();
 	
+	/**
+	 * should be used only in factory methods
+	 * @param processInstanceId
+	 */
 	public abstract void setProcessInstanceId(Long processInstanceId);
-	
+
+	/**
+	 * assigned handler user id (see assignHandler method)
+	 * @return
+	 */
 	public abstract Integer getHandlerId();
 	
 	/**
@@ -40,6 +65,10 @@ public interface ProcessInstanceW {
 	 */
 	public abstract void assignHandler(Integer handlerUserId);
 	
+	/**
+	 * 
+	 * @return process instance related watcher (see javadoc of ProcessWatch)
+	 */
 	public abstract ProcessWatch getProcessWatcher();
 	
 	/**
@@ -51,16 +80,45 @@ public interface ProcessInstanceW {
 	public abstract List<User> getUsersConnectedToProcess();
 	
 	public abstract void setContactsPermission(Role role, Integer userId);
-	
+
+	/**
+	 * get jbpm process instance this wrapper wraps
+	 * @return
+	 */
 	public abstract ProcessInstance getProcessInstance();
-	
+
+	/**
+	 * 
+	 * @return human readable identifier, used for distinguishing processes more easily, as well, as using in search etc
+	 */
 	public abstract String getProcessIdentifier();
 	
 	public abstract String getProcessDescription();
 	
+	/**
+	 * @return definition wrapper this process instance relates to
+	 */
 	public abstract ProcessDefinitionW getProcessDefinitionW();
 	
+	/**
+	 * gets process name - usually the name of the start task view
+	 * @param locale
+	 * @return
+	 */
 	public abstract String getName(Locale locale);
 	
+	/**
+	 * checks if the current logged in user has right against this process instance
+	 * @param right
+	 * @return
+	 */
 	public abstract boolean hasRight(Right right);
+	
+	/**
+	 * checks if the user provided has right against this process instance
+	 * @param right
+	 * @param user to check right against
+	 * @return
+	 */
+	public abstract boolean hasRight(Right right, User user);
 }
