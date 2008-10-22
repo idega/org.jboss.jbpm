@@ -59,9 +59,9 @@ import com.idega.util.ListUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.51 $
+ * @version $Revision: 1.52 $
  * 
- * Last modified: $Date: 2008/10/09 11:41:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:12:14 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -243,6 +243,32 @@ public class RolesManagerImpl implements RolesManager {
 			);
 		
 		return rolesNames;
+	}
+	
+	public List<Role> getUserRoles(long processInstanceId, User user) {
+		
+		List<Actor> actors =
+			getBpmDAO().getResultList(Actor.getActorsByUserIdentityAndProcessInstanceId, Actor.class, 
+					new Param(Actor.processInstanceIdProperty, processInstanceId),
+					new Param(NativeIdentityBind.identityTypeProperty, IdentityType.USER),
+					new Param(NativeIdentityBind.identityIdProperty, user.getPrimaryKey().toString())
+			);
+		
+		if(actors != null) {
+			
+			ArrayList<Role> roles = new ArrayList<Role>(actors.size());
+			
+			for (Actor actor : actors) {
+				
+				Role role = new Role(actor.getProcessRoleName());
+				role.setScope(RoleScope.PI);
+				roles.add(role);
+			}
+			
+			return roles;
+		}
+
+		return null;
 	}
 	
 	public Collection<User> getAllUsersForRoles(Collection<String> rolesNames, long piId, BPMTypedPermission perm) {
@@ -1323,8 +1349,8 @@ public class RolesManagerImpl implements RolesManager {
 		JbpmContext jctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
-			List<ActorPermissions> perms = getBpmDAO().getResultListByInlineQuery(
-					"select ap from ActorPermissions ap inner join ap."+ActorPermissions.actorsProperty+" act where act." + Actor.processInstanceIdProperty + " = :" + Actor.processInstanceIdProperty +" and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is not null", 
+			List<ActorPermissions> perms = getBpmDAO().getResultList(
+					ActorPermissions.getSetByProcessInstanceIdAndCanSeeContacts,
 					ActorPermissions.class, 
 					new Param(Actor.processInstanceIdProperty, processInstanceId)
 			);

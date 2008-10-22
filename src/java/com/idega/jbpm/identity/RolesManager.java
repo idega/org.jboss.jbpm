@@ -19,9 +19,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $
+ * @version $Revision: 1.26 $
  * 
- * Last modified: $Date: 2008/08/25 19:03:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:12:14 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -82,4 +82,6 @@ public interface RolesManager {
 	public abstract List<String> getRolesForAccess(long processInstanceId, Access access);
 	
 	public abstract boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, int userId, AccessController ac, IWApplicationContext iwac);
+	
+	public abstract List<Role> getUserRoles(long processInstanceId, User user);
 }
