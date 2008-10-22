@@ -21,9 +21,9 @@ import javax.persistence.Table;
  * Also used for contacts access management.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/08/25 19:02:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/22 15:09:38 $ by $Author: civilis $
  */
 @Entity
 @Table(name="BPM_ACTORS_PERMISSIONS")
@@ -33,7 +33,8 @@ import javax.persistence.Table;
 			@NamedQuery(name=ActorPermissions.getSetByTaskIdOrTaskInstanceId, query="from ActorPermissions ap where ap."+ActorPermissions.taskIdProperty+" = :"+ActorPermissions.taskIdProperty+" or ap."+ActorPermissions.taskInstanceIdProperty+" = :"+ActorPermissions.taskInstanceIdProperty),
 			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdPureRoles, query="from ActorPermissions ap inner join ap." + ActorPermissions.actorsProperty + " actors where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and actors." + Actor.processInstanceIdProperty + " = :" + Actor.processInstanceIdProperty +" and ap."+ActorPermissions.taskIdProperty+" is null and ap."+ActorPermissions.taskInstanceIdProperty+" is null and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is null"),
 			@NamedQuery(name=ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdForContacts, query="from ActorPermissions ap inner join ap." + ActorPermissions.actorsProperty + " actors where ap."+ActorPermissions.roleNameProperty+" in (:"+ActorPermissions.roleNameProperty+") and actors." + Actor.processInstanceIdProperty + " = :" + Actor.processInstanceIdProperty +" and ap."+ActorPermissions.taskIdProperty+" is null and ap."+ActorPermissions.taskInstanceIdProperty+" is null and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is not null"),
-			@NamedQuery(name=ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames, query="select ap from ActorPermissions ap inner join ap."+ActorPermissions.actorsProperty+" actors where actors." + Actor.processInstanceIdProperty + " = :" + Actor.processInstanceIdProperty +" and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" in (:"+ActorPermissions.canSeeContactsOfRoleNameProperty+")")
+			@NamedQuery(name=ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames, query="select ap from ActorPermissions ap inner join ap."+ActorPermissions.actorsProperty+" actors where actors." + Actor.processInstanceIdProperty + " = :" + Actor.processInstanceIdProperty +" and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" in (:"+ActorPermissions.canSeeContactsOfRoleNameProperty+")"),
+			@NamedQuery(name=ActorPermissions.getSetByProcessInstanceIdAndCanSeeContacts, query="select ap from ActorPermissions ap inner join ap."+ActorPermissions.actorsProperty+" act where act." + Actor.processInstanceIdProperty + " = :" + Actor.processInstanceIdProperty +" and ap."+ActorPermissions.canSeeContactsOfRoleNameProperty+" is not null")
 		}
 )
 public class ActorPermissions implements Serializable {
@@ -46,6 +47,7 @@ public class ActorPermissions implements Serializable {
 	public static final String getSetByProcessRoleNamesAndProcessInstanceIdForContacts = "ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdForContacts";
 	public static final String getSetByProcessInstanceIdAndContactPermissionsRolesNames = "ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames";
 	public static final String getSetByProcessInstanceIdAndAccess = "ActorPermissions.getSetByProcessInstanceIdAndAccess";
+	public static final String getSetByProcessInstanceIdAndCanSeeContacts = "ActorPermissions.getSetByProcessInstanceIdAndCanSeeContacts";
 
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="actperm_id")
