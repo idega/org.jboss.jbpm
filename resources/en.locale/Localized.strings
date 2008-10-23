@@ -1,5 +1,3 @@
-cases_bpm.case_invitation=You've been invited to participate in case
-cases_bpm.case_invitation_message=Follow the link to register and participate in the case : {0}
 cases_bpm.case_take_task=Take task
 cases_bpm.case_assigned_to_you=You
 cases_bpm.case_assigned_to_no_one=No one
