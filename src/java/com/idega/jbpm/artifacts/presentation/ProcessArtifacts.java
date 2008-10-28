@@ -80,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.80 $
+ * @version $Revision: 1.81 $
  *
- * Last modified: $Date: 2008/10/16 17:46:27 $ by $Author: juozas $
+ * Last modified: $Date: 2008/10/28 08:19:41 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -1023,7 +1023,10 @@ public class ProcessArtifacts {
 				
 				TableRow bodyRow = bodyRowGroup.createRow();
 				TableCell2 cell = bodyRow.createCell();
-				cell.add(new Text(iwrb.getLocalizedString(roleName, roleName)));
+
+//				cell.add(new Text(iwrb.getLocalizedString(roleName, roleName)));
+				cell.add( new Text( iwc.getIWMainApplication().getLocalisedStringMessage(roleName, roleName, null) ) );
+				
 				GenericButton sameRigthsSetter = null;
 				if (setSameRightsForAttachments) {
 					sameRigthsSetter = new GenericButton();
