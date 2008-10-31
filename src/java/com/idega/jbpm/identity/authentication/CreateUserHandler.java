@@ -33,9 +33,9 @@ import com.idega.util.text.Name;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- * Last modified: $Date: 2008/10/10 07:53:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/31 11:55:46 $ by $Author: arunas $
  */
 public class CreateUserHandler implements ActionHandler {
 
@@ -65,6 +65,18 @@ public class CreateUserHandler implements ActionHandler {
 						iwac = IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
 					
 					UserBusiness userBusiness = getUserBusiness(iwac);
+					
+					Gender gender = upd.getGender();
+					
+					IWTimestamp dateOfBirth = null;
+					
+					if(upd.getPersonalId() != null && upd.getPersonalId().length() != 0) {
+
+						Date dob = userBusiness.getUserDateOfBirthFromPersonalId(upd.getPersonalId());
+						
+						if(dob != null)
+							dateOfBirth = new IWTimestamp(dob);
+					}
 					
 					final User usrCreated;
 					
@@ -103,18 +115,6 @@ public class CreateUserHandler implements ActionHandler {
 						else
 							standardGroupPK = null;
 						
-						Gender gender = upd.getGender();
-						
-						IWTimestamp dateOfBirth = null;
-						
-						if(upd.getPersonalId() != null && upd.getPersonalId().length() != 0) {
-
-							Date dob = userBusiness.getUserDateOfBirthFromPersonalId(upd.getPersonalId());
-							
-							if(dob != null)
-								dateOfBirth = new IWTimestamp(dob);
-						}
-						
 //						doesn't check if login already exists, therefore this check needs to be made before calling this
 						usrCreated = userBusiness.createUserWithLogin(
 								firstName, middleName, lastName, upd.getPersonalId(), null, null, 
@@ -124,9 +124,9 @@ public class CreateUserHandler implements ActionHandler {
 					
 						if(upd.getFullName() != null) {
 						
-							usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFullName(), personalId, null, null);
+							usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFullName(), personalId, gender, dateOfBirth);
 						} else {
-							usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFirstName(), null, upd.getLastName(), personalId, null, null);							
+							usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFirstName(), null, upd.getLastName(), personalId, gender, dateOfBirth);							
 						}
 					}
 					
