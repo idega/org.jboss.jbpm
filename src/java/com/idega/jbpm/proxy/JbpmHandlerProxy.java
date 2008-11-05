@@ -23,6 +23,21 @@ import com.idega.jbpm.handler.ParamDecisionHandler;
 import com.idega.jbpm.handler.ParamTaskControllerHandler;
 import com.idega.util.expression.ELUtil;
 
+/**
+ * 
+ * This class is a proxy between jbmp handlers and spring. 
+ * 
+ * This class should be used in jpdl when declaring any handler,
+ * name of a handler should be passed as a parameter "handlerName".
+ * 
+ * All parameters for concrete handler should be passed as a parameter map "propertyMap":
+ * <properteName, properteValue> where value can be string, expression( #{} ) 
+ * or a script ( ${} ).
+ * 
+ * 
+ * @author juozas
+ *
+ */
 public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, DecisionHandler, TaskControllerHandler{
 
 
@@ -37,7 +52,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 	private Map<String, String> propertyMap;
 	
 	/**
-	 * Name of a handler 
+	 * Name of a handler that should be used 
 	 */
 	private String handlerName;
 	
@@ -61,13 +76,9 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 
 	public void execute(ExecutionContext ectx) throws Exception {
 		
-	//	System.out.println("___________________JbpmHandlerProxy called, bean name: " + handlerName);
-		
 		ActionHandler handler = ELUtil.getInstance().getBean(handlerName);
 		Map<String, Object> nonExistingProperties = null;
 		if(getPropertyMap() != null){
-			
-	//		System.out.println("____________________________we have some properties!");
 			
 			BeanWrapper wrapper = PropertyAccessorFactory.forBeanPropertyAccess(handler);
 			
@@ -79,6 +90,12 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 						&& getPropertyMap().get(propertyName).endsWith("}")){
 	
 					propValue = JbpmExpressionEvaluator.evaluate(getPropertyMap().get(propertyName), ectx);
+				}else if(getPropertyMap().get(propertyName).startsWith("${") 
+						&& getPropertyMap().get(propertyName).endsWith("}")){
+					
+					String script = getPropertyMap().get(propertyName);
+					script = script.substring(2, script.length()-1);
+					propValue = ScriptEvaluator.evaluate(script, ectx);
 				}else{
 					propValue = getPropertyMap().get(propertyName);		
 				}
@@ -101,19 +118,16 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 			try{
 				((ParamActionHandler) handler).execute(ectx, nonExistingProperties);
 			}catch (ClassCastException e) {
-				// TODO: Someone who coded made An Error, add to other methods to!
+				// TODO: what here? add to other methods to!
 			}
 		}
 	}
 
 	public void assign(Assignable ass, ExecutionContext ectx) throws Exception {
 		
-		//System.out.println("___________________JbpmHandlerProxy called, bean name: " + handlerName);
-		
 		AssignmentHandler handler = ELUtil.getInstance().getBean(handlerName);
 		Map<String, Object> nonExistingProperties = null;
 		if(getPropertyMap() != null){
-		//	System.out.println("____________________________we have some properties!");
 			
 			BeanWrapper wrapper = PropertyAccessorFactory.forBeanPropertyAccess(handler);
 			
@@ -125,6 +139,12 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 						&& getPropertyMap().get(propertyName).endsWith("}")){
 	
 					propValue = JbpmExpressionEvaluator.evaluate(getPropertyMap().get(propertyName), ectx);
+				}else if(getPropertyMap().get(propertyName).startsWith("${") 
+						&& getPropertyMap().get(propertyName).endsWith("}")){
+					
+					String script = getPropertyMap().get(propertyName);
+					script = script.substring(2, script.length()-1);
+					propValue = ScriptEvaluator.evaluate(script, ectx);
 				}else{
 					propValue = getPropertyMap().get(propertyName);		
 				}
@@ -150,13 +170,11 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 	}
 
 	public String decide(ExecutionContext ectx) throws Exception {
-		
-	//	System.out.println("___________________JbpmHandlerProxy called, bean name: " + handlerName);
+
 		
 		DecisionHandler handler = ELUtil.getInstance().getBean(handlerName);
 		Map<String, Object> nonExistingProperties = null;
 		if(getPropertyMap() != null){
-	//		System.out.println("____________________________we have some properties!");
 			
 			BeanWrapper wrapper = PropertyAccessorFactory.forBeanPropertyAccess(handler);
 			
@@ -168,6 +186,12 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 						&& getPropertyMap().get(propertyName).endsWith("}")){
 	
 					propValue = JbpmExpressionEvaluator.evaluate(getPropertyMap().get(propertyName), ectx);
+				}else if(getPropertyMap().get(propertyName).startsWith("${") 
+						&& getPropertyMap().get(propertyName).endsWith("}")){
+					
+					String script = getPropertyMap().get(propertyName);
+					script = script.substring(2, script.length()-1);
+					propValue = ScriptEvaluator.evaluate(script, ectx);
 				}else{
 					propValue = getPropertyMap().get(propertyName);		
 				}
@@ -192,16 +216,13 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 
 	public void initializeTaskVariables(TaskInstance arg0,
 			ContextInstance arg1, Token arg2) {
-	//	System.out.println("___________________JbpmHandlerProxy called, bean name: " + handlerName);
 		
 		TaskControllerHandler handler = ELUtil.getInstance().getBean(handlerName);
 		Map<String, Object> nonExistingProperties = null;		
 		if(getPropertyMap() != null){
-	//		System.out.println("____________________________we have some properties!");
-			
+		
 			BeanWrapper wrapper = PropertyAccessorFactory.forBeanPropertyAccess(handler);
-			
-			
+						
 			for(String propertyName:getPropertyMap().keySet()){
 				Object propValue;
 				
@@ -233,12 +254,10 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 
 	public void submitTaskVariables(TaskInstance arg0, ContextInstance arg1,
 			Token arg2) {
-	//	System.out.println("___________________JbpmHandlerProxy called, bean name: " + handlerName);
 		
 		TaskControllerHandler handler = ELUtil.getInstance().getBean(handlerName);
 		Map<String, Object> nonExistingProperties = null;
 		if(getPropertyMap() != null){
-	//		System.out.println("____________________________we have some properties!");
 			
 			BeanWrapper wrapper = PropertyAccessorFactory.forBeanPropertyAccess(handler);
 			
