@@ -27,7 +27,7 @@ import com.idega.util.expression.ELUtil;
  * 
  * This class is a proxy between jbmp handlers and spring. 
  * 
- * This class should be used in jpdl when declaring any handler,
+ * It should be used in jpdl when declaring any handler,
  * name of a handler should be passed as a parameter "handlerName".
  * 
  * All parameters for concrete handler should be passed as a parameter map "propertyMap":
