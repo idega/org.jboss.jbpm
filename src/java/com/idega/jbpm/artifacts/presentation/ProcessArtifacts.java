@@ -80,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.81 $
+ * @version $Revision: 1.82 $
  *
- * Last modified: $Date: 2008/10/28 08:19:41 $ by $Author: anton $
+ * Last modified: $Date: 2008/11/12 11:44:15 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -824,11 +824,15 @@ public class ProcessArtifacts {
 	}
 	
 	public UIComponent getViewInUIComponent(Long taskInstanceId) throws Exception {
+		return getViewInUIComponent(taskInstanceId, false);
+	}
+	
+	public UIComponent getViewInUIComponent(Long taskInstanceId, boolean pdfViewer) throws Exception {
 		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
 		
 		try {
 			long processDefinitionId = ctx.getTaskInstance(taskInstanceId).getProcessInstance().getProcessDefinition().getId();
-			return getBpmFactory().getProcessManager(processDefinitionId).getTaskInstance(taskInstanceId).loadView().getViewForDisplay();
+			return getBpmFactory().getProcessManager(processDefinitionId).getTaskInstance(taskInstanceId).loadView().getViewForDisplay(pdfViewer);
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}

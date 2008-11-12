@@ -8,9 +8,9 @@ import javax.faces.component.UIComponent;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/07/11 14:17:39 $ by $Author: anton $
+ * Last modified: $Date: 2008/11/12 11:44:15 $ by $Author: valdas $
  */
 public interface View {
 
@@ -28,6 +28,7 @@ public interface View {
 	public abstract String getViewType();
 	
 	public abstract UIComponent getViewForDisplay();
+	public abstract UIComponent getViewForDisplay(boolean pdfViewer);
 	
 	public abstract boolean isSubmitable();
 	public abstract void setSubmitable(boolean submitable);
