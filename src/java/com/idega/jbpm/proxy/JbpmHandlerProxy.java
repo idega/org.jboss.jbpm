@@ -78,6 +78,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 		
 		ActionHandler handler = ELUtil.getInstance().getBean(handlerName);
 		Map<String, Object> nonExistingProperties = null;
+		System.out.println("JBPM Handler proxy, execute: " + handlerName);
 		if(getPropertyMap() != null){
 			
 			BeanWrapper wrapper = PropertyAccessorFactory.forBeanPropertyAccess(handler);
@@ -111,7 +112,6 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler, Decis
 				}
 			}
 		}
-		nonExistingProperties =  new HashMap<String, Object>();
 		if(nonExistingProperties == null){
 			handler.execute(ectx);
 		}else{

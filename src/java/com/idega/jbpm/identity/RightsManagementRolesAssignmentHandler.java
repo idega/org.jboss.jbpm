@@ -4,16 +4,20 @@ import java.util.List;
 
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.util.expression.ELUtil;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/06/27 08:28:21 $ by $Author: anton $
+ * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
  */
+@Service("rightsManagementRolesAssignmentHandler")
+@Scope("prototype")
 public class RightsManagementRolesAssignmentHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -3470015014878632919L;

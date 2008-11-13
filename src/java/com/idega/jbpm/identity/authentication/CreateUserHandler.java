@@ -10,6 +10,8 @@ import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -33,22 +35,25 @@ import com.idega.util.text.Name;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- * Last modified: $Date: 2008/10/31 11:55:46 $ by $Author: arunas $
+ * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
  */
+@Service("createUserHandler")
+@Scope("prototype")
 public class CreateUserHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -1181069105207752204L;
-	private String userDataExp;
+	private UserPersonalData userDataExp;
 	@Autowired(required=false)
 	private StandardGroup standardGroup;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
 
 		if(getUserDataExp() != null) {
-
-			UserPersonalData upd = (UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
+			
+			//Changed after spring integration
+			UserPersonalData upd = getUserDataExp();//(UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
 			
 			if(upd.getUserId() == null) {
 			
@@ -174,11 +179,11 @@ public class CreateUserHandler implements ActionHandler {
 		}
 	}
 
-	public String getUserDataExp() {
+	public UserPersonalData getUserDataExp() {
 		return userDataExp;
 	}
 
-	public void setUserDataExp(String userDataExp) {
+	public void setUserDataExp(UserPersonalData userDataExp) {
 		this.userDataExp = userDataExp;
 	}
 

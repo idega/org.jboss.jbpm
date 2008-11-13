@@ -10,24 +10,28 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
 import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.exe.TaskInstance;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/06/21 16:47:05 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
  */
+@Service("assignUserToTaskInstanceSubmitterHandler")
+@Scope("prototype")
 public class AssignUserToTaskInstanceSubmitterHandler implements ActionHandler {
 
 	private static final long serialVersionUID = 340054091051722366L;
-	private String taskInstanceIdExp;
-	private String processInstanceIdExp;
-	private String userIdExp;
+	private Long taskInstanceIdExp;
+	private Long processInstanceIdExp;
+	private Integer userIdExp;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
 		
-		Long tid = getTaskInstanceIdExp() != null ? (Long)JbpmExpressionEvaluator.evaluate(getTaskInstanceIdExp(), ectx) : null;
-		Integer userId = (Integer)JbpmExpressionEvaluator.evaluate(getUserIdExp(), ectx);
+		Long tid = getTaskInstanceIdExp();//getTaskInstanceIdExp() != null ? (Long)JbpmExpressionEvaluator.evaluate(getTaskInstanceIdExp(), ectx) : null;
+		Integer userId = getUserIdExp();//(Integer)JbpmExpressionEvaluator.evaluate(getUserIdExp(), ectx);
 		
 		if(userId != null) {
 			
@@ -35,7 +39,7 @@ public class AssignUserToTaskInstanceSubmitterHandler implements ActionHandler {
 			
 			if(tid == null) {
 			
-				Long pid = (Long)JbpmExpressionEvaluator.evaluate(getProcessInstanceIdExp(), ectx);
+				Long pid = getProcessInstanceIdExp();//(Long)JbpmExpressionEvaluator.evaluate(getProcessInstanceIdExp(), ectx);
 				
 				if(pid != null) {
 					
@@ -96,27 +100,27 @@ public class AssignUserToTaskInstanceSubmitterHandler implements ActionHandler {
 		}
 	}
 
-	public String getTaskInstanceIdExp() {
+	public Long getTaskInstanceIdExp() {
 		return taskInstanceIdExp;
 	}
 
-	public void setTaskInstanceIdExp(String taskInstanceIdExp) {
+	public void setTaskInstanceIdExp(Long taskInstanceIdExp) {
 		this.taskInstanceIdExp = taskInstanceIdExp;
 	}
 
-	public String getProcessInstanceIdExp() {
+	public Long getProcessInstanceIdExp() {
 		return processInstanceIdExp;
 	}
 
-	public void setProcessInstanceIdExp(String processInstanceIdExp) {
+	public void setProcessInstanceIdExp(Long processInstanceIdExp) {
 		this.processInstanceIdExp = processInstanceIdExp;
 	}
 
-	public String getUserIdExp() {
+	public Integer getUserIdExp() {
 		return userIdExp;
 	}
 
-	public void setUserIdExp(String userIdExp) {
+	public void setUserIdExp(Integer userIdExp) {
 		this.userIdExp = userIdExp;
 	}
 }

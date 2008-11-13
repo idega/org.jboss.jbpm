@@ -5,16 +5,20 @@ import java.util.List;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.Token;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.BPMContext;
 import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/06/15 15:58:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
  */
+@Service("endProcessHandler")
+@Scope("prototype")
 public class EndProcessHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -4463378796598145701L;

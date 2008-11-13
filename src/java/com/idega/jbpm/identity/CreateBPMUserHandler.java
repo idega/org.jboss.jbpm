@@ -4,6 +4,8 @@ import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.user.data.User;
@@ -11,15 +13,17 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/06/19 07:51:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
  */
+@Service("createBPMUserHandler")
+@Scope("prototype")
 public class CreateBPMUserHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -8830098201665066649L;
-	private String processInstanceIdExp;
-	private String userDataExp;
+	private Long processInstanceIdExp;
+	private UserPersonalData userDataExp;
 	private String roleExpressionExp;
 	private String bpmUserIdVariableNameExp;
 	private BPMFactory bpmFactory;
@@ -28,9 +32,9 @@ public class CreateBPMUserHandler implements ActionHandler {
 		
 		ELUtil.getInstance().autowire(this);
 		
-		Long pid = 						(Long)JbpmExpressionEvaluator.evaluate(getProcessInstanceIdExp(), ectx);
-		UserPersonalData upd = 			(UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
-		String roleExpression = 		(String)JbpmExpressionEvaluator.evaluate(getRoleExpressionExp(), ectx);
+		Long pid = 			getProcessInstanceIdExp();//(Long)JbpmExpressionEvaluator.evaluate(getProcessInstanceIdExp(), ectx);
+		UserPersonalData upd = 	getUserDataExp();//	(UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
+		String roleExpression = 	getRoleExpressionExp();//(String)JbpmExpressionEvaluator.evaluate(getRoleExpressionExp(), ectx);
 		
 		Role role = JSONExpHandler.resolveRoleFromJSONExpression(roleExpression);
 		
@@ -39,7 +43,7 @@ public class CreateBPMUserHandler implements ActionHandler {
 		
 		if(getBpmUserIdVariableNameExp() != null) {
 		
-			String variableName = (String)JbpmExpressionEvaluator.evaluate(getBpmUserIdVariableNameExp(), ectx);
+			String variableName = getBpmUserIdVariableNameExp();//(String)JbpmExpressionEvaluator.evaluate(getBpmUserIdVariableNameExp(), ectx);
 			
 			final Object pk = bpmUser.getPrimaryKey();
 			final Integer usrId;
@@ -53,19 +57,19 @@ public class CreateBPMUserHandler implements ActionHandler {
 		}
 	}
 
-	public String getProcessInstanceIdExp() {
+	public Long getProcessInstanceIdExp() {
 		return processInstanceIdExp;
 	}
 
-	public void setProcessInstanceIdExp(String processInstanceIdExp) {
+	public void setProcessInstanceIdExp(Long processInstanceIdExp) {
 		this.processInstanceIdExp = processInstanceIdExp;
 	}
 
-	public String getUserDataExp() {
+	public UserPersonalData getUserDataExp() {
 		return userDataExp;
 	}
 
-	public void setUserDataExp(String userDataExp) {
+	public void setUserDataExp(UserPersonalData userDataExp) {
 		this.userDataExp = userDataExp;
 	}
 

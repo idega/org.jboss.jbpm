@@ -7,6 +7,8 @@ import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.identity.JSONExpHandler;
@@ -17,17 +19,19 @@ import com.idega.util.expression.ELUtil;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/06/12 18:29:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
  */
+@Service("assignUserToRoleHandler")
+@Scope("prototype")
 public class AssignUserToRoleHandler implements ActionHandler {
 
 	private static final long serialVersionUID = 2953390756074619221L;
 	private RolesManager rolesManager;
-	private String userIdExp;
+	private Integer userIdExp;
 	private String roleExpressionExp;
-	private String processInstanceIdExp;
+	private Long processInstanceIdExp;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
 
@@ -35,12 +39,12 @@ public class AssignUserToRoleHandler implements ActionHandler {
 
 			ELUtil.getInstance().autowire(this);
 			
-			Integer userId = 	(Integer)JbpmExpressionEvaluator.evaluate(getUserIdExp(), ectx);
+			Integer userId = getUserIdExp();//	(Integer)JbpmExpressionEvaluator.evaluate(getUserIdExp(), ectx);
 			
-			Long pid = 			(Long)JbpmExpressionEvaluator.evaluate(getProcessInstanceIdExp(), ectx);
+			Long pid = 	getProcessInstanceIdExp();		//(Long)JbpmExpressionEvaluator.evaluate(getProcessInstanceIdExp(), ectx);
 			ProcessInstance pi = ectx.getJbpmContext().getProcessInstance(pid);
 			
-			String roleExpression = 		(String)JbpmExpressionEvaluator.evaluate(getRoleExpressionExp(), ectx);
+			String roleExpression = getRoleExpressionExp();		//(String)JbpmExpressionEvaluator.evaluate(getRoleExpressionExp(), ectx);
 			Role role = JSONExpHandler.resolveRoleFromJSONExpression(roleExpression);
 			
 			ArrayList<Role> rolz = new ArrayList<Role>(1);
@@ -51,11 +55,11 @@ public class AssignUserToRoleHandler implements ActionHandler {
 		}
 	}
 	
-	public String getProcessInstanceIdExp() {
+	public Long getProcessInstanceIdExp() {
 		return processInstanceIdExp;
 	}
 
-	public void setProcessInstanceIdExp(String processInstanceIdExp) {
+	public void setProcessInstanceIdExp(Long processInstanceIdExp) {
 		this.processInstanceIdExp = processInstanceIdExp;
 	}
 
@@ -68,11 +72,11 @@ public class AssignUserToRoleHandler implements ActionHandler {
 		this.rolesManager = rolesManager;
 	}
 
-	public String getUserIdExp() {
+	public Integer getUserIdExp() {
 		return userIdExp;
 	}
 
-	public void setUserIdExp(String userIdExp) {
+	public void setUserIdExp(Integer userIdExp) {
 		this.userIdExp = userIdExp;
 	}
 

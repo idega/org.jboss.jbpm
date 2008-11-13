@@ -6,8 +6,11 @@ import java.util.logging.Logger;
 
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.identity.assignment.ExpressionAssignmentHandler;
+import org.jbpm.taskmgmt.def.AssignmentHandler;
 import org.jbpm.taskmgmt.exe.Assignable;
 import org.jbpm.taskmgmt.exe.TaskInstance;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.util.CoreConstants;
 import com.idega.util.expression.ELUtil;
@@ -25,11 +28,13 @@ import com.idega.util.expression.ELUtil;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * 
- * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
+ * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
  */
-public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
+@Service("jsonAssignmentHandler")
+@Scope("prototype")
+public class JSONAssignmentHandler  extends ExpressionAssignmentHandler {
 	
 	private static final long serialVersionUID = 8955094455268141204L;
 	
@@ -42,7 +47,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		
 		this.executionContext = executionContext;
 		
-		String exp = resolveJSONExp(expression.trim());
+		String exp = resolveJSONExp(getExpression().trim());
 		
 		if(exp != null) {
 		
@@ -55,6 +60,14 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 			rolesAssigner.createRolesPermissions(taskInstance, roles);
 			rolesAssigner.assignIdentities(taskInstance, roles);
 		}
+	}
+	
+	public void setExpression(String expression){
+		this.expression = expression;
+	}
+	
+	public String getExpression(){
+		return expression;
 	}
 	
 	protected String resolveJSONExp(String exp) {

@@ -11,6 +11,8 @@ import javax.faces.context.FacesContext;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -31,20 +33,22 @@ import com.idega.util.CoreConstants;
  * If ic_user found, updates missing user data by user personal data provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/06/20 14:02:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
  */
+@Service("locateUserHandler")
+@Scope("prototype")
 public class LocateUserHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -3732028335572353838L;
-	private String userDataExp;
+	private UserPersonalData userDataExp;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
 
 		if(getUserDataExp() != null) {
 
-			final UserPersonalData upd = (UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
+			final UserPersonalData upd = getUserDataExp();//(UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
 			
 			final String personalId = upd.getPersonalId();
 			
@@ -214,11 +218,11 @@ public class LocateUserHandler implements ActionHandler {
 		}
 	}
 	
-	public String getUserDataExp() {
+	public UserPersonalData getUserDataExp() {
 		return userDataExp;
 	}
 
-	public void setUserDataExp(String userDataExp) {
+	public void setUserDataExp(UserPersonalData userDataExp) {
 		this.userDataExp = userDataExp;
 	}
 	
