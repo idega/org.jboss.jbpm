@@ -80,13 +80,15 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.82 $
+ * @version $Revision: 1.83 $
  *
- * Last modified: $Date: 2008/11/12 11:44:15 $ by $Author: valdas $
+ * Last modified: $Date: 2008/11/13 07:12:48 $ by $Author: valdas $
  */
 @Scope("singleton")
-@Service(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
+@Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
 public class ProcessArtifacts {
+	
+	public static final String SPRING_BEAN_NAME_PROCESS_ARTIFACTS = "BPMProcessAssets";
 
 	@Autowired private BPMFactory bpmFactory;
 	@Autowired private BPMContext idegaJbpmContext;
