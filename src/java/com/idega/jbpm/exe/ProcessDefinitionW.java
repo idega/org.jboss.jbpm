@@ -4,13 +4,14 @@ import java.util.List;
 
 import org.jbpm.graph.def.ProcessDefinition;
 
+import com.idega.block.process.variables.Variable;
 import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/09/11 14:39:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/13 14:20:06 $ by $Author: alexis $
  */
 public interface ProcessDefinitionW {
 	
@@ -29,4 +30,6 @@ public interface ProcessDefinitionW {
 	public abstract List<String> getRolesCanStartProcess(Object context);
 	
 	public abstract String getStartTaskName();
+	
+	public abstract List<Variable> getTaskVariableList(Long processDefinitionId);
 }
