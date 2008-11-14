@@ -9,10 +9,13 @@ import com.idega.jbpm.view.ViewResource;
 import com.idega.jbpm.view.ViewToTask;
 
 /**
- * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * represents deployable process bundle, which resolves process definition and
+ * viewResources for this bundle
  * 
- * Last modified: $Date: 2008/07/19 20:40:58 $ by $Author: civilis $
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.3 $
+ * 
+ *          Last modified: $Date: 2008/11/14 10:50:11 $ by $Author: civilis $
  */
 public interface ProcessBundle {
 
@@ -25,26 +28,27 @@ public interface ProcessBundle {
 
 	/**
 	 * @param taskName
-	 * @return all different type viewResources for given task name. There should be only one resource for one type
+	 * @return all different type viewResources for given task name. There
+	 *         should be only one resource for one view type
 	 * @throws IOException
 	 */
-	public abstract List<ViewResource> getViewResources(String taskName) throws IOException;
-	
+	public abstract List<ViewResource> getViewResources(String taskName)
+			throws IOException;
+
 	/**
 	 * One of the main responsibilities is to set the start task
 	 * 
 	 * could add specific info, or configurations for process definition created
-	 * @param pd - process definition
+	 * 
+	 * @param pd
+	 *            - process definition
 	 */
 	public abstract void configure(ProcessDefinition pd);
-	
+
 	public abstract String getManagersType();
-	
+
 	public abstract ViewToTask getViewToTaskBinder();
-	
-//	public abstract void setBundlePropertiesLocationWithinBundle(String bundlePropertiesLocationWithinBundle);
-//	
-//	public abstract void setBundle(IWBundle bundle);
-	
-	public abstract void setBundleResources(ProcessBundleResources bundleResources);
+
+	public abstract void setBundleResources(
+			ProcessBundleResources bundleResources);
 }
