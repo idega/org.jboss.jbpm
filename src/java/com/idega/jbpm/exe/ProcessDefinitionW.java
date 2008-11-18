@@ -9,9 +9,9 @@ import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/11/13 14:20:06 $ by $Author: alexis $
+ * Last modified: $Date: 2008/11/18 07:40:12 $ by $Author: alexis $
  */
 public interface ProcessDefinitionW {
 	
@@ -31,5 +31,5 @@ public interface ProcessDefinitionW {
 	
 	public abstract String getStartTaskName();
 	
-	public abstract List<Variable> getTaskVariableList(Long processDefinitionId);
+	public abstract List<Variable> getTaskVariableList(Long processDefinitionId, String taskName);
 }
