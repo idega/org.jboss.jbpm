@@ -10,15 +10,12 @@ import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.exe.TaskInstance;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.BPMContext;
-import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
+import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
@@ -28,18 +25,18 @@ import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewFactory;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/09/17 18:18:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/19 21:28:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
-public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
+public class BPMFactoryImpl implements BPMFactory {
 	
-	private ApplicationContext applicationContext;
 	private final Map<String, String> creatorTypeCreatorBeanIdentifier;
 	private final Map<String, String> viewTypeFactoryBeanIdentifier;
 	
@@ -54,8 +51,16 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 	}
 	
 	public ProcessManager getProcessManager(long processDefinitionId) {
-
-		return getManagersCreator(processDefinitionId).getProcessManager();
+		
+		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		
+		try {
+			ProcessDefinition pd = ctx.getGraphSession().getProcessDefinition(processDefinitionId);
+			return getManagersCreator(pd.getName()).getProcessManager();
+			
+		} finally {
+			getIdegaJbpmContext().closeAndCommit(ctx);
+		}
 	}
 
 	public View takeView(long taskInstanceId, boolean submitable, List<String> preferredTypes) {
@@ -141,7 +146,7 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 		ViewFactory viewFactory;
 		
 		if(getViewTypeFactoryBeanIdentifier().containsKey(viewType)) {
-			viewFactory = (ViewFactory)getApplicationContext().getBean(getViewTypeFactoryBeanIdentifier().get(viewType));
+			viewFactory = ELUtil.getInstance().getBean(getViewTypeFactoryBeanIdentifier().get(viewType));
 			
 		} else {
 			throw new IllegalStateException("No View Factory registered for view type: "+viewType);
@@ -150,32 +155,32 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 		return viewFactory;
 	}
 	
-	protected BPMManagersFactory getManagersCreator(long processDefinitionId) {
+	protected BPMManagersFactory getManagersCreator(String processName) {
 		
-		String managersType = resolveManagersType(processDefinitionId);
+		String managersType = resolveManagersType(processName);
 		
 		BPMManagersFactory creator;
 		
 		if(getCreatorTypeCreatorBeanIdentifier().containsKey(managersType)) {
-			creator = (BPMManagersFactory)getApplicationContext().getBean(creatorTypeCreatorBeanIdentifier.get(managersType));
+			creator = ELUtil.getInstance().getBean(creatorTypeCreatorBeanIdentifier.get(managersType));
 			
 		} else {
-			throw new IllegalStateException("No managers creator registered for type resolved: "+managersType+", process definition id: "+processDefinitionId);
+			throw new IllegalStateException("No managers creator registered for type resolved: "+managersType+", process name: "+processName);
 		}
 		
 		return creator;
 	}
 	
-	protected String resolveManagersType(long processDefinitionId) {
+	protected String resolveManagersType(String processName) {
 
-		ManagersTypeProcessDefinitionBind bind = getBindsDAO().getManagersTypeProcDefBind(processDefinitionId);
+		ProcessManagerBind pm = getBindsDAO().getProcessManagerBind(processName);
 		
-		if(bind == null) {
+		if(pm == null) {
 			
 			return "default";
 		}
 
-		return bind.getManagersType();
+		return pm.getManagersType();
 	}
 	
 	@Autowired(required=false)
@@ -210,14 +215,6 @@ public class BPMFactoryImpl implements BPMFactory, ApplicationContextAware {
 			} else
 				getViewTypeFactoryBeanIdentifier().put(viewFactory.getViewType(), beanIdentifier);
 		}
-	}
-
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
-	
-	protected ApplicationContext getApplicationContext() {
-		return applicationContext;
 	}
 
 	protected Map<String, String> getCreatorTypeCreatorBeanIdentifier() {

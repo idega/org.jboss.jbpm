@@ -3,22 +3,21 @@ package com.idega.jbpm.data.dao;
 import java.util.Collection;
 import java.util.List;
 
-import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.core.persistence.GenericDao;
-import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
-import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.Actor;
+import com.idega.jbpm.data.NativeIdentityBind;
+import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/08/25 19:03:01 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/19 21:28:34 $ by $Author: civilis $
  */
 public interface BPMDAO extends GenericDao {
 
@@ -36,9 +35,7 @@ public interface BPMDAO extends GenericDao {
 
 	public abstract Task getTaskFromViewTaskBind(ViewTaskBind viewTaskBind);
 	
-	public abstract ManagersTypeProcessDefinitionBind getManagersTypeProcDefBind(long processDefinitionId);
-	
-	public abstract List<ProcessDefinition> getAllManagersTypeProcDefs();
+	public abstract ProcessManagerBind getProcessManagerBind(String processName);
 	
 	public abstract List<Actor> getAllGeneralProcessRoles();
 	

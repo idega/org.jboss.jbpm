@@ -12,10 +12,11 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/05/16 18:18:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/19 21:28:34 $ by $Author: civilis $
  */
+@Deprecated
 @Entity
 @Table(name="BPM_MANAGERS_PROCDEFS")
 @NamedQueries(

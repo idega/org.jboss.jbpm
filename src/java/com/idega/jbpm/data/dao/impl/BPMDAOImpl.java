@@ -4,32 +4,38 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.taskmgmt.def.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.Actor;
+import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.Role;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  *
- * Last modified: $Date: 2008/08/25 19:02:58 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/19 21:28:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
 @Transactional(readOnly=true)
 public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
-
+	
 	public ViewTaskBind getViewTaskBind(long taskId, String viewType) {
 		
 		@SuppressWarnings("unchecked")
@@ -98,7 +104,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		.getSingleResult();
 	}
 	
-	public ManagersTypeProcessDefinitionBind getManagersTypeProcDefBind(long processDefinitionId) {
+	private ManagersTypeProcessDefinitionBind getManagersTypeProcDefBind(long processDefinitionId) {
 		
 		return 
 		(ManagersTypeProcessDefinitionBind)
@@ -107,13 +113,38 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		.getSingleResult();
 	}
 	
-	public List<ProcessDefinition> getAllManagersTypeProcDefs() {
-	
-		@SuppressWarnings("unchecked")
-		List<ProcessDefinition> all = getEntityManager().createNamedQuery(ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getAllProcDefs)
-		.getResultList();
+	@Autowired private BPMContext bpmContext;
+	public ProcessManagerBind getProcessManagerBind(String processName) {
 		
-		return all;
+		ProcessManagerBind pmb = getSingleResult(
+				ProcessManagerBind.getByProcessName, ProcessManagerBind.class, 
+				new Param(ProcessManagerBind.processNameProp, processName)
+		);
+		
+		if(pmb == null) {
+			
+//			backward compat, remove at somewhat 12.15. Drop table bpm_managers_procdefs and the process definitions related in this table
+//			and remove bpmContext  and getManagersTypeProcDefBind
+			
+			JbpmContext jctx = bpmContext.createJbpmContext();
+			
+			try {
+				ProcessDefinition pd = jctx.getGraphSession().findLatestProcessDefinition(processName);
+				ManagersTypeProcessDefinitionBind mtpdb = getManagersTypeProcDefBind(pd.getId());
+				
+				if(mtpdb != null) {
+					
+					pmb = new ProcessManagerBind();
+					pmb.setManagersType(mtpdb.getManagersType());
+					pmb.setProcessName(processName);
+				}
+				
+			} finally {
+				bpmContext.closeAndCommit(jctx);
+			}
+		}
+		
+		return pmb;
 	}
 	
 	public List<Actor> getAllGeneralProcessRoles() {

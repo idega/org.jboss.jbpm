@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.BPMContext;
-import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
+import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.JSONExpHandler;
 import com.idega.jbpm.identity.Role;
@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/06/15 15:57:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/19 21:28:33 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -90,10 +90,10 @@ public class ProcessBundleManager {
 					}
 				}
 				
-				ManagersTypeProcessDefinitionBind mtpdb = new ManagersTypeProcessDefinitionBind();
-				mtpdb.setManagersType(managersType);
-				mtpdb.setProcessDefinitionId(pd.getId());
-				getBpmBindsDAO().persist(mtpdb);
+				ProcessManagerBind pmb = new ProcessManagerBind();
+				pmb.setManagersType(managersType);
+				pmb.setProcessName(pd.getName());
+				getBpmBindsDAO().persist(pmb);
 				
 				createProcessRoles(pd);
 				createTasksPermissions(pd);

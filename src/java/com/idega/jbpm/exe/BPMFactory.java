@@ -8,13 +8,15 @@ import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/09/17 18:17:14 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/19 21:28:33 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
 	/**
+	 * locates process definition name, and finds process manager
+	 * Use this only if you don't have process name
 	 * 
 	 * @param processDefinitionId
 	 * @return Process manager bound to process definition
