@@ -2,6 +2,7 @@ package com.idega.jbpm.exe;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 import org.jbpm.graph.def.ProcessDefinition;
 
@@ -10,9 +11,9 @@ import com.idega.jbpm.view.View;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- *          Last modified: $Date: 2008/11/18 12:11:40 $ by $Author: alexis $
+ *          Last modified: $Date: 2008/11/20 07:30:43 $ by $Author: valdas $
  */
 public interface ProcessDefinitionW {
 
@@ -36,4 +37,6 @@ public interface ProcessDefinitionW {
 	public abstract List<Variable> getTaskVariableList(String taskName);
 
 	public abstract Collection<String> getTaskNodeTransitionsNames(String taskName);
+	
+	public abstract String getProcessName(Locale locale);
 }

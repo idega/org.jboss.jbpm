@@ -1,10 +1,12 @@
 package com.idega.jbpm.exe;
 
+import java.util.List;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/09/17 18:17:32 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/20 07:30:43 $ by $Author: valdas $
  */
 public interface ProcessManager {
 	
@@ -19,4 +21,6 @@ public interface ProcessManager {
 	public abstract ProcessInstanceW getProcessInstance(long piId);
 	
 	public abstract TaskInstanceW getTaskInstance(long tiId);
+
+	public abstract List<ProcessDefinitionW> getAllProcesses();
 }
