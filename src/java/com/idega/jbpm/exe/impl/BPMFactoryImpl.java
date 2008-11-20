@@ -29,9 +29,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  *
- * Last modified: $Date: 2008/11/19 21:28:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/20 11:37:49 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -291,6 +291,20 @@ public class BPMFactoryImpl implements BPMFactory {
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
+	}
+	
+	public ProcessManager getProcessManagerByType(String managerType) {
+		
+		BPMManagersFactory creator;
+		
+		if(getCreatorTypeCreatorBeanIdentifier().containsKey(managerType)) {
+			creator = ELUtil.getInstance().getBean(creatorTypeCreatorBeanIdentifier.get(managerType));
+			
+		} else {
+			throw new IllegalStateException("No managers creator registered for type resolved: "+managerType);
+		}
+		
+		return creator.getProcessManager();
 	}
 
 	public ProcessManager getProcessManager(String processName) {
