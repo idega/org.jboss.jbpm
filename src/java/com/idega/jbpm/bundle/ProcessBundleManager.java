@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/11/19 21:28:33 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/26 08:23:25 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -90,10 +90,13 @@ public class ProcessBundleManager {
 					}
 				}
 				
-				ProcessManagerBind pmb = new ProcessManagerBind();
-				pmb.setManagersType(managersType);
-				pmb.setProcessName(pd.getName());
-				getBpmBindsDAO().persist(pmb);
+				if(getBpmBindsDAO().getProcessManagerBind(pd.getName()) == null) {
+				
+					ProcessManagerBind pmb = new ProcessManagerBind();
+					pmb.setManagersType(managersType);
+					pmb.setProcessName(pd.getName());
+					getBpmBindsDAO().persist(pmb);
+				}
 				
 				createProcessRoles(pd);
 				createTasksPermissions(pd);
