@@ -34,9 +34,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  * 
- * Last modified: $Date: 2008/10/22 15:11:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/26 16:30:26 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -127,7 +127,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		
 		RolesManager rolesManager = getBPMFactory().getRolesManager();
 		
-		rolesManager.createProcessRoles(pi.getProcessDefinition().getName(), rolz, pi.getId());
+		rolesManager.createProcessActors(rolz, pi);
 		rolesManager.createIdentitiesForRoles(rolz, userId, IdentityType.USER, pi.getId());
 	}
 	

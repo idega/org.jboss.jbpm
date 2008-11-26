@@ -4,6 +4,7 @@ import java.security.Permission;
 import java.util.Collection;
 import java.util.List;
 
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.core.accesscontrol.business.AccessController;
@@ -19,9 +20,9 @@ import com.idega.user.data.User;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $
+ * @version $Revision: 1.27 $
  * 
- * Last modified: $Date: 2008/10/22 15:12:14 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/26 16:30:26 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -43,11 +44,18 @@ public interface RolesManager {
 	
 	public abstract void createTaskRolesPermissions(Task task, List<Role> roles);
 	
-	public abstract List<Actor> createProcessRoles(String processName, Collection<Role> roles, Long processInstanceId);
+	/**
+	 * creates actors for process roles provided, for given process instance
+	 * 
+	 * @param roles
+	 * @param processInstance
+	 * @return actors created
+	 */
+	public abstract List<Actor> createProcessActors(Collection<Role> roles, ProcessInstance processInstance);
 	
 	public abstract void assignTaskRolesPermissions(Task task, List<Role> roles, Long processInstanceId);
 	
-	public abstract void assignRolesPermissions(List<Role> roles, Long processInstanceId);
+	public abstract void assignRolesPermissions(List<Role> roles, ProcessInstance processInstance);
 
 	/**
 	 * taskInstance could be not from the same processInstance, but we should provide roles from both, with the precedence of task instance process instance

@@ -4,34 +4,40 @@ import java.util.List;
 
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import com.idega.util.expression.ELUtil;
-
+import com.idega.jbpm.exe.BPMFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
- *
- * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
+ * @version $Revision: 1.6 $
+ * 
+ *          Last modified: $Date: 2008/11/26 16:30:26 $ by $Author: civilis $
  */
 @Service("rightsManagementRolesAssignmentHandler")
 @Scope("prototype")
 public class RightsManagementRolesAssignmentHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -3470015014878632919L;
-	private static final String rolesAssignerBeanIdentifier = "bpmRolesAssiger";
-	
+
+	@Autowired
+	private BPMFactory bpmFactory;
 	private String assignmentExpression;
-	
+
 	public void execute(ExecutionContext ctx) throws Exception {
-		if(getAssignmentExpression() != null) {
-			List<Role> roles = JSONExpHandler.resolveRightsRolesFromJSONExpression(getAssignmentExpression());
-			
-			RolesAssiger rolesAssigner = getRolesAssigner();
-			rolesAssigner.assign(ctx.getProcessInstance(), roles);
-			rolesAssigner.createRolesPermissions(ctx.getProcessInstance(), roles);
+		if (getAssignmentExpression() != null) {
+			List<Role> roles = JSONExpHandler
+					.resolveRightsRolesFromJSONExpression(getAssignmentExpression());
+
+			if (roles != null && !roles.isEmpty()) {
+
+				getBpmFactory().getRolesManager().createProcessActors(roles,
+						ctx.getProcessInstance());
+				getBpmFactory().getRolesManager().assignRolesPermissions(roles,
+						ctx.getProcessInstance());
+			}
 		}
 	}
 
@@ -42,8 +48,8 @@ public class RightsManagementRolesAssignmentHandler implements ActionHandler {
 	public void setAssignmentExpression(String assignmentExpression) {
 		this.assignmentExpression = assignmentExpression;
 	}
-	
-	protected RolesAssiger getRolesAssigner() {
-		return ELUtil.getInstance().getBean(rolesAssignerBeanIdentifier);
+
+	BPMFactory getBpmFactory() {
+		return bpmFactory;
 	}
 }

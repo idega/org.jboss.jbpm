@@ -14,9 +14,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/08/28 12:10:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/26 16:30:27 $ by $Author: civilis $
  */
 public class AssignAccountToParticipantHandler implements ActionHandler {
 
@@ -45,11 +45,9 @@ public class AssignAccountToParticipantHandler implements ActionHandler {
 		rolz.add(role);
 		
 		ProcessInstance parentPI = ectx.getProcessInstance().getSuperProcessToken().getProcessInstance();
-		long parentProcessInstanceId = parentPI.getId();
 		
-		getRolesManager().createProcessRoles(parentPI.getProcessDefinition().getName(), rolz, parentProcessInstanceId);
-		//getRolesManager().createTaskRolesPermissionsPIScope(task, rolz, parentProcessInstanceId);
-		getRolesManager().createIdentitiesForRoles(rolz, String.valueOf(userId), IdentityType.USER, parentProcessInstanceId);
+		getRolesManager().createProcessActors(rolz, parentPI);
+		getRolesManager().createIdentitiesForRoles(rolz, String.valueOf(userId), IdentityType.USER, parentPI.getId());
 	}
 	
 	protected RolesManager getRolesManager() {

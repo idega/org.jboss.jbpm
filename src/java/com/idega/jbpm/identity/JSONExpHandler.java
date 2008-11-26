@@ -14,12 +14,13 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/06/26 15:33:33 $ by $Author: anton $
+ * Last modified: $Date: 2008/11/26 16:30:26 $ by $Author: civilis $
  */
 public class JSONExpHandler {
 	
+
 	private class TaskAssignment { List<Role> roles; }
 	
 	private static final String taskAssignment = "taskAssignment";
@@ -30,6 +31,12 @@ public class JSONExpHandler {
 	public static List<Role> resolveRolesFromJSONExpression(String expression) {
 		
 		expression = expression.trim();
+		
+		if(expression.length() == 0) {
+			
+			Logger.getLogger(JSONExpHandler.class.getName()).log(Level.WARNING, "Tried to resolve roles from json expression, but expression was empty");
+			return Collections.emptyList();
+		}
 		
 		if(!expression.startsWith(CoreConstants.CURLY_BRACKET_LEFT) || !expression.endsWith((CoreConstants.CURLY_BRACKET_RIGHT))) {
 			

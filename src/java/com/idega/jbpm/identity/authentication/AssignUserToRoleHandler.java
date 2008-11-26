@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.ProcessInstance;
-import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -17,11 +16,11 @@ import com.idega.jbpm.identity.RolesManager;
 import com.idega.util.expression.ELUtil;
 
 /**
- *   
- * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.3 $
+ * 
+ *          Last modified: $Date: 2008/11/26 16:30:27 $ by $Author: civilis $
  */
 @Service("assignUserToRoleHandler")
 @Scope("prototype")
@@ -32,29 +31,33 @@ public class AssignUserToRoleHandler implements ActionHandler {
 	private Integer userIdExp;
 	private String roleExpressionExp;
 	private Long processInstanceIdExp;
-	
+
 	public void execute(ExecutionContext ectx) throws Exception {
 
-		if(getUserIdExp() != null && getProcessInstanceIdExp() != null && getRoleExpressionExp() != null) {
+		if (getUserIdExp() != null && getProcessInstanceIdExp() != null
+				&& getRoleExpressionExp() != null) {
 
 			ELUtil.getInstance().autowire(this);
-			
-			Integer userId = getUserIdExp();//	(Integer)JbpmExpressionEvaluator.evaluate(getUserIdExp(), ectx);
-			
-			Long pid = 	getProcessInstanceIdExp();		//(Long)JbpmExpressionEvaluator.evaluate(getProcessInstanceIdExp(), ectx);
+
+			Integer userId = getUserIdExp();
+
+			Long pid = getProcessInstanceIdExp();
 			ProcessInstance pi = ectx.getJbpmContext().getProcessInstance(pid);
+
+			String roleExpression = getRoleExpressionExp();
 			
-			String roleExpression = getRoleExpressionExp();		//(String)JbpmExpressionEvaluator.evaluate(getRoleExpressionExp(), ectx);
-			Role role = JSONExpHandler.resolveRoleFromJSONExpression(roleExpression);
-			
+			Role role = JSONExpHandler
+					.resolveRoleFromJSONExpression(roleExpression);
+
 			ArrayList<Role> rolz = new ArrayList<Role>(1);
 			rolz.add(role);
-			
-			getRolesManager().createProcessRoles(pi.getProcessDefinition().getName(), rolz, pi.getId());
-			getRolesManager().createIdentitiesForRoles(rolz, userId.toString(), IdentityType.USER, pi.getId());
+
+			getRolesManager().createProcessActors(rolz, pi);
+			getRolesManager().createIdentitiesForRoles(rolz, userId.toString(),
+					IdentityType.USER, pi.getId());
 		}
 	}
-	
+
 	public Long getProcessInstanceIdExp() {
 		return processInstanceIdExp;
 	}
