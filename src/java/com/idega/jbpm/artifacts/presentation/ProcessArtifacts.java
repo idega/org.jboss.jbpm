@@ -80,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.84 $
+ * @version $Revision: 1.85 $
  *
- * Last modified: $Date: 2008/11/20 16:16:03 $ by $Author: anton $
+ * Last modified: $Date: 2008/11/26 13:15:43 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -297,7 +297,10 @@ public class ProcessArtifacts {
 			}
 		}
 		
-		Collection<TaskInstanceW> processDocuments = getProcessArtifactsProvider().getSubmittedTaskInstances(processInstanceId);
+		Collection<TaskInstanceW> processDocuments = getBpmFactory()
+			.getProcessManagerByProcessInstanceId(processInstanceId)
+			.getProcessInstance(processInstanceId)
+			.getSubmittedTaskInstances();
 		
 		return getDocumentsListDocument(processDocuments, processInstanceId, params);
 	}
@@ -313,7 +316,10 @@ public class ProcessArtifacts {
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
-		Collection<TaskInstanceW> tasks = getProcessArtifactsProvider().getAllUnfinishedTaskInstances(processInstanceId);
+		Collection<TaskInstanceW> tasks = getBpmFactory()
+			.getProcessManagerByProcessInstanceId(processInstanceId)
+			.getProcessInstance(processInstanceId)
+			.getAllUnfinishedTaskInstances();
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
