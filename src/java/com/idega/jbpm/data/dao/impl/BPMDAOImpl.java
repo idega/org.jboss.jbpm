@@ -15,21 +15,20 @@ import org.springframework.transaction.annotation.Transactional;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.jbpm.BPMContext;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.Role;
-import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  *
- * Last modified: $Date: 2008/11/26 10:16:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/26 16:29:38 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -263,5 +262,17 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		.getResultList();
 		
 		return viewsInfos;
+	}
+	
+	public List<Actor> getProcessRoles(Collection<String> rolesNames, Long processInstanceId) {
+		
+		List<Actor> proles = 
+			getResultList(
+					Actor.getSetByRoleNamesAndPIId, Actor.class,
+					new Param(Actor.processRoleNameProperty, rolesNames),
+					new Param(Actor.processInstanceIdProperty, processInstanceId)
+			);
+		
+		return proles;
 	}
 }
