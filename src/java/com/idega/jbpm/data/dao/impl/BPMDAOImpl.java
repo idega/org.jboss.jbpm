@@ -27,9 +27,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2008/11/19 21:28:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/26 10:16:45 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -106,11 +106,10 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	
 	private ManagersTypeProcessDefinitionBind getManagersTypeProcDefBind(long processDefinitionId) {
 		
-		return 
-		(ManagersTypeProcessDefinitionBind)
-		getEntityManager().createNamedQuery(ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId)
-		.setParameter(ManagersTypeProcessDefinitionBind.processDefinitionIdParam, processDefinitionId)
-		.getSingleResult();
+		return getSingleResult(
+				ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId, ManagersTypeProcessDefinitionBind.class, 
+				new Param(ManagersTypeProcessDefinitionBind.processDefinitionIdParam, processDefinitionId)
+		);
 	}
 	
 	@Autowired private BPMContext bpmContext;
@@ -130,13 +129,17 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			
 			try {
 				ProcessDefinition pd = jctx.getGraphSession().findLatestProcessDefinition(processName);
-				ManagersTypeProcessDefinitionBind mtpdb = getManagersTypeProcDefBind(pd.getId());
 				
-				if(mtpdb != null) {
+				if(pd != null) {
+				
+					ManagersTypeProcessDefinitionBind mtpdb = getManagersTypeProcDefBind(pd.getId());
 					
-					pmb = new ProcessManagerBind();
-					pmb.setManagersType(mtpdb.getManagersType());
-					pmb.setProcessName(processName);
+					if(mtpdb != null) {
+						
+						pmb = new ProcessManagerBind();
+						pmb.setManagersType(mtpdb.getManagersType());
+						pmb.setProcessName(processName);
+					}
 				}
 				
 			} finally {
