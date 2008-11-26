@@ -15,17 +15,18 @@ import org.springframework.stereotype.Service;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.artifacts.ProcessArtifactsProvider;
 import com.idega.jbpm.exe.BPMFactory;
-import com.idega.jbpm.exe.ProcessInstanceW;
-import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 
 /**
+ * @deprecated all this stuff should be in any of the wrapper classes. E.g. ProcessInstaceW
+ * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/07/03 12:27:53 $ by $Author: anton $
+ * Last modified: $Date: 2008/11/26 13:16:13 $ by $Author: civilis $
  */
+@Deprecated
 @Scope("singleton")
 @Service
 public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
@@ -72,51 +73,6 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		} finally {
 			getIdegaJbpmContext().closeAndCommit(ctx);
 		}
-	}
-	
-	public Collection<TaskInstanceW> getSubmittedTaskInstances(Long processInstanceId) {
-
-		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
-		
-		try {
-			ProcessInstance processInstance = ctx.getProcessInstance(processInstanceId);
-			ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(processInstance.getProcessDefinition().getId()).getProcessInstance(processInstanceId);
-			@SuppressWarnings("unchecked")
-			Collection<TaskInstanceW> taskInstances = processInstanceW.getAllTaskInstances();
-			
-			for (Iterator<TaskInstanceW> iterator  = taskInstances.iterator(); iterator.hasNext();) {
-				TaskInstanceW taskInstance = iterator.next();
-				
-				if(!taskInstance.getTaskInstance().hasEnded())
-					iterator.remove();
-			}
-			
-			return taskInstances;
-			
-		} finally {
-			getIdegaJbpmContext().closeAndCommit(ctx);
-		}
-	}
-	
-	public List<TaskInstanceW> getAllUnfinishedTaskInstances(long processInstanceId) {
-		
-		JbpmContext jctx = getIdegaJbpmContext().createJbpmContext();
-		
-		try {
-			ProcessInstance pi = jctx.getProcessInstance(processInstanceId);
-			ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(pi.getProcessDefinition().getId()).getProcessInstance(processInstanceId);
-			return processInstanceW.getAllUnfinishedTaskInstances();
-			
-		} finally {
-			getIdegaJbpmContext().closeAndCommit(jctx);
-		}
-	}
-	
-	public Collection<TaskInstanceW> getUnfinishedTaskInstances(Token token) {
-		
-		ProcessInstance pi = token.getProcessInstance();
-		ProcessInstanceW processInstanceW = getBpmFactory().getProcessManager(pi.getProcessDefinition().getId()).getProcessInstance(pi.getId());
-		return processInstanceW.getAllUnfinishedTaskInstances();
 	}
 	
 	public List<BinaryVariable> getTaskAttachments(Long taskInstanceId) {
