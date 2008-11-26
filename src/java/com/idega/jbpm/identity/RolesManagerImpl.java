@@ -58,11 +58,22 @@ import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
 
 /**
+ * <p>
+ * roles, actors managment, permissions in one piece
+ * TODO: split
+ * </p>
+ * 
+ * <p>
+ * No synchornizations or constraints are put, so the entries might duplicate on race condition. 
+ * Yet, in all cases (afaik) extra entries, that could happen, don't do any real harm.
+ * 
+ * TODO: but noone said it would be nice to fix that.
+ * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.53 $
+ * @version $Revision: 1.54 $
  * 
- * Last modified: $Date: 2008/11/26 16:30:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/26 16:44:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -425,15 +436,15 @@ public class RolesManagerImpl implements RolesManager {
 			
 			String processName = processInstance.getProcessDefinition().getName();
 			
-			for (String roleNameToCreate : rolesNamesToCreate) {
+			for (String actorRole : rolesNamesToCreate) {
 				
-				Actor processRole = new Actor();
-				processRole.setProcessName(processName);
-				processRole.setProcessRoleName(roleNameToCreate);
-				processRole.setProcessInstanceId(processInstance.getId());
+				Actor actor = new Actor();
+				actor.setProcessName(processName);
+				actor.setProcessRoleName(actorRole);
+				actor.setProcessInstanceId(processInstance.getId());
 				
-				getBpmDAO().persist(processRole);
-				processRoles.add(processRole);
+				getBpmDAO().persist(actor);
+				processRoles.add(actor);
 			}
 		}
 		
@@ -465,7 +476,7 @@ public class RolesManagerImpl implements RolesManager {
 				}
 			
 				logger.log(Level.INFO, "Creating permissions for task: "+task.getId()+", for roles: "+rolesNames);
-			
+				
 				for (Role role : roles) {
 					
 					ActorPermissions perm = new ActorPermissions();
