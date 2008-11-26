@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2008/11/26 08:23:25 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/26 13:15:19 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -99,7 +99,7 @@ public class ProcessBundleManager {
 				}
 				
 				createProcessRoles(pd);
-				createTasksPermissions(pd);
+//				createTasksPermissions(pd);
 				
 				processBundle.configure(pd);
 
@@ -130,18 +130,24 @@ public class ProcessBundleManager {
 		
 		for (Task task : tasks.values()) {
 			
+//			TODO: fix and adjust this. The notation changed.
+			
 			Delegation deleg = task.getAssignmentDelegation();
 			
 			if(deleg != null && deleg.getConfiguration() != null) {
 			
 				String jsonExp = deleg.getConfiguration();
 				
-				List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
+//				skipping scripted expressions, which should be evaluated at runtime
+				if(!jsonExp.contains("${")) {
 				
-				for (Role role : roles) {
-				
-					if(role.getScope() == RoleScope.PD)
-						rolesToCreate.add(role);
+					List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
+					
+					for (Role role : roles) {
+						
+						if(role.getScope() == RoleScope.PD)
+							rolesToCreate.add(role);
+					}
 				}
 			}
 		}
