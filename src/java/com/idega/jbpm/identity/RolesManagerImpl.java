@@ -59,11 +59,6 @@ import com.idega.util.ListUtil;
 
 /**
  * <p>
- * roles, actors managment, permissions in one piece
- * TODO: split
- * </p>
- * 
- * <p>
  * No synchornizations or constraints are put, so the entries might duplicate on race condition. 
  * Yet, in all cases (afaik) extra entries, that could happen, don't do any real harm.
  * 
@@ -71,9 +66,9 @@ import com.idega.util.ListUtil;
  * </p>
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.54 $
+ * @version $Revision: 1.55 $
  * 
- * Last modified: $Date: 2008/11/26 16:44:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/30 08:17:13 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
