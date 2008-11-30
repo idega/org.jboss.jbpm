@@ -31,9 +31,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- * Last modified: $Date: 2008/11/26 13:15:19 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/30 08:16:16 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -139,7 +139,7 @@ public class ProcessBundleManager {
 				String jsonExp = deleg.getConfiguration();
 				
 //				skipping scripted expressions, which should be evaluated at runtime
-				if(!jsonExp.contains("${")) {
+				if(!jsonExp.contains("${") && !jsonExp.contains("#{")) {
 				
 					List<Role> roles = JSONExpHandler.resolveRolesFromJSONExpression(jsonExp);
 					
