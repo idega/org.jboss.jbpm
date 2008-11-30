@@ -22,9 +22,9 @@ import com.idega.jbpm.variables.VariablesHandler;
  * @deprecated all this stuff should be in any of the wrapper classes. E.g. ProcessInstaceW
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/11/26 13:16:13 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/30 08:15:18 $ by $Author: civilis $
  */
 @Deprecated
 @Scope("singleton")
@@ -94,25 +94,6 @@ public class ProcessArtifactsProviderImpl implements ProcessArtifactsProvider {
 		try {
 			ProcessInstance pi = ctx.getProcessInstance(processInstanceId);
 			Object o = pi.getContextInstance().getVariable(ProcessArtifactsProvider.CASE_IDENTIFIER);
-			return o == null ? null : String.valueOf(o);
-		} catch(Exception e) {
-			e.printStackTrace();
-		} finally {
-			getIdegaJbpmContext().closeAndCommit(ctx);
-		}
-		
-		return null;
-	}
-	
-	public String getProcessDescription(Long processInstanceId) {
-		if (processInstanceId == null) {
-			return null;
-		}
-		
-		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
-		try {
-			ProcessInstance pi = ctx.getProcessInstance(processInstanceId);
-			Object o = pi.getContextInstance().getVariable(ProcessArtifactsProvider.CASE_DESCRIPTION);
 			return o == null ? null : String.valueOf(o);
 		} catch(Exception e) {
 			e.printStackTrace();
