@@ -14,15 +14,23 @@ import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTypedPermission;
+import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 
 /**
+ * <p>
+ * roles, actors managment, permissions in one piece
+ * TODO: split
+ * </p>
+ * 
+ * Recommended getting rolesManager from BPMFactory
+ *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.27 $
+ * @version $Revision: 1.28 $
  * 
- * Last modified: $Date: 2008/11/26 16:30:26 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/30 08:17:03 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -92,4 +100,6 @@ public interface RolesManager {
 	public abstract boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, int userId, AccessController ac, IWApplicationContext iwac);
 	
 	public abstract List<Role> getUserRoles(long processInstanceId, User user);
+	
+	public abstract PermissionsFactory getPermissionsFactory();
 }
