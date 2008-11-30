@@ -8,7 +8,6 @@ import javax.faces.context.FacesContext;
 
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
-import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,6 @@ import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Gender;
 import com.idega.user.data.User;
 import com.idega.util.IWTimestamp;
-import com.idega.util.expression.ELUtil;
 import com.idega.util.text.Name;
 
 /**
@@ -35,25 +33,24 @@ import com.idega.util.text.Name;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * 
- * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
+ * Last modified: $Date: 2008/11/30 08:17:52 $ by $Author: civilis $
  */
 @Service("createUserHandler")
 @Scope("prototype")
 public class CreateUserHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -1181069105207752204L;
-	private UserPersonalData userDataExp;
+	private UserPersonalData userData;
 	@Autowired(required=false)
 	private StandardGroup standardGroup;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
 
-		if(getUserDataExp() != null) {
+		if(getUserData() != null) {
 			
-			//Changed after spring integration
-			UserPersonalData upd = getUserDataExp();//(UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
+			UserPersonalData upd = getUserData();
 			
 			if(upd.getUserId() == null) {
 			
@@ -167,6 +164,8 @@ public class CreateUserHandler implements ActionHandler {
 			} else {
 				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to create user, but UserPersonalData already contained userId="+upd.getPersonalId());
 			}
+		} else {
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Called create user handler, but no user data provided. Process instance id="+ectx.getProcessInstance().getId());
 		}
 	}
 	
@@ -179,23 +178,20 @@ public class CreateUserHandler implements ActionHandler {
 		}
 	}
 
-	public UserPersonalData getUserDataExp() {
-		return userDataExp;
-	}
-
-	public void setUserDataExp(UserPersonalData userDataExp) {
-		this.userDataExp = userDataExp;
-	}
-
 	public StandardGroup getStandardGroup() {
-		
-		if(standardGroup == null)
-			ELUtil.getInstance().autowire(this);
 		
 		return standardGroup;
 	}
 
 	public void setStandardGroup(StandardGroup standardGroup) {
 		this.standardGroup = standardGroup;
+	}
+
+	public UserPersonalData getUserData() {
+		return userData;
+	}
+
+	public void setUserData(UserPersonalData userData) {
+		this.userData = userData;
 	}
 }

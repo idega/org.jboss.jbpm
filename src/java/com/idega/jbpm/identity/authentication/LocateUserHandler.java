@@ -10,7 +10,6 @@ import javax.faces.context.FacesContext;
 
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
-import org.jbpm.jpdl.el.impl.JbpmExpressionEvaluator;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -29,209 +28,245 @@ import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 
 /**
- * Jbpm action handler, which searches for ic_user by personal id, or email address.
- * If ic_user found, updates missing user data by user personal data provided.
- *   
- * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * Jbpm action handler, which searches for ic_user by personal id, or email
+ * address. If ic_user found, updates missing user data by user personal data
+ * provided.
  * 
- * Last modified: $Date: 2008/11/13 15:08:32 $ by $Author: juozas $
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.8 $
+ * 
+ *          Last modified: $Date: 2008/11/30 08:17:52 $ by $Author: civilis $
  */
 @Service("locateUserHandler")
 @Scope("prototype")
 public class LocateUserHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -3732028335572353838L;
-	private UserPersonalData userDataExp;
-	
+	private UserPersonalData userData;
+
 	public void execute(ExecutionContext ectx) throws Exception {
 
-		if(getUserDataExp() != null) {
+		if (getUserData() != null) {
 
-			final UserPersonalData upd = getUserDataExp();//(UserPersonalData)JbpmExpressionEvaluator.evaluate(getUserDataExp(), ectx);
-			
+			final UserPersonalData upd = getUserData();
+
 			final String personalId = upd.getPersonalId();
-			
+
 			final FacesContext fctx = FacesContext.getCurrentInstance();
 			final IWApplicationContext iwac;
-			
-			if(fctx == null) {
+
+			if (fctx == null) {
 				iwac = IWMainApplication.getDefaultIWApplicationContext();
 			} else
-				iwac = IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
-			
+				iwac = IWMainApplication.getIWMainApplication(fctx)
+						.getIWApplicationContext();
+
 			final UserBusiness userBusiness = getUserBusiness(iwac);
 			User usrFound;
-			
-			if(personalId != null && !CoreConstants.EMPTY.equals(personalId)) {
-				
-//				lookup by personal id if present
+
+			if (personalId != null && !CoreConstants.EMPTY.equals(personalId)) {
+
+				// lookup by personal id if present
 				try {
 					usrFound = userBusiness.getUser(personalId);
-					
+
 				} catch (IDOFinderException e) {
 					usrFound = null;
 				}
 
 			} else
 				usrFound = null;
-				
-			if(usrFound == null && upd.getUserEmail() != null) {
-				
-//				degrade to lookup by email if present
-				
-				Collection<User> users = userBusiness.getUserHome().findUsersByEmail(upd.getUserEmail());
-				
-				if(users != null && !users.isEmpty()) {
+
+			if (usrFound == null && upd.getUserEmail() != null) {
+
+				// degrade to lookup by email if present
+
+				Collection<User> users = userBusiness.getUserHome()
+						.findUsersByEmail(upd.getUserEmail());
+
+				if (users != null && !users.isEmpty()) {
 					usrFound = users.iterator().next();
 				}
 			}
-			
-			if(usrFound != null) {
-				
-				if(false)
-//					TODO: finish update user info, and test
+
+			if (usrFound != null) {
+
+				if (false)
+					// TODO: finish update user info, and test
 					updateAddress(userBusiness, usrFound, upd);
-				
-//				s_upd.setUserAddress(userAddress);
-//                s_upd.setUserPostalCode(userPostalCode);
-//                s_upd.setUserMunicipality(userMunicipality);
-//                s_upd.setUserPhone(userPhone);
-				
-				//userBusiness.
-			
-//				put result back to user personal data
-				
+
+				// s_upd.setUserAddress(userAddress);
+				// s_upd.setUserPostalCode(userPostalCode);
+				// s_upd.setUserMunicipality(userMunicipality);
+				// s_upd.setUserPhone(userPhone);
+
+				// userBusiness.
+
+				// put result back to user personal data
+
 				final Object pk = usrFound.getPrimaryKey();
-//				crappy -no datatype pk- handling
-				final Integer usrId = pk instanceof Integer ? (Integer)pk : new Integer(pk.toString());
-				
+				// crappy -no datatype pk- handling
+				final Integer usrId = pk instanceof Integer ? (Integer) pk
+						: new Integer(pk.toString());
+
 				upd.setUserId(usrId);
 			}
+		} else {
+			Logger.getLogger(getClass().getName()).log(
+					Level.WARNING,
+					"Called locate user handler, but no user data provided. Process instance id="
+							+ ectx.getProcessInstance().getId());
 		}
 	}
-	
-	static void updateAddress(UserBusiness userBusiness, User usr, UserPersonalData upd) throws RemoteException, FinderException {
-		
+
+	static void updateAddress(UserBusiness userBusiness, User usr,
+			UserPersonalData upd) throws RemoteException, FinderException {
+
 		try {
-			
-//			gather as much info about address provided as possible
+
+			// gather as much info about address provided as possible
 			PostalCode postalCode;
-			
+
 			String postalCodeStr = upd.getUserPostalCode();
 			String municipalityName = upd.getUserMunicipality();
-			
+
 			Commune commune;
-			
+
 			if (municipalityName != null) {
 
 				try {
-					commune = userBusiness.getAddressBusiness().getCommuneHome().findByCommuneName(municipalityName);
-					
+					commune = userBusiness.getAddressBusiness()
+							.getCommuneHome().findByCommuneName(
+									municipalityName);
+
 				} catch (FinderException e) {
 					commune = null;
 				}
-				
+
 			} else
 				commune = null;
-			
-			if(postalCodeStr != null) {
-				
+
+			if (postalCodeStr != null) {
+
 				try {
-					postalCode = userBusiness.getAddressBusiness().getPostalCodeHome().findByPostalCode(postalCodeStr);
+					postalCode = userBusiness.getAddressBusiness()
+							.getPostalCodeHome()
+							.findByPostalCode(postalCodeStr);
 				} catch (FinderException e) {
 					postalCode = null;
 				}
-				
+
 			} else
 				postalCode = null;
-			
+
 			String streetName;
 			String streetNr;
-			
-			if(upd.getUserAddress() != null) {
-			
-				streetName = userBusiness.getAddressBusiness().getStreetNameFromAddressString(upd.getUserAddress());
-				streetNr = userBusiness.getAddressBusiness().getStreetNumberFromAddressString(upd.getUserAddress());
+
+			if (upd.getUserAddress() != null) {
+
+				streetName = userBusiness.getAddressBusiness()
+						.getStreetNameFromAddressString(upd.getUserAddress());
+				streetNr = userBusiness.getAddressBusiness()
+						.getStreetNumberFromAddressString(upd.getUserAddress());
 			} else {
-				
+
 				streetName = null;
 				streetNr = null;
 			}
 
-			if(streetName != null && streetNr != null) {
-//				try to find address, by street name and nr
-				
+			if (streetName != null && streetNr != null) {
+				// try to find address, by street name and nr
+
 				@SuppressWarnings("unchecked")
 				Collection<Address> allAddresses = usr.getAddresses();
 				Address addrFound = null;
-				
+
 				for (Address address : allAddresses) {
 
-					if(streetName.equals(address.getStreetName()) && streetNr.equals(address.getStreetNumber())) {
-//						candidate
-						
-						if((address.getPostalCode() != null && address.getPostalCode().equals(postalCode)) ||
-								(address.getCommune() != null && address.getCommune().equals(commune))	) {
-							
-//							street is in either postal code area or commune - found
+					if (streetName.equals(address.getStreetName())
+							&& streetNr.equals(address.getStreetNumber())) {
+						// candidate
+
+						if ((address.getPostalCode() != null && address
+								.getPostalCode().equals(postalCode))
+								|| (address.getCommune() != null && address
+										.getCommune().equals(commune))) {
+
+							// street is in either postal code area or commune -
+							// found
 							addrFound = address;
 							break;
 						}
 					}
 				}
-				
-				if(addrFound != null) {
-//					found address - try to update missing info
-					
+
+				if (addrFound != null) {
+					// found address - try to update missing info
+
 					boolean needsUpdate = false;
-					
-					if(addrFound.getCommune() == null && commune != null)
+
+					if (addrFound.getCommune() == null && commune != null)
 						addrFound.setCommune(commune);
-					
-					if(addrFound.getPostalCode() == null && postalCode != null)
+
+					if (addrFound.getPostalCode() == null && postalCode != null)
 						addrFound.setPostalCode(postalCode);
-					
-					if(needsUpdate)
-//						TODO: is the store necessary?
+
+					if (needsUpdate)
+						// TODO: is the store necessary?
 						addrFound.store();
-					
+
 				} else {
-//					create new address
-					
-					Integer communeId = commune != null ? (commune.getPrimaryKey() instanceof Integer ? (Integer)commune.getPrimaryKey() : new Integer(commune.getPrimaryKey().toString())) : null;
-					
-					if(usr.getUsersMainAddress() == null) {
-						userBusiness.updateUsersMainAddressOrCreateIfDoesNotExist(usr, upd.getUserAddress(), postalCode, null, null, null, null, communeId);
-						
+					// create new address
+
+					Integer communeId = commune != null ? (commune
+							.getPrimaryKey() instanceof Integer ? (Integer) commune
+							.getPrimaryKey()
+							: new Integer(commune.getPrimaryKey().toString()))
+							: null;
+
+					if (usr.getUsersMainAddress() == null) {
+						userBusiness
+								.updateUsersMainAddressOrCreateIfDoesNotExist(
+										usr, upd.getUserAddress(), postalCode,
+										null, null, null, null, communeId);
+
 					} else {
-						userBusiness.updateUsersCoAddressOrCreateIfDoesNotExist(usr, upd.getUserAddress(), postalCode, null, null, null, null, communeId);
+						userBusiness
+								.updateUsersCoAddressOrCreateIfDoesNotExist(
+										usr, upd.getUserAddress(), postalCode,
+										null, null, null, null, communeId);
 					}
 				}
-				
+
 			} else {
-				Logger.getLogger(LocateUserHandler.class.getName()).log(Level.WARNING, "No street name or street nr resolved - skipping updating user address");
+				Logger
+						.getLogger(LocateUserHandler.class.getName())
+						.log(Level.WARNING,
+								"No street name or street nr resolved - skipping updating user address");
 			}
-			
+
 		} catch (Exception e) {
-			Logger.getLogger(LocateUserHandler.class.getName()).log(Level.SEVERE, "Exception while updating user address. User id="+usr.getPrimaryKey(), e);
+			Logger.getLogger(LocateUserHandler.class.getName()).log(
+					Level.SEVERE,
+					"Exception while updating user address. User id="
+							+ usr.getPrimaryKey(), e);
 		}
-	}
-	
-	public UserPersonalData getUserDataExp() {
-		return userDataExp;
 	}
 
-	public void setUserDataExp(UserPersonalData userDataExp) {
-		this.userDataExp = userDataExp;
-	}
-	
 	protected UserBusiness getUserBusiness(IWApplicationContext iwac) {
 		try {
-			return (UserBusiness) IBOLookup.getServiceInstance(iwac, UserBusiness.class);
-		}
-		catch (IBOLookupException ile) {
+			return (UserBusiness) IBOLookup.getServiceInstance(iwac,
+					UserBusiness.class);
+		} catch (IBOLookupException ile) {
 			throw new IBORuntimeException(ile);
 		}
+	}
+
+	public UserPersonalData getUserData() {
+		return userData;
+	}
+
+	public void setUserData(UserPersonalData userData) {
+		this.userData = userData;
 	}
 }
