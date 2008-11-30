@@ -32,9 +32,9 @@ import com.idega.jbpm.exe.BPMFactory;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  * 
- *          Last modified: $Date: 2008/11/26 16:30:26 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/11/30 08:16:38 $ by $Author: civilis $
  */
 @Service("jsonAssignmentHandler")
 @Scope("prototype")
@@ -135,9 +135,4 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	BPMFactory getBpmFactory() {
 		return bpmFactory;
 	}
-
-	// protected RolesAssiger getRolesAssigner() {
-	//		
-	// return ELUtil.getInstance().getBean(rolesAssignerBeanIdentifier);
-	// }
 }
