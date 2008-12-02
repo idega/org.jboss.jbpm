@@ -29,9 +29,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2008/11/20 11:37:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/02 13:34:46 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -73,7 +73,8 @@ public class BPMFactoryImpl implements BPMFactory {
 			View view = getViewByTask(ti.getTask().getId(), submitable, preferredTypes);
 			
 			if(view != null) {
-				
+
+//				TODO: check, if view is taken for task instance id (just locate view by task instance)
 				view.takeView();
 				view.getViewToTask().bind(view, ti);
 			}
