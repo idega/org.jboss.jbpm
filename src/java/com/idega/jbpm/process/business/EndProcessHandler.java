@@ -9,13 +9,15 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 /**
+ * @deprecated not needed, just add end-complete-process on the end state node
  * TODO: does this end subprocess tokens too?
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- *          Last modified: $Date: 2008/11/30 08:18:07 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/03 10:04:54 $ by $Author: civilis $
  */
+@Deprecated
 @Service("endProcessHandler")
 @Scope("prototype")
 public class EndProcessHandler implements ActionHandler {
