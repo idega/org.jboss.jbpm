@@ -52,7 +52,8 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	private Map<String, String> propertyMap;
 
 	/**
-	 * Name of a handler that should be used
+	 * Name of a handler that should be used. Could be variable expression e.g.
+	 * #{myVarOfHandlerName}
 	 */
 	private String handlerName;
 
@@ -73,14 +74,24 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	}
 
 	protected Object getHandler(ExecutionContext ectx) {
-		Object handler = ELUtil.getInstance().getBean(getHandlerName());
-		
-		if(handler == null){
-			setHandlerName((String) JbpmExpressionEvaluator.evaluate(getHandlerName(), ectx));
-			handler = ELUtil.getInstance().getBean(getHandlerName());
+
+		String handlerName = (String) JbpmExpressionEvaluator.evaluate(
+				getHandlerName(), ectx);
+
+		if (handlerName == null) {
+
+			Logger.getLogger(getClass().getName()).log(
+					Level.SEVERE,
+					"No handler name resolved/provided for token id = "
+							+ ectx.getToken().getId()
+							+ " by handler name or expression provided = "
+							+ getHandlerName());
+
+			return null;
+		} else {
+
+			return ELUtil.getInstance().getBean(handlerName);
 		}
-		
-		return handler;
 	}
 
 	public void execute(ExecutionContext ectx) throws Exception {
@@ -181,7 +192,6 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	public void initializeTaskVariables(TaskInstance ti,
 			ContextInstance contextInstance, Token tkn) {
 
-		
 		ExecutionContext ectx = new ExecutionContext(tkn);
 		Object handler = getHandler(ectx);
 		if (handler == null || !(handler instanceof TaskControllerHandler)) {
@@ -216,7 +226,6 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	public void submitTaskVariables(TaskInstance ti,
 			ContextInstance contextInstance, Token tkn) {
 
-		
 		ExecutionContext ectx = new ExecutionContext(tkn);
 		Object handler = getHandler(ectx);
 		if (handler == null || !(handler instanceof TaskControllerHandler)) {
