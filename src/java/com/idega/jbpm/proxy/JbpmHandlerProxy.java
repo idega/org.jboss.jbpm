@@ -72,14 +72,20 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 		this.propertyMap = propertyMap;
 	}
 
-	protected Object getHandler() {
-
-		return ELUtil.getInstance().getBean(getHandlerName());
+	protected Object getHandler(ExecutionContext ectx) {
+		Object handler = ELUtil.getInstance().getBean(getHandlerName());
+		
+		if(handler == null){
+			setHandlerName((String) JbpmExpressionEvaluator.evaluate(getHandlerName(), ectx));
+			handler = ELUtil.getInstance().getBean(getHandlerName());
+		}
+		
+		return handler;
 	}
 
 	public void execute(ExecutionContext ectx) throws Exception {
 
-		Object handler = getHandler();
+		Object handler = getHandler(ectx);
 
 		if (handler == null || !(handler instanceof ActionHandler)) {
 
@@ -110,7 +116,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 
 	public void assign(Assignable ass, ExecutionContext ectx) throws Exception {
 
-		Object handler = getHandler();
+		Object handler = getHandler(ectx);
 
 		if (handler == null || !(handler instanceof AssignmentHandler)) {
 
@@ -142,7 +148,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 
 	public String decide(ExecutionContext ectx) throws Exception {
 
-		Object handler = getHandler();
+		Object handler = getHandler(ectx);
 
 		if (handler == null || !(handler instanceof DecisionHandler)) {
 
@@ -175,9 +181,9 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	public void initializeTaskVariables(TaskInstance ti,
 			ContextInstance contextInstance, Token tkn) {
 
-		Object handler = getHandler();
+		
 		ExecutionContext ectx = new ExecutionContext(tkn);
-
+		Object handler = getHandler(ectx);
 		if (handler == null || !(handler instanceof TaskControllerHandler)) {
 
 			Logger.getLogger(getClass().getName()).log(
@@ -210,9 +216,9 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	public void submitTaskVariables(TaskInstance ti,
 			ContextInstance contextInstance, Token tkn) {
 
-		Object handler = getHandler();
+		
 		ExecutionContext ectx = new ExecutionContext(tkn);
-
+		Object handler = getHandler(ectx);
 		if (handler == null || !(handler instanceof TaskControllerHandler)) {
 
 			Logger.getLogger(getClass().getName()).log(
