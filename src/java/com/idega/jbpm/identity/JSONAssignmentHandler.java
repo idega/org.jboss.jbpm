@@ -32,9 +32,9 @@ import com.idega.jbpm.exe.BPMFactory;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  * 
- *          Last modified: $Date: 2008/11/30 08:16:38 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/03 12:04:17 $ by $Author: civilis $
  */
 @Service("jsonAssignmentHandler")
 @Scope("prototype")
@@ -60,8 +60,10 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 
 			TaskInstance taskInstance = (TaskInstance) assignable;
 
-			List<Role> roles = JSONExpHandler
+			TaskAssignment ta = JSONExpHandler
 					.resolveRolesFromJSONExpression(exp);
+			
+			List<Role> roles = ta.getRoles();
 
 			if (roles == null || roles.isEmpty()) {
 
@@ -69,13 +71,21 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 						"No roles for task instance: " + taskInstance.getId());
 				return;
 			}
+			
+			ProcessInstance pi;
 
-			ProcessInstance pi = taskInstance.getProcessInstance();
+			if (ta.getRolesFromProcessInstanceId() != null) {
+
+				pi = executionContext.getJbpmContext().getProcessInstance(
+						ta.getRolesFromProcessInstanceId());
+			} else {
+				pi = taskInstance.getProcessInstance();
+			}
 
 			getBpmFactory().getRolesManager().createProcessActors(roles, pi);
 			getBpmFactory().getRolesManager().assignTaskRolesPermissions(
 					taskInstance.getTask(), roles, pi.getId());
-			assignIdentities(taskInstance, roles);
+			assignIdentities(pi, roles);
 		}
 	}
 
@@ -87,14 +97,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		return expression;
 	}
 
-	private void assignIdentities(TaskInstance taskInstance, List<Role> roles) {
-
-		if (roles == null || roles.isEmpty()) {
-
-			Logger.getLogger(getClass().getName()).log(Level.WARNING,
-					"No roles for task instance: " + taskInstance.getId());
-			return;
-		}
+	private void assignIdentities(ProcessInstance processInstance, List<Role> roles) {
 
 		BPMUser usr = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
 
@@ -126,7 +129,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 					getBpmFactory().getRolesManager().createIdentitiesForRoles(
 							rolesToAssignIdentity, String.valueOf(usrId),
 							IdentityType.USER,
-							taskInstance.getProcessInstance().getId());
+							processInstance.getId());
 				}
 			}
 		}
