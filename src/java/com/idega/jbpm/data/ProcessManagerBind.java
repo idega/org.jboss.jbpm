@@ -15,21 +15,32 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- *          Last modified: $Date: 2008/11/19 21:28:34 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/04 10:06:54 $ by $Author: civilis $
  */
 @Entity
 @Table(name = "BPM_PROCESS_MANAGERS")
-@NamedQueries( { @NamedQuery(name = ProcessManagerBind.getByProcessName, query = "from ProcessManagerBind pm where pm."
-		+ ProcessManagerBind.processNameProp
-		+ " = :"
-		+ ProcessManagerBind.processNameProp) })
+@NamedQueries( {
+		@NamedQuery(name = ProcessManagerBind.getByProcessName, query = "from ProcessManagerBind pm where pm."
+				+ ProcessManagerBind.processNameProp
+				+ " = :"
+				+ ProcessManagerBind.processNameProp),
+		@NamedQuery(name = ProcessManagerBind.getSubprocessesOneLevel, query = "select subPi from "
+				+ "org.jbpm.graph.exe.ProcessInstance subPi inner join subPi.superProcessToken.processInstance superPi "
+				+ "where superPi.id = :"+ProcessManagerBind.processInstanceIdParam) })
 public class ProcessManagerBind implements Serializable {
 
+	// "select subPi from " +
+	// "org.jbpm.graph.exe.ProcessInstance subPi inner join subPi.superProcessToken.processInstance superPi "
+	// +
+	// " where superPi.id = :piId"
 	private static final long serialVersionUID = 1748907927777733985L;
 
 	public static final String getByProcessName = "ProcessManagerBind.getByProcessName";
+	public static final String getSubprocessesOneLevel = "ProcessManagerBind.getSubprocessesOneLevel";
+	
+	public static final String processInstanceIdParam = "piId";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
