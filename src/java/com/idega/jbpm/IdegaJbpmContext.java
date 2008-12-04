@@ -9,9 +9,9 @@ import org.jbpm.JbpmContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/09/15 15:44:57 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/04 06:06:34 $ by $Author: anton $
  */
 public class IdegaJbpmContext implements BPMContext {
 	
@@ -37,12 +37,11 @@ public class IdegaJbpmContext implements BPMContext {
 	}
 	
 	public JbpmContext createJbpmContext() {
-		
+		JbpmConfiguration.getInstance().startJobExecutor();
 		return JbpmConfiguration.getInstance().createJbpmContext();
 	}
 	
 	public void closeAndCommit(JbpmContext ctx) {
-		
 		ctx.close();
 	}
 
