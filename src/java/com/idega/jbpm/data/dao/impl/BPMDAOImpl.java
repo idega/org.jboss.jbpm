@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -26,9 +27,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  *
- * Last modified: $Date: 2008/11/26 16:29:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/04 10:06:17 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -274,5 +275,16 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			);
 		
 		return proles;
+	}
+	
+	public List<ProcessInstance> getSubprocessInstancesOneLevel(long parentProcessInstanceId) {
+		
+		List<ProcessInstance> subprocesses = 
+			getResultList(
+					ProcessManagerBind.getSubprocessesOneLevel, ProcessInstance.class,
+					new Param(ProcessManagerBind.processInstanceIdParam, parentProcessInstanceId)
+			);
+		
+		return subprocesses;
 	}
 }

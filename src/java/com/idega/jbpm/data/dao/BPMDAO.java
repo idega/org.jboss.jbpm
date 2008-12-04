@@ -3,6 +3,7 @@ package com.idega.jbpm.data.dao;
 import java.util.Collection;
 import java.util.List;
 
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.core.persistence.GenericDao;
@@ -15,9 +16,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/11/26 16:29:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/04 10:06:17 $ by $Author: civilis $
  */
 public interface BPMDAO extends GenericDao {
 
@@ -52,4 +53,6 @@ public interface BPMDAO extends GenericDao {
 	public abstract List<Object[]> getProcessTasksViewsInfos(Collection<Long> processDefinitionsIds, String viewType);
 	
 	public abstract List<Actor> getProcessRoles(Collection<String> rolesNames, Long processInstanceId);
+	
+	public abstract List<ProcessInstance> getSubprocessInstancesOneLevel(long parentProcessInstanceId);
 }
