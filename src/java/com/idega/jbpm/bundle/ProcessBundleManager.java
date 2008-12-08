@@ -32,9 +32,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- *          Last modified: $Date: 2008/12/03 12:04:17 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/08 10:12:57 $ by $Author: juozas $
  */
 @Scope("prototype")
 @Service
@@ -78,8 +78,8 @@ public class ProcessBundleManager {
 				Collection<Task> tasks = pd.getTaskMgmtDefinition().getTasks()
 						.values();
 
-				ViewToTask viewToTaskBinder = processBundle
-						.getViewToTaskBinder();
+				/*ViewToTask viewToTaskBinder = processBundle
+						.getViewToTaskBinder();*/
 
 				for (Task task : tasks) {
 
@@ -91,7 +91,8 @@ public class ProcessBundleManager {
 						for (ViewResource viewResource : viewResources) {
 
 							View view = viewResource.store(iwma);
-							viewToTaskBinder.bind(view, task);
+							view.getViewToTask().bind(view, task);
+							//viewToTaskBinder.bind(view, task);
 						}
 					} else {
 						Logger.getLogger(getClass().getName()).log(

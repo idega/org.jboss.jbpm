@@ -13,9 +13,9 @@ import com.idega.jbpm.view.ViewToTask;
  * viewResources for this bundle
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- *          Last modified: $Date: 2008/11/14 10:50:11 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/08 10:12:57 $ by $Author: juozas $
  */
 public interface ProcessBundle {
 
@@ -46,9 +46,15 @@ public interface ProcessBundle {
 	public abstract void configure(ProcessDefinition pd);
 
 	public abstract String getManagersType();
+	
+	//public abstract ViewToTask getViewToTaskBinder();
+	
+//	public abstract void setBundlePropertiesLocationWithinBundle(String bundlePropertiesLocationWithinBundle);
+//	
+//	public abstract void setBundle(IWBundle bundle);
+	
+	public abstract void setBundleResources(ProcessBundleResources bundleResources);
 
-	public abstract ViewToTask getViewToTaskBinder();
 
-	public abstract void setBundleResources(
-			ProcessBundleResources bundleResources);
+
 }

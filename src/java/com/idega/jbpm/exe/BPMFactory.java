@@ -5,12 +5,13 @@ import java.util.List;
 import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.view.View;
+import com.idega.jbpm.view.ViewSubmition;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- *          Last modified: $Date: 2008/11/20 11:37:49 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/08 10:12:57 $ by $Author: juozas $
  */
 public interface BPMFactory {
 
@@ -84,4 +85,6 @@ public interface BPMFactory {
 	public abstract RolesManager getRolesManager();
 
 	public abstract BPMUserFactory getBpmUserFactory();
+	
+	public ViewSubmition getSubmitionView(Long taskInstanceId);
 }

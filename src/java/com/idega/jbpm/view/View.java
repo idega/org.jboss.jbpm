@@ -8,12 +8,13 @@ import javax.faces.component.UIComponent;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/11/12 11:44:15 $ by $Author: valdas $
+ * Last modified: $Date: 2008/12/08 10:12:57 $ by $Author: juozas $
  */
-public interface View {
+public interface View extends ViewSubmition{
 
+	//TODO: create view submission interface with method that are needed only on submit
 	public abstract void setTaskInstanceId(Long taskInstanceId);
 	public abstract Long getTaskInstanceId();
 	
