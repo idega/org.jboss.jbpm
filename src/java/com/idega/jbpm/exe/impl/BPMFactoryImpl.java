@@ -23,17 +23,17 @@ import com.idega.jbpm.exe.BPMManagersFactory;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
-import com.idega.jbpm.view.ViewSubmition;
+import com.idega.jbpm.view.ViewSubmission;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewFactory;
-import com.idega.jbpm.view.ViewSubmitionImpl;
+import com.idega.jbpm.view.ViewSubmissionImpl;
 import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  *
- * Last modified: $Date: 2008/12/08 10:12:57 $ by $Author: juozas $
+ * Last modified: $Date: 2008/12/09 02:47:47 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -323,9 +323,7 @@ public class BPMFactoryImpl implements BPMFactory {
 		}
 	}
 	
-	public ViewSubmition getSubmitionView(Long taskInstanceId){
-		ViewSubmition view = new ViewSubmitionImpl();
-		view.setTaskInstanceId(taskInstanceId);
-		return view;
+	public ViewSubmission getViewSubmission(){
+		return new ViewSubmissionImpl();
 	}
 }

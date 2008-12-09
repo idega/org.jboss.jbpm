@@ -8,16 +8,17 @@ import org.jbpm.graph.def.ProcessDefinition;
 
 import com.idega.block.process.variables.Variable;
 import com.idega.jbpm.view.View;
+import com.idega.jbpm.view.ViewSubmission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * 
- *          Last modified: $Date: 2008/11/20 07:30:43 $ by $Author: valdas $
+ *          Last modified: $Date: 2008/12/09 02:47:47 $ by $Author: civilis $
  */
 public interface ProcessDefinitionW {
 
-	public abstract void startProcess(View view);
+	public abstract void startProcess(ViewSubmission viewSubmission);
 
 	public abstract View loadInitView(Integer initiatorId);
 

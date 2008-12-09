@@ -9,20 +9,20 @@ import com.idega.block.process.variables.Variable;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.view.View;
-import com.idega.jbpm.view.ViewSubmition;
+import com.idega.jbpm.view.ViewSubmission;
 import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  * 
- *          Last modified: $Date: 2008/12/08 10:12:57 $ by $Author: juozas $
+ *          Last modified: $Date: 2008/12/09 02:47:47 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
 
-	public abstract void submit(ViewSubmition view);
+	public abstract void submit(ViewSubmission view);
 
-	public abstract void submit(ViewSubmition view, boolean proceedProcess);
+	public abstract void submit(ViewSubmission view, boolean proceedProcess);
 
 	public abstract void start(int userId);
 

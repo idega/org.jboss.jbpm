@@ -7,12 +7,13 @@ import java.util.Map;
 import javax.faces.component.UIComponent;
 
 /**
+ * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/12/08 10:12:57 $ by $Author: juozas $
+ * Last modified: $Date: 2008/12/09 02:47:47 $ by $Author: civilis $
  */
-public interface View extends ViewSubmition{
+public interface View {
 
 	//TODO: create view submission interface with method that are needed only on submit
 	public abstract void setTaskInstanceId(Long taskInstanceId);
