@@ -6,16 +6,15 @@ import java.util.List;
 import org.jbpm.graph.def.ProcessDefinition;
 
 import com.idega.jbpm.view.ViewResource;
-import com.idega.jbpm.view.ViewToTask;
 
 /**
  * represents deployable process bundle, which resolves process definition and
  * viewResources for this bundle
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- *          Last modified: $Date: 2008/12/08 10:12:57 $ by $Author: juozas $
+ *          Last modified: $Date: 2008/12/09 02:46:40 $ by $Author: civilis $
  */
 public interface ProcessBundle {
 
@@ -46,15 +45,7 @@ public interface ProcessBundle {
 	public abstract void configure(ProcessDefinition pd);
 
 	public abstract String getManagersType();
-	
-	//public abstract ViewToTask getViewToTaskBinder();
-	
-//	public abstract void setBundlePropertiesLocationWithinBundle(String bundlePropertiesLocationWithinBundle);
-//	
-//	public abstract void setBundle(IWBundle bundle);
-	
-	public abstract void setBundleResources(ProcessBundleResources bundleResources);
 
-
-
+	public abstract void setBundleResources(
+			ProcessBundleResources bundleResources);
 }

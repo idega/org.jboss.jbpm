@@ -27,14 +27,13 @@ import com.idega.jbpm.identity.TaskAssignment;
 import com.idega.jbpm.identity.permission.RoleScope;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewResource;
-import com.idega.jbpm.view.ViewToTask;
 import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- *          Last modified: $Date: 2008/12/08 10:12:57 $ by $Author: juozas $
+ *          Last modified: $Date: 2008/12/09 02:46:40 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
