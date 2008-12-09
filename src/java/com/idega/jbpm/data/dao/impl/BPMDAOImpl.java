@@ -22,9 +22,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  *
- * Last modified: $Date: 2008/12/09 02:46:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/09 14:31:40 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -75,10 +75,10 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	
 	public ViewTaskBind getViewTaskBindByView(String viewId, String viewType) {
 		
-		return (ViewTaskBind)getEntityManager().createNamedQuery(ViewTaskBind.GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME)
-		.setParameter(ViewTaskBind.viewIdParam, viewId)
-		.setParameter(ViewTaskBind.viewTypeParam, viewType)
-		.getSingleResult();
+		return getSingleResult(ViewTaskBind.GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME, ViewTaskBind.class, 
+				new Param(ViewTaskBind.viewIdParam, viewId),
+				new Param(ViewTaskBind.viewTypeParam, viewType)
+				);
 	}
 	
 	public List<ViewTaskBind> getViewTaskBindsByTasksIds(Collection<Long> taskIds) {
