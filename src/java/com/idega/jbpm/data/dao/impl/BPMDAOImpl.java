@@ -4,20 +4,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.jbpm.JbpmContext;
-import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
-import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.data.Actor;
-import com.idega.jbpm.data.ManagersTypeProcessDefinitionBind;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
@@ -27,9 +22,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  *
- * Last modified: $Date: 2008/12/04 10:06:17 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/09 02:46:59 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -104,48 +99,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		.getSingleResult();
 	}
 	
-	private ManagersTypeProcessDefinitionBind getManagersTypeProcDefBind(long processDefinitionId) {
-		
-		return getSingleResult(
-				ManagersTypeProcessDefinitionBind.managersTypeProcessDefinitionBind_getByProcessDefinitionId, ManagersTypeProcessDefinitionBind.class, 
-				new Param(ManagersTypeProcessDefinitionBind.processDefinitionIdParam, processDefinitionId)
-		);
-	}
-	
-	@Autowired private BPMContext bpmContext;
 	public ProcessManagerBind getProcessManagerBind(String processName) {
 		
 		ProcessManagerBind pmb = getSingleResult(
 				ProcessManagerBind.getByProcessName, ProcessManagerBind.class, 
 				new Param(ProcessManagerBind.processNameProp, processName)
 		);
-		
-		if(pmb == null) {
-			
-//			backward compat, remove at somewhat 12.15. Drop table bpm_managers_procdefs and the process definitions related in this table
-//			and remove bpmContext  and getManagersTypeProcDefBind
-			
-			JbpmContext jctx = bpmContext.createJbpmContext();
-			
-			try {
-				ProcessDefinition pd = jctx.getGraphSession().findLatestProcessDefinition(processName);
-				
-				if(pd != null) {
-				
-					ManagersTypeProcessDefinitionBind mtpdb = getManagersTypeProcDefBind(pd.getId());
-					
-					if(mtpdb != null) {
-						
-						pmb = new ProcessManagerBind();
-						pmb.setManagersType(mtpdb.getManagersType());
-						pmb.setProcessName(processName);
-					}
-				}
-				
-			} finally {
-				bpmContext.closeAndCommit(jctx);
-			}
-		}
 		
 		return pmb;
 	}
