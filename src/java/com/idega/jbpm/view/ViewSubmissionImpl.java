@@ -6,11 +6,13 @@ public class ViewSubmissionImpl implements ViewSubmission {
 
 	private Map<String, Object> variables;
 	private Long taskInstanceId;
+	private Long processDefinitionId;
 	private Map<String, String> parameters;
+	private String viewId;
+	private String viewType;
 
 	public void populateVariables(Map<String, Object> variables) {
 		this.variables = variables;
-
 	}
 
 	public Map<String, Object> resolveVariables() {
@@ -31,5 +33,29 @@ public class ViewSubmissionImpl implements ViewSubmission {
 
 	public void populateParameters(Map<String, String> parameters) {
 		this.parameters = parameters;
+	}
+
+	public Long getProcessDefinitionId() {
+		return processDefinitionId;
+	}
+
+	public void setProcessDefinitionId(Long processDefinitionId) {
+		this.processDefinitionId = processDefinitionId;
+	}
+
+	public String getViewId() {
+		return viewId;
+	}
+
+	public void setViewId(String viewId) {
+		this.viewId = viewId;
+	}
+
+	public String getViewType() {
+		return viewType;
+	}
+
+	public void setViewType(String viewType) {
+		this.viewType = viewType;
 	}
 }

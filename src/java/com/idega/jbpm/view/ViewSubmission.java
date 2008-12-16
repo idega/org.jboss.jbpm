@@ -18,4 +18,16 @@ public interface ViewSubmission {
 	public abstract Long getTaskInstanceId();
 
 	public abstract void setTaskInstanceId(Long taskInstanceId);
+
+	public abstract Long getProcessDefinitionId();
+
+	public abstract void setProcessDefinitionId(Long processDefinitionId);
+
+	public abstract String getViewId();
+
+	public abstract void setViewId(String viewId);
+
+	public abstract String getViewType();
+
+	public abstract void setViewType(String viewType);
 }
