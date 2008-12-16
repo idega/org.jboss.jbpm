@@ -31,9 +31,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  *
- * Last modified: $Date: 2008/12/09 02:47:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/16 19:46:08 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -102,6 +102,12 @@ public class BPMFactoryImpl implements BPMFactory {
 		
 		ViewFactory viewFactory = getViewFactory(viewType);
 		return viewFactory.getView(viewTaskBind.getViewIdentifier(), submitable);
+	}
+	
+	public View getView(String viewIdentifier, String type, boolean submitable) {
+		
+		ViewFactory viewFactory = getViewFactory(type);
+		return viewFactory.getView(viewIdentifier, submitable);
 	}
 	
 	public View getViewByTaskInstance(long taskInstanceId, boolean submitable, List<String> preferredTypes) {

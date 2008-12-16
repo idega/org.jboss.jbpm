@@ -9,9 +9,9 @@ import com.idega.jbpm.view.ViewSubmission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  * 
- *          Last modified: $Date: 2008/12/09 02:47:47 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/16 19:48:13 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
@@ -79,6 +79,9 @@ public interface BPMFactory {
 	public abstract View getViewByTaskInstance(long taskInstanceId,
 			boolean submitable, List<String> preferredTypes);
 
+	public abstract View getView(String viewIdentifier, String type,
+			boolean submitable);
+
 	public abstract View takeView(long taskInstanceId, boolean submitable,
 			List<String> preferredTypes);
 
@@ -88,6 +91,7 @@ public interface BPMFactory {
 
 	/**
 	 * returns default view submission implementation
+	 * 
 	 * @return
 	 */
 	public ViewSubmission getViewSubmission();
