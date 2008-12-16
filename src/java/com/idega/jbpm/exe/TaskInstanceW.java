@@ -1,6 +1,7 @@
 package com.idega.jbpm.exe;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Locale;
 
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -14,9 +15,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  * 
- *          Last modified: $Date: 2008/12/09 02:47:47 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/16 16:58:48 $ by $Author: juozas $
  */
 public interface TaskInstanceW {
 
@@ -72,4 +73,7 @@ public interface TaskInstanceW {
 	 */
 	public abstract BinaryVariable addAttachment(Variable variable,
 			String fileName, String description, InputStream is);
+	
+	public abstract List<BinaryVariable> getAttachemnts();
+	public abstract BinaryVariable getAttachement(String variableName);
 }

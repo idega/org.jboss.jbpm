@@ -80,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.85 $
+ * @version $Revision: 1.86 $
  *
- * Last modified: $Date: 2008/11/26 13:15:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/16 16:58:48 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -168,7 +168,7 @@ public class ProcessArtifacts {
 					//	Sign icon will be in attachments' list (if not signed)
 					row.addCell(CoreConstants.EMPTY);
 				}
-				else if(getSigningHandler() !=null) {
+				else if(getSigningHandler() !=null && submittedDocument.getView().isSignable()) {
 					row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
 								.append("\" onclick=\"CasesBPMAssets.signCaseDocument")
 								.append(getJavaScriptActionForPDF(iwrb, tidStr, null, message, errorMessage)).append("\" />").toString());
