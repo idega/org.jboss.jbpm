@@ -9,9 +9,9 @@ import javax.faces.component.UIComponent;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/12/09 02:47:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/16 09:24:16 $ by $Author: juozas $
  */
 public interface View {
 
@@ -46,4 +46,7 @@ public interface View {
 	public abstract void takeView();
 	
 	public abstract ViewToTask getViewToTask();
+	
+	public abstract boolean isSignable();
+	
 }
