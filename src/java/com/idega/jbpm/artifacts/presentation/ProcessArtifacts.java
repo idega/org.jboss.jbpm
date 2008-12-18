@@ -80,9 +80,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.86 $
+ * @version $Revision: 1.87 $
  *
- * Last modified: $Date: 2008/12/16 16:58:48 $ by $Author: juozas $
+ * Last modified: $Date: 2008/12/18 08:01:46 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -649,7 +649,6 @@ public class ProcessArtifacts {
 			row.addCell(user.getName());
 			row.addCell(getUserEmails(user.getEmails(), caseIdentifier, systemEmail));
 			row.addCell(getUserPhones(user.getPhones()));
-			//row.addCell(getUserAddress(user));
 			
 			if (params.isRightsChanger()) {
 				addRightsChangerCell(row, processInstanceId, null, null, user.getPrimaryKey().toString(), false);
@@ -664,56 +663,6 @@ public class ProcessArtifacts {
 		
 		return null;
 	}
-	
-	/*
-	private String getUserAddress(User user) {
-		UserBusiness userBusiness = null;
-		try {
-			userBusiness = (UserBusiness) IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), UserBusiness.class);
-		} catch (IBOLookupException e) {
-			logger.log(Level.SEVERE, "Can not get instance of " + UserBusiness.class.getSimpleName(), e);
-		}
-		if (userBusiness == null) {
-			return CoreConstants.MINUS;
-		}
-		
-		Address mainAddress = null;
-		try {
-			mainAddress = userBusiness.getUsersMainAddress(Integer.valueOf(user.getId()));
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
-		} catch (EJBException e) {
-			e.printStackTrace();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-		if (mainAddress == null) {
-			return CoreConstants.MINUS;
-		}
-		
-		StringBuilder userAddress = new StringBuilder();
-		String streetAddress = mainAddress.getStreetAddress();
-		if (canAddValueToCell(streetAddress)) {
-			userAddress.append(streetAddress).append(CoreConstants.COMMA).append(CoreConstants.SPACE);
-		}
-		
-		String postalAddress = mainAddress.getPostalAddress();
-		if (canAddValueToCell(postalAddress)) {
-			postalAddress = StringHandler.replace(postalAddress, "null", CoreConstants.EMPTY);
-			userAddress.append(postalAddress).append(CoreConstants.SPACE);
-		}
-		
-		Country country = mainAddress.getCountry();
-		if (country != null) {
-			String countryName = country.getName();
-			if (canAddValueToCell(countryName)) {
-				userAddress.append(countryName);
-			}
-		}
-		
-		return userAddress.toString();
-	}
-	*/
 	
 	private boolean canAddValueToCell(String value) {
 		if (value == null) {
