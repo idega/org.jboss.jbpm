@@ -15,9 +15,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  * 
- *          Last modified: $Date: 2008/12/16 16:58:48 $ by $Author: juozas $
+ *          Last modified: $Date: 2008/12/22 08:58:41 $ by $Author: juozas $
  */
 public interface TaskInstanceW {
 
@@ -76,4 +76,5 @@ public interface TaskInstanceW {
 	
 	public abstract List<BinaryVariable> getAttachemnts();
 	public abstract BinaryVariable getAttachement(String variableName);
+	public boolean isSignable();
 }
