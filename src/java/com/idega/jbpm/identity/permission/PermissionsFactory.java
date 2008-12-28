@@ -9,13 +9,13 @@ import com.idega.user.data.User;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- * Last modified: $Date: 2008/10/22 15:14:37 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/28 12:08:03 $ by $Author: civilis $
  */
 public interface PermissionsFactory {
 
-	public abstract Permission getTaskSubmitPermission(
+	public abstract Permission getTaskInstanceSubmitPermission(
 			Boolean authPooledActorsOnly, TaskInstance taskInstance);
 
 	public abstract Permission getRightsMgmtPermission(Long processInstanceId);

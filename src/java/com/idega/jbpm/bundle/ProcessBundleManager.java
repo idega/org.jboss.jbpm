@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
+import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.instantiation.Delegation;
 import org.jbpm.taskmgmt.def.Task;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.BPMContext;
+import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.JSONExpHandler;
@@ -31,9 +33,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- *          Last modified: $Date: 2008/12/09 02:46:40 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -53,83 +55,98 @@ public class ProcessBundleManager {
 	 * @return process definition id, of the created bundle
 	 * @throws IOException
 	 */
-	public long createBundle(ProcessBundle processBundle, IWMainApplication iwma)
-			throws IOException {
+	public long createBundle(final ProcessBundle processBundle,
+			final IWMainApplication iwma) throws IOException {
 
-		String managersType = processBundle.getManagersType();
+		final String managersType = processBundle.getManagersType();
 
 		if (managersType == null || CoreConstants.EMPTY.equals(managersType))
 			throw new IllegalArgumentException(
 					"No managers type in process bundle provided: "
 							+ processBundle.getClass().getName());
 
-		JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
+		Long processDefinitionId = getIdegaJbpmContext().execute(
+				new JbpmCallback() {
 
-		try {
+					public Object doInJbpm(JbpmContext context)
+							throws JbpmException {
 
-			ProcessDefinition pd = processBundle.getProcessDefinition();
+						ProcessDefinition pd = null;
 
-			ctx.getGraphSession().deployProcessDefinition(pd);
+						try {
+							pd = processBundle.getProcessDefinition();
 
-			try {
+							context.getGraphSession().deployProcessDefinition(
+									pd);
 
-				@SuppressWarnings("unchecked")
-				Collection<Task> tasks = pd.getTaskMgmtDefinition().getTasks()
-						.values();
+							@SuppressWarnings("unchecked")
+							Collection<Task> tasks = pd.getTaskMgmtDefinition()
+									.getTasks().values();
 
-				/*ViewToTask viewToTaskBinder = processBundle
-						.getViewToTaskBinder();*/
+							/*
+							 * ViewToTask viewToTaskBinder = processBundle
+							 * .getViewToTaskBinder();
+							 */
 
-				for (Task task : tasks) {
+							for (Task task : tasks) {
 
-					List<ViewResource> viewResources = processBundle
-							.getViewResources(task.getName());
+								List<ViewResource> viewResources = processBundle
+										.getViewResources(task.getName());
 
-					if (viewResources != null) {
+								if (viewResources != null) {
 
-						for (ViewResource viewResource : viewResources) {
+									for (ViewResource viewResource : viewResources) {
 
-							View view = viewResource.store(iwma);
-							view.getViewToTask().bind(view, task);
-							//viewToTaskBinder.bind(view, task);
+										View view = viewResource.store(iwma);
+										view.getViewToTask().bind(view, task);
+										// viewToTaskBinder.bind(view, task);
+									}
+								} else {
+									Logger.getLogger(getClass().getName()).log(
+											Level.WARNING,
+											"No view resources resolved for task: "
+													+ task.getId());
+								}
+							}
+
+							if (getBpmBindsDAO().getProcessManagerBind(
+									pd.getName()) == null) {
+
+								ProcessManagerBind pmb = new ProcessManagerBind();
+								pmb.setManagersType(managersType);
+								pmb.setProcessName(pd.getName());
+								getBpmBindsDAO().persist(pmb);
+							}
+
+							createProcessRoles(pd);
+							// createTasksPermissions(pd);
+
+							processBundle.configure(pd);
+
+							return pd.getId();
+
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						} catch (Exception e) {
+
+							Logger
+									.getLogger(getClass().getName())
+									.log(Level.SEVERE,
+											"Exception while storing views and binding with tasks");
+							// TODO: remove all binds and views too
+
+							if (pd != null)
+								context.getGraphSession()
+										.deleteProcessDefinition(pd);
+							throw new RuntimeException(e);
 						}
-					} else {
-						Logger.getLogger(getClass().getName()).log(
-								Level.WARNING,
-								"No view resources resolved for task: "
-										+ task.getId());
 					}
-				}
+				});
 
-				if (getBpmBindsDAO().getProcessManagerBind(pd.getName()) == null) {
+		// TODO: catch RuntimeException with cause of IOException (perhaps make
+		// some wrapper), and throw the original IOException here
 
-					ProcessManagerBind pmb = new ProcessManagerBind();
-					pmb.setManagersType(managersType);
-					pmb.setProcessName(pd.getName());
-					getBpmBindsDAO().persist(pmb);
-				}
-
-				createProcessRoles(pd);
-				// createTasksPermissions(pd);
-
-				processBundle.configure(pd);
-
-			} catch (Exception e) {
-
-				Logger.getLogger(getClass().getName()).log(Level.SEVERE,
-						"Exception while storing views and binding with tasks");
-				// TODO: remove all binds and views too
-				ctx.getGraphSession().deleteProcessDefinition(pd);
-
-				throw new RuntimeException(e);
-			}
-
-			return pd.getId();
-
-		} finally {
-
-			getIdegaJbpmContext().closeAndCommit(ctx);
-		}
+		return processDefinitionId;
 	}
 
 	protected void createProcessRoles(ProcessDefinition pd) {

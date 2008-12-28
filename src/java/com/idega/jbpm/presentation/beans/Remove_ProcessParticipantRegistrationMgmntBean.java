@@ -25,13 +25,13 @@ import com.idega.util.URIUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/08/28 12:10:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/28 12:08:02 $ by $Author: civilis $
  */
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-@Service(ProcessParticipantRegistrationMgmntBean.beanIdentifier)
-public class ProcessParticipantRegistrationMgmntBean {
+@Service(Remove_ProcessParticipantRegistrationMgmntBean.beanIdentifier)
+public class Remove_ProcessParticipantRegistrationMgmntBean {
 	
 	public static final String beanIdentifier = "ProcessParticipantRegistrationMgmntBean";
 	public static final String redirectURLVariable = "string_participantInvitationRedirectURL";

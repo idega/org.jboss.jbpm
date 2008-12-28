@@ -20,9 +20,9 @@ import com.idega.webface.WFUtil;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/24 10:25:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/28 12:08:02 $ by $Author: civilis $
  */
 @Scope("request")
 @Service("regProcessParticipantBean")
@@ -77,7 +77,7 @@ public class Remove_RegProcessParticipantBean implements Serializable, RegisterL
 			}
 			
 			FacesContext context = FacesContext.getCurrentInstance();
-			ProcessParticipantRegistrationMgmntBean mgmtBean = getProcessParticipantRegistrationMgmntBean();
+			Remove_ProcessParticipantRegistrationMgmntBean mgmtBean = getProcessParticipantRegistrationMgmntBean();
 			mgmtBean.participantUserLoggedIn(getTokenId(), IWContext.getIWContext(context).getCurrentUserId());
 			
 			String redirectURL = mgmtBean.getRedirectURL(getTokenId());
@@ -93,9 +93,9 @@ public class Remove_RegProcessParticipantBean implements Serializable, RegisterL
 		setAfterRegSuccess(true);
 	}
 	
-	public ProcessParticipantRegistrationMgmntBean getProcessParticipantRegistrationMgmntBean() {
+	public Remove_ProcessParticipantRegistrationMgmntBean getProcessParticipantRegistrationMgmntBean() {
 		
-		return (ProcessParticipantRegistrationMgmntBean)WFUtil.getBeanInstance(ProcessParticipantRegistrationMgmntBean.beanIdentifier);
+		return (Remove_ProcessParticipantRegistrationMgmntBean)WFUtil.getBeanInstance(Remove_ProcessParticipantRegistrationMgmntBean.beanIdentifier);
 	}
 	public boolean isAfterRegSuccess() {
 		return afterRegSuccess;

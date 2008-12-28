@@ -15,9 +15,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  * 
- *          Last modified: $Date: 2008/12/22 10:50:10 $ by $Author: arunas $
+ *          Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
 
@@ -53,6 +53,8 @@ public interface TaskInstanceW {
 
 	public abstract void setTaskInstanceId(Long taskInstanceId);
 
+	public abstract void setTaskInstance(TaskInstance taskInstance);
+
 	public abstract String getName(Locale locale);
 
 	public abstract TaskInstance getTaskInstance();
@@ -73,8 +75,19 @@ public interface TaskInstanceW {
 	 */
 	public abstract BinaryVariable addAttachment(Variable variable,
 			String fileName, String description, InputStream is);
-	
+
 	public abstract List<BinaryVariable> getAttachments();
+
 	public abstract BinaryVariable getAttachment(String variableName);
+
 	public boolean isSignable();
+
+	/**
+	 * should be used only by process manager itself
+	 * 
+	 * @param processManager
+	 */
+	public abstract void setProcessManager(ProcessManager processManager);
+
+	public abstract ProcessInstanceW getProcessInstanceW();
 }

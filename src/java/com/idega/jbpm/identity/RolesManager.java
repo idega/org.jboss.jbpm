@@ -28,9 +28,9 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.28 $
+ * @version $Revision: 1.29 $
  * 
- * Last modified: $Date: 2008/11/30 08:17:03 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/28 12:08:00 $ by $Author: civilis $
  */
 public interface RolesManager {
 
@@ -80,12 +80,11 @@ public interface RolesManager {
 	/**
 	 * creates or updates task instance scope permissions for role.
 	 * @param role - role object, containing role name, and accesses to set
-	 * @param processInstanceId
 	 * @param taskInstanceId
 	 * @param setSameForAttachments - set the same access rights for binary variables of the task instance 
 	 * @param variableName - if provided, set rights for variable for that task instance. This is usually used for task attachments.
 	 */
-	public abstract void setTaskRolePermissionsTIScope(Role role, Long processInstanceId, Long taskInstanceId, boolean setSameForAttachments, String variableName);
+	public abstract void setTaskRolePermissionsTIScope(Role role, Long taskInstanceId, boolean setSameForAttachments, String variableName);
 	
 	public abstract void setContactsPermission(Role role, Long processInstanceId, Integer userId);
 	

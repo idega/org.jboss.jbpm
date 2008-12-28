@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
+import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.rights.Right;
@@ -13,9 +14,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  * 
- *          Last modified: $Date: 2008/11/26 13:14:32 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
  */
 public interface ProcessInstanceW {
 
@@ -32,6 +33,12 @@ public interface ProcessInstanceW {
 	 *         Can be treated as documents.
 	 */
 	public abstract List<TaskInstanceW> getSubmittedTaskInstances();
+
+	public abstract List<BPMDocumentImpl> getSubmittedDocumentsForUser(
+			User user, Locale locale);
+
+	public abstract List<BPMDocumentImpl> getTaskDocumentsForUser(User user,
+			Locale locale);
 
 	/**
 	 * 
@@ -120,8 +127,7 @@ public interface ProcessInstanceW {
 	 * @param locale
 	 * @return
 	 */
-	public abstract String getName(Locale locale);
-
+	// public abstract String getName(Locale locale);
 	/**
 	 * checks if the current logged in user has right against this process
 	 * instance
@@ -140,4 +146,9 @@ public interface ProcessInstanceW {
 	 * @return
 	 */
 	public abstract boolean hasRight(Right right, User user);
+
+	/**
+	 * @return task instances for submitted email attachments
+	 */
+	public abstract Collection<TaskInstance> getAttachedEmailsTaskInstances();
 }

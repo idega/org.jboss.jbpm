@@ -21,61 +21,65 @@
  */
 package com.idega.jbpm.context.exe.matcher;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.StringType;
 import org.jbpm.JbpmContext;
+import org.jbpm.JbpmException;
 import org.jbpm.context.exe.JbpmTypeMatcher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.jbpm.BPMContext;
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.JbpmCallback;
 import com.idega.util.expression.ELUtil;
 
 /**
- * copied from jbpm. changes:
- * idega-like resolving of jbpmContext
- * session factory resolved from ctx.getSession, than directly from ctx.getSessionFactory
- *
+ * copied from jbpm. changes: idega-like resolving of jbpmContext session
+ * factory resolved from ctx.getSession, than directly from
+ * ctx.getSessionFactory
+ * 
  */
 public class HibernateStringIdMatcher implements JbpmTypeMatcher {
 
 	private static final long serialVersionUID = 9098106085272332225L;
+	@Autowired
+	private BPMContext bpmContext;
 
-	public boolean matches(Object value) {
-	  
-		BPMContext ijctx = ELUtil.getInstance().getBean(IdegaJbpmContext.beanIdentifier);
-		JbpmContext jctx = ijctx.createJbpmContext();
-		
-		try {
-			
-			boolean matches = false;
-		    if (jctx != null) {
-		    	@SuppressWarnings("unchecked")
-		      Class valueClass = value.getClass();
-		      if (value instanceof HibernateProxy) {
-		        valueClass = valueClass.getSuperclass();
-		      }
-	
-		      SessionFactory sessionFactory = jctx.getSession().getSessionFactory();
-		      if (sessionFactory!=null) {
-		        ClassMetadata classMetadata = sessionFactory.getClassMetadata(valueClass);
-		        matches = ( (classMetadata!=null)
-		                    && (classMetadata.getIdentifierType().getClass()==StringType.class)
-		                   );
-		      }
-		    } else {
-		      log.debug("no current context so valueClass cannot be stored as a string-id-ref to a hibernate object");
-		      matches = false;
-		    }
-		    return matches;
-			
-		} finally {
-			ijctx.closeAndCommit(jctx);
-		}
+	public boolean matches(final Object value) {
+
+		Boolean res = getBpmContext().execute(new JbpmCallback() {
+
+			public Object doInJbpm(JbpmContext context) throws JbpmException {
+				@SuppressWarnings("unchecked")
+				Class valueClass = value.getClass();
+				if (value instanceof HibernateProxy) {
+					valueClass = valueClass.getSuperclass();
+				}
+
+				boolean matches = false;
+
+				SessionFactory sessionFactory = context.getSession()
+						.getSessionFactory();
+
+				if (sessionFactory != null) {
+					ClassMetadata classMetadata = sessionFactory
+							.getClassMetadata(valueClass);
+					matches = ((classMetadata != null) && (classMetadata
+							.getIdentifierType().getClass() == StringType.class));
+				}
+				return matches;
+			}
+		});
+
+		return res;
 	}
 
-	private static Log log = LogFactory.getLog(HibernateStringIdMatcher.class);
+	BPMContext getBpmContext() {
+
+		if (bpmContext == null)
+			ELUtil.getInstance().autowire(this);
+
+		return bpmContext;
+	}
 }

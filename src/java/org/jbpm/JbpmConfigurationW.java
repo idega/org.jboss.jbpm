@@ -23,9 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * We need this, because we can manage, how (and which) jbpmContext is created.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/09/16 14:21:35 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
  */
 public class JbpmConfigurationW extends JbpmConfiguration {
 
@@ -97,7 +97,10 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	
 	@Override
 	public JbpmContext createJbpmContext(String name) {
-
+		
+		if(true)
+			return super.createJbpmContext(name);
+		
 		JbpmContext current = getCurrentJbpmContext();
 		JbpmContext context;
 		
@@ -130,6 +133,12 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	
 	@Override
 	void jbpmContextClosed(JbpmContext jbpmContext) {
+		
+		if(true) {
+			
+			super.jbpmContextClosed(jbpmContext);
+			return;
+		}
 		
 		if(getDoCommitStack().isEmpty() || getDoCommitStack().pop()) {
 			

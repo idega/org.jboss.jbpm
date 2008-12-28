@@ -2,16 +2,18 @@ package com.idega.jbpm.exe;
 
 import java.util.List;
 
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
+import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewSubmission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  * 
- *          Last modified: $Date: 2008/12/16 19:48:13 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
@@ -52,7 +54,7 @@ public interface BPMFactory {
 	/**
 	 * use when you don't have neither information (process id, process name and
 	 * alike), but you need general methods for processManager (e.g.
-	 * getAllProcesses (for this process manager stype))
+	 * getAllProcesses (for this process managers type))
 	 * 
 	 * @param managerType
 	 * @return
@@ -94,5 +96,9 @@ public interface BPMFactory {
 	 * 
 	 * @return
 	 */
-	public ViewSubmission getViewSubmission();
+	public abstract ViewSubmission getViewSubmission();
+
+	public abstract BPMDAO getBPMDAO();
+
+	public abstract PermissionsFactory getPermissionsFactory();
 }
