@@ -35,12 +35,14 @@ import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.BPMContext;
-import com.idega.jbpm.exe.BPMDocumentImpl;
+import com.idega.jbpm.exe.BPMDocument;
+import com.idega.jbpm.exe.BPMEmailDocument;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.ProcessWatch;
 import com.idega.jbpm.exe.TaskInstanceW;
+import com.idega.jbpm.exe.impl.BPMDocumentImpl;
 import com.idega.jbpm.identity.BPMAccessControlException;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
@@ -79,9 +81,9 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.90 $
+ * @version $Revision: 1.91 $
  *
- * Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/05 04:06:09 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -98,7 +100,7 @@ public class ProcessArtifacts {
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
-	private Document getDocumentsListDocument(IWContext iwc, Collection<BPMDocumentImpl> processDocuments, Long processInstanceId, ProcessArtifactsParamsBean params) {
+	private Document getDocumentsListDocument(IWContext iwc, Collection<BPMDocument> processDocuments, Long processInstanceId, ProcessArtifactsParamsBean params) {
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
@@ -114,7 +116,7 @@ public class ProcessArtifacts {
 		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
 		String signPdfUri = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
 		String errorMessage = iwrb.getLocalizedString("error_generating_pdf", "Sorry, unable to generate PDF file from selected document");
-		for (BPMDocumentImpl submittedDocument : processDocuments) {
+		for (BPMDocument submittedDocument : processDocuments) {
 			
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
 			
@@ -191,7 +193,7 @@ public class ProcessArtifacts {
 		return new StringBuilder("Document_").append(taskInstanceId).append(".pdf").toString();
 	}
 	
-	private Document getEmailsListDocument(Collection<TaskInstance> processEmails, Long processInstanceId, boolean rightsChanger) {
+	private Document getEmailsListDocument(Collection<BPMEmailDocument> processEmails, Long processInstanceId, boolean rightsChanger) {
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
@@ -200,48 +202,48 @@ public class ProcessArtifacts {
 		rows.setPage(size == 0 ? 0 : 1);
 		
 		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
-		RolesManager rolesManager = getBpmFactory().getRolesManager();
+		/*RolesManager rolesManager = getBpmFactory().getRolesManager();
 		
 		VariablesHandler variablesHandler = getVariablesHandler();
-
-		for (TaskInstance email : processEmails) {
+*/
+		for (BPMEmailDocument email : processEmails) {
 			
-			try {
+			/*try {
 				
 				Permission permission = getPermissionsFactory().getTaskViewPermission(true, email);
 				rolesManager.checkPermission(permission);
 				
 			} catch (BPMAccessControlException e) {
 				continue;
-			}
+			}*/
 			
-			Map<String, Object> vars = variablesHandler.populateVariables(email.getId());
+			/*Map<String, Object> vars = variablesHandler.populateVariables(email.getId());
 			
 			String subject = (String)vars.get("string_subject");
 			String fromPersonal = (String)vars.get("string_fromPersonal");
-			String fromAddress = (String)vars.get("string_fromAddress");
+			String fromAddress = (String)vars.get("string_fromAddress");*/
 			
-			String fromStr = fromPersonal;
+			String fromStr = email.getFromAddress();
 			
-			if(fromAddress != null) {
+			if(email.getFromAddress() != null) {
 				
 				if(fromStr == null) {
-					fromStr = fromAddress;
+					fromStr = email.getFromAddress();
 				} else {
-					fromStr = new StringBuilder(fromStr).append(" (").append(fromAddress).append(")").toString();
+					fromStr = new StringBuilder(fromStr).append(" (").append(email.getFromAddress()).append(")").toString();
 				}
 			}
 			
-			Long taskInstanceId = email.getId();
+			Long taskInstanceId = email.getTaskInstanceId();
 			
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 			row.setId(taskInstanceId.toString());
 			
-			row.addCell(subject);
+			row.addCell(email.getSubject());
 			row.addCell(fromStr == null ? CoreConstants.EMPTY : fromStr);
-			row.addCell(email.getEnd() == null ? CoreConstants.EMPTY :
-				new IWTimestamp(email.getEnd()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
+			row.addCell(email.getEndDate() == null ? CoreConstants.EMPTY :
+				new IWTimestamp(email.getEndDate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT)
 			);
 			row.setDateCellIndex(row.getCells().size() - 1);
 			
@@ -278,7 +280,7 @@ public class ProcessArtifacts {
 		User loggedInUser = iwc.getCurrentUser();
 		Locale userLocale = iwc.getCurrentLocale();
 		
-		Collection<BPMDocumentImpl> processDocuments = getBpmFactory()
+		Collection<BPMDocument> processDocuments = getBpmFactory()
 			.getProcessManagerByProcessInstanceId(processInstanceId)
 			.getProcessInstance(processInstanceId)
 			.getSubmittedDocumentsForUser(loggedInUser, userLocale);
@@ -300,7 +302,7 @@ public class ProcessArtifacts {
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
-		Collection<BPMDocumentImpl> tasksDocuments = getBpmFactory()
+		Collection<BPMDocument> tasksDocuments = getBpmFactory()
 			.getProcessManagerByProcessInstanceId(processInstanceId)
 			.getProcessInstance(processInstanceId)
 			.getTaskDocumentsForUser(loggedInUser, userLocale);
@@ -321,7 +323,7 @@ public class ProcessArtifacts {
 		String takeTaskTitle = iwrb.getLocalizedString("cases_bpm.case_take_task", "Take task");
 		boolean allowReAssignTask = false;	
 		
-		for (BPMDocumentImpl taskDocument : tasksDocuments) {
+		for (BPMDocument taskDocument : tasksDocuments) {
 			
 			boolean disableSelection = false; // this is not used now, and implementation can be different when we finally decide to use it
 			
@@ -444,16 +446,13 @@ public class ProcessArtifacts {
 			.getTaskInstance(taskInstanceId);
 		
 		List<BinaryVariable> binaryVariables = tiw.getAttachments();
-		TaskInstance taskInstance = tiw.getTaskInstance();
-		
-		RolesManager rolesManager = getBpmFactory().getRolesManager();
-		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
-		int size = binaryVariables.size();
-		if (size == 0) {
+		if (binaryVariables == null || binaryVariables.size() == 0 ) {
 			return null;	//	This will result in 'closed' row in grid
 		}
+		
+		int size = binaryVariables.size();
 		rows.setTotal(size);
 		rows.setPage(size == 0 ? 0 : 1);
 		
@@ -470,15 +469,6 @@ public class ProcessArtifacts {
 			
 			if(binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true))
 				continue;
-			
-			variableHash = binaryVariable.getHash().toString();
-			try {
-				Permission permission = getPermissionsFactory().getTaskVariableViewPermission(true, taskInstance, variableHash);
-				rolesManager.checkPermission(permission);
-				
-			} catch (BPMAccessControlException e) {
-				continue;
-			}
 			
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
@@ -546,10 +536,10 @@ public class ProcessArtifacts {
 		if(processInstanceId == null)
 			return null;
 		
-		Collection<TaskInstance> processEmails = 
+		Collection<BPMEmailDocument> processEmails = 
 				getBpmFactory()
 				.getProcessManagerByProcessInstanceId(processInstanceId)
-				.getProcessInstance(processInstanceId).getAttachedEmailsTaskInstances();
+				.getProcessInstance(processInstanceId).getAttachedEmails();
 		
 		if(processEmails == null || processEmails.isEmpty()) {
 			
@@ -1222,10 +1212,6 @@ public class ProcessArtifacts {
 		this.variablesHandler = variablesHandler;
 	}
 
-	public PermissionsFactory getPermissionsFactory() {
-		return permissionsFactory;
-	}
-
 	public BuilderLogicWrapper getBuilderLogicWrapper() {
 		return builderLogicWrapper;
 	}
@@ -1244,5 +1230,9 @@ public class ProcessArtifacts {
 
 	public String getSigningAction(String taskInstanceId, String hashValue) {
 		return getSigningHandler().getSigningAction(Long.valueOf(taskInstanceId), hashValue);
+	}
+
+	public PermissionsFactory getPermissionsFactory() {
+		return permissionsFactory;
 	}
 }
