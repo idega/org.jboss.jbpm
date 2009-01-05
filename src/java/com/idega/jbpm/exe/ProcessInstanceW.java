@@ -14,9 +14,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  * 
- *          Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/05 05:21:48 $ by $Author: juozas $
  */
 public interface ProcessInstanceW {
 
@@ -34,10 +34,10 @@ public interface ProcessInstanceW {
 	 */
 	public abstract List<TaskInstanceW> getSubmittedTaskInstances();
 
-	public abstract List<BPMDocumentImpl> getSubmittedDocumentsForUser(
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(
 			User user, Locale locale);
 
-	public abstract List<BPMDocumentImpl> getTaskDocumentsForUser(User user,
+	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
 			Locale locale);
 
 	/**
@@ -151,4 +151,6 @@ public interface ProcessInstanceW {
 	 * @return task instances for submitted email attachments
 	 */
 	public abstract Collection<TaskInstance> getAttachedEmailsTaskInstances();
+	
+	public List<BPMEmailDocument> getAttachedEmails();
 }
