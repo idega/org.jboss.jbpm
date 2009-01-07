@@ -17,16 +17,14 @@ import org.springframework.orm.hibernate3.SessionFactoryUtils;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- *          Last modified: $Date: 2008/12/28 12:08:02 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/07 18:31:22 $ by $Author: civilis $
  */
 public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
 	public static final String beanIdentifier = "idegaJbpmContext";
 	private EntityManagerFactory entityManagerFactory;
-	// private ThreadLocal<Stack<Boolean>> doCommitStackLocal = new
-	// ThreadLocal<Stack<Boolean>>();
 
 	private HibernateTemplate hibernateTemplate;
 
@@ -34,24 +32,13 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 		return JbpmConfiguration.getInstance();
 	}
 
-	// protected Stack<Boolean> getDoCommitStack() {
-	//		
-	// Stack<Boolean> stack = doCommitStackLocal.get();
-	//		
-	// if (stack == null) {
-	//	    	
-	// stack = new Stack<Boolean>();
-	// doCommitStackLocal.set(stack);
-	// }
-	//	    
-	// return stack;
-	// }
-
 	public JbpmContext createJbpmContext() {
+
 		return JbpmConfiguration.getInstance().createJbpmContext();
 	}
 
 	public void closeAndCommit(JbpmContext ctx) {
+
 		ctx.close();
 	}
 
@@ -101,7 +88,9 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	 * @return
 	 */
 	public <T> T execute(final JbpmCallback callback) {
-		final JbpmContext context = createJbpmContext();
+
+		final JbpmContext context = JbpmConfiguration.getInstance()
+				.createJbpmContext();
 
 		try {
 			@SuppressWarnings("unchecked")
@@ -113,10 +102,6 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 						throws HibernateException, SQLException {
 					// inject the session in the context
 
-//					System.out.println("SETTING SESSION=" + session);
-//					Object tran = session.getTransaction();
-//					System.out.println("transaction=" + tran);
-
 					context.setSession(session);
 					return callback.doInJbpm(context);
 				}
@@ -126,7 +111,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 		} catch (JbpmException ex) {
 			throw convertJbpmException(ex);
 		} finally {
-			closeAndCommit(context);
+			context.close();
 		}
 	}
 
