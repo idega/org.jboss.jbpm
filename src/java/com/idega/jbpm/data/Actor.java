@@ -31,9 +31,9 @@ import javax.persistence.Table;
  * If there are no permissions for actor with process instance id != null, then the permissions for process name are taken (i.e. the permissions are specified for process definition scope). 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/10/22 15:09:23 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/09 16:09:58 $ by $Author: donatas $
  */
 @Entity
 @Table(name=Actor.TABLE_NAME)
@@ -44,7 +44,7 @@ import javax.persistence.Table;
 			@NamedQuery(name=Actor.getSetByPIIdsAndRoleNames, query="from Actor pr where pr."+Actor.processInstanceIdProperty+" in(:"+Actor.processInstanceIdProperty+") and pr."+Actor.processRoleNameProperty+" in (:"+Actor.processRoleNameProperty+")"),
 			//@NamedQuery(name=Actor.getAllByRoleNamesAndPIIdIsNull, query="from Actor b where b."+Actor.processRoleNameProperty+" in(:"+Actor.processRoleNameProperty+") and b."+Actor.processInstanceIdProperty+" is null"),
 			@NamedQuery(name=Actor.getAllByActorIds, query="from Actor b where b."+Actor.actorIdProperty+" in(:"+Actor.actorIdProperty+")"),
-			@NamedQuery(name=Actor.getAllProcessInstancesIdsHavingRoleName, query="select a."+Actor.processInstanceIdProperty+" from Actor a where a."+Actor.processRoleNameProperty+" is not null"),
+			@NamedQuery(name=Actor.getAllProcessInstancesIdsHavingRoleName, query="select distinct a."+Actor.processInstanceIdProperty+" from Actor a where a."+Actor.processRoleNameProperty+" is not null"),
 			@NamedQuery(name=Actor.getSetByPIIdHavingRoleName, query="from Actor a where a."+Actor.processInstanceIdProperty+" = :"+Actor.processInstanceIdProperty+" and a."+Actor.processRoleNameProperty+" is not null"),
 			@NamedQuery(name=Actor.getSetByPIIdAndNotContainingRoleNames, query="from Actor a where a."+Actor.processInstanceIdProperty+" = :"+Actor.processInstanceIdProperty+" and a."+Actor.processRoleNameProperty+" is not null and a."+Actor.processRoleNameProperty+" not in (:"+Actor.processRoleNameProperty+")"),
 			@NamedQuery(name=Actor.getSetByPIIdsHavingRoleName, query="from Actor a where a."+Actor.processInstanceIdProperty+" in(:"+Actor.processInstanceIdProperty+") and a."+Actor.processRoleNameProperty+" is not null"),
