@@ -81,9 +81,9 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.91 $
+ * @version $Revision: 1.92 $
  *
- * Last modified: $Date: 2009/01/05 04:06:09 $ by $Author: juozas $
+ * Last modified: $Date: 2009/01/09 08:46:12 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -460,7 +460,6 @@ public class ProcessArtifacts {
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
-		String variableHash = null;
 		String message = iwrb.getLocalizedString("signing", "Signing...");
 		String image = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
 		String errorMessage = iwrb.getLocalizedString("unable_to_sign_attachment", "Sorry, unable to sign selected attachment");
@@ -470,9 +469,10 @@ public class ProcessArtifacts {
 			if(binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true))
 				continue;
 			
+			
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
-			row.setId(variableHash);
+			row.setId(binaryVariable.getHash().toString());
 			
 			String description = binaryVariable.getDescription();
 			row.addCell(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
@@ -484,7 +484,7 @@ public class ProcessArtifacts {
 			if (params.getAllowPDFSigning() && getSigningHandler() !=null) {
 				if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
 					row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
-						.append(getJavaScriptActionForPDF(iwrb, taskInstanceId, variableHash, message, errorMessage)).append("\" />").toString());
+						.append(getJavaScriptActionForPDF(iwrb, taskInstanceId, binaryVariable.getHash().toString(), message, errorMessage)).append("\" />").toString());
 				}
 				else {
 					row.addCell(CoreConstants.EMPTY);
