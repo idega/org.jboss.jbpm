@@ -4,9 +4,9 @@ import com.idega.block.process.variables.Variable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/10/15 14:56:40 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/09 10:31:21 $ by $Author: juozas $
  */
 public interface BinaryVariable {
 	
@@ -64,4 +64,6 @@ public interface BinaryVariable {
 	public abstract long getTaskInstanceId();
 	
 	public abstract boolean isPersisted();
+	
+	public abstract boolean isSignable();
 }

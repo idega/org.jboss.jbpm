@@ -81,9 +81,9 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.92 $
+ * @version $Revision: 1.93 $
  *
- * Last modified: $Date: 2009/01/09 08:46:12 $ by $Author: juozas $
+ * Last modified: $Date: 2009/01/09 10:31:21 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -481,7 +481,8 @@ public class ProcessArtifacts {
 			Long fileSize = binaryVariable.getContentLength();
 			row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
 			
-			if (params.getAllowPDFSigning() && getSigningHandler() !=null) {
+			if (params.getAllowPDFSigning() && getSigningHandler() !=null && tiw.isSignable() 
+					&& binaryVariable.isSignable() && canUserSignAttachement(tiw, binaryVariable.getHash().toString())) {
 				if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
 					row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
 						.append(getJavaScriptActionForPDF(iwrb, taskInstanceId, binaryVariable.getHash().toString(), message, errorMessage)).append("\" />").toString());
@@ -502,6 +503,11 @@ public class ProcessArtifacts {
 			logger.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
+	}
+	
+	private boolean canUserSignAttachement(TaskInstanceW taskInstanceW, String variableIdentifier){
+		//TODO: implement
+		return true;
 	}
 	
 	private String getJavaScriptActionForPDF(IWResourceBundle iwrb, Long taskInstanceId, String hashValue, String message, String errorMessage) {

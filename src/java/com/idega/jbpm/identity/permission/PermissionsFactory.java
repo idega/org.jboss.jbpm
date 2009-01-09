@@ -9,9 +9,9 @@ import com.idega.user.data.User;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/12/28 12:08:03 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/09 10:31:21 $ by $Author: juozas $
  */
 public interface PermissionsFactory {
 
@@ -43,4 +43,6 @@ public interface PermissionsFactory {
 	public abstract Permission getRoleAccessPermission(Long processInstanceId, String roleName, Boolean checkContactsForRole);
 
 	public abstract BPMTypedPermission getTypedPermission(String name);
+	
+	public Permission getTaskVariableWritePermission(Boolean authPooledActorsOnly, TaskInstance taskInstance, String variableIdentifier);
 }

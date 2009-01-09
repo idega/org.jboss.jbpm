@@ -11,9 +11,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/12/28 12:08:03 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/09 10:31:21 $ by $Author: juozas $
  */
 @Service
 @Scope("singleton")
@@ -110,5 +110,20 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 	public BPMTypedPermission getTypedPermission(String type) {
 
 		return new BPMTypedPermissionImpl(type, null);
+	}
+	
+	public Permission getTaskVariableWritePermission(Boolean authPooledActorsOnly, TaskInstance taskInstance, String variableIdentifier) {
+		
+		BPMTypedPermission perm = getTypedPermission(viewTaskParametersPermType);
+		perm.setAttribute(TaskAccessPermissionsHandler.checkOnlyInActorsPoolAtt, authPooledActorsOnly);
+		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstance);
+		perm.setAttribute(TaskAccessPermissionsHandler.variableIdentifierAtt, variableIdentifier);
+		
+		ArrayList<Access> accesses = new ArrayList<Access>(1);
+		accesses.add(Access.write);
+		
+		perm.setAttribute(TaskAccessPermissionsHandler.accessesWantedAtt, accesses);
+		
+		return (Permission)perm;
 	}
 }
