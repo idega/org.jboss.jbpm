@@ -38,12 +38,7 @@
     <property>
       <display-name>Process definition ID</display-name>
       <property-name>processDefinitionId</property-name>
-      <property-class>java.lang.String</property-class>
-    </property>
-    <property>
-      <display-name>BPMFactory</display-name>
-      <property-name>bpmFactory</property-name>
-      <property-class>com.idega.jbpm.exe.BPMFactory</property-class>
+      <property-class>java.lang.Long</property-class>
     </property>
     <component-extension>
       <idegaweb-info>
