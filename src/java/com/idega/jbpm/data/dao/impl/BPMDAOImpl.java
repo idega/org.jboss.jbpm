@@ -2,6 +2,7 @@ package com.idega.jbpm.data.dao.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.jbpm.JbpmContext;
@@ -28,9 +29,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  * 
- *          Last modified: $Date: 2008/12/28 12:08:03 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/12 10:45:24 $ by $Author: anton $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -288,5 +289,10 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	BPMContext getBpmContext() {
 		return bpmContext;
+	}
+
+	public List<Long> getTaskInstancesByActorIdAndTimestamp(Long actorId, Date timestamp) {
+		List<Long> taskInstances = getResultList(Actor.getTaskInstancesByUserRole, Long.class, new Param(Actor.actorIdProperty, actorId.toString()), new Param(ViewTaskBind.createParam, timestamp));
+		return taskInstances;
 	}
 }

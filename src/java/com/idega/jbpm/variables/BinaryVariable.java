@@ -4,9 +4,9 @@ import com.idega.block.process.variables.Variable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2009/01/09 10:31:21 $ by $Author: juozas $
+ * Last modified: $Date: 2009/01/12 10:45:24 $ by $Author: anton $
  */
 public interface BinaryVariable {
 	
@@ -31,6 +31,8 @@ public interface BinaryVariable {
 	public abstract void setHash(int hash);
 	
 	public abstract String getMimeType();
+	
+	public abstract void setMimeType(String mimeType);
 	
 	public abstract void setContentLength(Long contentLength);
 	
