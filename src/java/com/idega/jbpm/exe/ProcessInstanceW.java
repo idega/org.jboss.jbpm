@@ -14,9 +14,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  * 
- *          Last modified: $Date: 2009/01/09 10:31:21 $ by $Author: juozas $
+ *          Last modified: $Date: 2009/01/12 12:37:02 $ by $Author: juozas $
  */
 public interface ProcessInstanceW {
 
@@ -155,4 +155,6 @@ public interface ProcessInstanceW {
 	public List<BPMEmailDocument> getAttachedEmails();
 	
 	public TaskInstanceW createTask(final String taskName, final long tokenId);
+	
+	public boolean hasEnded();
 }
