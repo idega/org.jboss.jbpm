@@ -14,9 +14,9 @@ import javax.persistence.Table;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2009/01/12 10:45:24 $ by $Author: anton $
+ * Last modified: $Date: 2009/01/13 10:47:56 $ by $Author: anton $
  */
 @Entity
 @Table(name="BPM_VIEWS_TASKS")
@@ -48,7 +48,6 @@ public class ViewTaskBind implements Serializable {
 	public static final String tasksIdsParam = "tasksIds";
 	public static final String viewTypeParam = "viewType";
 	public static final String viewIdParam = "viewIdentifier";
-	public static final String createParam = "create";
 	
 	private static final long serialVersionUID = -1604232647212632303L;
 

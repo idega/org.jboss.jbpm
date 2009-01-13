@@ -31,9 +31,9 @@ import javax.persistence.Table;
  * If there are no permissions for actor with process instance id != null, then the permissions for process name are taken (i.e. the permissions are specified for process definition scope). 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2009/01/12 10:45:24 $ by $Author: anton $
+ * Last modified: $Date: 2009/01/13 10:47:57 $ by $Author: anton $
  */
 @Entity
 @Table(name=Actor.TABLE_NAME)
@@ -67,7 +67,7 @@ import javax.persistence.Table;
 				"inner join act."+Actor.nativeIdentitiesProperty+" ni "+ 
 				"where act."+Actor.processInstanceIdProperty+" = :"+Actor.processInstanceIdProperty+" and ni."+NativeIdentityBind.identityIdProperty+" = :"+NativeIdentityBind.identityIdProperty+" and ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty),
 				
-			@NamedQuery(name=Actor.getTaskInstancesByUserRole, query="select task_instance.id from org.jbpm.taskmgmt.exe.TaskInstance task_instance where task_instance." + Actor.actorIdProperty + "= :" + Actor.actorIdProperty + " and task_instance." + ViewTaskBind.createParam + "< :" + ViewTaskBind.createParam + " order by task_instance." + ViewTaskBind.createParam + " desc")
+			@NamedQuery(name=Actor.getTaskInstancesByUserRole, query="select task_instance.id from org.jbpm.taskmgmt.exe.TaskInstance task_instance where task_instance." + Actor.actorIdProperty + "= :" + Actor.actorIdProperty + " and task_instance." + Actor.createParam + "< :" + Actor.createParam + " order by task_instance." + Actor.createParam + " desc")
 		}
 )
 @SqlResultSetMapping(name="processInstanceId", columns=@ColumnResult(name="processInstanceId"))
@@ -119,6 +119,8 @@ public class Actor implements Serializable {
 	public static final String getRoleNameHavingRightsModifyPermissionByPIId = "Actor.getHavingRightsModifyPermissionByPIId";
 	public static final String getRolesNamesHavingCaseHandlerRights = "Actor.getRolesNamesHavingCaseHandlerRights";
 	public static final String getRolesHavingCaseHandlerRights = "Actor.getRolesHavingCaseHandlerRights";
+	
+	public static final String createParam = "create";
 	
 	public static final String processRoleNameProperty = "processRoleName";
 	@Column(name="role_name")
