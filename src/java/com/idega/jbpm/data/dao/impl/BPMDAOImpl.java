@@ -29,9 +29,9 @@ import com.idega.jbpm.identity.Role;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.24 $
+ * @version $Revision: 1.25 $
  * 
- *          Last modified: $Date: 2009/01/12 10:45:24 $ by $Author: anton $
+ *          Last modified: $Date: 2009/01/13 10:48:25 $ by $Author: anton $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -291,8 +291,8 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return bpmContext;
 	}
 
-	public List<Long> getTaskInstancesByActorIdAndTimestamp(Long actorId, Date timestamp) {
-		List<Long> taskInstances = getResultList(Actor.getTaskInstancesByUserRole, Long.class, new Param(Actor.actorIdProperty, actorId.toString()), new Param(ViewTaskBind.createParam, timestamp));
+	public List<Long> getTaskInstancesByActorIdAndDate(Long actorId, Date timestamp) {
+		List<Long> taskInstances = getResultList(Actor.getTaskInstancesByUserRole, Long.class, new Param(Actor.actorIdProperty, actorId.toString()), new Param(Actor.createParam, timestamp));
 		return taskInstances;
 	}
 }

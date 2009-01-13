@@ -23,9 +23,9 @@ import com.idega.jbpm.identity.Role;
  * ProcessManager and so on is recommended
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  * 
- *          Last modified: $Date: 2009/01/12 10:45:24 $ by $Author: anton $
+ *          Last modified: $Date: 2009/01/13 10:48:07 $ by $Author: anton $
  */
 public interface BPMDAO extends GenericDao {
 
@@ -77,5 +77,5 @@ public interface BPMDAO extends GenericDao {
 	public abstract ProcessDefinition findLatestProcessDefinition(
 			final String processName);
 	
-	public abstract List<Long> getTaskInstancesByActorIdAndTimestamp(Long actorId, Date timestamp);
+	public abstract List<Long> getTaskInstancesByActorIdAndDate(Long actorId, Date timestamp);
 }
