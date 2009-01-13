@@ -4,26 +4,13 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
         
-        <!--  
-	<bean id="defaultJbpmConfiguration" class="org.jbpm.JbpmConfiguration" factory-method="getInstance" scope="singleton">
-		<constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
-	</bean>
-	-->
-	
 	<bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
-    <!--  
-        <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
-        -->
         <property name="entityManagerFactory" ref="entityManagerFactory" />
     </bean>
 	
 	<bean id="jbpmConfigurationWrapper" class="org.jbpm.JbpmConfigurationW" factory-method="createJbpmConfiguration" scope="singleton">
         <constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
     </bean>
-    
-	<bean id="processMgmtMockup" class="com.idega.jbpm.presentation.beans.ProcessMgmtMockupBean" scope="session">
-        <property name="idegaJbpmContext" ref="idegaJbpmContext" />
-	</bean>
     
     <bean id="bpmProcessDefinitionsAutoloader" class="com.idega.jbpm.process.business.autoloader.ProcessDefinitionsAutoloader" scope="singleton">
         <property name="mappings">

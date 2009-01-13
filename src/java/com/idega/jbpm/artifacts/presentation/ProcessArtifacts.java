@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,8 +41,6 @@ import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.ProcessWatch;
 import com.idega.jbpm.exe.TaskInstanceW;
-import com.idega.jbpm.exe.impl.BPMDocumentImpl;
-import com.idega.jbpm.identity.BPMAccessControlException;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.Access;
@@ -81,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.95 $ Last modified: $Date: 2009/01/12 12:37:02 $ by $Author: juozas $
+ * @version $Revision: 1.96 $ Last modified: $Date: 2009/01/13 13:19:04 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)

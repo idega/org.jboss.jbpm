@@ -19,22 +19,25 @@ import com.idega.jbpm.exe.TaskInstanceW;
 @Scope("prototype")
 public class PermissionsAssignmentHandler implements ActionHandler {
 
+	private static final long serialVersionUID = 3245947556356612146L;
 	private Long taskInstanceId;
 	private String expression;
-	
+
 	@Autowired
 	private BPMFactory bpmFactory;
-	
+
 	public void execute(ExecutionContext executionContext) throws Exception {
-		TaskAssignment ta = JSONExpHandler.resolveRolesFromJSONExpression(expression);
-		
-		TaskInstance taskInstance = executionContext.getJbpmContext().getTaskInstance(taskInstanceId);
-		if(taskInstance == null){
+		TaskAssignment ta = JSONExpHandler
+				.resolveRolesFromJSONExpression(expression);
+
+		TaskInstance taskInstance = executionContext.getJbpmContext()
+				.getTaskInstance(taskInstanceId);
+		if (taskInstance == null) {
 			Logger.getLogger(getClass().getName()).log(Level.WARNING,
-				"No task with id: " + taskInstanceId);
+					"No task with id: " + taskInstanceId);
 			return;
 		}
-		
+
 		List<Role> roles = ta.getRoles();
 
 		if (roles == null || roles.isEmpty()) {
@@ -43,9 +46,7 @@ public class PermissionsAssignmentHandler implements ActionHandler {
 					"No roles for task instance: " + taskInstanceId);
 			return;
 		}
-		
-		
-		
+
 		ProcessInstance pi;
 
 		if (ta.getRolesFromProcessInstanceId() != null) {
@@ -55,15 +56,16 @@ public class PermissionsAssignmentHandler implements ActionHandler {
 		} else {
 			pi = executionContext.getProcessInstance();
 		}
-		
-		TaskInstanceW tiw = getBpmFactory().getProcessManagerByProcessInstanceId(pi.getId())
-		   .getTaskInstance(taskInstanceId);
 
-		for(Role role:roles){
-			tiw.setTaskRolePermissions(role,true,null);
+		TaskInstanceW tiw = getBpmFactory()
+				.getProcessManagerByProcessInstanceId(pi.getId())
+				.getTaskInstance(taskInstanceId);
+
+		for (Role role : roles) {
+			tiw.setTaskRolePermissions(role, true, null);
 		}
 	}
-	
+
 	public void setExpression(String expression) {
 		this.expression = expression;
 	}

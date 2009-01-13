@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
-import org.jbpm.graph.exe.ProcessInstance;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -12,33 +11,33 @@ import org.springframework.stereotype.Service;
 @Scope("singleton")
 public class HandlerForSpringIntegrationTest implements ActionHandler {
 
-		private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-		private String justString;
-		
-		private List expretionObject;
-		
-		public List getExpretionObject() {
-			return expretionObject;
-		}
+	private String justString;
 
-		public void setExpretionObject(List expretionObject) {
-			this.expretionObject = expretionObject;
-		}
+	private List<Object> expretionObject;
 
-		public String getJustString() {
-			return justString;
-		}
+	public List<Object> getExpretionObject() {
+		return expretionObject;
+	}
 
-		public void setJustString(String justString) {
-			this.justString = justString;
-		}
+	public void setExpretionObject(List<Object> expretionObject) {
+		this.expretionObject = expretionObject;
+	}
 
-		public void execute(ExecutionContext executionContext) throws Exception {
-			
-			System.out.println("I'm alive!!!");
-			System.out.println("justSring value is: " + justString + " , expretionObject: " +expretionObject.iterator().next());
-		}
-	
-	
+	public String getJustString() {
+		return justString;
+	}
+
+	public void setJustString(String justString) {
+		this.justString = justString;
+	}
+
+	public void execute(ExecutionContext executionContext) throws Exception {
+
+		System.out.println("I'm alive!!!");
+		System.out.println("justSring value is: " + justString
+				+ " , expretionObject: " + expretionObject.iterator().next());
+	}
+
 }
