@@ -311,4 +311,8 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 
 		return nonExistingProperties;
 	}
+
+	public static Object bean(String beanName) {
+		return ELUtil.getInstance().getBean(beanName);
+	}
 }
