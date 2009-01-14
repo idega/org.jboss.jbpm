@@ -22,9 +22,9 @@ import com.idega.util.URIUtil;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2009/01/14 10:07:31 $ by $Author: juozas $
+ * Last modified: $Date: 2009/01/14 14:29:56 $ by $Author: civilis $
  */
 public class BPMUserImpl implements BPMUser {
 	
@@ -79,31 +79,24 @@ public class BPMUserImpl implements BPMUser {
 	}
 	public Integer getIdToUse() {
 		
-		Object pk;
-	
-		if(getRealUser() != null && (getIsAssociated(false) || getBpmUser() == null)) {
-			
-			pk = getRealUser().getPrimaryKey();
-		} else if(getBpmUser() != null) {
-			pk = getBpmUser().getPrimaryKey();
-		} else
-			pk = null;
+		User usr = getUserToUse();
 		
-		if(pk != null) {
+		if(usr != null) {
+			
+			Object pk = usr.getPrimaryKey();
 			
 			if(pk instanceof Integer)
 				return (Integer)pk;
 			else
 				return new Integer(pk.toString());
+			
+		} else {
+			return null;
 		}
-		
-		return null;
 	}
 	
 	public User getUserToUse() {
 		
-		Object pk;
-	
 		if(getRealUser() != null && (getIsAssociated(false) || getBpmUser() == null)) {
 			
 			return getRealUser();
@@ -111,8 +104,6 @@ public class BPMUserImpl implements BPMUser {
 			return getBpmUser();
 		} else
 			return null;
-		
-	
 	}
 	
 	public String getUrlToTheProcess() {
