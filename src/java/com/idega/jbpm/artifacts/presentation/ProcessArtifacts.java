@@ -78,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.98 $ Last modified: $Date: 2009/01/14 10:08:00 $ by $Author: juozas $
+ * @version $Revision: 1.99 $ Last modified: $Date: 2009/01/14 10:09:05 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -208,26 +208,9 @@ public class ProcessArtifacts {
 		
 		IWContext iwc = IWContext.getIWContext(FacesContext
 		        .getCurrentInstance());
-		/*RolesManager rolesManager = getBpmFactory().getRolesManager();
-		
-		VariablesHandler variablesHandler = getVariablesHandler();
-		*/
 		for (BPMEmailDocument email : processEmails) {
 			
-			/*try {
-				
-				Permission permission = getPermissionsFactory().getTaskViewPermission(true, email);
-				rolesManager.checkPermission(permission);
-				
-			} catch (BPMAccessControlException e) {
-				continue;
-			}*/
-
-			/*Map<String, Object> vars = variablesHandler.populateVariables(email.getId());
 			
-			String subject = (String)vars.get("string_subject");
-			String fromPersonal = (String)vars.get("string_fromPersonal");
-			String fromAddress = (String)vars.get("string_fromAddress");*/
 
 			String fromStr = email.getFromAddress();
 			
@@ -324,13 +307,7 @@ public class ProcessArtifacts {
 		int size = tasksDocuments.size();
 		rows.setTotal(size);
 		rows.setPage(size == 0 ? 0 : 1);
-		
-		// RolesManager rolesManager = getBpmFactory().getRolesManager();
-		// BPMUser bpmUsr = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
-		// Integer loggedInUserIdInt = bpmUsr.getIdToUse();
-		// String loggedInUserId = loggedInUserIdInt == null ? null :
-		// String.valueOf(loggedInUserIdInt);
-		// String youLocalized = getAssignedToYouLocalizedString(iwrb);
+	
 		String noOneLocalized = iwrb.getLocalizedString(
 		    "cases_bpm.case_assigned_to_no_one", "No one");
 		String takeTaskImage = bundle
