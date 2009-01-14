@@ -21,9 +21,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  * 
- *          Last modified: $Date: 2009/01/10 12:25:36 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/14 14:27:17 $ by $Author: civilis $
  */
 public class BPMTaskViewer extends IWBaseComponent {
 
@@ -87,7 +87,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		final Integer initiatorId;
 
 		if (iwc.isLoggedOn())
-			initiatorId = IWContext.getIWContext(context).getCurrentUserId();
+			initiatorId = iwc.getCurrentUserId();
 		else
 			initiatorId = null;
 
