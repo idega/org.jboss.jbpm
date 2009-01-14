@@ -10,9 +10,9 @@ import com.idega.user.data.User;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- * Last modified: $Date: 2008/10/22 15:10:34 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/14 10:07:31 $ by $Author: juozas $
  */
 public interface BPMUser {
 
@@ -38,4 +38,8 @@ public interface BPMUser {
 	public abstract Integer getIdToUse();
 	
 	public abstract String getUrlToTheProcess();
+	
+	public User getUserToUse();
+		
+		
 }

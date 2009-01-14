@@ -22,9 +22,9 @@ import com.idega.util.URIUtil;
  *   
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/10/22 15:11:52 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/14 10:07:31 $ by $Author: juozas $
  */
 public class BPMUserImpl implements BPMUser {
 	
@@ -98,6 +98,21 @@ public class BPMUserImpl implements BPMUser {
 		}
 		
 		return null;
+	}
+	
+	public User getUserToUse() {
+		
+		Object pk;
+	
+		if(getRealUser() != null && (getIsAssociated(false) || getBpmUser() == null)) {
+			
+			return getRealUser();
+		} else if(getBpmUser() != null) {
+			return getBpmUser();
+		} else
+			return null;
+		
+	
 	}
 	
 	public String getUrlToTheProcess() {
