@@ -78,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.97 $ Last modified: $Date: 2009/01/14 10:07:31 $ by $Author: juozas $
+ * @version $Revision: 1.98 $ Last modified: $Date: 2009/01/14 10:08:00 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -286,7 +286,6 @@ public class ProcessArtifacts {
 		}
 		
 		
-		//getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
 		IWContext iwc = IWContext.getCurrentInstance();
 		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
 		Locale userLocale = iwc.getCurrentLocale();
