@@ -33,9 +33,9 @@ import com.idega.util.CoreConstants;
  * provided.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * 
- *          Last modified: $Date: 2008/11/30 08:17:52 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/16 08:11:16 $ by $Author: arunas $
  */
 @Service("locateUserHandler")
 @Scope("prototype")
@@ -133,32 +133,31 @@ public class LocateUserHandler implements ActionHandler {
 			Commune commune;
 
 			if (municipalityName != null) {
-
+				
 				try {
 					commune = userBusiness.getAddressBusiness()
 							.getCommuneHome().findByCommuneName(
 									municipalityName);
-
 				} catch (FinderException e) {
-					commune = null;
+					commune = userBusiness.getAddressBusiness().createCommuneIfNotExisting(municipalityName);
 				}
 
 			} else
 				commune = null;
 
-			if (postalCodeStr != null) {
+			if (postalCodeStr != null) {			
 
-				try {
+				try {	
 					postalCode = userBusiness.getAddressBusiness()
 							.getPostalCodeHome()
 							.findByPostalCode(postalCodeStr);
 				} catch (FinderException e) {
-					postalCode = null;
+					postalCode = userBusiness.getAddressBusiness().getPostalCodeAndCreateIfDoesNotExist(postalCodeStr, new StringBuilder().append(municipalityName).toString());
 				}
 
 			} else
 				postalCode = null;
-
+			
 			String streetName;
 			String streetNr;
 
@@ -218,12 +217,10 @@ public class LocateUserHandler implements ActionHandler {
 				} else {
 					// create new address
 
-					Integer communeId = commune != null ? (commune
-							.getPrimaryKey() instanceof Integer ? (Integer) commune
-							.getPrimaryKey()
+					Integer communeId = commune != null ? (commune.getPrimaryKey() instanceof Integer ? (Integer) commune.getPrimaryKey()
 							: new Integer(commune.getPrimaryKey().toString()))
 							: null;
-
+							
 					if (usr.getUsersMainAddress() == null) {
 						userBusiness
 								.updateUsersMainAddressOrCreateIfDoesNotExist(
