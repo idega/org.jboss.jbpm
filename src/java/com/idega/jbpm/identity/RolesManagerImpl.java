@@ -69,9 +69,9 @@ import com.idega.util.ListUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.56 $
+ * @version $Revision: 1.57 $
  * 
- *          Last modified: $Date: 2008/12/28 12:08:00 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/16 17:03:17 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -125,16 +125,16 @@ public class RolesManagerImpl implements RolesManager {
 
 		if (!rolesNames.isEmpty()) {
 
-			List<Actor> processRoles = getBpmDAO().getResultList(
+			List<Actor> actors = getBpmDAO().getResultList(
 					Actor.getSetByRoleNamesAndPIId,
 					Actor.class,
 					new Param(Actor.processRoleNameProperty, rolesNames),
 					new Param(Actor.processInstanceIdProperty,
 							processInstanceId));
 
-			for (Actor role : processRoles) {
+			for (Actor actor : actors) {
 
-				List<NativeIdentityBind> identities = role
+				List<NativeIdentityBind> identities = actor
 						.getNativeIdentities();
 
 				boolean contains = false;
@@ -165,8 +165,17 @@ public class RolesManagerImpl implements RolesManager {
 					NativeIdentityBind nidentity = new NativeIdentityBind();
 					nidentity.setIdentityId(identityId);
 					nidentity.setIdentityType(identityType);
-					nidentity.setActor(getBpmDAO().merge(role));
+					nidentity.setActor(getBpmDAO().merge(actor));
 					getBpmDAO().persist(nidentity);
+					
+					if(identities == null) {
+						
+						identities = new ArrayList<NativeIdentityBind>(1);
+						actor.setNativeIdentities(identities);
+					}
+
+					identities.add(nidentity);
+					getBpmDAO().persist(actor);
 				}
 			}
 		}
@@ -347,11 +356,13 @@ public class RolesManagerImpl implements RolesManager {
 			actors = getBpmDAO().getResultList(
 					Actor.getSetByPIIdHavingRoleName, Actor.class,
 					new Param(Actor.processInstanceIdProperty, piId));
-		} else
+		} else {
+			
 			actors = getBpmDAO().getResultList(Actor.getSetByRoleNamesAndPIId,
-					Actor.class,
-					new Param(Actor.processRoleNameProperty, rolesNames),
-					new Param(Actor.processInstanceIdProperty, piId));
+				Actor.class,
+				new Param(Actor.processRoleNameProperty, rolesNames),
+				new Param(Actor.processInstanceIdProperty, piId));
+		}
 
 		if (perm != null && actors != null && !actors.isEmpty()) {
 			// filtering roles, that the permission doesn't let to see
@@ -393,14 +404,14 @@ public class RolesManagerImpl implements RolesManager {
 			ArrayList<Group> allGroups = new ArrayList<Group>();
 			HashMap<String, User> allUsers = new HashMap<String, User>();
 
-			for (Actor prole : actors) {
+			for (Actor actor : actors) {
 
-				if (prole.getNativeIdentities() == null
-						|| prole.getNativeIdentities().isEmpty()) {
+				if (actor.getNativeIdentities() == null
+						|| actor.getNativeIdentities().isEmpty()) {
 
 					@SuppressWarnings("unchecked")
 					Collection<Group> grps = getAccessController()
-							.getAllGroupsForRoleKey(prole.getProcessRoleName(),
+							.getAllGroupsForRoleKey(actor.getProcessRoleName(),
 									iwac);
 
 					if (grps != null)
@@ -410,7 +421,7 @@ public class RolesManagerImpl implements RolesManager {
 
 					try {
 
-						for (NativeIdentityBind identity : prole
+						for (NativeIdentityBind identity : actor
 								.getNativeIdentities()) {
 
 							if (identity.getIdentityType() == IdentityType.USER) {
@@ -467,9 +478,7 @@ public class RolesManagerImpl implements RolesManager {
 			return allUsers.values();
 		} else {
 
-			@SuppressWarnings("unchecked")
-			List<User> empty = Collections.EMPTY_LIST;
-			return empty;
+			return Collections.emptyList();
 		}
 	}
 
