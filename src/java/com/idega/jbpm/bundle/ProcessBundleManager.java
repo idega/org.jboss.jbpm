@@ -38,7 +38,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $ Last modified: $Date: 2009/01/14 14:26:01 $ by $Author: civilis $
+ * @version $Revision: 1.13 $ Last modified: $Date: 2009/01/16 17:57:10 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -130,11 +130,8 @@ public class ProcessBundleManager {
 					            .getLogger(getClass().getName())
 					            .log(Level.SEVERE,
 					                "Exception while storing views and binding with tasks");
-					    // TODO: remove all binds and views too
+					    // TODO: rollback here if hibernate doesn't do it?
 					    
-					    if (pd != null)
-						    context.getGraphSession().deleteProcessDefinition(
-						        pd);
 					    throw new RuntimeException(e);
 				    }
 			    }
