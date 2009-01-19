@@ -6,7 +6,6 @@ import java.util.Locale;
 
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
-import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.rights.Right;
@@ -14,9 +13,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  * 
- *          Last modified: $Date: 2009/01/12 12:37:02 $ by $Author: juozas $
+ *          Last modified: $Date: 2009/01/19 21:31:38 $ by $Author: civilis $
  */
 public interface ProcessInstanceW {
 
@@ -147,11 +146,6 @@ public interface ProcessInstanceW {
 	 */
 	public abstract boolean hasRight(Right right, User user);
 
-	/**
-	 * @return task instances for submitted email attachments
-	 */
-	public abstract Collection<TaskInstance> getAttachedEmailsTaskInstances();
-	
 	public List<BPMEmailDocument> getAttachedEmails();
 	
 	public TaskInstanceW createTask(final String taskName, final long tokenId);
