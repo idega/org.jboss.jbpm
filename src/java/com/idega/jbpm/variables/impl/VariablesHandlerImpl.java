@@ -30,7 +30,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $ Last modified: $Date: 2009/01/09 10:31:21 $ by $Author: juozas $
+ * @version $Revision: 1.13 $ Last modified: $Date: 2009/01/19 12:02:51 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -103,6 +103,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 		});
 	}
 	
+	@Transactional(readOnly = false)
 	public Map<String, Object> submitVariablesExplicitly(
 	        final Map<String, Object> originalVariables,
 	        final long taskInstanceId) {
