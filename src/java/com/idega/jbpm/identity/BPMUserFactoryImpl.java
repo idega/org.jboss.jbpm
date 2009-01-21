@@ -30,13 +30,14 @@ import com.idega.presentation.IWContext;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
+import com.idega.util.StringUtil;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  * 
- * Last modified: $Date: 2008/11/26 16:30:26 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/21 11:26:34 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -198,7 +199,16 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	 * @return bpm user and sets the usr as the relatead real user. BPMUser is in session scope
 	 */
 	public BPMUser getLoggedInBPMUser(Integer bpmUserPK, User usr) {
-		return getLoggedInBPMUser(IWContext.getCurrentInstance(), bpmUserPK, usr);
+		
+		IWContext iwc = IWContext.getCurrentInstance();
+		
+		if(bpmUserPK == null) {
+			
+			String bpmUsrIdStr = iwc.getExternalContext().getRequestParameterMap().get(BPMUserImpl.bpmUsrParam);
+			bpmUserPK = !StringUtil.isEmpty(bpmUsrIdStr) ? new Integer(bpmUsrIdStr) : null;
+		}
+		
+		return getLoggedInBPMUser(iwc, bpmUserPK, usr);
 	}
 	
 	/**
