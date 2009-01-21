@@ -13,9 +13,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  * 
- *          Last modified: $Date: 2009/01/19 21:31:38 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/21 10:29:37 $ by $Author: juozas $
  */
 public interface ProcessInstanceW {
 
@@ -151,4 +151,6 @@ public interface ProcessInstanceW {
 	public TaskInstanceW createTask(final String taskName, final long tokenId);
 	
 	public boolean hasEnded();
+	
+	public TaskInstanceW getStartTaskInstance();
 }

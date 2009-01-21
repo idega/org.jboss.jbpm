@@ -64,7 +64,7 @@ import com.idega.util.StringUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.58 $ Last modified: $Date: 2009/01/18 16:49:20 $ by $Author: civilis $
+ * @version $Revision: 1.59 $ Last modified: $Date: 2009/01/21 10:29:37 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -78,6 +78,8 @@ public class RolesManagerImpl implements RolesManager {
 	private BPMContext bpmContext;
 	@Autowired
 	AuthorizationService authorizationService;
+	
+	@Autowired
 	private VariablesHandler variablesHandler;
 	@Autowired
 	private PermissionsFactory permissionsFactory;
