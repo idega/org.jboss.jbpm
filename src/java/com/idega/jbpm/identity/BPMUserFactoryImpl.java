@@ -8,6 +8,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ejb.CreateException;
+import javax.ejb.FinderException;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 
 import org.jbpm.graph.exe.ProcessInstance;
@@ -35,9 +37,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  * 
- * Last modified: $Date: 2009/01/21 11:26:34 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/22 11:12:35 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -49,7 +51,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	/**
 	 * creates ic_user for BpmUser and assigns to the role provided
 	 */
-	public User createBPMUser(UserPersonalData upd, Role role, long processInstanceId) {
+	public BPMUser createBPMUser(UserPersonalData upd, Role role, long processInstanceId) {
 	
 		try {
 			FacesContext fctx = FacesContext.getCurrentInstance();
@@ -116,7 +118,11 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 			
 			assignBPMUserToRoles(pi, rolz, bpmUserAcc.getPrimaryKey().toString());
 			
-			return bpmUserAcc;
+			BPMUserImpl bpmUser = createBPMUser();
+			bpmUser.setBpmUser(bpmUserAcc);
+			bpmUser.setProcessInstanceId(processInstanceId);
+			
+			return bpmUser;
 			
 		} catch (Exception e) {
 			Logger.getLogger(BPMUserFactoryImpl.class.getName()).log(Level.SEVERE, "Exception while creating bpm user", e);
@@ -198,25 +204,46 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	/**
 	 * @return bpm user and sets the usr as the relatead real user. BPMUser is in session scope
 	 */
-	public BPMUser getLoggedInBPMUser(Integer bpmUserPK, User usr) {
+	public BPMUser getLoggedInBPMUser(String bpmUserUUID, User usr) {
 		
-		IWContext iwc = IWContext.getCurrentInstance();
-		
-		if(bpmUserPK == null) {
-			
-			String bpmUsrIdStr = iwc.getExternalContext().getRequestParameterMap().get(BPMUserImpl.bpmUsrParam);
-			bpmUserPK = !StringUtil.isEmpty(bpmUsrIdStr) ? new Integer(bpmUsrIdStr) : null;
-		}
-		
-		return getLoggedInBPMUser(iwc, bpmUserPK, usr);
+		return getLoggedInBPMUser(IWContext.getCurrentInstance(), bpmUserUUID, usr);
 	}
 	
 	/**
 	 * @return bpm user and sets the usr as the relatead real user. BPMUser is in session scope
 	 */
-	public BPMUser getLoggedInBPMUser(IWContext iwc, Integer bpmUserPK, User usr) {
+	public BPMUser getLoggedInBPMUser(IWContext iwc, String bpmUserUUID, User usr) {
 		
-		BPMUserImpl bpmUsr = getBPMUser(iwc, bpmUserPK, true);
+		if(bpmUserUUID == null) {
+			
+			ExternalContext extCtx = iwc.getExternalContext();
+			
+			if(extCtx != null) {
+				
+//				happens on redirect
+			
+				bpmUserUUID = iwc.getExternalContext().getRequestParameterMap().get(BPMUserImpl.bpmUsrParam);
+				bpmUserUUID = !StringUtil.isEmpty(bpmUserUUID) ? bpmUserUUID : null;
+				
+				if(bpmUserUUID != null) {
+					
+					//TODO: backward compat. remove after some time (current date is 20090121)
+					if(bpmUserUUID.length() != 36) {
+						
+						try {
+							Integer usrId = new Integer(bpmUserUUID);
+							User user = getUserBusiness(IWMainApplication.getDefaultIWApplicationContext()).getUser(usrId);
+							bpmUserUUID = user.getUniqueId();
+		                    
+	                    } catch (Exception e) {
+		                    e.printStackTrace();
+	                    }
+					}
+				}
+			}
+		}
+		
+		BPMUserImpl bpmUsr = getBPMUser(null, bpmUserUUID, true);
 		
 		if(usr == null) {
 			
@@ -234,25 +261,19 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	
 	/**
 	 * 
-	 * @param iwc
 	 * @param bpmUserPK - user entity bean primary key of bpm user
 	 * @return bpm user in prototype scope
 	 */
-	public BPMUser getBPMUser(IWContext iwc, Integer bpmUserPK) {
+	public BPMUser getBPMUser(Integer bpmUserPK) {
 		
-		return getBPMUser(iwc, bpmUserPK, false);
+		return getBPMUser(bpmUserPK, null, false);
 	}
 	
-	private BPMUserImpl getBPMUser(IWContext iwc, Integer bpmUserPK, boolean sessionScope) {
+	private BPMUserImpl getBPMUser(Integer bpmUserPK, String bpmUserUUID, boolean sessionScope) {
 		
-		if(iwc == null) {
-			logger.log(Level.WARNING, "Tried to get bpm user, but no IWContext provided");
-			return null;
-		}
-		
-		if(!sessionScope && bpmUserPK == null) {
+		if(!sessionScope && bpmUserPK == null && StringUtil.isEmpty(bpmUserUUID)) {
 			
-			logger.log(Level.WARNING, "Tried to get bpm user, but no bpmUser primary key provided");
+			logger.log(Level.WARNING, "Tried to get bpm user, but no bpmUser primary key or uuid provided");
 			return null;
 		}
 		
@@ -265,23 +286,39 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 			bpmUsr = createBPMUser();
 		}
 		
-		if(bpmUserPK != null && (bpmUsr.getBpmUser() == null || !bpmUsr.getBpmUser().getPrimaryKey().equals(bpmUserPK))) {
+//		we resolve bpm user if it's not already resolved, or if it doesn't match the pk or uuid provided in the params
+		if(bpmUsr.getBpmUser() == null || ((bpmUserPK != null && !bpmUsr.getBpmUser().getPrimaryKey().equals(bpmUserPK)) || (!StringUtil.isEmpty(bpmUserUUID) && !bpmUsr.getBpmUser().getUniqueId().equals(bpmUserUUID))) ) {
 			
-			IWApplicationContext iwac = IWMainApplication.getIWMainApplication(iwc).getIWApplicationContext();
-			
-			try {
-				User bpmUsrAcc = getUserBusiness(iwac).getUser(bpmUserPK);
+			if(bpmUserPK != null || bpmUserUUID != null) {
 				
-				if(bpmUsrAcc != null) {
+				IWApplicationContext iwac = IWMainApplication.getDefaultIWApplicationContext();
+				
+				try {
+					User bpmUsrAcc;
 					
-					bpmUsr.setBpmUser(bpmUsrAcc);
+					if(bpmUserPK != null) {
 					
-				} else {
-					logger.log(Level.WARNING, "no BPMUser account found by bpmUserPK provided: "+bpmUserPK);
+						bpmUsrAcc = getUserBusiness(iwac).getUser(bpmUserPK);
+					} else {
+						try {
+							bpmUsrAcc = getUserBusiness(iwac).getUserByUniqueId(bpmUserUUID);
+		                    
+	                    } catch (FinderException e) {
+	                    	bpmUsrAcc = null;
+	                    }
+					}
+					
+					if(bpmUsrAcc != null) {
+						
+						bpmUsr.setBpmUser(bpmUsrAcc);
+						
+					} else {
+						logger.log(Level.WARNING, "no BPMUser account found by bpmUserPK "+bpmUserPK+" or bpmUserUUID "+bpmUserUUID+" provided");
+					}
+					
+				} catch (RemoteException e) {
+					throw new IBORuntimeException(e);
 				}
-				
-			} catch (RemoteException e) {
-				throw new IBORuntimeException(e);
 			}
 		}
 		
@@ -381,15 +418,6 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 			throw new IBORuntimeException(ile);
 		}
 	}
-	
-//	private GroupBusiness getGroupBusiness(IWApplicationContext iwac) {
-//		try {
-//			return (GroupBusiness) IBOLookup.getServiceInstance(iwac, GroupBusiness.class);
-//		}
-//		catch (IBOLookupException ile) {
-//			throw new IBORuntimeException(ile);
-//		}
-//	}
 	
 	public BPMDAO getBpmDAO() {
 		return bpmDAO;

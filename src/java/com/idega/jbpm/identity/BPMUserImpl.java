@@ -1,6 +1,8 @@
 package com.idega.jbpm.identity;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,19 +14,18 @@ import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
+import com.idega.util.URIParam;
 import com.idega.util.URIUtil;
 
 /**
- *  
- * Wrapper of at least one, or two user entities, which correspond to bpm-user account and/or to logged-in user's account. <br />
- * bpm-user account represents shared account, which unifies not logged in users, and/or logged in users. <br /> 
+ * Wrapper of at least one, or two user entities, which correspond to bpm-user account and/or to
+ * logged-in user's account. <br />
+ * bpm-user account represents shared account, which unifies not logged in users, and/or logged in
+ * users. <br />
  * Use case example is when user gets to the process by following link.
- *   
- *   
- * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2009/01/14 14:29:56 $ by $Author: civilis $
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.7 $ Last modified: $Date: 2009/01/22 11:12:35 $ by $Author: civilis $
  */
 public class BPMUserImpl implements BPMUser {
 	
@@ -38,34 +39,41 @@ public class BPMUserImpl implements BPMUser {
 	public User getBpmUser() {
 		return bpmUser;
 	}
+	
 	public void setBpmUser(User bpmUser) {
 		setIsAssociated(null);
 		processInstanceId = null;
 		this.bpmUser = bpmUser;
 	}
+	
 	public User getRealUser() {
 		return realUser;
 	}
+	
 	public void setRealUser(User realUser) {
 		setIsAssociated(null);
 		this.realUser = realUser;
 	}
+	
 	public Boolean getIsAssociated(boolean clean) {
 		
-		if(clean || isAssociated == null) {
-
-			if(getBpmUser() != null && getRealUser() != null) {
+		if (clean || isAssociated == null) {
+			
+			if (getBpmUser() != null && getRealUser() != null) {
 				
-				isAssociated = getBpmUserFactory().isAssociated(getRealUser(), getBpmUser(), true);
+				isAssociated = getBpmUserFactory().isAssociated(getRealUser(),
+				    getBpmUser(), true);
 			}
 		}
 		
 		return isAssociated == null ? false : isAssociated;
 	}
+	
 	public Boolean getIsAssociated() {
 		
 		return getIsAssociated(false);
 	}
+	
 	public void setIsAssociated(Boolean isAssociated) {
 		this.isAssociated = isAssociated;
 	}
@@ -73,20 +81,22 @@ public class BPMUserImpl implements BPMUser {
 	public BPMUserFactory getBpmUserFactory() {
 		return bpmUserFactory;
 	}
+	
 	@Autowired
 	public void setBpmUserFactory(BPMUserFactory bpmUserFactory) {
 		this.bpmUserFactory = bpmUserFactory;
 	}
+	
 	public Integer getIdToUse() {
 		
 		User usr = getUserToUse();
 		
-		if(usr != null) {
+		if (usr != null) {
 			
 			Object pk = usr.getPrimaryKey();
 			
-			if(pk instanceof Integer)
-				return (Integer)pk;
+			if (pk instanceof Integer)
+				return (Integer) pk;
 			else
 				return new Integer(pk.toString());
 			
@@ -97,10 +107,11 @@ public class BPMUserImpl implements BPMUser {
 	
 	public User getUserToUse() {
 		
-		if(getRealUser() != null && (getIsAssociated(false) || getBpmUser() == null)) {
+		if (getRealUser() != null
+		        && (getIsAssociated(false) || getBpmUser() == null)) {
 			
 			return getRealUser();
-		} else if(getBpmUser() != null) {
+		} else if (getBpmUser() != null) {
 			return getBpmUser();
 		} else
 			return null;
@@ -110,20 +121,31 @@ public class BPMUserImpl implements BPMUser {
 		
 		IWContext iwc = getIwc();
 		
-		if(iwc == null) {
-			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to get url to the process, but no IWContext set");
+		if (iwc == null) {
+			Logger.getLogger(getClass().getName()).log(Level.WARNING,
+			    "Tried to get url to the process, but no IWContext set");
 		}
 		
-		if(getProcessInstanceId() == null) {
-			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to get url to the process, but no process instance id resolved from bpm user="+getBpmUser().getPrimaryKey());
+		if (getProcessInstanceId() == null) {
+			Logger
+			        .getLogger(getClass().getName())
+			        .log(
+			            Level.WARNING,
+			            "Tried to get url to the process, but no process instance id resolved from bpm user="
+			                    + getBpmUser().getPrimaryKey());
 		}
 		
 		String fullUrl = getAssetsUrl(iwc);
 		
 		final URIUtil uriUtil = new URIUtil(fullUrl);
 		
-		uriUtil.setParameter(processInstanceIdParam, getProcessInstanceId().toString());
-		uriUtil.setParameter(BPMUser.bpmUsrParam, getBpmUser().getPrimaryKey().toString());
+		List<URIParam> params = getParamsForBPMUserLink();
+		
+		for (URIParam param : params) {
+	        
+			uriUtil.setParameter(param.getParamName(), param.getParamValue());
+        }
+		
 		fullUrl = uriUtil.getUri();
 		
 		return fullUrl;
@@ -131,8 +153,10 @@ public class BPMUserImpl implements BPMUser {
 	
 	private String getAssetsUrl(IWContext iwc) {
 		
-//		TODO: try to resolve url from app prop, if fail, then use default page type, and resolve from it (as it is now)
-		String fullUrl = getBuilderService(iwc).getFullPageUrlByPageType(iwc, defaultAssetsViewPageType, true);
+		// TODO: try to resolve url from app prop, if fail, then use default page type, and resolve
+		// from it (as it is now)
+		String fullUrl = getBuilderService(iwc).getFullPageUrlByPageType(iwc,
+		    defaultAssetsViewPageType, true);
 		return fullUrl;
 	}
 	
@@ -144,25 +168,43 @@ public class BPMUserImpl implements BPMUser {
 			throw new IBORuntimeException(e);
 		}
 	}
+	
 	public void setIwc(IWContext iwc) {
 		this.iwc = iwc;
 	}
+	
 	IWContext getIwc() {
 		
-		if(iwc == null)
+		if (iwc == null)
 			iwc = IWContext.getCurrentInstance();
 		
 		return iwc;
 	}
+	
 	Long getProcessInstanceId() {
 		
-		if(processInstanceId == null) {
-		
+		if (processInstanceId == null) {
+			
 			User usr = getBpmUser();
-			String processInstanceIdStr = usr.getMetaData(BPMUser.PROCESS_INSTANCE_ID);
+			String processInstanceIdStr = usr
+			        .getMetaData(BPMUser.PROCESS_INSTANCE_ID);
 			processInstanceId = new Long(processInstanceIdStr);
 		}
 		
 		return processInstanceId;
+	}
+	
+	public void setProcessInstanceId(Long processInstanceId) {
+		this.processInstanceId = processInstanceId;
+	}
+	
+	public List<URIParam> getParamsForBPMUserLink() {
+		
+		ArrayList<URIParam> params = new ArrayList<URIParam>(2);
+		params.add(new URIParam(BPMUser.processInstanceIdParam,
+		        getProcessInstanceId().toString()));
+		params.add(new URIParam(BPMUser.bpmUsrParam, getBpmUser().getUniqueId()));
+		
+		return params;
 	}
 }
