@@ -78,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.99 $ Last modified: $Date: 2009/01/14 10:09:05 $ by $Author: juozas $
+ * @version $Revision: 1.100 $ Last modified: $Date: 2009/01/23 11:44:38 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -151,6 +151,8 @@ public class ProcessArtifacts {
 								.append(getJavaScriptActionForPDF(iwrb, taskInstanceId, null, message, errorMessage)).append("\" />").toString());
 				}
 			}
+			
+//			FIXME: don't use client side stuff for validating security constraints, check if rights changer in this method. 
 			if (params.isRightsChanger()) {
 				addRightsChangerCell(row, processInstanceId, taskInstanceId, null, null, true);
 			}
@@ -830,9 +832,6 @@ public class ProcessArtifacts {
 			getBpmFactory().getRolesManager().checkPermission(perm);
 			
 		} catch (AccessControlException e) {
-			// logger.log(Level.SEVERE,
-			// "Current user does not have rights to change access rights to resources of process: "
-			// + processInstanceId, e);
 			return false;
 		}
 		

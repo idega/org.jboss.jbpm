@@ -20,13 +20,14 @@ import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.presentation.IWContext;
+import com.idega.util.ListUtil;
 
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/10/22 15:12:51 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/23 11:44:38 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -71,6 +72,8 @@ public class AccessManagementPermissionsHandler implements BPMTypedHandler {
 		
 			Long processInstanceId = permission.getAttribute(processInstanceIdAtt);
 			
+//			TODO: use BPMDAOIMPL.getPermissionsForUser
+			
 			if(processInstanceId == null)
 				throw new RuntimeException("No process instance id found in permission="+permission.getClass().getName());
 			
@@ -79,24 +82,25 @@ public class AccessManagementPermissionsHandler implements BPMTypedHandler {
 			
 			if(roleNames != null && !roleNames.isEmpty()) {
 			
-				List<Actor> proles = 
+				List<Actor> actorsForRoles = 
 					getBpmBindsDAO().getResultList(Actor.getSetByRoleNamesAndPIId, Actor.class,
 							new Param(Actor.processInstanceIdProperty, processInstanceId),
 							new Param(Actor.processRoleNameProperty, roleNames)
 					);
 				
-				if(proles == null || proles.isEmpty())
-					throw new AccessControlException("No process role found by role names="+roleNames.toString() +" and process instance id = "+processInstanceId);
-				
-				Actor prole = proles.iterator().next();
-				
-				AccessController ac = getAccessController();
-				IWApplicationContext iwac = getIWMA().getIWApplicationContext();
-				
-				List<NativeIdentityBind> nativeIdentities = prole.getNativeIdentities();
-				
-				if(getRolesManager().checkFallsInRole(prole.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
-					return;
+				if(!ListUtil.isEmpty(actorsForRoles)) {
+
+					for (Actor actor : actorsForRoles) {
+					
+						AccessController ac = getAccessController();
+						IWApplicationContext iwac = getIWMA().getIWApplicationContext();
+						
+						List<NativeIdentityBind> nativeIdentities = actor.getNativeIdentities();
+						
+						if(getRolesManager().checkFallsInRole(actor.getProcessRoleName(), nativeIdentities, userId, ac, iwac))
+							return;
+					}
+				}
 			}
 			
 			throw new AccessControlException("No access management permission for user="+userId+", for processInstanceId="+processInstanceId);
