@@ -1,5 +1,6 @@
 package com.idega.jbpm.exe.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,29 +23,28 @@ import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
-import com.idega.jbpm.exe.BPMManagersFactory;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
-import com.idega.jbpm.view.ViewSubmission;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewFactory;
+import com.idega.jbpm.view.ViewSubmission;
 import com.idega.jbpm.view.ViewSubmissionImpl;
 import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  * 
- *          Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
 @Transactional(readOnly = true)
 public class BPMFactoryImpl implements BPMFactory {
 
-	private final Map<String, String> creatorTypeCreatorBeanIdentifier;
+	private Map<String, ProcessManager> processManagers;
 	private final Map<String, String> viewTypeFactoryBeanIdentifier;
 
 	@Autowired
@@ -59,7 +59,6 @@ public class BPMFactoryImpl implements BPMFactory {
 	private PermissionsFactory permissionsFactory;
 
 	public BPMFactoryImpl() {
-		creatorTypeCreatorBeanIdentifier = new HashMap<String, String>(5);
 		viewTypeFactoryBeanIdentifier = new HashMap<String, String>(5);
 	}
 
@@ -71,7 +70,7 @@ public class BPMFactoryImpl implements BPMFactory {
 
 				ProcessDefinition pd = context.getGraphSession()
 						.getProcessDefinition(processDefinitionId);
-				return getManagersCreator(pd.getName()).getProcessManager();
+				return getProcessManager(pd.getName());
 			}
 		});
 	}
@@ -194,25 +193,6 @@ public class BPMFactoryImpl implements BPMFactory {
 		return viewFactory;
 	}
 
-	protected BPMManagersFactory getManagersCreator(String processName) {
-
-		String managersType = resolveManagersType(processName);
-
-		BPMManagersFactory creator;
-
-		if (getCreatorTypeCreatorBeanIdentifier().containsKey(managersType)) {
-			creator = ELUtil.getInstance().getBean(
-					creatorTypeCreatorBeanIdentifier.get(managersType));
-
-		} else {
-			throw new IllegalStateException(
-					"No managers creator registered for type resolved: "
-							+ managersType + ", process name: " + processName);
-		}
-
-		return creator;
-	}
-
 	protected String resolveManagersType(String processName) {
 
 		ProcessManagerBind pm = getBPMDAO().getProcessManagerBind(processName);
@@ -226,28 +206,16 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	@Autowired(required = false)
-	public void setBPManagersFactories(
-			List<BPMManagersFactory> bpmManagersFactories) {
+	public void setProcessManagers(List<ProcessManager> processManagersList) {
 
-		for (BPMManagersFactory managersFactory : bpmManagersFactories) {
+		// hashmap is thread safe for read only ops
+		processManagers = new HashMap<String, ProcessManager>(
+				processManagersList.size());
 
-			if (managersFactory.getManagersType() == null)
-				throw new IllegalArgumentException(
-						"Managers factory type not specified for factory: "
-								+ managersFactory);
+		for (ProcessManager processManager : processManagersList) {
 
-			String beanIdentifier = managersFactory.getBeanIdentifier();
-
-			if (beanIdentifier == null) {
-				Logger
-						.getLogger(BPMFactory.class.getName())
-						.log(
-								Level.WARNING,
-								"No bean identifier provided for managers factory, ignoring. Managers factory: "
-										+ managersFactory.getClass().getName());
-			} else
-				getCreatorTypeCreatorBeanIdentifier().put(
-						managersFactory.getManagersType(), beanIdentifier);
+			processManagers
+					.put(processManager.getManagerType(), processManager);
 		}
 	}
 
@@ -272,11 +240,6 @@ public class BPMFactoryImpl implements BPMFactory {
 				getViewTypeFactoryBeanIdentifier().put(
 						viewFactory.getViewType(), beanIdentifier);
 		}
-	}
-
-	protected Map<String, String> getCreatorTypeCreatorBeanIdentifier() {
-
-		return creatorTypeCreatorBeanIdentifier;
 	}
 
 	public BPMDAO getBPMDAO() {
@@ -347,24 +310,13 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	public ProcessManager getProcessManagerByType(String managerType) {
 
-		BPMManagersFactory creator;
-
-		if (getCreatorTypeCreatorBeanIdentifier().containsKey(managerType)) {
-			creator = ELUtil.getInstance().getBean(
-					creatorTypeCreatorBeanIdentifier.get(managerType));
-
-		} else {
-			throw new IllegalStateException(
-					"No managers creator registered for type resolved: "
-							+ managerType);
-		}
-
-		return creator.getProcessManager();
+		return getProcessManagers().get(managerType);
 	}
 
 	public ProcessManager getProcessManager(String processName) {
 
-		return getManagersCreator(processName).getProcessManager();
+		String managerType = resolveManagersType(processName);
+		return getProcessManagerByType(managerType);
 	}
 
 	public ViewSubmission getViewSubmission() {
@@ -373,5 +325,13 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	public PermissionsFactory getPermissionsFactory() {
 		return permissionsFactory;
+	}
+
+	public Map<String, ProcessManager> getProcessManagers() {
+
+		if (processManagers == null)
+			processManagers = Collections.emptyMap();
+
+		return processManagers;
 	}
 }

@@ -5,42 +5,47 @@ import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Document;
+
 import com.idega.idegaweb.IWBundle;
 import com.idega.util.CoreConstants;
-
+import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- * Last modified: $Date: 2008/07/19 20:41:08 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
  */
 public class JarModuleBundleResourcesImpl implements ProcessBundleResources {
 
 	private IWBundle bundle;
-	private String bundlePropertiesLocationWithinBundle;
-	
-	public void close() {
-		
-	}
-	
-	public InputStream getResourceIS(String path) {
-		
-		String templateBundleLocationWithinBundle = getBundlePropertiesLocationWithinBundle().substring(0, getBundlePropertiesLocationWithinBundle().lastIndexOf(CoreConstants.SLASH)+1);
+	private String processBundleLocationWithinBundle;
+	private Document bundleConfigXML;
 
-		if (templateBundleLocationWithinBundle == null)
+	public InputStream getResourceIS(String path) {
+
+		String processBundleLocationWithinBundle = getProcessBundleLocationWithinBundle();
+
+		if (processBundleLocationWithinBundle == null)
 			throw new IllegalStateException(
 					"No templateBundleLocationWithinBundle set");
-		
-		path = templateBundleLocationWithinBundle + path;
-		
+
+		if (path.startsWith(CoreConstants.SLASH))
+			path = path.substring(1);
+
+		path = processBundleLocationWithinBundle + path;
+
 		try {
 			InputStream is = getBundle().getResourceInputStream(path);
-			
+
 			return is;
-			
+
 		} catch (IOException e) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Resource not found by the path="+path+" at bundle="+getBundle().getBundleIdentifier());
+			Logger.getLogger(getClass().getName()).log(
+					Level.SEVERE,
+					"Resource not found by the path=" + path + " at bundle="
+							+ getBundle().getBundleIdentifier());
 		}
 
 		return null;
@@ -53,13 +58,33 @@ public class JarModuleBundleResourcesImpl implements ProcessBundleResources {
 	public void setBundle(IWBundle bundle) {
 		this.bundle = bundle;
 	}
-	
-	public String getBundlePropertiesLocationWithinBundle() {
-		return bundlePropertiesLocationWithinBundle;
+
+	public Document getConfiguration() {
+
+		if (bundleConfigXML == null) {
+
+			String configFileName = "bundle.xml";
+			InputStream bundleConfigIS = getResourceIS(configFileName);
+
+			if (bundleConfigIS == null)
+				throw new RuntimeException("No " + configFileName + " found");
+
+			bundleConfigXML = XmlUtil.getXMLDocument(bundleConfigIS);
+		}
+
+		return bundleConfigXML;
 	}
 
-	public void setBundlePropertiesLocationWithinBundle(
-			String bundlePropertiesLocationWithinBundle) {
-		this.bundlePropertiesLocationWithinBundle = bundlePropertiesLocationWithinBundle;
+	public String getProcessBundleLocationWithinBundle() {
+
+		if (!processBundleLocationWithinBundle.endsWith(CoreConstants.SLASH))
+			processBundleLocationWithinBundle += CoreConstants.SLASH;
+
+		return processBundleLocationWithinBundle;
+	}
+
+	public void setProcessBundleLocationWithinBundle(
+			String processBundleLocationWithinBundle) {
+		this.processBundleLocationWithinBundle = processBundleLocationWithinBundle;
 	}
 }

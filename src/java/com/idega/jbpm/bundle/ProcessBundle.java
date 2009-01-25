@@ -12,9 +12,9 @@ import com.idega.jbpm.view.ViewResource;
  * viewResources for this bundle
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- *          Last modified: $Date: 2008/12/09 02:46:40 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
  */
 public interface ProcessBundle {
 
@@ -44,7 +44,19 @@ public interface ProcessBundle {
 	 */
 	public abstract void configure(ProcessDefinition pd);
 
-	public abstract String getManagersType();
+	/**
+	 * 
+	 * @return process managers type configured in the bundle, or if not,
+	 *         default provided in process bundle implementation
+	 */
+	public abstract String getProcessManagerType();
+
+	/**
+	 * 
+	 * @param processManagerType
+	 *            set if found in the bundle configuration
+	 */
+	public abstract void setProcessManagerType(String processManagerType);
 
 	public abstract void setBundleResources(
 			ProcessBundleResources bundleResources);

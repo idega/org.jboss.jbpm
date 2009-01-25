@@ -6,9 +6,9 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- *          Last modified: $Date: 2008/12/28 12:08:03 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
  */
 public interface ProcessManager {
 
@@ -27,4 +27,6 @@ public interface ProcessManager {
 	public abstract TaskInstanceW getTaskInstance(TaskInstance ti);
 
 	public abstract List<ProcessDefinitionW> getAllProcesses();
+
+	public abstract String getManagerType();
 }
