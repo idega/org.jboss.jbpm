@@ -13,6 +13,7 @@ import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 
 import org.jbpm.graph.exe.ProcessInstance;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,9 +38,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  * 
- * Last modified: $Date: 2009/01/22 11:12:35 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/25 16:53:10 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -216,28 +217,31 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		
 		if(bpmUserUUID == null) {
 			
-			ExternalContext extCtx = iwc.getExternalContext();
+			if(iwc != null) {
 			
-			if(extCtx != null) {
+				ExternalContext extCtx = iwc.getExternalContext();
 				
-//				happens on redirect
-			
-				bpmUserUUID = iwc.getExternalContext().getRequestParameterMap().get(BPMUserImpl.bpmUsrParam);
-				bpmUserUUID = !StringUtil.isEmpty(bpmUserUUID) ? bpmUserUUID : null;
-				
-				if(bpmUserUUID != null) {
+				if(extCtx != null) {
 					
-					//TODO: backward compat. remove after some time (current date is 20090121)
-					if(bpmUserUUID.length() != 36) {
+//					happens on redirect
+				
+					bpmUserUUID = extCtx.getRequestParameterMap().get(BPMUserImpl.bpmUsrParam);
+					bpmUserUUID = !StringUtil.isEmpty(bpmUserUUID) ? bpmUserUUID : null;
+					
+					if(bpmUserUUID != null) {
 						
-						try {
-							Integer usrId = new Integer(bpmUserUUID);
-							User user = getUserBusiness(IWMainApplication.getDefaultIWApplicationContext()).getUser(usrId);
-							bpmUserUUID = user.getUniqueId();
-		                    
-	                    } catch (Exception e) {
-		                    e.printStackTrace();
-	                    }
+						//TODO: backward compat. remove after some time (current date is 20090121)
+						if(bpmUserUUID.length() != 36) {
+							
+							try {
+								Integer usrId = new Integer(bpmUserUUID);
+								User user = getUserBusiness(IWMainApplication.getDefaultIWApplicationContext()).getUser(usrId);
+								bpmUserUUID = user.getUniqueId();
+			                    
+		                    } catch (Exception e) {
+			                    e.printStackTrace();
+		                    }
+						}
 					}
 				}
 			}
@@ -281,7 +285,17 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		final BPMUserImpl bpmUsr;
 		
 		if(sessionScope) {
-			bpmUsr = createLoggedInBPMUser();
+			
+			try {
+				bpmUsr = createLoggedInBPMUser();
+				
+			} catch (BeanCreationException e) {
+				
+//				TODO: this happens, when assignment is tried to be done from non user bound thread (no session), e.g. from email attacher.
+//				we need to find a way to check for a user session existence, instead of catching exception here
+				return null;
+			}
+			
 		} else {
 			bpmUsr = createBPMUser();
 		}
