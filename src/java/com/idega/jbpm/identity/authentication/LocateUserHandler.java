@@ -33,9 +33,9 @@ import com.idega.util.CoreConstants;
  * provided.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- *          Last modified: $Date: 2009/01/16 08:11:16 $ by $Author: arunas $
+ *          Last modified: $Date: 2009/01/26 16:27:00 $ by $Author: arunas $
  */
 @Service("locateUserHandler")
 @Scope("prototype")
@@ -152,7 +152,7 @@ public class LocateUserHandler implements ActionHandler {
 							.getPostalCodeHome()
 							.findByPostalCode(postalCodeStr);
 				} catch (FinderException e) {
-					postalCode = userBusiness.getAddressBusiness().getPostalCodeAndCreateIfDoesNotExist(postalCodeStr, new StringBuilder().append(municipalityName).toString());
+					postalCode = userBusiness.getAddressBusiness().getPostalCodeAndCreateIfDoesNotExist(postalCodeStr, municipalityName);
 				}
 
 			} else
