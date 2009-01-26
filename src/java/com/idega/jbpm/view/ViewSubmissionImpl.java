@@ -11,8 +11,9 @@ public class ViewSubmissionImpl implements ViewSubmission {
 	private String viewId;
 	private String viewType;
 
-	public void populateVariables(Map<String, Object> variables) {
-		this.variables = variables;
+	@SuppressWarnings("unchecked")
+	public void populateVariables(Map<String, ? extends Object> variables) {
+		this.variables = (Map<String, Object>)variables;
 	}
 
 	public Map<String, Object> resolveVariables() {

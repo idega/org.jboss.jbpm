@@ -7,7 +7,7 @@ import java.util.Map;
  */
 public interface ViewSubmission {
 
-	public abstract void populateVariables(Map<String, Object> variables);
+	public abstract void populateVariables(Map<String, ? extends Object> variables);
 
 	public abstract Map<String, Object> resolveVariables();
 
