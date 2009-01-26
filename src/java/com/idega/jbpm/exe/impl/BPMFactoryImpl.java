@@ -31,13 +31,12 @@ import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewFactory;
 import com.idega.jbpm.view.ViewSubmission;
 import com.idega.jbpm.view.ViewSubmissionImpl;
-import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  * 
- *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/26 15:11:40 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -45,7 +44,7 @@ import com.idega.util.expression.ELUtil;
 public class BPMFactoryImpl implements BPMFactory {
 
 	private Map<String, ProcessManager> processManagers;
-	private final Map<String, String> viewTypeFactoryBeanIdentifier;
+	private Map<String, ViewFactory> viewFactories;
 
 	@Autowired
 	private BPMDAO bpmDAO;
@@ -57,10 +56,6 @@ public class BPMFactoryImpl implements BPMFactory {
 	private BPMUserFactory bpmUserFactory;
 	@Autowired
 	private PermissionsFactory permissionsFactory;
-
-	public BPMFactoryImpl() {
-		viewTypeFactoryBeanIdentifier = new HashMap<String, String>(5);
-	}
 
 	public ProcessManager getProcessManager(final long processDefinitionId) {
 
@@ -181,9 +176,8 @@ public class BPMFactoryImpl implements BPMFactory {
 
 		ViewFactory viewFactory;
 
-		if (getViewTypeFactoryBeanIdentifier().containsKey(viewType)) {
-			viewFactory = ELUtil.getInstance().getBean(
-					getViewTypeFactoryBeanIdentifier().get(viewType));
+		if (getViewFactories().containsKey(viewType)) {
+			viewFactory = getViewFactories().get(viewType);
 
 		} else {
 			throw new IllegalStateException(
@@ -219,36 +213,8 @@ public class BPMFactoryImpl implements BPMFactory {
 		}
 	}
 
-	@Autowired(required = false)
-	public void setViewsFactories(List<ViewFactory> viewsFactories) {
-
-		for (ViewFactory viewFactory : viewsFactories) {
-
-			if (viewFactory.getViewType() == null)
-				throw new IllegalArgumentException(
-						"View factory type not specified for factory: "
-								+ viewFactory);
-
-			String beanIdentifier = viewFactory.getBeanIdentifier();
-
-			if (beanIdentifier == null) {
-				Logger.getLogger(BPMFactory.class.getName()).log(
-						Level.WARNING,
-						"No bean identifier provided for view factory, ignoring. View factory: "
-								+ viewFactory.getClass().getName());
-			} else
-				getViewTypeFactoryBeanIdentifier().put(
-						viewFactory.getViewType(), beanIdentifier);
-		}
-	}
-
 	public BPMDAO getBPMDAO() {
 		return bpmDAO;
-	}
-
-	public Map<String, String> getViewTypeFactoryBeanIdentifier() {
-
-		return viewTypeFactoryBeanIdentifier;
 	}
 
 	public ProcessManager getProcessManagerByTaskInstanceId(
@@ -333,5 +299,27 @@ public class BPMFactoryImpl implements BPMFactory {
 			processManagers = Collections.emptyMap();
 
 		return processManagers;
+	}
+
+	public Map<String, ViewFactory> getViewFactories() {
+		
+		if (viewFactories == null)
+			viewFactories = Collections.emptyMap();
+		
+		return viewFactories;
+	}
+	
+	@Autowired(required = false)
+	public void setViewFactories(List<ViewFactory> viewFactoriesList) {
+
+		// hashmap is thread safe for read only ops
+		viewFactories = new HashMap<String, ViewFactory>(
+				viewFactoriesList.size());
+
+		for (ViewFactory viewFactory : viewFactoriesList) {
+
+			viewFactories
+					.put(viewFactory.getViewType(), viewFactory);
+		}
 	}
 }

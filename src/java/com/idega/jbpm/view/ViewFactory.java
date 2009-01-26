@@ -8,9 +8,9 @@ import com.google.common.collect.Multimap;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/19 13:52:40 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/26 15:11:40 $ by $Author: civilis $
  */
 public interface ViewFactory {
 
@@ -19,8 +19,6 @@ public interface ViewFactory {
 	public abstract View getView(String viewIdentifier, boolean submitable);
 	
 	public abstract TaskView getTaskView(Task task);
-	
-	public abstract String getBeanIdentifier();
 	
 	public abstract Multimap<Long, TaskView> getAllViewsByProcessDefinitions(Collection<Long> processDefinitionsIds);
 }
