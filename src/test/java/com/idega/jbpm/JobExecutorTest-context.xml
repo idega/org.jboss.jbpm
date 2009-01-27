@@ -25,7 +25,9 @@
         </bean>
         -->
         <bean id="bpmVariableResolver" class="com.idega.jbpm.variables.VariablesResolver" />
+        <!--  
         <bean id="testHandlerForSpringIntegration" class="com.idega.jbpm.HandlerForSpringIntegrationTest" />
+        -->
         
         
         <bean id="jbpmConfigurationWrapper" class="org.jbpm.JbpmConfigurationW" factory-method="createJbpmConfiguration" scope="singleton">

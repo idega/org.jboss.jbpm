@@ -7,9 +7,8 @@ import org.jbpm.graph.exe.ExecutionContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-@Service("testHandlerForSpringIntegration")
-@Scope("singleton")
-public class HandlerForSpringIntegrationTest implements ActionHandler {
+//@Service("testHandlerForSpringIntegration")
+public class HandlerForSpringIntegration implements ActionHandler {
 
 	private static final long serialVersionUID = 1L;
 
