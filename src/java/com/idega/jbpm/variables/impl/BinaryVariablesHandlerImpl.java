@@ -38,9 +38,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  *
- * Last modified: $Date: 2008/10/14 18:30:18 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/27 18:16:20 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -129,12 +129,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		
 		final FileInfo fileInfo = fileURIHandler.getFileInfo(fileUri);
 		String fileName = fileInfo.getFileName();
-		
-//		replace windows absolute path filename with just filename
-		if(fileName.contains(CoreConstants.BACK_SLASH)) {
-			int lastBackSlashIndex = fileName.lastIndexOf(CoreConstants.BACK_SLASH);
-			fileName = fileName.substring(lastBackSlashIndex + 1);
-		}
 		
 		try {
 			IWSlideService slideService = getIWSlideService();
