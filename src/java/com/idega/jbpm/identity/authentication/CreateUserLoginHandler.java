@@ -24,9 +24,9 @@ import com.idega.util.IWTimestamp;
  * used as login name.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2009/01/27 14:20:30 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/27 14:27:11 $ by $Author: civilis $
  */
 @Service("createUserLoginHandler")
 @Scope("prototype")
@@ -37,6 +37,8 @@ public class CreateUserLoginHandler implements ActionHandler {
 
 	public void execute(ExecutionContext ectx) throws Exception {
 
+		throw new UnsupportedOperationException("Not supported yet till userbusiness cannot be commited");
+		/*
 		if (getUserData() != null) {
 
 			UserPersonalData upd = getUserData();
@@ -62,6 +64,7 @@ public class CreateUserLoginHandler implements ActionHandler {
 					"Called create user handler, but no user data provided. Process instance id="
 							+ ectx.getProcessInstance().getId());
 		}
+		*/
 	}
 
 	protected UserBusiness getUserBusiness() {
