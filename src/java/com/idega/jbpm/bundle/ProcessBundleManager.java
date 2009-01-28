@@ -40,7 +40,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $ Last modified: $Date: 2009/01/28 15:34:36 $ by
+ * @version $Revision: 1.16 $ Last modified: $Date: 2009/01/28 21:09:13 $ by
  *          $Author: civilis $
  */
 @Scope("prototype")
@@ -208,6 +208,7 @@ public class ProcessBundleManager {
 				roleNames.add(role.getRoleName());
 			}
 			
+//			TODO: this need to be outside if, i.e. admin still should have access to the folder, even if process doesn't have any roles
 			roleNames.add(StandardRoles.ROLE_KEY_ADMIN);
 
 			try {
