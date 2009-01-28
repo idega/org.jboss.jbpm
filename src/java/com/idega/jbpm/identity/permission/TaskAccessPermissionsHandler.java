@@ -18,20 +18,20 @@ import org.springframework.stereotype.Service;
 
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.core.persistence.Param;
-import com.idega.user.data.User;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.NativeIdentityBind;
-import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.presentation.IWContext;
+import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $ Last modified: $Date: 2009/01/18 16:50:39 $ by $Author: civilis $
+ * @version $Revision: 1.6 $ Last modified: $Date: 2009/01/28 21:09:51 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -137,6 +137,8 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 		
 		ProcessInstance mainProcessInstance = taskInstance.getProcessInstance();
 		
+		Long taskInstanceProcessInstanceId = mainProcessInstance.getId();
+		
 		if (mainProcessInstance.getSuperProcessToken() != null) {
 			
 			// actors are bound with main process instance, therefore we find it here (in case task
@@ -159,6 +161,16 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 		
 		List<ActorPermissions> userPermissions = bpmDAO.getPermissionsForUser(
 		    userId, processName, processInstanceId, nativeRoles, userGroupsIds);
+		
+		if(!processInstanceId.equals(taskInstanceProcessInstanceId)) {
+//			this is backward compatibily for subprocesses tasks, which created actors not for the outermost parent, but for the subprocess pids
+//			20090128
+			
+//			TODO: add warning (and possibly send email here) for subprocesses, that are unknown, and have permissions for the subprocess (simply, there are actors for the subprocess)
+			
+			userPermissions.addAll(bpmDAO.getPermissionsForUser(
+				    userId, null, taskInstanceProcessInstanceId, nativeRoles, userGroupsIds));
+		}
 		
 		boolean checkWriteAccess = accesses.contains(Access.write);
 		boolean checkReadAccess = accesses.contains(Access.read);
