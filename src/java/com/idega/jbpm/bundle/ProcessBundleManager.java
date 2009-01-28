@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.business.IBOLookup;
+import com.idega.core.accesscontrol.business.StandardRoles;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
@@ -39,7 +40,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $ Last modified: $Date: 2009/01/25 15:36:31 $ by
+ * @version $Revision: 1.15 $ Last modified: $Date: 2009/01/28 15:34:36 $ by
  *          $Author: civilis $
  */
 @Scope("prototype")
@@ -206,6 +207,8 @@ public class ProcessBundleManager {
 			for (Role role : rolesToCreate) {
 				roleNames.add(role.getRoleName());
 			}
+			
+			roleNames.add(StandardRoles.ROLE_KEY_ADMIN);
 
 			try {
 				IWSlideService slideService = (IWSlideService) IBOLookup
