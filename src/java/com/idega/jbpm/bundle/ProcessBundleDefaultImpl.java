@@ -24,9 +24,9 @@ import com.idega.util.xml.XPathUtil;
  * Default implementation of ProcessBundle
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/29 10:35:55 $ by $Author: arunas $
  * 
  */
 @Scope("prototype")
@@ -57,10 +57,13 @@ public class ProcessBundleDefaultImpl implements ProcessBundle {
 				ProcessDefinition pd = com.idega.jbpm.graph.def.IdegaProcessDefinition
 						.parseXmlInputStream(pdIs);
 				this.pd = pd;
-			}
+			} 
+			if (pd == null) 
+				throw new RuntimeException("Process Defintion is " + pd);
+					
 		}
 
-		return pd;
+		return pd ;
 	}
 
 	public List<ViewResource> getViewResources(String taskName)
