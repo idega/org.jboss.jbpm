@@ -26,6 +26,7 @@ import com.idega.core.file.util.FileURIHandler;
 import com.idega.core.file.util.FileURIHandlerFactory;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.utils.JBPMConstants;
+import com.idega.jbpm.utils.JSONUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.slide.business.IWSlideService;
@@ -38,9 +39,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  *
- * Last modified: $Date: 2009/01/27 18:16:20 $ by $Author: anton $
+ * Last modified: $Date: 2009/01/29 10:30:50 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -73,6 +74,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			
 			Variable variable = Variable.parseDefaultStringRepresentation(key);
 			
+			JSONUtil json = getBinVarJSONConverter();
+			
 			if(variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
 			
 				@SuppressWarnings("unchecked")
@@ -89,10 +92,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 						binVar.persist();
 					}
 					
-					binaryVariables.add(convertToJSON(binVar));
+					binaryVariables.add(json.convertToJSON(binVar));
 				}
-				
-				entry.setValue(binaryVariables);
+
+				String binVarArrayJSON = json.convertToJSON(binaryVariables);
+				entry.setValue(binVarArrayJSON);
 			}
 		}
 		
@@ -215,12 +219,20 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if(variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
 				
 				@SuppressWarnings("unchecked")
-				Collection<String> binVarsInJSON = (Collection<String>)val;
+				
+				JSONUtil json = getBinVarJSONConverter();
+				
+				Collection<String> binVarsInJSON;
+				if(val instanceof String) {
+					binVarsInJSON = (Collection<String>)json.convertToObject(String.valueOf(val));
+				} else {
+					binVarsInJSON = (Collection<String>)val;
+				}
 				
 				for (String binVarJSON : binVarsInJSON) {
 					
 					try {
-						binaryVars.add(convertToBinaryVariable(binVarJSON));
+						binaryVars.add((BinaryVariable)json.convertToObject(binVarJSON));
 					} catch(StreamException e) {
 						Logger.getLogger(getClass().getName()).log(Level.WARNING, "Exception while parsing binary variable json="+binVarJSON);
 					}
@@ -273,5 +285,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 	public void setFileURIHandlerFactory(FileURIHandlerFactory fileURIHandlerFactory) {
 		this.fileURIHandlerFactory = fileURIHandlerFactory;
+	}
+	
+	private JSONUtil getBinVarJSONConverter() {
+		HashMap<String, Class> binVarAliasMap = new HashMap<String, Class>(2);
+		binVarAliasMap.put(BINARY_VARIABLE, BinaryVariableImpl.class);
+		binVarAliasMap.put(VARIABLE, Variable.class);
+		
+		JSONUtil json = new JSONUtil(binVarAliasMap);
+		return json;
 	}
 }
