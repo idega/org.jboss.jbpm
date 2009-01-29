@@ -16,7 +16,7 @@ import com.idega.idegaweb.IWMainApplicationStartedEvent;
  * 
  * 
  * @author <a href="anton@idega.com">Anton Makarov</a>
- * @version $Revision: 1.6 $, $Date: 2009/01/07 18:31:22 $ by $Author: civilis $
+ * @version $Revision: 1.7 $, $Date: 2009/01/29 16:10:33 $ by $Author: anton $
  * 
  */
 @Service
@@ -30,8 +30,8 @@ public class JobExecutorStarter implements ApplicationListener {
 
 		if (applicationEvent instanceof IWMainApplicationStartedEvent) {
 			LOGGER.info("Starting Job executor");
-//			JbpmConfiguration.getInstance().getJobExecutor().setIdleInterval(
-//					3000);
+			JbpmConfiguration.getInstance().getJobExecutor().setIdleInterval(
+					3000);
 			JbpmConfiguration.getInstance().startJobExecutor();
 		} else if (applicationEvent instanceof IWMainApplicationShutdownEvent) {
 			LOGGER.info("Stopping Job executor");
