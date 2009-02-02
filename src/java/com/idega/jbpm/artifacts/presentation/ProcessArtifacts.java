@@ -78,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.100 $ Last modified: $Date: 2009/01/23 11:44:38 $ by $Author: civilis $
+ * @version $Revision: 1.101 $ Last modified: $Date: 2009/02/02 17:30:18 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -501,7 +501,9 @@ public class ProcessArtifacts {
 			String description = binaryVariable.getDescription();
 			row.addCell(StringUtil.isEmpty(description) ? binaryVariable
 			        .getFileName() : description);
-			row.addCell(binaryVariable.getFileName());
+			
+			String fileName = binaryVariable.getFileName();
+			row.addCell(new StringBuilder("<a href=\"javascript:void(0)\" rel=\"").append(fileName).append("\">").append(fileName).append("</a>").toString());
 			
 			Long fileSize = binaryVariable.getContentLength();
 			row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long
