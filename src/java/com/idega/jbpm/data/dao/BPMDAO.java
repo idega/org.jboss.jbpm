@@ -1,7 +1,6 @@
 package com.idega.jbpm.data.dao;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -24,7 +23,7 @@ import com.idega.jbpm.identity.Role;
  * (e.g. ProcessDefinitionW), ProcessManager and so on is recommended
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $ Last modified: $Date: 2009/01/18 16:48:46 $ by $Author: civilis $
+ * @version $Revision: 1.19 $ Last modified: $Date: 2009/02/04 07:59:16 $ by $Author: donatas $
  */
 public interface BPMDAO extends GenericDao {
 	
@@ -75,10 +74,7 @@ public interface BPMDAO extends GenericDao {
 	
 	public abstract ProcessDefinition findLatestProcessDefinition(
 	        final String processName);
-	
-	public abstract List<Long> getTaskInstancesByActorIdAndDate(Long actorId,
-	        Date timestamp);
-	
+		
 	public abstract List<ActorPermissions> getPermissionsForUser(
 	        Integer userId, String processName, Long processInstanceId,
 	        Set<String> userNativeRoles, Set<String> userGroupsIds);
