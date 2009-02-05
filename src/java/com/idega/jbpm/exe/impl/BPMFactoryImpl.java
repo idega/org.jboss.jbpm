@@ -34,13 +34,12 @@ import com.idega.jbpm.view.ViewSubmissionImpl;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.24 $
+ * @version $Revision: 1.25 $
  * 
- *          Last modified: $Date: 2009/01/26 15:11:40 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/05 13:44:04 $ by $Author: donatas $
  */
 @Scope("singleton")
 @Service("bpmFactory")
-@Transactional(readOnly = true)
 public class BPMFactoryImpl implements BPMFactory {
 
 	private Map<String, ProcessManager> processManagers;
@@ -57,6 +56,7 @@ public class BPMFactoryImpl implements BPMFactory {
 	@Autowired
 	private PermissionsFactory permissionsFactory;
 
+	@Transactional(readOnly = true)
 	public ProcessManager getProcessManager(final long processDefinitionId) {
 
 		return getBpmContext().execute(new JbpmCallback() {
@@ -96,6 +96,7 @@ public class BPMFactoryImpl implements BPMFactory {
 		});
 	}
 
+	@Transactional(readOnly = true)
 	public View getViewByTask(long taskId, boolean submitable,
 			List<String> preferredTypes) {
 
@@ -118,12 +119,14 @@ public class BPMFactoryImpl implements BPMFactory {
 				.getView(viewTaskBind.getViewIdentifier(), submitable);
 	}
 
+	@Transactional(readOnly = true)
 	public View getView(String viewIdentifier, String type, boolean submitable) {
 
 		ViewFactory viewFactory = getViewFactory(type);
 		return viewFactory.getView(viewIdentifier, submitable);
 	}
 
+	@Transactional(readOnly = true)
 	public View getViewByTaskInstance(long taskInstanceId, boolean submitable,
 			List<String> preferredTypes) {
 
@@ -147,6 +150,7 @@ public class BPMFactoryImpl implements BPMFactory {
 				.getView(viewTaskBind.getViewIdentifier(), submitable);
 	}
 
+	@Transactional(readOnly = true)
 	protected ViewTaskBind getPreferredViewTaskBind(List<ViewTaskBind> binds,
 			List<String> preferredTypes) {
 
@@ -172,6 +176,7 @@ public class BPMFactoryImpl implements BPMFactory {
 		return viewTaskBind;
 	}
 
+	@Transactional(readOnly = true)
 	protected ViewFactory getViewFactory(String viewType) {
 
 		ViewFactory viewFactory;
@@ -187,6 +192,7 @@ public class BPMFactoryImpl implements BPMFactory {
 		return viewFactory;
 	}
 
+	@Transactional(readOnly = true)
 	protected String resolveManagersType(String processName) {
 
 		ProcessManagerBind pm = getBPMDAO().getProcessManagerBind(processName);
@@ -217,6 +223,7 @@ public class BPMFactoryImpl implements BPMFactory {
 		return bpmDAO;
 	}
 
+	@Transactional(readOnly = true)
 	public ProcessManager getProcessManagerByTaskInstanceId(
 			final long taskInstanceId) {
 
@@ -260,6 +267,7 @@ public class BPMFactoryImpl implements BPMFactory {
 		this.bpmUserFactory = bpmUserFactory;
 	}
 
+	@Transactional(readOnly = true)
 	public ProcessManager getProcessManagerByProcessInstanceId(
 			final long processInstanceId) {
 
