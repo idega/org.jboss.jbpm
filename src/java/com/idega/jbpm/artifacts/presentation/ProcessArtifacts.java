@@ -78,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.101 $ Last modified: $Date: 2009/02/02 17:30:18 $ by $Author: valdas $
+ * @version $Revision: 1.102 $ Last modified: $Date: 2009/02/06 13:47:35 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -868,7 +868,7 @@ public class ProcessArtifacts {
 		if (taskInstanceId != null) {
 			
 			TaskInstanceW tiw = getBpmFactory()
-			        .getProcessManagerByProcessInstanceId(processInstanceId)
+					.getProcessManagerByTaskInstanceId(taskInstanceId)
 			        .getTaskInstance(taskInstanceId);
 			
 			tiw.setTaskRolePermissions(new Role(roleName,
