@@ -13,6 +13,7 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.business.BPMPointcuts;
@@ -21,9 +22,9 @@ import com.idega.jbpm.exe.TaskInstanceW;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/08/28 12:09:34 $ by $Author: civilis $
+ * Last modified: $Date: 2009/02/07 18:20:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -38,6 +39,7 @@ public class FireEventAspect {
 	 * fires postStartActivity event, after non start task instance submitted
 	 * @param jp
 	 */
+	@Transactional(readOnly = true)
 	@AfterReturning(BPMPointcuts.submitAtTaskInstanceW)
 	public void firePostStartEvent(JoinPoint jp) {
 		
@@ -69,6 +71,7 @@ public class FireEventAspect {
 	 * fires postStartActivity event, when any access permission is changed (e.g. for document, or for contacts)
 	 * @param jp
 	 */
+	@Transactional(readOnly = true)
 	@AfterReturning("("+BPMPointcuts.setContactsPermissionAtProcessInstanceW+" || "+BPMPointcuts.setTaskRolePermissionsAtTaskInstanceW+")")
 	public void firePostStartEventOnPermissionChange(JoinPoint jp) {
 		

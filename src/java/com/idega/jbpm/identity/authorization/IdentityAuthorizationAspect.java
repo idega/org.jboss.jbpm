@@ -23,14 +23,13 @@ import com.idega.jbpm.identity.permission.PermissionsFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- *          Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/07 18:20:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
 @Aspect
-@Transactional(readOnly = true)
 public class IdentityAuthorizationAspect {
 
 	@Autowired
@@ -47,9 +46,10 @@ public class IdentityAuthorizationAspect {
 	 * ) public void checkPermissionToStartProcess(JoinPoint p, long
 	 * processDefinitionId) {
 	 * 
-	 * // TODO: permitting everyone to start process }
+	 * // FIXME: permitting everyone to start process }
 	 */
 
+	@Transactional(readOnly = true)
 	@Before("(" + BPMPointcuts.loadViewAtTaskInstanceW + " || "
 			+ BPMPointcuts.submitAtTaskInstanceW + ")")
 	public void checkPermissionToTaskInstance(JoinPoint jp) {

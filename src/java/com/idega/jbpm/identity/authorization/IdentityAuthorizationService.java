@@ -31,13 +31,12 @@ import com.idega.util.CoreUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.37 $
+ * @version $Revision: 1.38 $
  *
- * Last modified: $Date: 2008/08/25 19:04:10 $ by $Author: civilis $
+ * Last modified: $Date: 2009/02/07 18:20:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
-@Transactional(readOnly=true, noRollbackFor={AccessControlException.class})
 public class IdentityAuthorizationService implements AuthorizationService {
 
 	private static final long serialVersionUID = -7496842155073961922L;
@@ -72,6 +71,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 		}
 	}
 
+	@Transactional(readOnly=true, noRollbackFor={AccessControlException.class})
 	public void checkPermission(Permission perm) throws AccessControlException {
 		
 		FacesContext fctx = FacesContext.getCurrentInstance();
