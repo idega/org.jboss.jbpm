@@ -64,7 +64,7 @@ import com.idega.util.StringUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.59 $ Last modified: $Date: 2009/01/21 10:29:37 $ by $Author: juozas $
+ * @version $Revision: 1.60 $ Last modified: $Date: 2009/02/10 12:25:23 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -104,6 +104,72 @@ public class RolesManagerImpl implements RolesManager {
 	}
 	
 	@Transactional(readOnly = false)
+	public void removeIdentitiesForActors(Collection<Actor> actors,
+	        String identityId, IdentityType identityType, long processInstanceId) {
+		modifyIdentitiesForActors(actors, identityId, identityType,
+		    processInstanceId, true);
+	}
+	
+	@Transactional(readOnly = false)
+	public void createIdentitiesForActors(Collection<Actor> actors,
+	        String identityId, IdentityType identityType, long processInstanceId) {
+		modifyIdentitiesForActors(actors, identityId, identityType,
+		    processInstanceId, false);
+	}
+	
+	@Transactional(readOnly = false)
+	void modifyIdentitiesForActors(Collection<Actor> actors, String identityId,
+	        IdentityType identityType, long processInstanceId, boolean remove) {
+		
+		for (Actor actor : actors) {
+			
+			List<NativeIdentityBind> identities = actor.getNativeIdentities();
+			
+			boolean contains = false;
+			
+			if (identities != null) {
+				
+				for (Iterator<NativeIdentityBind> iterator = identities
+				        .iterator(); iterator.hasNext();) {
+					NativeIdentityBind nativeIdentityBind = iterator.next();
+					
+					if (identityType == nativeIdentityBind.getIdentityType()
+					        && identityId.equals(nativeIdentityBind
+					                .getIdentityId())) {
+						
+						if (remove) {
+							getBpmDAO().remove(nativeIdentityBind);
+							iterator.remove();
+						}
+						
+						contains = true;
+						break;
+					}
+				}
+			}
+			
+			if (!remove && !contains) {
+				
+				NativeIdentityBind nidentity = new NativeIdentityBind();
+				nidentity.setIdentityId(identityId);
+				nidentity.setIdentityType(identityType);
+				actor = getBpmDAO().merge(actor);
+				nidentity.setActor(actor);
+				getBpmDAO().persist(nidentity);
+				
+				if (identities == null) {
+					
+					identities = new ArrayList<NativeIdentityBind>(1);
+					actor.setNativeIdentities(identities);
+				}
+				
+				identities.add(nidentity);
+				getBpmDAO().persist(actor);
+			}
+		}
+	}
+	
+	@Transactional(readOnly = false)
 	void modifyIdentitiesForRoles(Collection<Role> roles, String identityId,
 	        IdentityType identityType, long processInstanceId, boolean remove) {
 		
@@ -125,53 +191,8 @@ public class RolesManagerImpl implements RolesManager {
 			    new Param(Actor.processRoleNameProperty, rolesNames),
 			    new Param(Actor.processInstanceIdProperty, processInstanceId));
 			
-			for (Actor actor : actors) {
-				
-				List<NativeIdentityBind> identities = actor
-				        .getNativeIdentities();
-				
-				boolean contains = false;
-				
-				if (identities != null) {
-					
-					for (Iterator<NativeIdentityBind> iterator = identities
-					        .iterator(); iterator.hasNext();) {
-						NativeIdentityBind nativeIdentityBind = iterator.next();
-						
-						if (identityType == nativeIdentityBind
-						        .getIdentityType()
-						        && identityId.equals(nativeIdentityBind
-						                .getIdentityId())) {
-							
-							if (remove) {
-								getBpmDAO().remove(nativeIdentityBind);
-								iterator.remove();
-							}
-							
-							contains = true;
-							break;
-						}
-					}
-				}
-				
-				if (!remove && !contains) {
-					
-					NativeIdentityBind nidentity = new NativeIdentityBind();
-					nidentity.setIdentityId(identityId);
-					nidentity.setIdentityType(identityType);
-					nidentity.setActor(getBpmDAO().merge(actor));
-					getBpmDAO().persist(nidentity);
-					
-					if (identities == null) {
-						
-						identities = new ArrayList<NativeIdentityBind>(1);
-						actor.setNativeIdentities(identities);
-					}
-					
-					identities.add(nidentity);
-					getBpmDAO().persist(actor);
-				}
-			}
+			modifyIdentitiesForActors(actors, identityId,
+		        identityType, processInstanceId, remove);
 		}
 	}
 	
@@ -482,6 +503,9 @@ public class RolesManagerImpl implements RolesManager {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.idega.jbpm.identity.RolesManager#createProcessActors(java.util.Collection, org.jbpm.graph.exe.ProcessInstance)
+	 */
 	@Transactional(readOnly = false)
 	public List<Actor> createProcessActors(Collection<Role> roles,
 	        ProcessInstance processInstance) {
@@ -514,7 +538,7 @@ public class RolesManagerImpl implements RolesManager {
 					rolesNamesToCreate.remove(existingActor
 					        .getProcessRoleName());
 				
-				processActors.add(existingActor);
+				// processActors.add(existingActor);
 			}
 			
 			if (!rolesNamesToCreate.isEmpty()) {
@@ -1006,10 +1030,10 @@ public class RolesManagerImpl implements RolesManager {
 		// TODO: check permissions if rights can be changed
 		final String roleName = role.getRoleName();
 		
-		if (roleName != null && taskInstanceId != null
-		        && roleName.length() != 0) {
+		if (roleName != null &&taskInstanceId != null
+				&& roleName.length() != 0) {
 			
-			getBpmContext().execute(new JbpmCallback() {
+			List<Actor> actorsToSetPermissionsTo = getBpmContext().execute(new JbpmCallback() {
 				
 				public Object doInJbpm(JbpmContext context)
 				        throws JbpmException {
@@ -1019,15 +1043,59 @@ public class RolesManagerImpl implements RolesManager {
 					
 					final List<Actor> actorsToSetPermissionsTo = getProcessRolesForProcessInstanceByTaskInstance(
 					    processInstanceId, taskInstanceId, roleName);
+					return actorsToSetPermissionsTo;
+				}
+			});
+			
+			setTaskPermissionsTIScopeForActors(actorsToSetPermissionsTo, role.getAccesses(), 
+				taskInstanceId, setSameForAttachments, variableIdentifier);
+		} else
+			logger
+			        .log(Level.WARNING,
+			            "-RolesManagerImpl.setTaskRolePermissionsTIScope- Insufficient info provided");
+	}
+	
+	/**
+	 * creates or updates task instance scope permissions for Actors.
+	 * 
+	 * @param actorsToSetPermissionsTo- Actor objects
+	 * @param accesses - accesses to set for actors
+	 *       
+	 * @param taskInstanceId
+	 * @param setSameForAttachments
+	 *            - set the same access rights for binary variables of the task instance
+	 * @param variableIdentifier
+	 *            - if provided, set rights for variable for that task instance. This is usually
+	 *            used for task attachments.
+	 */
+	@Transactional(readOnly = false)
+	public void setTaskPermissionsTIScopeForActors(
+	        final List<Actor> actorsToSetPermissionsTo,
+	        final List<Access> accesses, final Long taskInstanceId,
+	        final boolean setSameForAttachments, final String variableIdentifier) {
+		
+		// TODO: check permissions if rights can be changed
+		
+		if (taskInstanceId != null) {
+			
+			getBpmContext().execute(new JbpmCallback() {
+				
+				public Object doInJbpm(JbpmContext context)
+				        throws JbpmException {
+					
+					TaskInstance ti = context.getTaskInstance(taskInstanceId);
+					long processInstanceId = ti.getProcessInstance().getId();
 					
 					if (!ListUtil.isEmpty(actorsToSetPermissionsTo)) {
-						
-						Actor actorToSetPermissionTo = actorsToSetPermissionsTo
-						        .iterator().next();
+						for( Actor actorToSetPermissionTo:actorsToSetPermissionsTo){
+						/*Actor actorToSetPermissionTo = actorsToSetPermissionsTo
+						        .iterator().next();*/
 						List<ActorPermissions> perms = actorToSetPermissionTo
 						        .getActorPermissions();
-						
-						List<Access> accesses = role.getAccesses();
+						if(ListUtil.isEmpty(perms)){
+							perms = new ArrayList<ActorPermissions>(1);
+							actorToSetPermissionTo.setActorPermissions(perms);
+						}
 						boolean setReadPermission = accesses != null
 						        && accesses.contains(Access.read);
 						boolean setWritePermission = accesses != null
@@ -1202,16 +1270,17 @@ public class RolesManagerImpl implements RolesManager {
 						}
 						
 						getBpmDAO().merge(actorToSetPermissionTo);
-						
+						}
 					} else {
 						logger
 						        .log(
 						            Level.WARNING,
-						            "-RolesManagerImpl.setTaskRolePermissionsTIScope- No process roles found by roleName="
-						                    + roleName
+						            "-RolesManagerImpl.setTaskPermissionsTIScopeForActors- No task instance found with ID="
+						                    + taskInstanceId
 						                    + ", processInstanceId="
 						                    + processInstanceId);
 					}
+					
 					return null;
 				}
 			});
@@ -1723,9 +1792,9 @@ public class RolesManagerImpl implements RolesManager {
 	
 	public boolean checkFallsInRole(String roleName,
 	        List<NativeIdentityBind> nativeIdentities, /*
-	                                                                                                                                                                                                                                        													 * Collection<Group>
-	                                                                                                                                                                                                                                        													 * usrGrps,
-	                                                                                                                                                                                                                                        													 */
+	                                                                                                                                                                                                                                                        													 * Collection<Group>
+	                                                                                                                                                                                                                                                        													 * usrGrps,
+	                                                                                                                                                                                                                                                        													 */
 	        int userId, AccessController ac, IWApplicationContext iwac) {
 		
 		if (nativeIdentities != null && !nativeIdentities.isEmpty()) {
