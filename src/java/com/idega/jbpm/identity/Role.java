@@ -9,12 +9,16 @@ import com.idega.jbpm.identity.permission.RoleScope;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * 
- * Last modified: $Date: 2008/07/31 10:56:29 $ by $Author: civilis $
+ * Last modified: $Date: 2009/02/10 12:24:44 $ by $Author: civilis $
  */
 public class Role {
 
+	/**
+	 * represents processInstanceId this role is for. optional. Should be used in the subprocesses everywhere.
+	 */
+	private Long processInstanceId;
 	private String roleName;
 	private List<String> assignIdentities;
 	private RoleScope scope;
@@ -77,5 +81,13 @@ public class Role {
 		String roleName = arg0 instanceof String ? (String)arg0 : arg0 instanceof Role ? ((Role)arg0).getRoleName() : null;
 		
 		return roleName != null && roleName.equals(getRoleName());
+	}
+
+	public Long getProcessInstanceId() {
+		return processInstanceId;
+	}
+
+	public void setProcessInstanceId(Long processInstanceId) {
+		this.processInstanceId = processInstanceId;
 	}
 }
