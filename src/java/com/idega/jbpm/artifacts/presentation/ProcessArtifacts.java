@@ -78,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.102 $ Last modified: $Date: 2009/02/06 13:47:35 $ by $Author: civilis $
+ * @version $Revision: 1.103 $ Last modified: $Date: 2009/02/11 12:35:17 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -653,6 +653,7 @@ public class ProcessArtifacts {
 		        .getProcessManagerByProcessInstanceId(processInstanceId)
 		        .getProcessInstance(processInstanceId).getProcessIdentifier();
 		
+		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		for (User user : uniqueUsers) {
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
@@ -660,7 +661,7 @@ public class ProcessArtifacts {
 			row.addCell(user.getName());
 			row.addCell(getUserEmails(user.getEmails(), processIdentifier,
 			    systemEmail));
-			row.addCell(getUserPhones(user.getPhones()));
+			row.addCell(new StringBuilder(getUserPhones(user.getPhones())).append(getUserImage(bundle, user)).toString());
 			
 			if (params.isRightsChanger()) {
 				addRightsChangerCell(row, processInstanceId, null, null, user
@@ -675,6 +676,28 @@ public class ProcessArtifacts {
 		}
 		
 		return null;
+	}
+	
+	private String getUserImage(IWBundle bundle, User user) {
+		String pictureUri = null;
+		UserBusiness userBusiness = getUserBusiness();
+		Image image = userBusiness.getUserImage(user);
+		if (image == null) {
+			//	Default image
+			boolean male = true;
+			try {
+				male = getUserBusiness().isMale(user.getGenderID());
+			} catch (Exception e) {
+				male = true;
+			}
+			pictureUri = new StringBuilder(bundle.getVirtualPathWithFileNameString("images/")).append(male ? "user_male" : "user_female").append(".png")
+			.toString();
+		}
+		else {
+			pictureUri = image.getMediaURL(IWMainApplication.getDefaultIWApplicationContext());
+		}
+		
+		return new StringBuilder("<img class=\"userProfilePictureInCasesList\" src=\"").append(pictureUri).append("\" />").toString();
 	}
 	
 	private boolean canAddValueToCell(String value) {
