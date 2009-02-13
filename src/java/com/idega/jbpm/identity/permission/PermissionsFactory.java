@@ -9,9 +9,9 @@ import com.idega.user.data.User;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- * Last modified: $Date: 2009/01/09 10:31:21 $ by $Author: juozas $
+ *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 public interface PermissionsFactory {
 
@@ -22,27 +22,28 @@ public interface PermissionsFactory {
 
 	public abstract Permission getAccessPermission(Long processInstanceId,
 			Access access);
-	
+
 	public abstract Permission getAccessPermission(Long processInstanceId,
 			Access access, User user);
 
-	public abstract Permission getTaskViewPermission(
+	public abstract Permission getTaskInstanceViewPermission(
 			Boolean authPooledActorsOnly, TaskInstance taskInstance);
 
-	public abstract Permission getTaskVariableViewPermission(
+	public abstract Permission getTaskInstanceVariableViewPermission(
 			Boolean authPooledActorsOnly, TaskInstance taskInstance,
 			String variableIdentifier);
-	
+
 	/**
 	 * 
 	 * @param processInstanceId
 	 * @param roleName
-	 * @param checkContactsForRole - if current user can see contacts of the role provided. if set to false, basic falling to role is checked
+	 * @param checkContactsForRole
+	 *            - if current user can see contacts of the role provided. if
+	 *            set to false, basic falling to role is checked
 	 * @return
 	 */
-	public abstract Permission getRoleAccessPermission(Long processInstanceId, String roleName, Boolean checkContactsForRole);
+	public abstract Permission getRoleAccessPermission(Long processInstanceId,
+			String roleName, Boolean checkContactsForRole);
 
 	public abstract BPMTypedPermission getTypedPermission(String name);
-	
-	public Permission getTaskVariableWritePermission(Boolean authPooledActorsOnly, TaskInstance taskInstance, String variableIdentifier);
 }

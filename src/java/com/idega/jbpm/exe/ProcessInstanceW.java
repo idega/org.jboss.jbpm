@@ -13,9 +13,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  * 
- *          Last modified: $Date: 2009/01/21 10:29:37 $ by $Author: juozas $
+ *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 public interface ProcessInstanceW {
 
@@ -33,8 +33,8 @@ public interface ProcessInstanceW {
 	 */
 	public abstract List<TaskInstanceW> getSubmittedTaskInstances();
 
-	public abstract List<BPMDocument> getSubmittedDocumentsForUser(
-			User user, Locale locale);
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
+			Locale locale);
 
 	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
 			Locale locale);
@@ -146,11 +146,14 @@ public interface ProcessInstanceW {
 	 */
 	public abstract boolean hasRight(Right right, User user);
 
-	public List<BPMEmailDocument> getAttachedEmails();
-	
-	public TaskInstanceW createTask(final String taskName, final long tokenId);
-	
-	public boolean hasEnded();
-	
-	public TaskInstanceW getStartTaskInstance();
+	public abstract List<BPMEmailDocument> getAttachedEmails();
+
+	public abstract TaskInstanceW createTask(final String taskName,
+			final long tokenId);
+
+	public abstract boolean hasEnded();
+
+	public abstract TaskInstanceW getStartTaskInstance();
+
+	public abstract Collection<Role> getRolesContactsPermissions(Integer userId);
 }

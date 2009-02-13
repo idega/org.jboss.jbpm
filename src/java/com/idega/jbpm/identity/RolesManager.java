@@ -26,7 +26,7 @@ import com.idega.user.data.User;
  * Recommended getting rolesManager from BPMFactory
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.31 $ Last modified: $Date: 2009/02/10 12:25:23 $ by $Author: juozas $
+ * @version $Revision: 1.32 $ Last modified: $Date: 2009/02/13 17:27:47 $ by $Author: civilis $
  */
 public interface RolesManager {
 	
@@ -72,16 +72,8 @@ public interface RolesManager {
 	public abstract void assignRolesPermissions(List<Role> roles,
 	        ProcessInstance processInstance);
 	
-	/**
-	 * taskInstance could be not from the same processInstance, but we should provide roles from
-	 * both, with the precedence of task instance process instance
-	 * 
-	 * @param processInstanceId
-	 * @param taskInstanceId
-	 * @return
-	 */
-	public abstract List<Actor> getProcessRolesForProcessInstanceByTaskInstance(
-	        Long processInstanceId, Long taskInstanceId, String processRoleName);
+	public abstract List<Actor> getPermissionsByProcessInstanceId(
+	        Long processInstanceId, String processRoleName);
 	
 	public abstract List<Actor> getProcessRoles(Collection<String> rolesNames,
 	        Long processInstanceId);
@@ -106,7 +98,7 @@ public interface RolesManager {
 	        Long processInstanceId, Integer userId);
 	
 	public abstract List<Role> getRolesPermissionsForTaskInstance(
-	        Long processInstanceId, Long taskInstanceId, String variableName);
+	        Long taskInstanceId, String variableName);
 	
 	public abstract Collection<Role> getUserPermissionsForRolesContacts(
 	        Long processInstanceId, Integer userId);

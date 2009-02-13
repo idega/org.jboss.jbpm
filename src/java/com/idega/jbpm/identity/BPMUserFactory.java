@@ -5,12 +5,12 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $ Last modified: $Date: 2009/01/22 11:12:35 $ by $Author: civilis $
+ * @version $Revision: 1.12 $ Last modified: $Date: 2009/02/13 17:27:47 $ by $Author: civilis $
  */
 public interface BPMUserFactory {
 	
 	public abstract BPMUser createBPMUser(UserPersonalData upd, Role role,
-	        long processInstanceId);
+	        Long processInstanceId);
 	
 	/**
 	 * @return currently logged in user's bpm user. BPMUser is in session scope

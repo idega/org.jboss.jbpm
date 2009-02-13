@@ -11,6 +11,7 @@ import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -23,6 +24,7 @@ import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.ProcessConstants;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
@@ -34,9 +36,9 @@ import com.idega.jbpm.view.ViewSubmissionImpl;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $
+ * @version $Revision: 1.26 $
  * 
- *          Last modified: $Date: 2009/02/05 13:44:04 $ by $Author: donatas $
+ *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -310,24 +312,83 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	public Map<String, ViewFactory> getViewFactories() {
-		
+
 		if (viewFactories == null)
 			viewFactories = Collections.emptyMap();
-		
+
 		return viewFactories;
 	}
-	
+
 	@Autowired(required = false)
 	public void setViewFactories(List<ViewFactory> viewFactoriesList) {
 
 		// hashmap is thread safe for read only ops
-		viewFactories = new HashMap<String, ViewFactory>(
-				viewFactoriesList.size());
+		viewFactories = new HashMap<String, ViewFactory>(viewFactoriesList
+				.size());
 
 		for (ViewFactory viewFactory : viewFactoriesList) {
 
-			viewFactories
-					.put(viewFactory.getViewType(), viewFactory);
+			viewFactories.put(viewFactory.getViewType(), viewFactory);
 		}
+	}
+
+	public ProcessInstance getMainProcessInstance(final long processInstanceId) {
+
+		return getBpmContext().execute(new JbpmCallback() {
+
+			public Object doInJbpm(JbpmContext context) throws JbpmException {
+
+				ProcessInstance pi = context
+						.getProcessInstance(processInstanceId);
+				Long mainProcessInstanceId = (Long) pi
+						.getContextInstance()
+						.getVariable(
+								ProcessConstants.mainProcessInstanceIdVariableName);
+
+				ProcessInstance mainProcessInstance;
+
+				if (mainProcessInstanceId != null) {
+
+					// if mainProcessInstanceId found in variable - use that
+
+					mainProcessInstance = context
+							.getProcessInstance(mainProcessInstanceId);
+
+				} else {
+
+					// if mainProcessInstanceId not found in variable - search
+					// super processes. If we find mainProcessInstanceId in any
+					// of the super process
+					// we use that, else, use most super processInstance (one
+					// without parent)
+
+					Token superToken = pi.getSuperProcessToken();
+
+					while (superToken != null && mainProcessInstanceId == null) {
+
+						pi = superToken.getProcessInstance();
+
+						mainProcessInstanceId = (Long) pi
+								.getContextInstance()
+								.getVariable(
+										ProcessConstants.mainProcessInstanceIdVariableName);
+
+						if (mainProcessInstanceId == null) {
+
+							superToken = pi.getSuperProcessToken();
+						}
+					}
+
+					if (mainProcessInstanceId != null) {
+
+						mainProcessInstance = context
+								.getProcessInstance(mainProcessInstanceId);
+					} else
+						mainProcessInstance = pi;
+				}
+
+				return mainProcessInstance;
+			}
+		});
 	}
 }

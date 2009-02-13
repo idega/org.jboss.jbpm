@@ -32,9 +32,9 @@ import com.idega.jbpm.exe.BPMFactory;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  * 
- *          Last modified: $Date: 2008/12/03 12:04:17 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 @Service("jsonAssignmentHandler")
 @Scope("prototype")
@@ -72,20 +72,26 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 				return;
 			}
 			
-			ProcessInstance pi;
+			ProcessInstance mainProcessInstance = getBpmFactory().getMainProcessInstance(taskInstance.getProcessInstance().getId());
+			
+			/*
+			if(mainProcessInstance == null) {
+//				backwards compatibility
+				
+				if (ta.getRolesFromProcessInstanceId() != null) {
 
-			if (ta.getRolesFromProcessInstanceId() != null) {
-
-				pi = executionContext.getJbpmContext().getProcessInstance(
-						ta.getRolesFromProcessInstanceId());
-			} else {
-				pi = taskInstance.getProcessInstance();
+					mainProcessInstance = executionContext.getJbpmContext().getProcessInstance(
+							ta.getRolesFromProcessInstanceId());
+				} else {
+					mainProcessInstance = taskInstance.getProcessInstance();
+				}
 			}
-
-			getBpmFactory().getRolesManager().createProcessActors(roles, pi);
+			*/
+			
+			getBpmFactory().getRolesManager().createProcessActors(roles, mainProcessInstance);
 			getBpmFactory().getRolesManager().assignTaskRolesPermissions(
-					taskInstance.getTask(), roles, pi.getId());
-			assignIdentities(pi, roles);
+					taskInstance.getTask(), roles, mainProcessInstance.getId());
+			assignIdentities(mainProcessInstance, roles);
 		}
 	}
 

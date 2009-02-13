@@ -78,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.103 $ Last modified: $Date: 2009/02/11 12:35:17 $ by $Author: valdas $
+ * @version $Revision: 1.104 $ Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -962,18 +962,26 @@ public class ProcessArtifacts {
 		
 		if (taskInstanceId != null) {
 			
-			roles = getBpmFactory().getRolesManager()
-			        .getRolesPermissionsForTaskInstance(
-			            processInstanceId,
-			            taskInstanceId,
-			            CoreConstants.EMPTY.equals(fileHashValue) ? null
-			                    : fileHashValue);
-		} else {
+//			TODO: add method to taskInstanceW and get permissions from there
+			TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId)
+			.getTaskInstance(taskInstanceId);
 			
-			// get from the user
-			roles = getBpmFactory().getRolesManager()
-			        .getUserPermissionsForRolesContacts(processInstanceId,
-			            userId);
+			if(StringUtil.isEmpty(fileHashValue)) {
+				
+				roles = tiw.getRolesPermissions();
+				
+			} else {
+			
+				roles = tiw.getAttachmentRolesPermissions(fileHashValue);
+			}
+			
+		} else {
+
+			ProcessInstanceW piw = getBpmFactory()
+			.getProcessManagerByProcessInstanceId(processInstanceId)
+			.getProcessInstance(processInstanceId);
+			
+			roles = piw.getRolesContactsPermissions(userId);
 		}
 		
 		ArrayList<String[]> accessParamsList = new ArrayList<String[]>();
@@ -983,7 +991,7 @@ public class ProcessArtifacts {
 		closeLink
 		        .setOnClick("CasesBPMAssets.closeAccessRightsSetterBox(this);");
 		
-		if (roles == null || roles.isEmpty()) {
+		if (ListUtil.isEmpty(roles)) {
 			container.add(new Heading3(iwrb.getLocalizedString(
 			    "no_roles_to_set_permissions",
 			    "There are no roles to set access rights")));

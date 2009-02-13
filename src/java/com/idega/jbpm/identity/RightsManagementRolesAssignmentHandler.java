@@ -13,9 +13,9 @@ import com.idega.jbpm.exe.BPMFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- *          Last modified: $Date: 2008/12/03 12:04:17 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 @Service("rightsManagementRolesAssignmentHandler")
 @Scope("prototype")
@@ -34,17 +34,10 @@ public class RightsManagementRolesAssignmentHandler implements ActionHandler {
 
 			List<Role> roles = ta.getRoles();
 
-			ProcessInstance pi;
-
-			if (ta.getRolesFromProcessInstanceId() != null) {
-
-				pi = ctx.getJbpmContext().getProcessInstance(
-						ta.getRolesFromProcessInstanceId());
-			} else {
-				pi = ctx.getProcessInstance();
-			}
-
 			if (roles != null && !roles.isEmpty()) {
+
+				ProcessInstance pi = getBpmFactory().getMainProcessInstance(
+						ctx.getProcessInstance().getId());
 
 				getBpmFactory().getRolesManager()
 						.createProcessActors(roles, pi);

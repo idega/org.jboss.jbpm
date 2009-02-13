@@ -1,6 +1,7 @@
 package com.idega.jbpm.exe;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -15,9 +16,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  * 
- *          Last modified: $Date: 2009/01/13 15:55:17 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
 
@@ -90,4 +91,9 @@ public interface TaskInstanceW {
 	public abstract void setProcessManager(ProcessManager processManager);
 
 	public abstract ProcessInstanceW getProcessInstanceW();
+
+	public abstract Collection<Role> getRolesPermissions();
+
+	public abstract Collection<Role> getAttachmentRolesPermissions(
+			String attachmentHashValue);
 }

@@ -2,6 +2,8 @@ package com.idega.jbpm.exe;
 
 import java.util.List;
 
+import org.jbpm.graph.exe.ProcessInstance;
+
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
@@ -11,9 +13,9 @@ import com.idega.jbpm.view.ViewSubmission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  * 
- *          Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
@@ -101,4 +103,22 @@ public interface BPMFactory {
 	public abstract BPMDAO getBPMDAO();
 
 	public abstract PermissionsFactory getPermissionsFactory();
+
+	/**
+	 * Resolves mainProcessInstance in this manner:
+	 * 
+	 * if provided processInstance contains variable "mainProcessInstanceId",
+	 * then the processInstance from this variable value is used. Else, super
+	 * process instances are checked for this variable. If the variable is not
+	 * found in super processes, then the most super process instance is used -
+	 * that means the process instance without the parent
+	 * 
+	 * @param processInstanceId
+	 *            of any process instance (subprocess or not)
+	 * @return the main process instance, which reflects the most parent process
+	 *         instance. This should be used for all assignments (creating
+	 *         actors)
+	 */
+	public abstract ProcessInstance getMainProcessInstance(
+			final long processInstanceId);
 }

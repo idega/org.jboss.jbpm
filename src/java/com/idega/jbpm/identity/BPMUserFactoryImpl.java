@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import javax.ejb.CreateException;
 import javax.ejb.FinderException;
 import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
 
 import org.jbpm.graph.exe.ProcessInstance;
 import org.springframework.beans.factory.BeanCreationException;
@@ -38,9 +37,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  * 
- * Last modified: $Date: 2009/01/25 16:53:10 $ by $Author: civilis $
+ * Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -52,18 +51,23 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	/**
 	 * creates ic_user for BpmUser and assigns to the role provided
 	 */
-	public BPMUser createBPMUser(UserPersonalData upd, Role role, long processInstanceId) {
+	public BPMUser createBPMUser(UserPersonalData upd, Role role, Long processInstanceId) {
 	
 		try {
-			FacesContext fctx = FacesContext.getCurrentInstance();
-			IWApplicationContext iwac;
-			
-			if(fctx == null) {
-				iwac = IWMainApplication.getDefaultIWApplicationContext();
-			} else
-				iwac = IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
+			IWApplicationContext iwac = IWMainApplication.getDefaultIWApplicationContext();;
 			
 			UserBusiness userBusiness = getUserBusiness(iwac);
+			
+			ProcessInstance mainProcessInstance = getBPMFactory().getMainProcessInstance(processInstanceId);
+			
+			processInstanceId = mainProcessInstance.getId();
+			
+			/*
+			if(mainProcessInstance != null) {
+//				if for backward compatibility
+				processInstanceId = mainProcessInstance.getId();
+			}
+			*/
 			
 			User bpmUserAcc = null;
 			String email = upd.getUserEmail();

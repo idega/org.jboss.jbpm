@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.faces.context.FacesContext;
-
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.security.AuthenticationService;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -18,18 +16,17 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.idega.core.accesscontrol.business.AccessController;
-import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
-import com.idega.util.CoreConstants;
+import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $ Last modified: $Date: 2009/02/07 18:20:55 $ by
+ * @version $Revision: 1.8 $ Last modified: $Date: 2009/02/13 17:27:48 $ by
  *          $Author: civilis $
  */
 @Scope("singleton")
@@ -40,9 +37,11 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 	@Autowired
 	private AuthenticationService authenticationService;
 	@Autowired
-	private BPMDAO bpmBindsDAO;
+	private BPMDAO bpmDAO;
 	@Autowired
 	private RolesManager rolesManager;
+	@Autowired
+	private BPMFactory bpmFactory;
 
 	public static final String taskInstanceAtt = "taskInstance";
 	public static final String checkOnlyInActorsPoolAtt = "checkOnlyInActorsPool";
@@ -57,8 +56,8 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 	public String[] getHandledTypes() {
 		return new String[] {
 				PermissionsFactoryImpl.submitTaskParametersPermType,
-				PermissionsFactoryImpl.viewTaskParametersPermType,
-				PermissionsFactoryImpl.viewTaskVariableParametersType };
+				PermissionsFactoryImpl.viewTaskInstancePermType,
+				PermissionsFactoryImpl.viewTaskInstanceVariablePermType };
 	}
 
 	@Transactional(readOnly = true, noRollbackFor = AccessControlException.class)
@@ -86,8 +85,8 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 
 		TaskInstance taskInstance = permission.getAttribute(taskInstanceAtt);
 
-		if (userId.toString().equals(taskInstance.getActorId()))
-			return;
+//		if (userId.toString().equals(taskInstance.getActorId()))
+//			return;
 
 		Boolean checkOnlyInActorsPool = permission
 				.getAttribute(checkOnlyInActorsPoolAtt);
@@ -109,17 +108,16 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 				List<Access> accessesWanted = permission
 						.getAttribute(accessesWantedAtt);
 
-				if (PermissionsFactoryImpl.viewTaskVariableParametersType
+				if (PermissionsFactoryImpl.viewTaskInstanceVariablePermType
 						.equals(permission.getType())) {
 
 					String variableIdentifier = permission
 							.getAttribute(variableIdentifierAtt);
 
-					if (variableIdentifier == null
-							|| CoreConstants.EMPTY.equals(variableIdentifier))
+					if (StringUtil.isEmpty(variableIdentifier))
 						throw new IllegalArgumentException(
 								"Illegal permission passed. Passed of type="
-										+ PermissionsFactoryImpl.viewTaskVariableParametersType
+										+ PermissionsFactoryImpl.viewTaskInstanceVariablePermType
 										+ ", but not variable identifier provided");
 
 					checkPermissionsForTaskInstance(userId, taskInstance,
@@ -167,25 +165,13 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 		Long taskId = taskInstance.getTask().getId();
 		Long taskInstanceId = taskInstance.getId();
 
-		ProcessInstance mainProcessInstance = taskInstance.getProcessInstance();
+		Long taskInstanceProcessInstanceId = taskInstance.getProcessInstance().getId();
+		
+		ProcessInstance mainProcessInstance = getBpmFactory().getMainProcessInstance(taskInstanceProcessInstanceId);
+		
+		Long mainProcessInstanceId = mainProcessInstance.getId();
 
-		Long taskInstanceProcessInstanceId = mainProcessInstance.getId();
-
-		if (mainProcessInstance.getSuperProcessToken() != null) {
-
-			// actors are bound with main process instance, therefore we find it
-			// here (in case task
-			// instance is in subprocess)
-
-			while (mainProcessInstance.getSuperProcessToken() != null) {
-				mainProcessInstance = mainProcessInstance
-						.getSuperProcessToken().getProcessInstance();
-			}
-		}
-
-		Long processInstanceId = mainProcessInstance.getId();
-
-		BPMDAO bpmDAO = getBpmBindsDAO();
+		BPMDAO bpmDAO = getBpmDAO();
 		User user = getRolesManager().getUser(userId);
 		String processName = null;
 		Set<String> userGroupsIds = null;
@@ -193,10 +179,11 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 		Set<String> nativeRoles = getRolesManager().getUserNativeRoles(user);
 
 		List<ActorPermissions> userPermissions = bpmDAO.getPermissionsForUser(
-				userId, processName, processInstanceId, nativeRoles,
+				userId, processName, mainProcessInstanceId, nativeRoles,
 				userGroupsIds);
 
-		if (!processInstanceId.equals(taskInstanceProcessInstanceId)) {
+		/*
+		if (!mainProcessInstanceId.equals(taskInstanceProcessInstanceId)) {
 			// this is backward compatibily for subprocesses tasks, which
 			// created actors not for the outermost parent, but for the
 			// subprocess pids
@@ -209,17 +196,10 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 			userPermissions.addAll(bpmDAO.getPermissionsForUser(userId, null,
 					taskInstanceProcessInstanceId, nativeRoles, userGroupsIds));
 		}
+		*/
 
 		boolean checkWriteAccess = accesses.contains(Access.write);
 		boolean checkReadAccess = accesses.contains(Access.read);
-		// Boolean hasTaskInstanceScopeAccess = null;
-		// Boolean hasTaskInstanceScopeANDVarAccess = null;
-		// Boolean hasTaskScopeAccess = null;
-		// Boolean hasTaskScopeANDVarAccess = null;
-
-		if ("Submit New Case".equals(taskInstance.getName())) {
-			System.out.println("me2");
-		}
 
 		Map<String, Boolean[]> accessesForRoles = new HashMap<String, Boolean[]>(
 				10);
@@ -305,16 +285,26 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 			Boolean hasTaskInstanceScopeAccess = accMtrx[TI];
 			Boolean hasTaskScopeANDVarAccess = accMtrx[TA_VAR];
 			Boolean hasTaskScopeAccess = accMtrx[TA];
+			
+//			WARNING: Boolean null, and false have different meanings here!
 
-			if ((variableIdentifier != null && ((hasTaskInstanceScopeANDVarAccess != null && hasTaskInstanceScopeANDVarAccess)
-					|| (hasTaskInstanceScopeANDVarAccess == null
+			if (
+					//for variable
+					(variableIdentifier != null && ((hasTaskInstanceScopeANDVarAccess != null && hasTaskInstanceScopeANDVarAccess)
+					|| 
+					/*
+					 * not checking for taskInstance scope access anymore (if not set for variable, defaulting to task access)
+					 * (hasTaskInstanceScopeANDVarAccess == null
 							&& hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess)
-					|| (hasTaskInstanceScopeANDVarAccess == null
+							|| */
+					 (hasTaskInstanceScopeANDVarAccess == null
 							&& hasTaskInstanceScopeAccess == null
 							&& hasTaskScopeANDVarAccess != null && hasTaskScopeANDVarAccess) || (hasTaskInstanceScopeANDVarAccess == null
 					&& hasTaskInstanceScopeAccess == null
 					&& hasTaskScopeANDVarAccess == null
 					&& hasTaskScopeAccess != null && hasTaskScopeAccess)))
+					
+					//for taskInstance
 					|| (variableIdentifier == null && ((hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess) || (hasTaskInstanceScopeAccess == null
 							&& hasTaskScopeAccess != null && hasTaskScopeAccess)))) {
 
@@ -337,31 +327,23 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 		this.authenticationService = authenticationService;
 	}
 
-	public BPMDAO getBpmBindsDAO() {
-		return bpmBindsDAO;
-	}
+//	private IWMainApplication getIWMA() {
+//
+//		IWMainApplication iwma;
+//		FacesContext fctx = FacesContext.getCurrentInstance();
+//
+//		if (fctx == null)
+//			iwma = IWMainApplication.getDefaultIWMainApplication();
+//		else
+//			iwma = IWMainApplication.getIWMainApplication(fctx);
+//
+//		return iwma;
+//	}
 
-	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
-		this.bpmBindsDAO = bpmBindsDAO;
-	}
-
-	private IWMainApplication getIWMA() {
-
-		IWMainApplication iwma;
-		FacesContext fctx = FacesContext.getCurrentInstance();
-
-		if (fctx == null)
-			iwma = IWMainApplication.getDefaultIWMainApplication();
-		else
-			iwma = IWMainApplication.getIWMainApplication(fctx);
-
-		return iwma;
-	}
-
-	private AccessController getAccessController() {
-
-		return getIWMA().getAccessController();
-	}
+//	private AccessController getAccessController() {
+//
+//		return getIWMA().getAccessController();
+//	}
 
 	public RolesManager getRolesManager() {
 		return rolesManager;
@@ -369,5 +351,13 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 
 	public void setRolesManager(RolesManager rolesManager) {
 		this.rolesManager = rolesManager;
+	}
+
+	protected BPMFactory getBpmFactory() {
+		return bpmFactory;
+	}
+
+	protected BPMDAO getBpmDAO() {
+		return bpmDAO;
 	}
 }

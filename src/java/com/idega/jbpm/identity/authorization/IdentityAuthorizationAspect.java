@@ -23,9 +23,9 @@ import com.idega.jbpm.identity.permission.PermissionsFactory;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  * 
- *          Last modified: $Date: 2009/02/07 18:20:55 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -71,7 +71,7 @@ public class IdentityAuthorizationAspect {
 				Permission permission;
 
 				if (taskInstance.hasEnded()) {
-					permission = getPermissionsFactory().getTaskViewPermission(
+					permission = getPermissionsFactory().getTaskInstanceViewPermission(
 							false, taskInstance);
 
 				} else {

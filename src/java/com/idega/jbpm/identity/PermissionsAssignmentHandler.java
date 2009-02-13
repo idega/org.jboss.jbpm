@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.TaskInstanceW;
+import com.idega.util.ListUtil;
 
 @Service("premissionsAssignmentHandler")
 @Scope("prototype")
@@ -40,28 +41,21 @@ public class PermissionsAssignmentHandler implements ActionHandler {
 
 		List<Role> roles = ta.getRoles();
 
-		if (roles == null || roles.isEmpty()) {
+		if (ListUtil.isEmpty(roles)) {
 
 			Logger.getLogger(getClass().getName()).log(Level.WARNING,
 					"No roles for task instance: " + taskInstanceId);
 			return;
 		}
-
-		ProcessInstance pi;
-
-		if (ta.getRolesFromProcessInstanceId() != null) {
-
-			pi = executionContext.getJbpmContext().getProcessInstance(
-					ta.getRolesFromProcessInstanceId());
-		} else {
-			pi = executionContext.getProcessInstance();
-		}
+		
+//		TODO: set for role
 
 		TaskInstanceW tiw = getBpmFactory()
-				.getProcessManagerByProcessInstanceId(pi.getId())
+				.getProcessManagerByTaskInstanceId(taskInstanceId)
 				.getTaskInstance(taskInstanceId);
 
 		for (Role role : roles) {
+			
 			tiw.setTaskRolePermissions(role, true, null);
 		}
 	}
