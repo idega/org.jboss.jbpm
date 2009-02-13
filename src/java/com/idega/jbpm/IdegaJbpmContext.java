@@ -17,9 +17,9 @@ import org.springframework.orm.hibernate3.SessionFactoryUtils;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  * 
- *          Last modified: $Date: 2009/01/07 18:31:22 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/13 17:13:51 $ by $Author: donatas $
  */
 public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
@@ -94,6 +94,23 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
 		try {
 			@SuppressWarnings("unchecked")
+//          Uncomment this to enable transaction sharing between JPA and Hibernate
+//			HibernateTemplate hibernateTemplate = null;
+//			EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager.getResource(getEntityManagerFactory());
+//			if (holder != null) {
+//				Session session = ((HibernateEntityManager) (holder.getEntityManager())).getSession();
+//				SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory()).getSessionFactory();
+//				if (!SessionFactoryUtils.isSessionTransactional(session, sessionFactory)) {
+//					TransactionSynchronizationManager.unbindResourceIfPossible(sessionFactory);
+//					SessionHolder holderToUse = new SessionHolder(session);
+//					TransactionSynchronizationManager.bindResource(sessionFactory, holderToUse);
+//				}
+//				hibernateTemplate = new HibernateTemplate(sessionFactory);
+//			} else {
+//				hibernateTemplate = this.hibernateTemplate;
+//			}
+//			
+			
 			T res = (T) hibernateTemplate.execute(new HibernateCallback() {
 				/**
 				 * @see org.springframework.orm.hibernate3.HibernateCallback#doInHibernate(org.hibernate.Session)
