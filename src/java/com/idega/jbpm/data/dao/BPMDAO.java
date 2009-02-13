@@ -23,7 +23,7 @@ import com.idega.jbpm.identity.Role;
  * (e.g. ProcessDefinitionW), ProcessManager and so on is recommended
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $ Last modified: $Date: 2009/02/04 07:59:16 $ by $Author: donatas $
+ * @version $Revision: 1.20 $ Last modified: $Date: 2009/02/13 17:06:30 $ by $Author: donatas $
  */
 public interface BPMDAO extends GenericDao {
 	
@@ -78,4 +78,8 @@ public interface BPMDAO extends GenericDao {
 	public abstract List<ActorPermissions> getPermissionsForUser(
 	        Integer userId, String processName, Long processInstanceId,
 	        Set<String> userNativeRoles, Set<String> userGroupsIds);
+	
+	public abstract int getTaskViewBindCount(String viewId,
+	        String viewType);
+		
 }

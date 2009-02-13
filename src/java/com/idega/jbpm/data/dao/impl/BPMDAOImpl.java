@@ -32,7 +32,7 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.27 $ Last modified: $Date: 2009/02/04 07:59:16 $ by $Author: donatas $
+ * @version $Revision: 1.28 $ Last modified: $Date: 2009/02/13 17:06:30 $ by $Author: donatas $
  */
 @Scope("singleton")
 @Repository("bpmBindsDAO")
@@ -356,4 +356,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		
 		return perms;
 	}
+
+	public int getTaskViewBindCount(String viewId, String viewType) {
+		return getResultList(ViewTaskBind.GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME,
+			    ViewTaskBind.class, new Param(ViewTaskBind.viewIdParam, viewId),
+			    new Param(ViewTaskBind.viewTypeParam, viewType)).size();
+	}
+	
+	
 }
