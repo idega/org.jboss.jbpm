@@ -1,6 +1,5 @@
 package com.idega.jbpm.variables.impl;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,7 +29,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $ Last modified: $Date: 2009/01/19 12:02:51 $ by $Author: juozas $
+ * @version $Revision: 1.14 $ Last modified: $Date: 2009/02/16 15:06:05 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -95,6 +94,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				
 				final Map<String, Object> variablesToSubmit = getBinaryVariablesHandler()
 				        .storeBinaryVariables(taskInstanceId, variables);
+				
 				ti.setVariables(variablesToSubmit);
 				// /tiController.submitParameters(ti);
 				
@@ -154,25 +154,67 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 				
-				@SuppressWarnings("unchecked")
-				Map<String, VariableInstance> variablesInstances = ti
-				        .getVariableInstances();
-				Map<String, Object> variables;
+				Map<String, Object> variables = new HashMap<String, Object>(ti.getVariablesLocally());
 				
-				if (variablesInstances != null) {
-					variables = new HashMap<String, Object>(variablesInstances
-					        .size());
-				} else {
-					variables = Collections.emptyMap();
+				if(!ti.hasEnded()) {
+					
+//					Map<String, VariableInstance> variablesInstances;
+//				
+//					variablesInstances = ti
+//			        .getVariableInstances();
+//					
+//					variables = new HashMap<String, Object>(variablesInstances
+//					        .size());
+					
+					@SuppressWarnings("unchecked")
+					List<VariableAccess> accesses = ti.getTask()
+					        .getTaskController().getVariableAccesses();
+					
+//					String tokenReadAccess = "mamamia";
+					
+					for (VariableAccess variableAccess : accesses) {
+						
+						if(variableAccess.isWritable() && !variableAccess.isReadable()) {
+							
+//							we don't want to show non readable variable
+//							this is backward compatibility, for task instances, that were created with wrong process definition
+							
+							variables.remove(variableAccess.getVariableName());
+						}
+						
+						/*
+						if (!variableAccess.isWritable() || variableAccess.getAccess().hasAccess(tokenReadAccess)) {
+							
+							VariableInstance variableInstance = variablesInstances
+						        .get(variableAccess.getVariableName());
+						
+							variables.put(variableAccess.getVariableName(),
+							    variableInstance.getValue());
+						}
+						*/
+					}
+					
 				}
+//				else {
+//					variables = new HashMap<String, Object>(ti.getVariablesLocally());
+//				}
+				
+//				if (variablesInstances != null) {
+//					variables = new HashMap<String, Object>(variablesInstances
+//					        .size());
+//				} else {
+//					variables = Collections.emptyMap();
+//				}
+				
 				// readonly
+				/*
 				if (ti.hasEnded()) {
 					
-					for (VariableInstance variableInstance : variablesInstances
-					        .values()) {
-						variables.put(variableInstance.getName(),
-						    variableInstance.getValue());
-					}
+//					for (VariableInstance variableInstance : variablesInstances
+//					        .values()) {
+//						variables.put(variableInstance.getName(),
+//						    variableInstance.getValue());
+//					}
 					
 				} else {
 					
@@ -180,17 +222,21 @@ public class VariablesHandlerImpl implements VariablesHandler {
 					List<VariableAccess> accesses = ti.getTask()
 					        .getTaskController().getVariableAccesses();
 					
-					for (VariableAccess access : accesses) {
+					String tokenReadAccess = "mamamia";
+					
+					for (VariableAccess variableAccess : accesses) {
 						
-						VariableInstance variableInstance = variablesInstances
-						        .get(access.getVariableName());
+						if (!variableAccess.isWritable() || variableAccess.getAccess().hasAccess(tokenReadAccess)) {
+							
+							VariableInstance variableInstance = variablesInstances
+						        .get(variableAccess.getVariableName());
 						
-						if (!access.isWritable()) {
-							variables.put(access.getVariableName(),
+							variables.put(variableAccess.getVariableName(),
 							    variableInstance.getValue());
 						}
 					}
 				}
+				*/
 				
 				return variables;
 			}
