@@ -29,7 +29,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $ Last modified: $Date: 2009/02/16 15:06:05 $ by $Author: civilis $
+ * @version $Revision: 1.15 $ Last modified: $Date: 2009/02/16 16:12:57 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -174,6 +174,20 @@ public class VariablesHandlerImpl implements VariablesHandler {
 					
 					for (VariableAccess variableAccess : accesses) {
 						
+						if(!variables.containsKey(variableAccess.getVariableName())) {
+							
+//							the situation when process definition was changed (using formbuilder for instance)
+//							but task instance was created already
+							
+							if(variableAccess.isReadable()) {
+								
+//								read - populating from token
+//								TODO: test if this populates variable from the token
+								Object variable = ti.getContextInstance().getVariable(variableAccess.getVariableName());
+								variables.put(variableAccess.getVariableName(), variable);
+							}
+						}
+						
 						if(variableAccess.isWritable() && !variableAccess.isReadable()) {
 							
 //							we don't want to show non readable variable
@@ -193,7 +207,6 @@ public class VariablesHandlerImpl implements VariablesHandler {
 						}
 						*/
 					}
-					
 				}
 //				else {
 //					variables = new HashMap<String, Object>(ti.getVariablesLocally());
