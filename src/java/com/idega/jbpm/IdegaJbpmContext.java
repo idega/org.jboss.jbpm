@@ -14,12 +14,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  * 
- *          Last modified: $Date: 2009/02/13 17:13:51 $ by $Author: donatas $
+ *          Last modified: $Date: 2009/02/18 14:26:53 $ by $Author: civilis $
  */
 public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
@@ -87,6 +88,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	 * @param callback
 	 * @return
 	 */
+	@Transactional // temporal let's hope. need to understand and merge jbpm + jpa transactions behavior
 	public <T> T execute(final JbpmCallback callback) {
 
 		final JbpmContext context = JbpmConfiguration.getInstance()
