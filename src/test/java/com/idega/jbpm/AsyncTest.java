@@ -27,9 +27,9 @@ import com.idega.core.test.base.IdegaBaseTransactionalTest;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- *          Last modified: $Date: 2008/10/10 11:06:41 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/19 13:06:40 $ by $Author: civilis $
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -41,7 +41,7 @@ public final class AsyncTest extends IdegaBaseTransactionalTest {
 	static long maxWaitTime = 20000;
 
 	@Autowired
-	private IdegaJbpmContext bpmContext;
+	private BPMContext bpmContext;
 	
 	void deployProcessDefinitions() throws Exception {
 

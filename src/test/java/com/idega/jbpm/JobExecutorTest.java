@@ -28,7 +28,7 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 	static long maxWaitTime = 20000;
 
 	@Autowired
-	private IdegaJbpmContext bpmContext;
+	private BPMContext bpmContext;
 
 	void deployProcessDefinitions() throws Exception {
 

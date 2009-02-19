@@ -23,7 +23,7 @@ import com.idega.jbpm.proxy.JbpmHandlerProxy;
 public class SpringIntegrationTest extends IdegaBaseTransactionalTest {
 
 	@Autowired
-	private IdegaJbpmContext bpmContext;
+	private BPMContext bpmContext;
 
 	void deployProcessDefinitions() throws Exception {
 
