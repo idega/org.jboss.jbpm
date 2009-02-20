@@ -14,9 +14,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/20 14:24:52 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -26,42 +26,53 @@ public class ProcessBundleFactory {
 			Integer version) {
 
 		Document bundleConfigXML = resources.getConfiguration();
+		ProcessBundle procBundle;
 
-		XPathUtil xput = new XPathUtil("//processBundle");
-		Element processBundleE = xput.getNode(bundleConfigXML);
+		if (bundleConfigXML != null) {
 
-		String beanIdentifierAttribute = "beanIdentifier";
-		String processManagerTypeAttribute = "processManagerType";
-		String bundleBeanIdentifier = processBundleE
-				.getAttribute(beanIdentifierAttribute); // this can be changed
-		// to bundle type
-		String processManagerType = processBundleE
-				.getAttribute(processManagerTypeAttribute);
+			XPathUtil xput = new XPathUtil("//processBundle");
+			Element processBundleE = xput.getNode(bundleConfigXML);
 
-		if (StringUtil.isEmpty(bundleBeanIdentifier))
-			throw new IllegalArgumentException("Wrong configuration file: no "
-					+ beanIdentifierAttribute
-					+ " attribute provided at the processbundle element");
+			String beanIdentifierAttribute = "beanIdentifier";
+			String processManagerTypeAttribute = "processManagerType";
+			String bundleBeanIdentifier = processBundleE
+					.getAttribute(beanIdentifierAttribute); // this can be
+			// changed
+			// to bundle type
+			String processManagerType = processBundleE
+					.getAttribute(processManagerTypeAttribute);
 
-		ProcessBundle procBundle = (ProcessBundle) ELUtil.getInstance()
-				.getBean(bundleBeanIdentifier);
-		procBundle.setBundleResources(resources);
+			if (StringUtil.isEmpty(bundleBeanIdentifier))
+				throw new IllegalArgumentException(
+						"Wrong configuration file: no "
+								+ beanIdentifierAttribute
+								+ " attribute provided at the processbundle element");
 
-		if (!StringUtil.isEmpty(processManagerType)) {
-			procBundle.setProcessManagerType(processManagerType);
-		}
+			procBundle = ELUtil.getInstance().getBean(bundleBeanIdentifier);
+			procBundle.setBundleResources(resources);
 
-		if (version != null) {
-
-			try {
-				ProcessDefinition pd = procBundle.getProcessDefinition();
-				pd.setVersion(version);
-
-			} catch (IOException e) {
-				throw new RuntimeException(
-						"Failed to resolve process definition from process bundle, bundleBeanIdentifier="
-								+ bundleBeanIdentifier, e);
+			if (!StringUtil.isEmpty(processManagerType)) {
+				procBundle.setProcessManagerType(processManagerType);
 			}
+
+			if (version != null) {
+
+				try {
+					ProcessDefinition pd = procBundle.getProcessDefinition();
+					pd.setVersion(version);
+
+				} catch (IOException e) {
+					throw new RuntimeException(
+							"Failed to resolve process definition from process bundle, bundleBeanIdentifier="
+									+ bundleBeanIdentifier, e);
+				}
+			}
+
+		} else {
+
+			procBundle = ELUtil.getInstance().getBean(
+					ProcessBundleSingleProcessDefinitionImpl.beanIdentifier);
+			procBundle.setBundleResources(resources);
 		}
 
 		return procBundle;

@@ -1,7 +1,6 @@
 package com.idega.jbpm.bundle;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +13,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.idega.idegaweb.IWBundle;
 import com.idega.jbpm.view.ViewResource;
 import com.idega.jbpm.view.ViewResourceFactoryImpl;
 import com.idega.util.StringUtil;
@@ -24,48 +22,20 @@ import com.idega.util.xml.XPathUtil;
  * Default implementation of ProcessBundle
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2009/01/29 10:35:55 $ by $Author: arunas $
+ *          Last modified: $Date: 2009/02/20 14:24:52 $ by $Author: civilis $
  * 
  */
 @Scope("prototype")
 @Service("defaultBPMProcessBundle")
-public class ProcessBundleDefaultImpl implements ProcessBundle {
+public class ProcessBundleDefaultImpl extends
+		ProcessBundleSingleProcessDefinitionImpl {
 
-	private static final String processDefinitionFileName = "processdefinition.xml";
-
-	private String processManagerType;
 	@Autowired
 	private ViewResourceFactoryImpl viewResourceFactory;
 
-	private ProcessBundleResources bundleResources;
-	private IWBundle bundle;
-	private String bundlePropertiesLocationWithinBundle;
-	private ProcessDefinition pd;
-
-	public ProcessDefinition getProcessDefinition() throws IOException {
-
-		if (pd == null) {
-
-			// TODO: create method to resolve process definition in the
-			// bundleResource object
-			InputStream pdIs = getBundleResources().getResourceIS(
-					processDefinitionFileName);
-
-			if (pdIs != null) {
-				ProcessDefinition pd = com.idega.jbpm.graph.def.IdegaProcessDefinition
-						.parseXmlInputStream(pdIs);
-				this.pd = pd;
-			} 
-			if (pd == null) 
-				throw new RuntimeException("Process Defintion is " + pd);
-					
-		}
-
-		return pd ;
-	}
-
+	@Override
 	public List<ViewResource> getViewResources(String taskName)
 			throws IOException {
 
@@ -100,24 +70,9 @@ public class ProcessBundleDefaultImpl implements ProcessBundle {
 		return viewResources;
 	}
 
-	public IWBundle getBundle() {
-		return bundle;
-	}
-
-	public void setBundle(IWBundle bundle) {
-		this.bundle = bundle;
-	}
-
-	public String getBundlePropertiesLocationWithinBundle() {
-		return bundlePropertiesLocationWithinBundle;
-	}
-
-	public void setBundlePropertiesLocationWithinBundle(
-			String bundlePropertiesLocationWithinBundle) {
-		this.bundlePropertiesLocationWithinBundle = bundlePropertiesLocationWithinBundle;
-	}
-
 	public void configure(ProcessDefinition pd) {
+
+		super.configure(pd);
 
 		Document cfg = getBundleResources().getConfiguration();
 
@@ -139,22 +94,6 @@ public class ProcessBundleDefaultImpl implements ProcessBundle {
 		// this is done
 		// automatically
 		// by jbpm?
-	}
-
-	public ProcessBundleResources getBundleResources() {
-		return bundleResources;
-	}
-
-	public void setBundleResources(ProcessBundleResources bundleResources) {
-		this.bundleResources = bundleResources;
-	}
-
-	public String getProcessManagerType() {
-		return processManagerType != null ? processManagerType : "default";
-	}
-
-	public void setProcessManagerType(String processManagerType) {
-		this.processManagerType = processManagerType;
 	}
 
 	protected ViewResourceFactoryImpl getViewResourceFactory() {

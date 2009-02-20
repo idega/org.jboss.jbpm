@@ -1,17 +1,12 @@
 package com.idega.jbpm.bundle;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.util.Collection;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,58 +16,47 @@ import org.w3c.dom.Document;
 
 import com.idega.core.file.tmp.TmpFileResolver;
 import com.idega.core.file.tmp.TmpFileResolverType;
-import com.idega.core.file.tmp.TmpFilesManager;
 import com.idega.io.ZipInstaller;
 import com.idega.util.CoreConstants;
 import com.idega.util.xml.XmlUtil;
 
 /**
- * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * TODO: close, and cleanup after deploy (new method on processbundle)
  * 
- *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.4 $
+ * 
+ *          Last modified: $Date: 2009/02/20 14:24:52 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
 public class ZippedBundleResourcesImpl implements ProcessBundleResources {
 
 	@Autowired
-	private TmpFilesManager fileUploadManager;
-	@Autowired
 	@TmpFileResolverType("defaultResolver")
 	private TmpFileResolver uploadedResourceResolver;
-	private String folder;
 	private Document bundleConfigXML;
+	private Integer rootIdx;
+	private String uploadDir;
+	private Set<String> zipEntries;
+	@Autowired
+	private ZipInstaller zipInstaller;
 
 	public void load(ZipInputStream zipInputStream) {
 
 		try {
-			ZipEntry entry;
-			ZipInstaller zip = new ZipInstaller();
-			TmpFilesManager fileUploadManager = getFileUploadManager();
-			TmpFileResolver uploadedResourceResolver = getUploadedResourceResolver();
 			String folder = "procbund" + System.currentTimeMillis()
 					+ CoreConstants.SLASH;
-			setFolder(folder);
 
-			while ((entry = zipInputStream.getNextEntry()) != null) {
+			TmpFileResolver uploadedResourceResolver = getUploadedResourceResolver();
 
-				if (!entry.isDirectory()) {
+			String uploadDir = uploadedResourceResolver.getTmpUploadDir(folder);
 
-					String entryName = entry.getName();
+			setUploadDir(uploadDir);
 
-					entryName = resolveFileName(entryName);
-
-					// for now putting all files from all subfolders into one
-					// folder
-					ByteArrayOutputStream os = new ByteArrayOutputStream();
-					zip.writeFromStreamToStream(zipInputStream, os);
-					InputStream is = new ByteArrayInputStream(os.toByteArray());
-
-					fileUploadManager.uploadToTmpDir(folder, entryName, is,
-							uploadedResourceResolver);
-				}
-			}
+			Set<String> zipEntries = getZipInstaller().extractZIP(
+					zipInputStream, new File(uploadDir));
+			setZipEntries(zipEntries);
 
 		} catch (IOException e) {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE,
@@ -80,59 +64,81 @@ public class ZippedBundleResourcesImpl implements ProcessBundleResources {
 		}
 	}
 
-	private String resolveFileName(String fileName) {
-
-		int lastSlash = fileName.lastIndexOf(CoreConstants.SLASH);
-		if (lastSlash != -1) {
-			fileName = fileName.substring(lastSlash + 1, fileName.length());
-		}
-
-		return fileName;
-	}
-
 	public void close() {
 		// TODO: implement, (cleanup of tmp files) and use the method
 	}
 
-	public InputStream getResourceIS(String path) {
+	protected Integer getRootIdx(String resourcePath) throws IOException {
 
-		Collection<URI> uris = getFileUploadManager().getFilesUris(getFolder(),
-				null, getUploadedResourceResolver());
-		String fileName = resolveFileName(path);
+		if (this.rootIdx == null) {
 
-		for (URI uri : uris) {
+			Integer rootIdx = null;
 
-			File f = new File(uri);
+			Set<String> zipEntries = getZipEntries();
 
-			if (f.getName().equals(fileName)) {
+			for (String entryPath : zipEntries) {
 
-				try {
-					return new FileInputStream(f);
+				if (entryPath.contains(resourcePath)) {
 
-				} catch (FileNotFoundException e) {
-					Logger.getLogger(getClass().getName()).log(Level.SEVERE,
-							"Tmp file not found by uri=" + uri, e);
+					Integer pathIdx = entryPath.indexOf(resourcePath);
+
+					if (rootIdx == null || rootIdx > pathIdx) {
+						rootIdx = pathIdx;
+					}
 				}
 			}
+
+			this.rootIdx = rootIdx;
 		}
 
-		return null;
+		return rootIdx;
 	}
 
-	public TmpFilesManager getFileUploadManager() {
-		return fileUploadManager;
+	public InputStream getResourceIS(String resourcePath) {
+
+		try {
+			// the idea here is to get rootIdx for the resources that are being
+			// resolved
+			// root idx defines index of where resource path should start in the
+			// zip entry path (name)
+			Integer rootIdx = getRootIdx(resourcePath);
+
+			if (rootIdx == null) {
+
+				// resource not resolved by the resource path
+				return null;
+			}
+
+			Set<String> entries = getZipEntries();
+			InputStream resourceIS = null;
+
+			for (String entryPath : entries) {
+
+				if (entryPath.indexOf(resourcePath) == rootIdx) {
+					// entry path contained the resource path, and it was at
+					// correct root index, that means we found it in zip
+					// our boy
+					String path = resolveEntryPathNoFileName(entryPath);
+					String fileName = resolveFileName(entryPath);
+
+					File file = getUploadedResourceResolver().getFile(
+							getUploadDir() + path, fileName);
+					resourceIS = new FileInputStream(file);
+					break;
+				}
+			}
+
+			return resourceIS;
+
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+
+		}
 	}
 
 	public TmpFileResolver getUploadedResourceResolver() {
 		return uploadedResourceResolver;
-	}
-
-	public String getFolder() {
-		return folder;
-	}
-
-	public void setFolder(String folder) {
-		this.folder = folder;
 	}
 
 	public Document getConfiguration() {
@@ -143,11 +149,53 @@ public class ZippedBundleResourcesImpl implements ProcessBundleResources {
 			InputStream bundleConfigIS = getResourceIS(configFileName);
 
 			if (bundleConfigIS == null)
-				throw new RuntimeException("No " + configFileName + " found");
-
-			bundleConfigXML = XmlUtil.getXMLDocument(bundleConfigIS);
+				bundleConfigXML = null;
+			else
+				bundleConfigXML = XmlUtil.getXMLDocument(bundleConfigIS);
 		}
 
 		return bundleConfigXML;
+	}
+
+	ZipInstaller getZipInstaller() {
+		return zipInstaller;
+	}
+
+	protected Set<String> getZipEntries() {
+		return zipEntries;
+	}
+
+	protected void setZipEntries(Set<String> zipEntries) {
+		this.zipEntries = zipEntries;
+	}
+
+	protected String getUploadDir() {
+		return uploadDir;
+	}
+
+	protected void setUploadDir(String uploadDir) {
+		this.uploadDir = uploadDir;
+	}
+
+	private String resolveEntryPathNoFileName(String path) {
+
+		int lastSlash = path.lastIndexOf(CoreConstants.SLASH);
+		if (lastSlash != -1) {
+			path = path.substring(0, lastSlash);
+		} else {
+			path = CoreConstants.EMPTY;
+		}
+
+		return path;
+	}
+
+	private String resolveFileName(String path) {
+
+		int lastSlash = path.lastIndexOf(CoreConstants.SLASH);
+		if (lastSlash != -1) {
+			path = path.substring(lastSlash + 1, path.length());
+		}
+
+		return path;
 	}
 }

@@ -2,8 +2,6 @@ package com.idega.jbpm.bundle;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.w3c.dom.Document;
 
@@ -13,9 +11,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/20 14:24:52 $ by $Author: civilis $
  */
 public class JarModuleBundleResourcesImpl implements ProcessBundleResources {
 
@@ -42,10 +40,10 @@ public class JarModuleBundleResourcesImpl implements ProcessBundleResources {
 			return is;
 
 		} catch (IOException e) {
-			Logger.getLogger(getClass().getName()).log(
-					Level.SEVERE,
-					"Resource not found by the path=" + path + " at bundle="
-							+ getBundle().getBundleIdentifier());
+//			Logger.getLogger(getClass().getName()).log(
+//					Level.SEVERE,
+//					"Resource not found by the path=" + path + " at bundle="
+//							+ getBundle().getBundleIdentifier());
 		}
 
 		return null;
@@ -67,9 +65,9 @@ public class JarModuleBundleResourcesImpl implements ProcessBundleResources {
 			InputStream bundleConfigIS = getResourceIS(configFileName);
 
 			if (bundleConfigIS == null)
-				throw new RuntimeException("No " + configFileName + " found");
-
-			bundleConfigXML = XmlUtil.getXMLDocument(bundleConfigIS);
+				bundleConfigXML = null;
+			else
+				bundleConfigXML = XmlUtil.getXMLDocument(bundleConfigIS);
 		}
 
 		return bundleConfigXML;

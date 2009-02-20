@@ -13,6 +13,7 @@ import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.instantiation.Delegation;
 import org.jbpm.taskmgmt.def.Task;
+import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $ Last modified: $Date: 2009/01/28 21:09:13 $ by
+ * @version $Revision: 1.17 $ Last modified: $Date: 2009/02/20 14:24:52 $ by
  *          $Author: civilis $
  */
 @Scope("prototype")
@@ -87,32 +88,39 @@ public class ProcessBundleManager {
 					pd = processBundle.getProcessDefinition();
 
 					context.getGraphSession().deployProcessDefinition(pd);
-
+					
+					TaskMgmtDefinition taskMgmtDef = pd.getTaskMgmtDefinition();
+					
 					@SuppressWarnings("unchecked")
-					Collection<Task> tasks = pd.getTaskMgmtDefinition()
-							.getTasks().values();
-
+					Map<String, Task> tasksMap = taskMgmtDef.getTasks();
 					final String processName = pd.getName();
+					
+					if(tasksMap != null) {
+						
+						@SuppressWarnings("unchecked")
+						Collection<Task> tasks = pd.getTaskMgmtDefinition()
+								.getTasks().values();
 
-					for (Task task : tasks) {
+						for (Task task : tasks) {
 
-						List<ViewResource> viewResources = processBundle
-								.getViewResources(task.getName());
+							List<ViewResource> viewResources = processBundle
+									.getViewResources(task.getName());
 
-						if (viewResources != null) {
+							if (viewResources != null) {
 
-							for (ViewResource viewResource : viewResources) {
+								for (ViewResource viewResource : viewResources) {
 
-								viewResource.setProcessName(processName);
-								viewResource.store(iwma);
-								getViewToTask().bind(viewResource.getViewId(),
-										viewResource.getViewType(), task);
+									viewResource.setProcessName(processName);
+									viewResource.store(iwma);
+									getViewToTask().bind(viewResource.getViewId(),
+											viewResource.getViewType(), task);
+								}
+							} else {
+								Logger.getLogger(getClass().getName()).log(
+										Level.WARNING,
+										"No view resources resolved for task: "
+												+ task.getId());
 							}
-						} else {
-							Logger.getLogger(getClass().getName()).log(
-									Level.WARNING,
-									"No view resources resolved for task: "
-											+ task.getId());
 						}
 					}
 
@@ -156,78 +164,81 @@ public class ProcessBundleManager {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Task> tasks = pd.getTaskMgmtDefinition().getTasks();
+		
+		if(tasks != null) {
+			
+			ArrayList<Role> rolesToCreate = new ArrayList<Role>();
 
-		ArrayList<Role> rolesToCreate = new ArrayList<Role>();
+			for (Task task : tasks.values()) {
 
-		for (Task task : tasks.values()) {
+				// TODO: fix and adjust this. The notation changed.
 
-			// TODO: fix and adjust this. The notation changed.
+				Delegation deleg = task.getAssignmentDelegation();
 
-			Delegation deleg = task.getAssignmentDelegation();
+				if (deleg != null && deleg.getConfiguration() != null) {
 
-			if (deleg != null && deleg.getConfiguration() != null) {
+					String jsonExp = deleg.getConfiguration();
 
-				String jsonExp = deleg.getConfiguration();
+					// skipping scripted expressions, which should be evaluated at
+					// runtime
+					if (!jsonExp.contains("${") && !jsonExp.contains("#{")) {
 
-				// skipping scripted expressions, which should be evaluated at
-				// runtime
-				if (!jsonExp.contains("${") && !jsonExp.contains("#{")) {
+						TaskAssignment ta = JSONExpHandler
+								.resolveRolesFromJSONExpression(jsonExp);
 
-					TaskAssignment ta = JSONExpHandler
-							.resolveRolesFromJSONExpression(jsonExp);
+						List<Role> roles = ta.getRoles();
 
-					List<Role> roles = ta.getRoles();
+						for (Role role : roles) {
 
-					for (Role role : roles) {
-
-						if (role.getScope() == RoleScope.PD)
-							rolesToCreate.add(role);
+							if (role.getScope() == RoleScope.PD)
+								rolesToCreate.add(role);
+						}
 					}
 				}
 			}
-		}
 
-		if (!rolesToCreate.isEmpty()) {
+			if (!rolesToCreate.isEmpty()) {
 
-			getBpmFactory().getRolesManager()
-					.createNativeRolesFromProcessRoles(pd.getName(),
-							rolesToCreate);
+				getBpmFactory().getRolesManager()
+						.createNativeRolesFromProcessRoles(pd.getName(),
+								rolesToCreate);
 
-			// TODO: move this to appropriate place, also store path of the
-			// process should be
-			// accessible through api
+				// TODO: move this to appropriate place, also store path of the
+				// process should be
+				// accessible through api
 
-			String storePath = new StringBuilder(JBPMConstants.BPM_PATH)
-					.append(CoreConstants.SLASH).append(pd.getName())
-					.toString();
+				String storePath = new StringBuilder(JBPMConstants.BPM_PATH)
+						.append(CoreConstants.SLASH).append(pd.getName())
+						.toString();
 
-			ArrayList<String> roleNames = new ArrayList<String>(rolesToCreate
-					.size());
+				ArrayList<String> roleNames = new ArrayList<String>(rolesToCreate
+						.size());
 
-			for (Role role : rolesToCreate) {
-				roleNames.add(role.getRoleName());
-			}
-			
-//			TODO: this need to be outside if, i.e. admin still should have access to the folder, even if process doesn't have any roles
-			roleNames.add(StandardRoles.ROLE_KEY_ADMIN);
+				for (Role role : rolesToCreate) {
+					roleNames.add(role.getRoleName());
+				}
+				
+//				TODO: this need to be outside if, i.e. admin still should have access to the folder, even if process doesn't have any roles
+				roleNames.add(StandardRoles.ROLE_KEY_ADMIN);
 
-			try {
-				IWSlideService slideService = (IWSlideService) IBOLookup
-						.getServiceInstance(IWMainApplication
-								.getDefaultIWApplicationContext(),
-								IWSlideService.class);
+				try {
+					IWSlideService slideService = (IWSlideService) IBOLookup
+							.getServiceInstance(IWMainApplication
+									.getDefaultIWApplicationContext(),
+									IWSlideService.class);
 
-				AccessControlList processFolderACL = slideService
-						.getAccessControlList(storePath);
+					AccessControlList processFolderACL = slideService
+							.getAccessControlList(storePath);
 
-				processFolderACL = slideService.getAuthenticationBusiness()
-						.applyPermissionsToRepository(processFolderACL,
-								roleNames);
+					processFolderACL = slideService.getAuthenticationBusiness()
+							.applyPermissionsToRepository(processFolderACL,
+									roleNames);
 
-				slideService.storeAccessControlList(processFolderACL);
+					slideService.storeAccessControlList(processFolderACL);
 
-			} catch (Exception e) {
-				e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}

@@ -1,6 +1,5 @@
 package com.idega.jbpm.process.business.autoloader;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,7 +9,6 @@ import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 
-import org.jbpm.graph.def.ProcessDefinition;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -30,16 +28,15 @@ import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.bundle.JarModuleBundleResourcesImpl;
 import com.idega.jbpm.bundle.ProcessBundle;
 import com.idega.jbpm.bundle.ProcessBundleFactory;
-import com.idega.util.CoreConstants;
 import com.idega.util.StringUtil;
 import com.idega.util.xml.XPathUtil;
 import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/20 14:24:52 $ by $Author: civilis $
  */
 public abstract class ProcessDefinitionsAutoloader implements
 		ApplicationListener, ApplicationContextAware {
@@ -77,12 +74,8 @@ public abstract class ProcessDefinitionsAutoloader implements
 		final List<String> mappings = getMappings();
 		final List<Resource> allResources = resolveResources(mappings);
 
-		List<AutoDeployable> autodeployables = resolveProcessDefinitionsAutodeployables(
+		List<AutoDeployable> autodeployables = resolveProcessBundlesAutodeployables(
 				iwma, allResources);
-		List<AutoDeployable> processBundlesAutos = resolveProcessBundlesAutodeployables(
-				iwma, allResources);
-
-		autodeployables.addAll(processBundlesAutos);
 
 		HashSet<AutoDeployable> autos = new HashSet<AutoDeployable>(
 				autodeployables.size());
@@ -140,94 +133,6 @@ public abstract class ProcessDefinitionsAutoloader implements
 			}
 		}
 		return allResources;
-	}
-
-	protected List<AutoDeployable> resolveProcessDefinitionsAutodeployables(
-			IWMainApplication iwma, List<Resource> resources) {
-
-		ArrayList<AutoDeployable> autos = new ArrayList<AutoDeployable>();
-
-		try {
-			final String xpathExp = ".//processDefinition[@autoload='true']";
-
-			final DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
-			final XPathUtil ut = new XPathUtil(xpathExp);
-
-			for (Resource resource : resources) {
-
-				final Document doc;
-				try {
-					doc = docBuilder.parse(resource.getInputStream());
-
-				} catch (Exception e) {
-					getLogger().log(
-							Level.WARNING,
-							"Exception while parsting resource: "
-									+ resource.getFilename(), e);
-					continue;
-				}
-
-				NodeList pdDescs = ut.getNodeset(doc);
-
-				for (int i = 0; i < pdDescs.getLength(); i++) {
-
-					final Element PDDesc = (Element) pdDescs.item(i);
-
-					String bundleIdentifier = PDDesc.getAttribute("bundle");
-					String processBundleLocationWithinBundle = PDDesc
-							.getAttribute("processBundleLocationWithinBundle");
-					String versionStr = PDDesc.getAttribute("version");
-					String autoloadStr = PDDesc.getAttribute("autoload");
-
-					Boolean autoload = "true".equals(autoloadStr);
-
-					if (!autoload)
-						// skip this autodeployabe if said so in the cfg
-						continue;
-
-					if (!processBundleLocationWithinBundle
-							.endsWith(CoreConstants.SLASH))
-						processBundleLocationWithinBundle += CoreConstants.SLASH;
-
-					String pathToProcessDefinition = processBundleLocationWithinBundle
-							+ "processdefinition.xml";
-
-					IWBundle bundle = iwma.getBundle(bundleIdentifier);
-					InputStream is = bundle
-							.getResourceInputStream(pathToProcessDefinition);
-
-					ProcessDefinition pd = ProcessDefinition
-							.parseXmlInputStream(is);
-
-					if (!StringUtil.isEmpty(versionStr)) {
-						try {
-							pd.setVersion(new Integer(versionStr));
-						} catch (NumberFormatException e) {
-
-							getLogger().log(
-									Level.WARNING,
-									"Version provided was not of integer type for autodeployed process definition="
-											+ bundleIdentifier
-											+ processBundleLocationWithinBundle
-											+ ", version provided="
-											+ versionStr
-											+ ". Ignoring autodeployable.", e);
-							continue;
-						}
-					}
-
-					AutoDeployable auto = createAutoDeployable();
-					auto.setProcessDefinition(pd);
-					autos.add(auto);
-				}
-			}
-
-		} catch (Exception e) {
-			getLogger().log(Level.SEVERE,
-					"Exception while resolving process definitions", e);
-		}
-
-		return autos;
 	}
 
 	protected abstract AutoDeployable createAutoDeployable();
