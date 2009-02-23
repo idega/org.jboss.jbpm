@@ -16,9 +16,9 @@ import com.idega.jbpm.view.ViewResource;
  * Implementation of ProcessBundle for single processdefinition.xml
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- *          Last modified: $Date: 2009/02/20 14:24:52 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/23 12:40:00 $ by $Author: civilis $
  * 
  */
 @Scope("prototype")
@@ -51,6 +51,29 @@ public class ProcessBundleSingleProcessDefinitionImpl implements ProcessBundle {
 
 	public void configure(ProcessDefinition pd) {
 
+/*
+		// adding task instance create event handler, which will bind/take view
+		// for created task instance
+		Event event;
+		String eventType = Event.EVENTTYPE_TASK_CREATE;
+
+		if (!pd.hasEvent(eventType)) {
+
+			event = pd.addEvent(new Event(eventType));
+		} else {
+			event = pd.getEvent(eventType);
+		}
+
+		Delegation del = new Delegation(JbpmHandlerProxy.class.getName());
+		del
+				.setConfiguration("<handlerName>"
+						+ TaskInstanceViewBindHandler.beanIdentifier
+						+ "</handlerName>");
+		Action act = new Action(del);
+		act.setAsync(true);
+		act.setName(TaskInstanceViewBindHandler.beanIdentifier);
+		event.addAction(act);
+*/
 	}
 
 	public ProcessBundleResources getBundleResources() {
