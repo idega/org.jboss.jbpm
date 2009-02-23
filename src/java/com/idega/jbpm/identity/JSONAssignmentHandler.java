@@ -21,7 +21,6 @@ import com.idega.jbpm.exe.BPMFactory;
  * <p>
  * Expects assignment expression in json notation. E.g.:
  * </p>
- * 
  * <p>
  * <code>
  * {taskAssignment: {roles: {role: [
@@ -32,51 +31,51 @@ import com.idega.jbpm.exe.BPMFactory;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
- * 
- *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
+ * @version $Revision: 1.18 $ Last modified: $Date: 2009/02/23 12:38:43 $ by $Author: civilis $
  */
 @Service("jsonAssignmentHandler")
 @Scope("prototype")
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
-
+	
 	private static final String ASSIGN_IDENTITY_CURRENT_USER = "current_user";
-
+	
 	private static final long serialVersionUID = 8955094455268141204L;
 	@Autowired
 	private BPMFactory bpmFactory;
-
+	
 	public void assign(Assignable assignable, ExecutionContext executionContext) {
-
+		
 		if (!(assignable instanceof TaskInstance))
 			throw new IllegalArgumentException(
-					"Only TaskInstance is accepted for assignable");
-
+			        "Only TaskInstance is accepted for assignable");
+		
 		this.executionContext = executionContext;
-
+		
 		String exp = getExpression();
-
+		
 		if (exp != null) {
-
+			
 			TaskInstance taskInstance = (TaskInstance) assignable;
-
+			
 			TaskAssignment ta = JSONExpHandler
-					.resolveRolesFromJSONExpression(exp);
+			        .resolveRolesFromJSONExpression(exp);
 			
 			List<Role> roles = ta.getRoles();
-
+			
 			if (roles == null || roles.isEmpty()) {
-
+				
 				Logger.getLogger(getClass().getName()).log(Level.WARNING,
-						"No roles for task instance: " + taskInstance.getId());
+				    "No roles for task instance: " + taskInstance.getId());
 				return;
 			}
 			
-			ProcessInstance mainProcessInstance = getBpmFactory().getMainProcessInstance(taskInstance.getProcessInstance().getId());
+			ProcessInstance mainProcessInstance = getBpmFactory()
+			        .getMainProcessInstance(
+			            taskInstance.getProcessInstance().getId());
 			
 			/*
 			if(mainProcessInstance == null) {
-//				backwards compatibility
+			//				backwards compatibility
 				
 				if (ta.getRolesFromProcessInstanceId() != null) {
 
@@ -87,41 +86,43 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 				}
 			}
 			*/
-			
-			getBpmFactory().getRolesManager().createProcessActors(roles, mainProcessInstance);
+
+			getBpmFactory().getRolesManager().createProcessActors(roles,
+			    mainProcessInstance);
 			getBpmFactory().getRolesManager().assignTaskRolesPermissions(
-					taskInstance.getTask(), roles, mainProcessInstance.getId());
+			    taskInstance.getTask(), roles, mainProcessInstance.getId());
 			assignIdentities(mainProcessInstance, roles);
 		}
 	}
-
+	
 	public void setExpression(String expression) {
 		this.expression = expression;
 	}
-
+	
 	public String getExpression() {
 		return expression;
 	}
-
-	private void assignIdentities(ProcessInstance processInstance, List<Role> roles) {
-
+	
+	private void assignIdentities(ProcessInstance processInstance,
+	        List<Role> roles) {
+		
 		BPMUser usr = getBpmFactory().getBpmUserFactory().getCurrentBPMUser();
-
+		
 		if (usr != null) {
-
+			
 			Integer usrId = usr.getIdToUse();
-
+			
 			if (usrId != null) {
-
+				
 				ArrayList<Role> rolesToAssignIdentity = new ArrayList<Role>(
-						roles.size());
-
+				        roles.size());
+				
 				for (Role role : roles) {
-
+					
 					if (role.getAssignIdentities() != null) {
-
+						
 						for (String assignTo : role.getAssignIdentities()) {
-
+							
 							if (assignTo.equals(ASSIGN_IDENTITY_CURRENT_USER)) {
 								rolesToAssignIdentity.add(role);
 								break;
@@ -129,18 +130,18 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 						}
 					}
 				}
-
+				
 				if (!rolesToAssignIdentity.isEmpty()) {
-
+					
 					getBpmFactory().getRolesManager().createIdentitiesForRoles(
-							rolesToAssignIdentity, String.valueOf(usrId),
-							IdentityType.USER,
-							processInstance.getId());
+					    rolesToAssignIdentity,
+					    new Identity(String.valueOf(usrId), IdentityType.USER),
+					    processInstance.getId());
 				}
 			}
 		}
 	}
-
+	
 	BPMFactory getBpmFactory() {
 		return bpmFactory;
 	}

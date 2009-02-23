@@ -37,9 +37,9 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  * 
- * Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
+ * Last modified: $Date: 2009/02/23 12:39:03 $ by $Author: civilis $
  */
 public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 
@@ -140,7 +140,7 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		RolesManager rolesManager = getBPMFactory().getRolesManager();
 		
 		rolesManager.createProcessActors(rolz, pi);
-		rolesManager.createIdentitiesForRoles(rolz, userId, IdentityType.USER, pi.getId());
+		rolesManager.createIdentitiesForRoles(rolz, new Identity(userId, IdentityType.USER), pi.getId());
 	}
 	
 	private User createBpmUserAcc(UserBusiness userBusiness, UserPersonalData upd, Role role, long processInstanceId) throws CreateException, RemoteException {
