@@ -1,5 +1,6 @@
 package com.idega.jbpm.exe.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,12 +34,13 @@ import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewFactory;
 import com.idega.jbpm.view.ViewSubmission;
 import com.idega.jbpm.view.ViewSubmissionImpl;
+import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $
+ * @version $Revision: 1.27 $
  * 
- *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/23 12:39:29 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -87,13 +89,42 @@ public class BPMFactoryImpl implements BPMFactory {
 
 				if (view != null) {
 
-					// TODO: check, if view is taken for task instance id (just
-					// locate view by task instance)
-					view.takeView();
-					view.getViewToTask().bind(view, ti);
+					takeView(view, ti);
 				}
 
 				return view;
+			}
+		});
+	}
+
+	protected void takeView(View view, TaskInstance ti) {
+
+		if (!view.getViewToTask().containsBind(view.getViewType(), ti.getId())) {
+
+			view.takeView();
+			view.getViewToTask().bind(view, ti);
+		} else {
+			
+		}
+	}
+
+	@Transactional(readOnly = false)
+	public void takeViews(final long taskInstanceId) {
+
+		getBpmContext().execute(new JbpmCallback() {
+
+			public Object doInJbpm(JbpmContext context) throws JbpmException {
+
+				TaskInstance ti = context.getTaskInstance(taskInstanceId);
+
+				List<View> views = getViewsByTask(taskInstanceId, false);
+
+				for (View view : views) {
+
+					takeView(view, ti);
+				}
+
+				return null;
 			}
 		});
 	}
@@ -122,6 +153,35 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	@Transactional(readOnly = true)
+	public List<View> getViewsByTask(long taskId, boolean submitable) {
+
+		List<ViewTaskBind> binds = getBPMDAO().getViewTaskBindsByTaskId(taskId);
+
+		if (ListUtil.isEmpty(binds)) {
+			Logger.getLogger(BPMFactory.class.getName()).log(
+					Level.WARNING,
+					"No view task bindings resolved for task. Task id: "
+							+ taskId);
+			return null;
+		}
+
+		ArrayList<View> views = new ArrayList<View>(binds.size());
+
+		for (ViewTaskBind viewTaskBind : binds) {
+
+			String viewType = viewTaskBind.getViewType();
+
+			ViewFactory viewFactory = getViewFactory(viewType);
+			View view = viewFactory.getView(viewTaskBind.getViewIdentifier(),
+					submitable);
+
+			views.add(view);
+		}
+
+		return views;
+	}
+
+	@Transactional(readOnly = true)
 	public View getView(String viewIdentifier, String type, boolean submitable) {
 
 		ViewFactory viewFactory = getViewFactory(type);
@@ -131,6 +191,8 @@ public class BPMFactoryImpl implements BPMFactory {
 	@Transactional(readOnly = true)
 	public View getViewByTaskInstance(long taskInstanceId, boolean submitable,
 			List<String> preferredTypes) {
+		
+//		TODO: if not found - take from task
 
 		List<ViewTaskBind> binds = getBPMDAO()
 				.getViewTaskBindsByTaskInstanceId(taskInstanceId);

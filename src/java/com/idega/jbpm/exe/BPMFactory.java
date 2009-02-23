@@ -13,9 +13,9 @@ import com.idega.jbpm.view.ViewSubmission;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  * 
- *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/23 12:39:29 $ by $Author: civilis $
  */
 public interface BPMFactory {
 
@@ -88,6 +88,14 @@ public interface BPMFactory {
 
 	public abstract View takeView(long taskInstanceId, boolean submitable,
 			List<String> preferredTypes);
+
+	/**
+	 * takes all views that are bound to the task instance task, if not taken
+	 * already
+	 * 
+	 * @param taskInstanceId
+	 */
+	public abstract void takeViews(final long taskInstanceId);
 
 	public abstract RolesManager getRolesManager();
 
