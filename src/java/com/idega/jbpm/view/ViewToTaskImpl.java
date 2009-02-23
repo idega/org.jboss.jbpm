@@ -42,7 +42,14 @@ public class ViewToTaskImpl implements ViewToTask {
 
 		if (newVtb)
 			getBPMDAO().persist(vtb);
-
+	}
+	
+	public boolean containsBind(String viewType, Long taskInstanceId) {
+		
+		ViewTaskBind vtb = getBPMDAO().getViewTaskBindByTaskInstance(
+				taskInstanceId, viewType);
+		
+		return vtb != null;
 	}
 
 	public void bind(View view, TaskInstance taskInstance) {

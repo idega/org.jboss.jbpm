@@ -5,9 +5,9 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2009/01/25 15:36:31 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/23 12:36:07 $ by $Author: civilis $
  */
 public interface ViewToTask {
 
@@ -35,4 +35,6 @@ public interface ViewToTask {
 	 * @param taskInstance
 	 */
 	public abstract void bind(View view, TaskInstance taskInstance);
+
+	public abstract boolean containsBind(String viewType, Long taskInstanceId);
 }
