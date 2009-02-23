@@ -10,9 +10,8 @@ import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.idegaweb.IWApplicationContext;
-import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.Actor;
-import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
+import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
@@ -21,20 +20,29 @@ import com.idega.user.data.User;
 
 /**
  * <p>
- * roles, actors managment, permissions in one piece TODO: split
+ * roles, actors management, permissions in one piece TODO: split
  * </p>
  * Recommended getting rolesManager from BPMFactory
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.32 $ Last modified: $Date: 2009/02/13 17:27:47 $ by $Author: civilis $
+ * @version $Revision: 1.33 $ Last modified: $Date: 2009/02/23 12:37:22 $ by $Author: civilis $
  */
 public interface RolesManager {
 	
+	public abstract void createIdentitiesForRolesNames(Set<String> rolesNames,
+	        Identity identity, long processInstanceId);
+
+	/**
+	 * convenience method for createIdentitiesForRolesNames
+	 * @param roles
+	 * @param identity
+	 * @param processInstanceId
+	 */
 	public abstract void createIdentitiesForRoles(Collection<Role> roles,
-	        String identityId, IdentityType identityType, long processInstanceId);
+	        Identity identity, long processInstanceId);
 	
 	public abstract void removeIdentitiesForRoles(Collection<Role> roles,
-	        String identityId, IdentityType identityType, long processInstanceId);
+	        Identity identity, long processInstanceId);
 	
 	public abstract void hasRightsToStartTask(long taskInstanceId, int userId)
 	        throws BPMAccessControlException;
@@ -125,14 +133,23 @@ public interface RolesManager {
 	
 	public abstract User getUser(int userId);
 	
-	public void createIdentitiesForActors(Collection<Actor> actors,
-	        String identityId, IdentityType identityType, long processInstanceId);
+	public abstract void createIdentitiesForActors(Collection<Actor> actors,
+	        Identity identity, long processInstanceId);
 	
-	public void removeIdentitiesForActors(Collection<Actor> actors,
-	        String identityId, IdentityType identityType, long processInstanceId);
+	public abstract void removeIdentitiesForActors(Collection<Actor> actors,
+	        Identity identity, long processInstanceId);
 	
-	public void setTaskPermissionsTIScopeForActors(
+	public abstract void setTaskPermissionsTIScopeForActors(
 	        final List<Actor> actorsToSetPermissionsTo,
 	        final List<Access> accesses, final Long taskInstanceId,
 	        final boolean setSameForAttachments, final String variableIdentifier);
+	
+	/**
+	 * assigns roles identities taken from the identities property
+	 * 
+	 * @param processInstance
+	 * @param roles
+	 */
+	public abstract void assignIdentities(ProcessInstance processInstance,
+	        List<Role> roles);
 }
