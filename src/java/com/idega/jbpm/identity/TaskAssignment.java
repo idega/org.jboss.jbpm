@@ -4,15 +4,17 @@ import java.util.List;
 
 /**
  * 
+ * @deprecated use RolesAssignment
  * TODO: rename to RolesAssignment
  * reflects json task assignment expression
  * 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/23 12:36:52 $ by $Author: civilis $
  */
+@Deprecated
 public class TaskAssignment {
 
 	/**
