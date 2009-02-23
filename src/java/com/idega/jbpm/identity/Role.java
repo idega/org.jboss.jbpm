@@ -9,14 +9,15 @@ import com.idega.jbpm.identity.permission.RoleScope;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- *          Last modified: $Date: 2009/02/13 17:27:47 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/23 12:38:09 $ by $Author: civilis $
  */
 public class Role {
 
 	private String roleName;
 	private List<String> assignIdentities;
+	private List<Identity> identities;
 	private RoleScope scope;
 	private List<Access> accesses;
 	private List<String> rolesContacts;
@@ -86,5 +87,13 @@ public class Role {
 				: arg0 instanceof Role ? ((Role) arg0).getRoleName() : null;
 
 		return roleName != null && roleName.equals(getRoleName());
+	}
+
+	public List<Identity> getIdentities() {
+		return identities;
+	}
+
+	public void setIdentities(List<Identity> identities) {
+		this.identities = identities;
 	}
 }
