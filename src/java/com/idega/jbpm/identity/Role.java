@@ -9,13 +9,17 @@ import com.idega.jbpm.identity.permission.RoleScope;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * 
- *          Last modified: $Date: 2009/02/23 12:38:09 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/24 11:27:52 $ by $Author: civilis $
  */
 public class Role {
 
 	private String roleName;
+	/**
+	 * @deprecated use identities property
+	 */
+	@Deprecated
 	private List<String> assignIdentities;
 	private List<Identity> identities;
 	private RoleScope scope;
@@ -56,6 +60,10 @@ public class Role {
 		this.accesses = accesses;
 	}
 
+	/**
+	 * @deprecated use identities property
+	 */
+	@Deprecated
 	public List<String> getAssignIdentities() {
 		return assignIdentities;
 	}
