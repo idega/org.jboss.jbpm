@@ -65,7 +65,7 @@ import com.idega.util.StringUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.62 $ Last modified: $Date: 2009/02/23 12:37:22 $ by $Author: civilis $
+ * @version $Revision: 1.63 $ Last modified: $Date: 2009/02/24 11:27:36 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -475,6 +475,16 @@ public class RolesManagerImpl implements RolesManager {
 								for (User user : groupUsers)
 									allUsers.put(user.getPrimaryKey()
 									        .toString(), user);
+								
+							} else if (identity.getIdentityType() == IdentityType.ROLE) {
+								
+								@SuppressWarnings("unchecked")
+								Collection<Group> grps = getAccessController()
+								        .getAllGroupsForRoleKey(
+								            identity.getIdentityId(), iwac);
+								
+								if (grps != null)
+									allGroups.addAll(grps);
 							}
 						}
 						
@@ -1672,14 +1682,15 @@ public class RolesManagerImpl implements RolesManager {
 	
 	public boolean checkFallsInRole(String roleName,
 	        List<NativeIdentityBind> nativeIdentities, /*
-	                                                        													 * Collection<Group>
-	                                                        													 * usrGrps,
-	                                                        													 */
+	                                                                        													 * Collection<Group>
+	                                                                        													 * usrGrps,
+	                                                                        													 */
 	        int userId, AccessController ac, IWApplicationContext iwac) {
 		
 		if (nativeIdentities != null && !nativeIdentities.isEmpty()) {
 			if (fallsInUsers(userId, nativeIdentities)
-			        || fallsInGroups(userId, nativeIdentities))
+			        || fallsInGroups(userId, nativeIdentities)
+			        || fallsInRoles(userId, nativeIdentities))
 				return true;
 		} else {
 			
@@ -1946,6 +1957,27 @@ public class RolesManagerImpl implements RolesManager {
 			        && nativeIdentity.getIdentityId().equals(
 			            String.valueOf(userId)))
 				return true;
+		}
+		
+		return false;
+	}
+	
+	protected boolean fallsInRoles(int userId,
+	        List<NativeIdentityBind> nativeIdentities) {
+		
+		try {
+			User usr = getUserBusiness().getUser(userId);
+			Set<String> roles = getAccessController().getAllRolesForUser(usr);
+			
+			for (NativeIdentityBind nativeIdentity : nativeIdentities) {
+				
+				if (nativeIdentity.getIdentityType() == IdentityType.ROLE
+				        && roles.contains(nativeIdentity.getIdentityId()))
+					return true;
+			}
+			
+		} catch (RemoteException e) {
+			throw new IBORuntimeException(e);
 		}
 		
 		return false;
