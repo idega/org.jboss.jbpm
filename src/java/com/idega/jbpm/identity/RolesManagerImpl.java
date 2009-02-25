@@ -65,7 +65,7 @@ import com.idega.util.StringUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.63 $ Last modified: $Date: 2009/02/24 11:27:36 $ by $Author: civilis $
+ * @version $Revision: 1.64 $ Last modified: $Date: 2009/02/25 14:18:16 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -799,17 +799,19 @@ public class RolesManagerImpl implements RolesManager {
 		List<Actor> actorsForRoles = getProcessRoles(rolesNames,
 		    processInstanceId);
 		
-		if (actorsForRoles != null && !actorsForRoles.isEmpty()) {
+		if (!ListUtil.isEmpty(actorsForRoles)) {
 			
-			for (Iterator<Actor> iterator = actorsForRoles.iterator(); iterator
+			ArrayList<Actor> actors = new ArrayList<Actor>(actorsForRoles);
+			
+			for (Iterator<Actor> actorsIterator = actors.iterator(); actorsIterator
 			        .hasNext();) {
 				
-				Actor actorForRole = iterator.next();
+				Actor actor = actorsIterator.next();
 				
-				List<ActorPermissions> actorPerms = actorForRole
+				List<ActorPermissions> perms = actor
 				        .getActorPermissions();
 				
-				if (actorPerms != null && !actorPerms.isEmpty()) {
+				if (!ListUtil.isEmpty(perms)) {
 					
 					// look, if this actor has permission for the task (and it
 					// is not a task
@@ -819,52 +821,38 @@ public class RolesManagerImpl implements RolesManager {
 					
 					Long taskId = task.getId();
 					
-					for (ActorPermissions actorPerm : actorPerms) {
+					for (ActorPermissions perm : perms) {
 						
-						if (taskId.equals(actorPerm.getTaskId())
-						        && actorPerm.getTaskInstanceId() == null) {
+						if (taskId.equals(perm.getTaskId())
+						        && perm.getTaskInstanceId() == null) {
 							
-							iterator.remove();
+//							this actor already has permission for task (not task instance), so we skip it
+							actorsIterator.remove();
+							break;
 						}
 					}
 				}
 			}
 			
-			if (!actorsForRoles.isEmpty()) {
+			if (!actors.isEmpty()) {
 				
 				// actors, that don't have task permissions, will be assigned
 				// with them here
 				
-				List<ActorPermissions> perms = getBpmDAO().getResultList(
+				List<ActorPermissions> permsToSet = getBpmDAO().getResultList(
 				    ActorPermissions.getSetByTaskIdAndProcessRoleNames,
 				    ActorPermissions.class,
 				    new Param(ActorPermissions.taskIdProperty, task.getId()),
 				    new Param(ActorPermissions.roleNameProperty, rolesNames));
 				
-				for (Actor actorToAssignPermissionTo : actorsForRoles) {
+				for (Actor actor : actors) {
 					
-					for (Iterator<ActorPermissions> iterator = perms.iterator(); iterator
-					        .hasNext();) {
+					for (ActorPermissions perm : permsToSet) {
 						
-						ActorPermissions perm = iterator.next();
-						
-						if (actorToAssignPermissionTo.getProcessRoleName()
+						if (actor.getProcessRoleName()
 						        .equals(perm.getRoleName())) {
-							List<ActorPermissions> rolePerms = actorToAssignPermissionTo
-							        .getActorPermissions();
 							
-							if (rolePerms == null) {
-								rolePerms = new ArrayList<ActorPermissions>();
-								actorToAssignPermissionTo
-								        .setActorPermissions(rolePerms);
-							}
-							
-							rolePerms.add(perm);
-							
-							// TODO: I commented this out 0117, does this break
-							// something? Looked
-							// like bug
-							// iterator.remove();
+							actor.addActorPermission(perm);
 						}
 					}
 				}
