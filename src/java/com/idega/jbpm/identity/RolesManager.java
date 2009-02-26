@@ -25,7 +25,7 @@ import com.idega.user.data.User;
  * Recommended getting rolesManager from BPMFactory
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.33 $ Last modified: $Date: 2009/02/23 12:37:22 $ by $Author: civilis $
+ * @version $Revision: 1.34 $ Last modified: $Date: 2009/02/26 08:52:54 $ by $Author: civilis $
  */
 public interface RolesManager {
 	
@@ -59,8 +59,8 @@ public interface RolesManager {
 	public abstract Collection<User> getAllUsersForRoles(
 	        Collection<String> rolesNames, long piId, BPMTypedPermission perm);
 	
-	public abstract void createNativeRolesFromProcessRoles(String processName,
-	        Collection<Role> roles);
+//	public abstract void createNativeRolesFromProcessRoles(String processName,
+//	        Collection<Role> roles);
 	
 	public abstract void createTaskRolesPermissions(Task task, List<Role> roles);
 	

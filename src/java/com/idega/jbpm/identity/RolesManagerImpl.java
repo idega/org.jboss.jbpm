@@ -47,7 +47,6 @@ import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.jbpm.identity.permission.RoleAccessPermissionsHandler;
-import com.idega.jbpm.identity.permission.RoleScope;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
@@ -65,7 +64,7 @@ import com.idega.util.StringUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.64 $ Last modified: $Date: 2009/02/25 14:18:16 $ by $Author: civilis $
+ * @version $Revision: 1.65 $ Last modified: $Date: 2009/02/26 08:52:54 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -370,7 +369,7 @@ public class RolesManagerImpl implements RolesManager {
 			for (Actor actor : actors) {
 				
 				Role role = new Role(actor.getProcessRoleName());
-				role.setScope(RoleScope.PI);
+//				role.setScope(RoleScope.PI);
 				roles.add(role);
 			}
 			
@@ -526,6 +525,7 @@ public class RolesManagerImpl implements RolesManager {
 		}
 	}
 	
+	/*
 	public void createNativeRolesFromProcessRoles(String processName,
 	        Collection<Role> roles) {
 		
@@ -539,6 +539,7 @@ public class RolesManagerImpl implements RolesManager {
 			}
 		}
 	}
+	*/
 	
 	@Transactional(readOnly = false)
 	public List<Actor> createProcessActors(Collection<Role> roles,
