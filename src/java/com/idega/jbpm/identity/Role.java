@@ -9,9 +9,9 @@ import com.idega.jbpm.identity.permission.RoleScope;
 /**
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- *          Last modified: $Date: 2009/02/24 11:27:52 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/26 08:53:13 $ by $Author: civilis $
  */
 public class Role {
 
@@ -22,6 +22,11 @@ public class Role {
 	@Deprecated
 	private List<String> assignIdentities;
 	private List<Identity> identities;
+	/**
+	 * @deprecated not used anymore
+	 * 
+	 */
+	@Deprecated
 	private RoleScope scope;
 	private List<Access> accesses;
 	private List<String> rolesContacts;
@@ -72,10 +77,12 @@ public class Role {
 		this.assignIdentities = assignIdentities;
 	}
 
+	@Deprecated
 	public RoleScope getScope() {
 		return scope == null ? RoleScope.PD : scope;
 	}
 
+	@Deprecated
 	public void setScope(RoleScope scope) {
 		this.scope = scope;
 	}
