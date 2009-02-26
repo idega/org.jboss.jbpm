@@ -10,12 +10,11 @@ import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.identity.Identity;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
-import com.idega.jbpm.identity.permission.RoleScope;
 import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $ Last modified: $Date: 2009/02/23 12:36:38 $ by $Author: civilis $
+ * @version $Revision: 1.10 $ Last modified: $Date: 2009/02/26 08:52:19 $ by $Author: civilis $
  */
 public class AssignAccountToParticipantHandler implements ActionHandler {
 	
@@ -42,16 +41,16 @@ public class AssignAccountToParticipantHandler implements ActionHandler {
 		
 		Role role = new Role();
 		role.setRoleName(roleName);
-		role.setScope(RoleScope.PI);
+//		role.setScope(RoleScope.PI);
 		
-		ArrayList<Role> rolz = new ArrayList<Role>(1);
-		rolz.add(role);
+		ArrayList<Role> roles = new ArrayList<Role>(1);
+		roles.add(role);
 		
 		ProcessInstance parentPI = ectx.getProcessInstance()
 		        .getSuperProcessToken().getProcessInstance();
 		
-		getRolesManager().createProcessActors(rolz, parentPI);
-		getRolesManager().createIdentitiesForRoles(rolz,
+		getRolesManager().createProcessActors(roles, parentPI);
+		getRolesManager().createIdentitiesForRoles(roles,
 		    new Identity(String.valueOf(userId), IdentityType.USER),
 		    parentPI.getId());
 	}
