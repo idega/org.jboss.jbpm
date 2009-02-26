@@ -1,132 +1,190 @@
 package com.idega.jbpm.graph.def;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Set;
 
 import org.dom4j.Element;
+import org.dom4j.Namespace;
+import org.dom4j.QName;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.jpdl.xml.JpdlXmlReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.InputSource;
 
+import com.idega.business.IBOLookup;
+import com.idega.core.accesscontrol.business.AccessController;
+import com.idega.core.accesscontrol.business.StandardRoles;
+import com.idega.idegaweb.IWMainApplication;
+import com.idega.jbpm.utils.JBPMConstants;
+import com.idega.slide.business.IWSlideService;
+import com.idega.slide.util.AccessControlList;
+import com.idega.util.CoreConstants;
+import com.idega.util.ListUtil;
 import com.idega.util.LocaleUtil;
 import com.idega.util.expression.ELUtil;
 import com.idega.util.messages.MessageResourceFactory;
 
 /**
- *
- * 
  * @author <a href="anton@idega.com">Anton Makarov</a>
- * @version Revision: 1.0 
- *
- * Last modified: Oct 9, 2008 by Author: Anton 
- *
+ * @version Revision: 1.0 Last modified: Oct 9, 2008 by Author: Anton
  */
 
 public class IdegaJpdlReader extends JpdlXmlReader {
-
+	
 	private static final long serialVersionUID = -4956191449989922971L;
 	
-//	private Map<Locale, String> localizedStrings;
 	private InputSource processDefinitionXMLSource;
 	
-	private static final String ROLE = "role";
-	private static final String NAME = "name";
-	private static final String LANG = "lang";
-	private static final String LABEL = "label";
-	private static final String ROLES_LOCALIZATION_TAG = "roles-localization";
-	
-    @Autowired
+	@Autowired
 	private MessageResourceFactory messageFactory;
 	
-	private static final Logger log = Logger.getLogger(IdegaJpdlReader.class.getName());
-	
-//	public Map<Locale, String> getAllLocalizedStrings() {
-//		if(localizedStrings == null) {
-//			localizedStrings = new HashMap<Locale, String>();
-//		}
-//		return localizedStrings;
-//	}
-
-//	public void setLocalizedStrings(
-//			Map<Locale, String> localizedStrings) {
-//		this.localizedStrings = localizedStrings;
-//	}
-
 	public InputSource getProcessDefinitionXMLSource() {
 		return processDefinitionXMLSource;
 	}
-
-	public void setProcessDefinitionXMLSource(InputSource processDefinitionXMLSource) {
+	
+	public void setProcessDefinitionXMLSource(
+	        InputSource processDefinitionXMLSource) {
 		this.processDefinitionXMLSource = processDefinitionXMLSource;
 	}
-
+	
 	public IdegaJpdlReader(InputSource inputSource) {
 		super(inputSource);
 		this.inputSource = inputSource;
 		
 	}
 	
-    @Override
+	@Override
 	public ProcessDefinition readProcessDefinition() {
-    	ProcessDefinition procDef = super.readProcessDefinition();
-    	readMapStrings();
-    	return procDef;
-    }
-    
-    @SuppressWarnings("unchecked")
+		ProcessDefinition procDef = super.readProcessDefinition();
+		readMapStrings();
+		return procDef;
+	}
+	
+	@SuppressWarnings("unchecked")
 	protected void readMapStrings() {
-    	Element root = null;
-    	try {
-			root = document.getRootElement();
-			Element localization = (Element) root.elements(ROLES_LOCALIZATION_TAG).iterator().next();
-			List<Element> roles = localization.elements(ROLE);
+		
+		Namespace idegaNS = new Namespace("idg", "http://idega.com/bpm");
+		
+		Element root = document.getRootElement();
+		Element rolesElement = root.element(new QName("roles", idegaNS));
+		
+		if (rolesElement != null) {
 			
-			Map<Locale, Map<Object, Object>> localisedRoles = new HashMap<Locale, Map<Object, Object>>();
+			List<Element> roles = rolesElement.elements("role");
 			
-			for(Element role : roles) {
-				String roleName = role.attributeValue(NAME);
-				List<Element> labels = role.elements(LABEL);
+			if (!ListUtil.isEmpty(roles)) {
 				
-				for(Element roleLabel : labels) {
-					String localeStr = roleLabel.attributeValue(LANG);
-					Locale locale = LocaleUtil.getLocale(localeStr);
-					String localizedLabel = roleLabel.getTextTrim();
+				Map<Locale, Map<Object, Object>> localisedRoles = new HashMap<Locale, Map<Object, Object>>(
+				        roles.size());
+				HashSet<String> nativeRolesNames = new HashSet<String>(roles
+				        .size());
+				
+				for (Element role : roles) {
+					String roleName = role.attributeValue("name");
 					
-					Map<Object, Object> roleLabels = localisedRoles.get(locale);
-					if(roleLabels == null) {
-						roleLabels = new HashMap<Object, Object>();
-						roleLabels.put(roleName, localizedLabel);
-						localisedRoles.put(locale, roleLabels);
-					} else {
-						roleLabels.put(roleName, localizedLabel); 
+					Element labelsElement = role.element("labels");
+					
+					if(labelsElement != null) {
+					
+						List<Element> labels = labelsElement.elements("label");
+						
+						for (Element roleLabel : labels) {
+							String localeStr = roleLabel.attributeValue("lang");
+							Locale locale = LocaleUtil.getLocale(localeStr);
+							String localizedLabel = roleLabel.getTextTrim();
+							
+							Map<Object, Object> roleLabels = localisedRoles
+							        .get(locale);
+							if (roleLabels == null) {
+								roleLabels = new HashMap<Object, Object>();
+								roleLabels.put(roleName, localizedLabel);
+								localisedRoles.put(locale, roleLabels);
+							} else {
+								roleLabels.put(roleName, localizedLabel);
+							}
+						}
+					}
+					
+					String createNative = role.attributeValue("createNative");
+					
+					if ("true".equals(createNative)) {
+						nativeRolesNames.add(roleName);
 					}
 				}
+				
+				for (Locale locale : localisedRoles.keySet()) {
+					getMessageFactory().setLocalisedMessages(
+					    localisedRoles.get(locale), null, locale);
+				}
+				
+				if (!nativeRolesNames.isEmpty()) {
+					createNativeRoles(getProcessDefinition().getName(),
+					    nativeRolesNames);
+				}
+			}
+		}
+	}
+	
+	protected void createNativeRoles(String processName, Set<String> rolesNames) {
+		
+		if (!rolesNames.isEmpty()) {
+			
+			// TODO: move this to appropriate place, also store path of the
+			// process should be
+			// accessible through api
+			
+			for (String roleName : rolesNames) {
+				
+				getAccessController()
+				        .checkIfRoleExistsInDataBaseAndCreateIfMissing(roleName);
 			}
 			
-//	    	MessageResource resource = getMessageFactory().getResourceByIdentifier(IWSlideResourceBundle.RESOURCE_IDENTIFIER);
-			for(Locale locale : localisedRoles.keySet()) {
-				getMessageFactory().setLocalisedMessages(localisedRoles.get(locale), null, locale);
-//				resource.setMessages(localisedRoles.get(locale), null, locale);
+			String storePath = new StringBuilder(JBPMConstants.BPM_PATH)
+			        .append(CoreConstants.SLASH).append(processName).toString();
+			
+			ArrayList<String> roleNames = new ArrayList<String>(rolesNames
+			        .size());
+			
+			// TODO: this need to be outside if, i.e. admin still should have access to the folder,
+			// even if process doesn't have any roles
+			roleNames.add(StandardRoles.ROLE_KEY_ADMIN);
+			
+			try {
+				IWSlideService slideService = (IWSlideService) IBOLookup
+				        .getServiceInstance(IWMainApplication
+				                .getDefaultIWApplicationContext(),
+				            IWSlideService.class);
+				
+				AccessControlList processFolderACL = slideService
+				        .getAccessControlList(storePath);
+				
+				processFolderACL = slideService.getAuthenticationBusiness()
+				        .applyPermissionsToRepository(processFolderACL,
+				            roleNames);
+				
+				slideService.storeAccessControlList(processFolderACL);
+				
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-    	} catch(NoSuchElementException e) {
-    		log.log(Level.INFO, root.attributeValue(NAME) + " - process definition has no role localization tags");
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
-    }
-        
-    public MessageResourceFactory getMessageFactory() {
-		if(messageFactory == null) {
+	}
+	
+	private AccessController getAccessController() {
+		
+		return IWMainApplication.getDefaultIWMainApplication()
+		        .getAccessController();
+	}
+	
+	public MessageResourceFactory getMessageFactory() {
+		if (messageFactory == null)
 			ELUtil.getInstance().autowire(this);
-			return messageFactory;
-		} else {
-			return messageFactory;
-		}
+		
+		return messageFactory;
 	}
 }
