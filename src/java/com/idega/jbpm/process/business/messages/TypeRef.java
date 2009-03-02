@@ -2,12 +2,12 @@ package com.idega.jbpm.process.business.messages;
 
 import com.idega.util.CoreConstants;
 
-
 /**
+ * represents message value key. The main responsibility is to provide ala namespace for values in
+ * the message context. The namespace can, but not need to be used by different handlers
+ * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
- *
- * Last modified: $Date: 2008/08/08 16:16:55 $ by $Author: civilis $
+ * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/02 15:33:20 $ by $Author: civilis $
  */
 public final class TypeRef {
 	
@@ -22,6 +22,7 @@ public final class TypeRef {
 	String getHandlerType() {
 		return handlerType == null ? CoreConstants.EMPTY : handlerType;
 	}
+	
 	String getRef() {
 		return ref == null ? CoreConstants.EMPTY : ref;
 	}
@@ -34,9 +35,10 @@ public final class TypeRef {
 	@Override
 	public boolean equals(Object obj) {
 		
-		if(!super.equals(obj) && (obj instanceof TypeRef)) {
+		if (!super.equals(obj) && (obj instanceof TypeRef)) {
 			
-			return getHandlerType().equals(((TypeRef)obj).getHandlerType()) && getRef().equals(((TypeRef)obj).getRef());
+			return getHandlerType().equals(((TypeRef) obj).getHandlerType())
+			        && getRef().equals(((TypeRef) obj).getRef());
 		}
 		
 		return false;
