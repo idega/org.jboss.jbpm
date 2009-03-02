@@ -11,8 +11,11 @@ import java.util.Set;
 import org.dom4j.Element;
 import org.dom4j.Namespace;
 import org.dom4j.QName;
+import org.jbpm.context.def.VariableAccess;
 import org.jbpm.graph.def.ProcessDefinition;
+import org.jbpm.instantiation.Delegation;
 import org.jbpm.jpdl.xml.JpdlXmlReader;
+import org.jbpm.taskmgmt.def.TaskController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.InputSource;
 
@@ -89,8 +92,8 @@ public class IdegaJpdlReader extends JpdlXmlReader {
 					
 					Element labelsElement = role.element("labels");
 					
-					if(labelsElement != null) {
-					
+					if (labelsElement != null) {
+						
 						List<Element> labels = labelsElement.elements("label");
 						
 						for (Element roleLabel : labels) {
@@ -186,5 +189,44 @@ public class IdegaJpdlReader extends JpdlXmlReader {
 			ELUtil.getInstance().autowire(this);
 		
 		return messageFactory;
+	}
+	
+	/**
+	 * we are overriding this to add this behavior: if delegation is specified, we <b>still</b>
+	 * provide variableAccesses to task controller Also, if variables are specified for controller
+	 * with delegation, we are ignoring variable tags, as delegation configuration
+	 */
+	@Override
+	protected TaskController readTaskController(Element taskControllerElement) {
+		TaskController taskController = new TaskController();
+		
+		if (taskControllerElement.attributeValue("class") != null) {
+			Delegation taskControllerDelegation = new Delegation();
+			taskControllerDelegation.read(taskControllerElement, this);
+			taskController
+			        .setTaskControllerDelegation(taskControllerDelegation);
+			
+			String configuration = taskControllerDelegation.getConfiguration();
+			
+			if (configuration.contains("<variable")) {
+				
+				// replacing <variable /> tags in the configuration, as we don't need to inject them
+				// as properties (used for VariableAccess only)
+				
+				configuration = configuration.replaceAll("<variable[^/>]*/>",
+				    CoreConstants.EMPTY);
+				taskControllerDelegation.setConfiguration(configuration);
+			}
+			
+			@SuppressWarnings("unchecked")
+			List<VariableAccess> variableAccesses = readVariableAccesses(taskControllerElement);
+			taskController.setVariableAccesses(variableAccesses);
+			
+		} else {
+			@SuppressWarnings("unchecked")
+			List<VariableAccess> variableAccesses = readVariableAccesses(taskControllerElement);
+			taskController.setVariableAccesses(variableAccesses);
+		}
+		return taskController;
 	}
 }
