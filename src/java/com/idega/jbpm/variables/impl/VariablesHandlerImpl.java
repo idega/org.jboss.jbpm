@@ -29,7 +29,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $ Last modified: $Date: 2009/02/16 16:12:57 $ by $Author: civilis $
+ * @version $Revision: 1.16 $ Last modified: $Date: 2009/03/02 15:36:19 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -96,7 +96,6 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				        .storeBinaryVariables(taskInstanceId, variables);
 				
 				ti.setVariables(variablesToSubmit);
-				// /tiController.submitParameters(ti);
 				
 				return null;
 			}
@@ -154,44 +153,52 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 				
-				Map<String, Object> variables = new HashMap<String, Object>(ti.getVariablesLocally());
+				Map<String, Object> variables = new HashMap<String, Object>(ti
+				        .getVariablesLocally());
 				
-				if(!ti.hasEnded()) {
+				if (!ti.hasEnded()) {
 					
-//					Map<String, VariableInstance> variablesInstances;
-//				
-//					variablesInstances = ti
-//			        .getVariableInstances();
-//					
-//					variables = new HashMap<String, Object>(variablesInstances
-//					        .size());
+					// Map<String, VariableInstance> variablesInstances;
+					//				
+					// variablesInstances = ti
+					// .getVariableInstances();
+					//					
+					// variables = new HashMap<String, Object>(variablesInstances
+					// .size());
 					
 					@SuppressWarnings("unchecked")
 					List<VariableAccess> accesses = ti.getTask()
 					        .getTaskController().getVariableAccesses();
 					
-//					String tokenReadAccess = "mamamia";
+					// String tokenReadAccess = "mamamia";
 					
 					for (VariableAccess variableAccess : accesses) {
 						
-						if(!variables.containsKey(variableAccess.getVariableName())) {
+						if (!variables.containsKey(variableAccess
+						        .getVariableName())) {
 							
-//							the situation when process definition was changed (using formbuilder for instance)
-//							but task instance was created already
+							// the situation when process definition was changed (using formbuilder
+							// for instance)
+							// but task instance was created already
 							
-							if(variableAccess.isReadable()) {
+							if (variableAccess.isReadable()) {
 								
-//								read - populating from token
-//								TODO: test if this populates variable from the token
-								Object variable = ti.getContextInstance().getVariable(variableAccess.getVariableName());
-								variables.put(variableAccess.getVariableName(), variable);
+								// read - populating from token
+								// TODO: test if this populates variable from the token
+								Object variable = ti.getContextInstance()
+								        .getVariable(
+								            variableAccess.getVariableName());
+								variables.put(variableAccess.getVariableName(),
+								    variable);
 							}
 						}
 						
-						if(variableAccess.isWritable() && !variableAccess.isReadable()) {
+						if (variableAccess.isWritable()
+						        && !variableAccess.isReadable()) {
 							
-//							we don't want to show non readable variable
-//							this is backward compatibility, for task instances, that were created with wrong process definition
+							// we don't want to show non readable variable
+							// this is backward compatibility, for task instances, that were created
+							// with wrong process definition
 							
 							variables.remove(variableAccess.getVariableName());
 						}
@@ -208,26 +215,26 @@ public class VariablesHandlerImpl implements VariablesHandler {
 						*/
 					}
 				}
-//				else {
-//					variables = new HashMap<String, Object>(ti.getVariablesLocally());
-//				}
+				// else {
+				// variables = new HashMap<String, Object>(ti.getVariablesLocally());
+				// }
 				
-//				if (variablesInstances != null) {
-//					variables = new HashMap<String, Object>(variablesInstances
-//					        .size());
-//				} else {
-//					variables = Collections.emptyMap();
-//				}
+				// if (variablesInstances != null) {
+				// variables = new HashMap<String, Object>(variablesInstances
+				// .size());
+				// } else {
+				// variables = Collections.emptyMap();
+				// }
 				
 				// readonly
 				/*
 				if (ti.hasEnded()) {
 					
-//					for (VariableInstance variableInstance : variablesInstances
-//					        .values()) {
-//						variables.put(variableInstance.getName(),
-//						    variableInstance.getValue());
-//					}
+				//					for (VariableInstance variableInstance : variablesInstances
+				//					        .values()) {
+				//						variables.put(variableInstance.getName(),
+				//						    variableInstance.getValue());
+				//					}
 					
 				} else {
 					
@@ -250,7 +257,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 					}
 				}
 				*/
-				
+
 				return variables;
 			}
 		});
