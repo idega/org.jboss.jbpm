@@ -52,6 +52,8 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	private Map<String, String> propertyMap;
 	@Autowired
 	private BPMContext bpmContext;
+	@Autowired
+	private ScriptEvaluator scriptEvaluator;
 	
 	/**
 	 * Name of a handler that should be used. Could be variable expression e.g.
@@ -317,7 +319,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 			        .length() - 1);
 			
 			try {
-				propertyValue = ScriptEvaluator.evaluate(script, ectx);
+				propertyValue = getScriptEvaluator().evaluate(script, ectx);
 				
 			} catch (Exception e) {
 				throw new RuntimeException(e);
@@ -419,10 +421,17 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	
 	BPMContext getBpmContext() {
 		
-		if (bpmContext == null) {
+		if (bpmContext == null)
 			ELUtil.getInstance().autowire(this);
-		}
 		
 		return bpmContext;
+	}
+	
+	ScriptEvaluator getScriptEvaluator() {
+		
+		if (scriptEvaluator == null)
+			ELUtil.getInstance().autowire(this);
+		
+		return scriptEvaluator;
 	}
 }
