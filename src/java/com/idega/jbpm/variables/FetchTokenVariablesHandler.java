@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
  * points out to set variables locally for token, else, simple setVariable for token is used
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $ Last modified: $Date: 2009/03/04 14:11:16 $ by $Author: civilis $
+ * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/04 14:52:17 $ by $Author: civilis $
  */
 @Service("fetchTokenVariables")
 @Scope("prototype")
@@ -27,7 +27,6 @@ public class FetchTokenVariablesHandler implements ActionHandler {
 	private String variablesScope;
 	private Long tokenId;
 	
-	@SuppressWarnings("unchecked")
 	public void execute(ExecutionContext ectx) throws Exception {
 		
 		Long tokenToFetchId = getTokenId();
@@ -39,6 +38,7 @@ public class FetchTokenVariablesHandler implements ActionHandler {
 		ContextInstance contextInstanceToFetch = tokenToFetch
 		        .getProcessInstance().getContextInstance();
 		
+		@SuppressWarnings("unchecked")
 		Map<String, Object> fetchedVariables = contextInstanceToFetch
 		        .getVariables(tokenToFetch);
 		
