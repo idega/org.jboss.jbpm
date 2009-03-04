@@ -22,7 +22,7 @@ import com.idega.util.StringUtil;
  * globality). Scopes supported: global, local
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $ Last modified: $Date: 2009/03/04 12:04:05 $ by $Author: civilis $
+ * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/04 14:11:06 $ by $Author: civilis $
  */
 @Service("fireProcessEventHandler")
 @Scope("prototype")
@@ -63,7 +63,22 @@ public class FireProcessEventHandler implements ActionHandler {
 			ContextInstance newContextInstance = newEctx.getContextInstance();
 			
 			// we support only two scopes now - global and local
-			boolean globalScope = "global".equals(getVariablesScope());
+			boolean globalScope;
+			
+			if ("global".equals(getVariablesScope())) {
+				
+				globalScope = true;
+				
+			} else if ("local".equals(getVariablesScope())) {
+				
+				globalScope = false;
+				
+			} else {
+				throw new IllegalArgumentException(
+				        "Unsupported variable scope variable = "
+				                + getVariablesScope()
+				                + ". Only global and local scopes are supported");
+			}
 			
 			for (String variableName : getVariablesToPopoulate()) {
 				
