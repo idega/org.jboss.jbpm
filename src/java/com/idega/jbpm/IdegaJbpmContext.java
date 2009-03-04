@@ -6,6 +6,9 @@ import javax.persistence.EntityManagerFactory;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.ejb.HibernateEntityManager;
+import org.hibernate.ejb.HibernateEntityManagerFactory;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -14,13 +17,16 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
+import org.springframework.orm.hibernate3.SessionHolder;
+import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  * 
- *          Last modified: $Date: 2009/02/18 14:26:53 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/03/04 16:14:10 $ by $Author: donatas $
  */
 public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
@@ -96,22 +102,21 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
 		try {
 			@SuppressWarnings("unchecked")
-//          Uncomment this to enable transaction sharing between JPA and Hibernate
-//			HibernateTemplate hibernateTemplate = null;
-//			EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager.getResource(getEntityManagerFactory());
-//			if (holder != null) {
-//				Session session = ((HibernateEntityManager) (holder.getEntityManager())).getSession();
-//				SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory()).getSessionFactory();
-//				if (!SessionFactoryUtils.isSessionTransactional(session, sessionFactory)) {
-//					TransactionSynchronizationManager.unbindResourceIfPossible(sessionFactory);
-//					SessionHolder holderToUse = new SessionHolder(session);
-//					TransactionSynchronizationManager.bindResource(sessionFactory, holderToUse);
-//				}
-//				hibernateTemplate = new HibernateTemplate(sessionFactory);
-//			} else {
-//				hibernateTemplate = this.hibernateTemplate;
-//			}
-//			
+			HibernateTemplate hibernateTemplate = null;
+			EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager.getResource(getEntityManagerFactory());
+			if (holder != null) {
+				Session session = ((HibernateEntityManager) (holder.getEntityManager())).getSession();
+				SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory()).getSessionFactory();
+				if (!SessionFactoryUtils.isSessionTransactional(session, sessionFactory)) {
+					TransactionSynchronizationManager.unbindResourceIfPossible(sessionFactory);
+					SessionHolder holderToUse = new SessionHolder(session);
+					TransactionSynchronizationManager.bindResource(sessionFactory, holderToUse);
+				}
+				hibernateTemplate = new HibernateTemplate(sessionFactory);
+			} else {
+				hibernateTemplate = this.hibernateTemplate;
+			}
+			
 			
 			T res = (T) hibernateTemplate.execute(new HibernateCallback() {
 				/**
