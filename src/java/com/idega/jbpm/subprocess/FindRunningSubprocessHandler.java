@@ -15,7 +15,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $ Last modified: $Date: 2009/03/04 14:11:16 $ by $Author: civilis $
+ * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/07 13:30:01 $ by $Author: civilis $
  */
 @Service("findRunningSubprocess")
 @Scope("prototype")
@@ -55,7 +55,7 @@ public class FindRunningSubprocessHandler implements ActionHandler {
 			for (ProcessInstance subProcess : subProcesses) {
 				
 				if (!subProcess.hasEnded()
-				        && subProcess.equals(subProcess.getProcessDefinition()
+				        && subprocessName.equals(subProcess.getProcessDefinition()
 				                .getName())) {
 					
 					subProcessInstanceId = subProcess.getId();
@@ -66,7 +66,7 @@ public class FindRunningSubprocessHandler implements ActionHandler {
 				}
 			}
 		}
-		
+				
 		// we are setting null here too, so that we override the previous value if it was present
 		ectx.setVariable(variableNameForSubProcessInstanceId,
 		    subProcessInstanceId);
