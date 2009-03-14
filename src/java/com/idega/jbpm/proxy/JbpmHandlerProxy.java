@@ -400,6 +400,9 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	
 	public boolean isAsync(ExecutionContext ectx) {
 		
+		if(true)
+			return false;
+		
 		if (StringUtil.isEmpty(getAsync()))
 			return false;
 		else {
