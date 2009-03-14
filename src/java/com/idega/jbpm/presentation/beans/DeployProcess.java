@@ -23,9 +23,9 @@ import com.idega.presentation.IWContext;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/08/08 16:16:18 $ by $Author: civilis $
+ * Last modified: $Date: 2009/03/14 10:32:01 $ by $Author: civilis $
  *
  */
 @Scope("request")
@@ -44,7 +44,7 @@ public class DeployProcess {
 		
 		UploadedFile processBundle = getProcessBundle();
 		
-		if(processBundle  != null && MimeTypeUtil.MIME_TYPE_ZIP.equals(processBundle.getContentType())) {
+		if(processBundle  != null && MimeTypeUtil.getInstance().isCompressed(processBundle.getContentType())) {
 		
 			InputStream is = null;
 			
@@ -77,6 +77,11 @@ public class DeployProcess {
 						is.close();
 				} catch (IOException e) { }
 			}
+		} else {
+			
+			
+//			TODO: add err msg
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to deploy bundle, but not supported zip file provided ("+processBundle == null ? null : processBundle.getContentType()+")");
 		}
 	}
 
