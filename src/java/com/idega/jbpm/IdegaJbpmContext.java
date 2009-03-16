@@ -22,11 +22,13 @@ import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.idega.idegaweb.IWMainApplication;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  * 
- *          Last modified: $Date: 2009/03/04 16:14:10 $ by $Author: donatas $
+ *          Last modified: $Date: 2009/03/16 16:33:27 $ by $Author: civilis $
  */
 public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
@@ -101,22 +103,35 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 				.createJbpmContext();
 
 		try {
-			@SuppressWarnings("unchecked")
-			HibernateTemplate hibernateTemplate = null;
-			EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager.getResource(getEntityManagerFactory());
-			if (holder != null) {
-				Session session = ((HibernateEntityManager) (holder.getEntityManager())).getSession();
-				SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory()).getSessionFactory();
-				if (!SessionFactoryUtils.isSessionTransactional(session, sessionFactory)) {
-					TransactionSynchronizationManager.unbindResourceIfPossible(sessionFactory);
-					SessionHolder holderToUse = new SessionHolder(session);
-					TransactionSynchronizationManager.bindResource(sessionFactory, holderToUse);
+			
+			String useNewTransactionHandlingProp = IWMainApplication
+			.getDefaultIWMainApplication().getSettings()
+			.getProperty("bpm_use_new_transaction_handling",
+					"true");
+			
+			Boolean useNewTransactionHandling = "true".equals(useNewTransactionHandlingProp);
+			
+			HibernateTemplate hibernateTemplate;
+			
+			if(useNewTransactionHandling) {
+				
+				EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager.getResource(getEntityManagerFactory());
+				if (holder != null) {
+					Session session = ((HibernateEntityManager) (holder.getEntityManager())).getSession();
+					SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory()).getSessionFactory();
+					if (!SessionFactoryUtils.isSessionTransactional(session, sessionFactory)) {
+						TransactionSynchronizationManager.unbindResourceIfPossible(sessionFactory);
+						SessionHolder holderToUse = new SessionHolder(session);
+						TransactionSynchronizationManager.bindResource(sessionFactory, holderToUse);
+					}
+					hibernateTemplate = new HibernateTemplate(sessionFactory);
+				} else {
+					hibernateTemplate = this.hibernateTemplate;
 				}
-				hibernateTemplate = new HibernateTemplate(sessionFactory);
 			} else {
+				
 				hibernateTemplate = this.hibernateTemplate;
 			}
-			
 			
 			T res = (T) hibernateTemplate.execute(new HibernateCallback() {
 				/**
