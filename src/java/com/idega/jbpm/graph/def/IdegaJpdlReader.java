@@ -151,11 +151,12 @@ public class IdegaJpdlReader extends JpdlXmlReader {
 			        .append(CoreConstants.SLASH).append(processName).toString();
 			
 			ArrayList<String> roleNames = new ArrayList<String>(rolesNames
-			        .size());
+			        .size()+1);
 			
 			// TODO: this need to be outside if, i.e. admin still should have access to the folder,
 			// even if process doesn't have any roles
 			roleNames.add(StandardRoles.ROLE_KEY_ADMIN);
+			roleNames.addAll(rolesNames);
 			
 			try {
 				IWSlideService slideService = (IWSlideService) IBOLookup
