@@ -9,106 +9,118 @@ import org.jbpm.graph.exe.Token;
 
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.rights.Right;
+import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $ Last modified: $Date: 2009/03/02 15:36:37 $ by $Author: civilis $
+ * @version $Revision: 1.26 $
+ * 
+ *          Last modified: $Date: 2009/03/16 10:57:25 $ by $Author: juozas $
  */
 public interface ProcessInstanceW {
-	
+
 	/**
+	 * 
 	 * @return all task instances, including the ended ones
 	 */
 	public abstract List<TaskInstanceW> getAllTaskInstances();
-	
+
 	/**
+	 * 
 	 * @param processInstanceId
-	 * @return all task instances, that were submitted and won't ever change. Can be treated as
-	 *         documents.
+	 * @return all task instances, that were submitted and won't ever change.
+	 *         Can be treated as documents.
 	 */
 	public abstract List<TaskInstanceW> getSubmittedTaskInstances();
-	
+
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
-	        Locale locale);
-	
+			Locale locale);
+
 	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
-	        Locale locale);
-	
+			Locale locale);
+
 	/**
+	 * 
 	 * @param rootToken
 	 * @return not ended task instances for the token provided
 	 */
 	public abstract Collection<TaskInstanceW> getUnfinishedTaskInstances(
-	        Token rootToken);
-	
+			Token rootToken);
+
 	/**
-	 * @return all process instance task instances, that are has not ended yet (end == null)
+	 * 
+	 * @return all process instance task instances, that are has not ended yet
+	 *         (end == null)
 	 */
 	public abstract List<TaskInstanceW> getAllUnfinishedTaskInstances();
-	
+
 	/**
 	 * the same as calling getProcessInstance().getId()
 	 * 
 	 * @return
 	 */
 	public abstract Long getProcessInstanceId();
-	
+
 	/**
 	 * should be used only in factory methods
 	 * 
 	 * @param processInstanceId
 	 */
 	public abstract void setProcessInstanceId(Long processInstanceId);
-	
+
 	/**
 	 * assigned handler user id (see assignHandler method)
 	 * 
 	 * @return
 	 */
 	public abstract Integer getHandlerId();
-	
+
 	/**
-	 * if handlerUserId not null - assigns handler to the process, unassigns otherwise
+	 * if handlerUserId not null - assigns handler to the process, unassigns
+	 * otherwise
 	 * 
 	 * @param handlerUserId
 	 */
 	public abstract void assignHandler(Integer handlerUserId);
-	
+
 	/**
+	 * 
 	 * @return process instance related watcher (see javadoc of ProcessWatch)
 	 */
 	public abstract ProcessWatch getProcessWatcher();
-	
+
 	/**
+	 * 
 	 * @return if the process can be assigned to the case handler
 	 */
 	public abstract boolean hasHandlerAssignmentSupport();
-	
+
 	public abstract List<User> getUsersConnectedToProcess();
-	
+
 	public abstract void setContactsPermission(Role role, Integer userId);
-	
+
 	/**
 	 * get jbpm process instance this wrapper wraps
 	 * 
 	 * @return
 	 */
 	public abstract ProcessInstance getProcessInstance();
-	
+
 	/**
-	 * @return human readable identifier, used for distinguishing processes more easily, as well, as
-	 *         using in search etc
+	 * 
+	 * @return human readable identifier, used for distinguishing processes more
+	 *         easily, as well, as using in search etc
 	 */
 	public abstract String getProcessIdentifier();
-	
+
 	public abstract String getProcessDescription();
-	
+
 	/**
 	 * @return definition wrapper this process instance relates to
 	 */
 	public abstract ProcessDefinitionW getProcessDefinitionW();
-	
+
 	/**
 	 * gets process name - usually the name of the start task view
 	 * 
@@ -117,13 +129,14 @@ public interface ProcessInstanceW {
 	 */
 	// public abstract String getName(Locale locale);
 	/**
-	 * checks if the current logged in user has right against this process instance
+	 * checks if the current logged in user has right against this process
+	 * instance
 	 * 
 	 * @param right
 	 * @return
 	 */
 	public abstract boolean hasRight(Right right);
-	
+
 	/**
 	 * checks if the user provided has right against this process instance
 	 * 
@@ -133,17 +146,23 @@ public interface ProcessInstanceW {
 	 * @return
 	 */
 	public abstract boolean hasRight(Right right, User user);
-	
+
 	public abstract List<BPMEmailDocument> getAttachedEmails();
-	
+
 	public abstract TaskInstanceW createTask(final String taskName,
-	        final long tokenId);
-	
+			final long tokenId);
+
 	public abstract boolean hasEnded();
-	
+
 	public abstract TaskInstanceW getStartTaskInstance();
-	
+
 	public abstract Collection<Role> getRolesContactsPermissions(Integer userId);
+	
+	/**
+	 * 
+	 * @return a list of documents that where added with addAttachment subprocess
+	 */
+	public List<BinaryVariable> getAttachements();
 	
 	/**
 	 * @param variableName
