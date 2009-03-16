@@ -8,7 +8,9 @@ import java.util.Locale;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.block.process.variables.Variable;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.identity.Role;
+import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewSubmission;
@@ -16,9 +18,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  * 
- *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/03/16 10:59:13 $ by $Author: juozas $
  */
 public interface TaskInstanceW {
 
@@ -91,9 +93,14 @@ public interface TaskInstanceW {
 	public abstract void setProcessManager(ProcessManager processManager);
 
 	public abstract ProcessInstanceW getProcessInstanceW();
+	
+	public void setTaskPermissionsForActors(List<Actor> actorsToSetPermissionsTo,List<Access> accesses,
+			boolean setSameForAttachments, String variableIdentifier);
 
 	public abstract Collection<Role> getRolesPermissions();
 
 	public abstract Collection<Role> getAttachmentRolesPermissions(
 			String attachmentHashValue);
+	
+	public Object getVariable(String variableName);
 }
