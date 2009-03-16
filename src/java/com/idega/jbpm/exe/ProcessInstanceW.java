@@ -14,9 +14,9 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $
+ * @version $Revision: 1.27 $
  * 
- *          Last modified: $Date: 2009/03/16 10:57:25 $ by $Author: juozas $
+ *          Last modified: $Date: 2009/03/16 20:47:14 $ by $Author: civilis $
  */
 public interface ProcessInstanceW {
 
@@ -147,7 +147,7 @@ public interface ProcessInstanceW {
 	 */
 	public abstract boolean hasRight(Right right, User user);
 
-	public abstract List<BPMEmailDocument> getAttachedEmails();
+	public abstract List<BPMEmailDocument> getAttachedEmails(User user);
 
 	public abstract TaskInstanceW createTask(final String taskName,
 			final long tokenId);
