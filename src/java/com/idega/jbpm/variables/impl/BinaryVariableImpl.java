@@ -20,7 +20,7 @@ import com.idega.util.expression.ELUtil;
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $ Last modified: $Date: 2009/01/09 10:31:21 $ by $Author: juozas $
+ * @version $Revision: 1.7 $ Last modified: $Date: 2009/03/16 11:04:08 $ by $Author: juozas $
  */
 public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	
@@ -36,9 +36,14 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	private Boolean signed;
 	private Boolean hidden;
 	private long taskInstanceId;
+	private Map<String, Object> metadata;
+
+
+	
 	
 	@Autowired
 	private transient VariablesHandler variablesHandler;
+	
 	private transient Variable variable;
 	private transient URI uri;
 	
@@ -252,4 +257,15 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		
 		return false;
 	}
+
+	public Map<String, Object> getMetadata() {
+		if(metadata == null)
+			metadata = new HashMap<String, Object>();
+    	return metadata;
+    }
+
+	public void setMetadata(Map<String, Object> metadata) {
+    	this.metadata = metadata;
+    }
+
 }
