@@ -18,59 +18,55 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $
- * 
- *          Last modified: $Date: 2009/03/17 14:17:34 $ by $Author: valdas $
+ * @version $Revision: 1.26 $ Last modified: $Date: 2009/03/17 20:51:25 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
-
+	
 	public abstract void submit(ViewSubmission view);
-
+	
 	public abstract void submit(ViewSubmission view, boolean proceedProcess);
 	
-	public abstract String submit();
-
 	public abstract void start(int userId);
-
+	
 	public abstract void assign(int userId);
-
+	
 	public abstract void assign(User usr);
-
+	
 	public abstract User getAssignedTo();
-
+	
 	/**
-	 * loads view for accessing task instance from user interface. Should be
-	 * called for displaying task representation in UI.
+	 * loads view for accessing task instance from user interface. Should be called for displaying
+	 * task representation in UI.
 	 * 
 	 * @return
 	 */
 	public abstract View loadView();
-
+	
 	/**
-	 * gets view of task instance The difference between load view, is that load
-	 * view may incorporate some additional actions for viewing task in UI.
+	 * gets view of task instance The difference between load view, is that load view may
+	 * incorporate some additional actions for viewing task in UI.
 	 * 
 	 * @return
 	 */
 	public abstract View getView();
-
+	
 	public abstract Long getTaskInstanceId();
-
+	
 	public abstract void setTaskInstanceId(Long taskInstanceId);
-
+	
 	public abstract void setTaskInstance(TaskInstance taskInstance);
-
+	
 	public abstract String getName(Locale locale);
-
+	
 	public abstract TaskInstance getTaskInstance();
-
+	
 	public abstract void setTaskRolePermissions(Role role,
-			boolean setSameForAttachments, String variableIdentifier);
-
+	        boolean setSameForAttachments, String variableIdentifier);
+	
 	/**
-	 * creates, stores and adds binary variable to the variable specified. If
-	 * the variable is not found in the process instance (not necessary in the
-	 * task instance scope), it is created for the task instance.
+	 * creates, stores and adds binary variable to the variable specified. If the variable is not
+	 * found in the process instance (not necessary in the task instance scope), it is created for
+	 * the task instance.
 	 * 
 	 * @param variable
 	 * @param fileName
@@ -79,32 +75,31 @@ public interface TaskInstanceW {
 	 * @return
 	 */
 	public abstract BinaryVariable addAttachment(Variable variable,
-			String fileName, String description, InputStream is);
-
+	        String fileName, String description, InputStream is);
+	
 	public abstract List<BinaryVariable> getAttachments();
-
+	
 	public abstract BinaryVariable getAttachment(Variable variable);
-
+	
 	public boolean isSignable();
-
+	
 	/**
 	 * should be used only by process manager itself
 	 * 
 	 * @param processManager
 	 */
 	public abstract void setProcessManager(ProcessManager processManager);
-
+	
 	public abstract ProcessInstanceW getProcessInstanceW();
 	
-	public void setTaskPermissionsForActors(List<Actor> actorsToSetPermissionsTo,List<Access> accesses,
-			boolean setSameForAttachments, String variableIdentifier);
-
+	public void setTaskPermissionsForActors(
+	        List<Actor> actorsToSetPermissionsTo, List<Access> accesses,
+	        boolean setSameForAttachments, String variableIdentifier);
+	
 	public abstract Collection<Role> getRolesPermissions();
-
+	
 	public abstract Collection<Role> getAttachmentRolesPermissions(
-			String attachmentHashValue);
+	        String attachmentHashValue);
 	
 	public Object getVariable(String variableName);
-	
-	public abstract Long creatTask(String tokenName);
 }
