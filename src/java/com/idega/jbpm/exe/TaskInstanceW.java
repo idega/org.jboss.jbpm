@@ -18,15 +18,17 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.24 $
+ * @version $Revision: 1.25 $
  * 
- *          Last modified: $Date: 2009/03/16 10:59:13 $ by $Author: juozas $
+ *          Last modified: $Date: 2009/03/17 14:17:34 $ by $Author: valdas $
  */
 public interface TaskInstanceW {
 
 	public abstract void submit(ViewSubmission view);
 
 	public abstract void submit(ViewSubmission view, boolean proceedProcess);
+	
+	public abstract String submit();
 
 	public abstract void start(int userId);
 
@@ -103,4 +105,6 @@ public interface TaskInstanceW {
 			String attachmentHashValue);
 	
 	public Object getVariable(String variableName);
+	
+	public abstract Long creatTask(String tokenName);
 }
