@@ -26,7 +26,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $ Last modified: $Date: 2009/02/13 17:27:48 $ by
+ * @version $Revision: 1.9 $ Last modified: $Date: 2009/03/18 20:12:21 $ by
  *          $Author: civilis $
  */
 @Scope("singleton")
@@ -77,8 +77,13 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 
 			String loggedInActorId = getAuthenticationService().getActorId();
 
-			if (loggedInActorId == null)
-				throw new AccessControlException("Not logged in");
+			if (loggedInActorId == null) {
+			
+				if(PermissionsFactoryImpl.submitTaskParametersPermType.equals(permission.getType()))
+					return;
+				else
+					throw new AccessControlException("Not logged in");
+			}
 
 			userId = new Integer(loggedInActorId);
 		}
