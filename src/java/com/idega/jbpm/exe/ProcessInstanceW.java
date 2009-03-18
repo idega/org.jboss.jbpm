@@ -14,7 +14,7 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.28 $ Last modified: $Date: 2009/03/17 17:51:32 $ by $Author: civilis $
+ * @version $Revision: 1.29 $ Last modified: $Date: 2009/03/18 20:12:47 $ by $Author: civilis $
  */
 public interface ProcessInstanceW {
 	
@@ -54,6 +54,14 @@ public interface ProcessInstanceW {
 	 * @return see javadoc for getAllUnfinishedTaskInstances(), but also filtered by taskName
 	 */
 	public abstract List<TaskInstanceW> getUnfinishedTaskInstancesForTask(
+	        String taskName);
+	
+	/**
+	 * @param taskName
+	 * @return see javadoc for getUnfinishedTaskInstancesForTask( String taskName), only single
+	 *         unfinished task instance is taken
+	 */
+	public abstract TaskInstanceW getSingleUnfinishedTaskInstanceForTask(
 	        String taskName);
 	
 	/**
