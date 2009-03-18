@@ -29,7 +29,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $ Last modified: $Date: 2009/03/02 15:36:19 $ by $Author: civilis $
+ * @version $Revision: 1.17 $ Last modified: $Date: 2009/03/18 11:55:55 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -153,6 +153,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 				
+				@SuppressWarnings("unchecked")
 				Map<String, Object> variables = new HashMap<String, Object>(ti
 				        .getVariablesLocally());
 				

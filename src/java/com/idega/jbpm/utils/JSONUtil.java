@@ -9,27 +9,27 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
  *
  * 
  * @author <a href="anton@idega.com">Anton Makarov</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2009/01/29 10:26:37 $ by $Author: anton $
+ * Last modified: $Date: 2009/03/18 11:55:55 $ by $Author: civilis $
  *
  */
 
 public class JSONUtil {
 	private XStream xstream;
 	
-	private Map<String, Class> aliasMap;
+	private Map<String, Class<?>> aliasMap;
 	
 	public JSONUtil() {
 		xstream = new XStream(new JettisonMappedXmlDriver());
 	}
 	
-	public JSONUtil(Map<String, Class> aliases) {
+	public JSONUtil(Map<String, Class<?>> aliases) {
 		xstream = new XStream(new JettisonMappedXmlDriver());
 		aliasMap = aliases;
 	}
 	
-	public String convertToJSON(Object obj, Map<String, Class> aliases) {
+	public String convertToJSON(Object obj, Map<String, Class<?>> aliases) {
 		aliasMap = aliases;
 		for(String alias: aliasMap.keySet()) {
 			xstream.alias(alias, aliasMap.get(alias));
@@ -39,7 +39,7 @@ public class JSONUtil {
 		return jsonStr;
 	}
 	
-	public Object convertToObject(String jsonStr, Map<String, Class> aliases) {
+	public Object convertToObject(String jsonStr, Map<String, Class<?>> aliases) {
 		aliasMap = aliases;
 		for(String alias: aliasMap.keySet()) {
 			xstream.alias(alias, aliasMap.get(alias));
@@ -57,11 +57,12 @@ public class JSONUtil {
 		return jsonStr;
 	}
 	
-	public Object convertToObject(String jsonStr) {
+	public <T>T convertToObject(String jsonStr) {
 		for(String alias: aliasMap.keySet()) {
 			xstream.alias(alias, aliasMap.get(alias));
 		}
-		Object obj = xstream.fromXML(jsonStr);
+		@SuppressWarnings("unchecked")
+		T obj = (T)xstream.fromXML(jsonStr);
 		return obj;
 	}
 }
