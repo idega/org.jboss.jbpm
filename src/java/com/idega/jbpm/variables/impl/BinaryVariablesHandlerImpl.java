@@ -38,7 +38,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $ Last modified: $Date: 2009/03/18 11:56:27 $ by $Author: civilis $
+ * @version $Revision: 1.24 $ Last modified: $Date: 2009/03/19 15:45:52 $ by $Author: juozas $
  */
 @Scope("singleton")
 @Service
@@ -166,16 +166,23 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				}
 			}
 			
-			InputStream is = fileURIHandler.getFile(fileUri);
-			
-			try {
-				slideService.uploadFileAndCreateFoldersFromStringAsRoot(path
-				        + CoreConstants.SLASH, fileName, is, null, false);
-				
-			} finally {
-				
-				if (is != null)
-					is.close();
+			// This should be changed, temporal fix. user will not be able submit a form if
+			// exception will be thrown here
+			for (int i = 0; i < 5; i++) {
+				try {
+					InputStream is = fileURIHandler.getFile(fileUri);
+					slideService.uploadFileAndCreateFoldersFromStringAsRoot(
+					    path + CoreConstants.SLASH, fileName, is, null, false);
+					
+				} catch (Exception e) {
+					if (i < 4) {
+						Thread.sleep(500);
+						continue;
+					}
+					
+					throw e;
+				}
+				break;
 			}
 			
 			binaryVariable.setFileName(fileName);
@@ -189,6 +196,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		} catch (Exception e) {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE,
 			    "Exception while storing binary variable. Path: " + path, e);
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -335,7 +343,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	}
 	
 	private JSONUtil getBinVarJSONConverter() {
-		HashMap<String, Class<?>> binVarAliasMap = new HashMap<String, Class<?>>(2);
+		HashMap<String, Class<?>> binVarAliasMap = new HashMap<String, Class<?>>(
+		        2);
 		binVarAliasMap.put(BINARY_VARIABLE, BinaryVariableImpl.class);
 		binVarAliasMap.put(VARIABLE, Variable.class);
 		
