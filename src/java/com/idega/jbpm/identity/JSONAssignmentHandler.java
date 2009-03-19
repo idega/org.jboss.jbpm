@@ -1,6 +1,7 @@
 package com.idega.jbpm.identity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,8 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.TaskInstanceW;
+import com.idega.jbpm.variables.VariablesResolver;
 
 /**
  * <p>
@@ -31,7 +35,9 @@ import com.idega.jbpm.exe.BPMFactory;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $ Last modified: $Date: 2009/02/23 12:38:43 $ by $Author: civilis $
+ * @version $Revision: 1.19 $ Last modified: $Date: 2009/03/19 15:41:24 $ by $Author: juozas $
+ * 
+ *          Last modified: $Date: 2009/03/19 15:41:24 $ by $Author: juozas $
  */
 @Service("jsonAssignmentHandler")
 @Scope("prototype")
@@ -40,8 +46,13 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	private static final String ASSIGN_IDENTITY_CURRENT_USER = "current_user";
 	
 	private static final long serialVersionUID = 8955094455268141204L;
+	
 	@Autowired
 	private BPMFactory bpmFactory;
+	
+	@Autowired
+	private VariablesResolver variablesResolver;
+	
 	
 	public void assign(Assignable assignable, ExecutionContext executionContext) {
 		
@@ -57,6 +68,12 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 			
 			TaskInstance taskInstance = (TaskInstance) assignable;
 			
+			TaskInstanceW tiw = getBpmFactory()
+			        .getProcessManagerByProcessInstanceId(
+			            taskInstance.getProcessInstance().getId())
+			        .getTaskInstance(taskInstance.getId());
+			
+			
 			TaskAssignment ta = JSONExpHandler
 			        .resolveRolesFromJSONExpression(exp);
 			
@@ -69,13 +86,14 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 				return;
 			}
 			
+
 			ProcessInstance mainProcessInstance = getBpmFactory()
 			        .getMainProcessInstance(
 			            taskInstance.getProcessInstance().getId());
 			
 			/*
 			if(mainProcessInstance == null) {
-			//				backwards compatibility
+//				backwards compatibility
 				
 				if (ta.getRolesFromProcessInstanceId() != null) {
 
@@ -86,12 +104,72 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 				}
 			}
 			*/
-
-			getBpmFactory().getRolesManager().createProcessActors(roles,
-			    mainProcessInstance);
+			// Filtering roles
+			List<Role> rolesForTask = new ArrayList<Role>();
+			List<Role> rolesForTaskInstance = new ArrayList<Role>();
+			List<Role> userRolesForTask = new ArrayList<Role>();
+			List<Role> userRolesForTaskInstance = new ArrayList<Role>();
+		
+			for (Role role : roles) {
+				if (role.getUserId() != null) {
+					if (role.getForTaskInstance()) {
+						userRolesForTaskInstance.add(role);
+					} else {
+						roles.remove(role);
+						userRolesForTask.add(role);
+					}
+				} else if (role.getForTaskInstance() && role.getUserId() == null) {
+					rolesForTaskInstance.add(role);
+				}else{
+					rolesForTask.add(role);
+				}
+			}
+			
+			// Roles that are for task
+			getBpmFactory().getRolesManager().createProcessActors(rolesForTask, mainProcessInstance);
 			getBpmFactory().getRolesManager().assignTaskRolesPermissions(
-			    taskInstance.getTask(), roles, mainProcessInstance.getId());
-			assignIdentities(mainProcessInstance, roles);
+			    taskInstance.getTask(), rolesForTask, mainProcessInstance.getId());
+			assignIdentities(mainProcessInstance, rolesForTask);
+			
+			// Roles for task instance
+			getBpmFactory().getRolesManager().createProcessActors(
+			    rolesForTaskInstance, taskInstance.getProcessInstance());
+						
+			for (Role role : rolesForTaskInstance) {
+				tiw.setTaskRolePermissions(role, true, null);
+			}
+			assignIdentities(mainProcessInstance, rolesForTaskInstance);
+			
+			// User "roles" for task
+			for (Role role : userRolesForTask) {
+				List<Actor> processActors = getBpmFactory().getRolesManager()
+				        .createProcessActors(Arrays.asList(role), mainProcessInstance);
+				
+				getBpmFactory().getRolesManager().assignTaskRolesPermissions(
+				    taskInstance.getTask(), userRolesForTask, mainProcessInstance.getId());
+				
+				getBpmFactory().getRolesManager().createIdentitiesForActors(
+				    processActors, new Identity(String.valueOf(role.getUserId()), IdentityType.USER),
+				    taskInstance.getProcessInstance().getId());
+			}
+			
+			
+			// User "roles" for task instance
+			for (Role role : userRolesForTaskInstance) {
+				List<Actor> processActors = getBpmFactory().getRolesManager()
+				        .createProcessActors(Arrays.asList(role),
+				            taskInstance.getProcessInstance());
+				
+				getBpmFactory().getRolesManager().createIdentitiesForActors(
+				    processActors, new Identity(String.valueOf(role.getUserId()), IdentityType.USER),
+				    taskInstance.getProcessInstance().getId());
+				
+				tiw.setTaskPermissionsForActors(processActors, role
+				        .getAccesses(), true, null);
+			}
+			
+			
+			
 		}
 	}
 	
@@ -145,4 +223,12 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	BPMFactory getBpmFactory() {
 		return bpmFactory;
 	}
+
+	public VariablesResolver getVariablesResolver() {
+    	return variablesResolver;
+    }
+
+	public void setVariablesResolver(VariablesResolver variablesResolver) {
+    	this.variablesResolver = variablesResolver;
+    }
 }
