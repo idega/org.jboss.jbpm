@@ -14,7 +14,7 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.29 $ Last modified: $Date: 2009/03/18 20:12:47 $ by $Author: civilis $
+ * @version $Revision: 1.30 $ Last modified: $Date: 2009/03/20 19:17:42 $ by $Author: civilis $
  */
 public interface ProcessInstanceW {
 	
@@ -153,9 +153,6 @@ public interface ProcessInstanceW {
 	
 	public abstract List<BPMEmailDocument> getAttachedEmails(User user);
 	
-	public abstract TaskInstanceW createTask(final String taskName,
-	        final long tokenId);
-	
 	public abstract boolean hasEnded();
 	
 	public abstract TaskInstanceW getStartTaskInstance();
@@ -176,4 +173,6 @@ public interface ProcessInstanceW {
 	 *         variable for the given name, the variable is searched for up the token hierarchy.
 	 */
 	public abstract Object getVariableLocally(String variableName, Token token);
+	
+	public abstract TaskMgmtInstanceW getTaskMgmtInstance();
 }
