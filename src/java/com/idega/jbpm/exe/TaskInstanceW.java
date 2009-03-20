@@ -18,7 +18,7 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $ Last modified: $Date: 2009/03/17 20:51:25 $ by $Author: civilis $
+ * @version $Revision: 1.27 $ Last modified: $Date: 2009/03/20 19:17:57 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
 	
@@ -101,5 +101,7 @@ public interface TaskInstanceW {
 	public abstract Collection<Role> getAttachmentRolesPermissions(
 	        String attachmentHashValue);
 	
-	public Object getVariable(String variableName);
+	public abstract Object getVariable(String variableName);
+	
+	public abstract void hide();
 }
