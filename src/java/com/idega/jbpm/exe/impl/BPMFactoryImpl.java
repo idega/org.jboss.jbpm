@@ -26,7 +26,10 @@ import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessConstants;
+import com.idega.jbpm.exe.ProcessDefinitionW;
+import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.ProcessManager;
+import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
@@ -38,7 +41,7 @@ import com.idega.util.ListUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.28 $ Last modified: $Date: 2009/02/25 14:18:16 $ by $Author: civilis $
+ * @version $Revision: 1.29 $ Last modified: $Date: 2009/03/20 19:18:18 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmFactory")
@@ -307,6 +310,23 @@ public class BPMFactoryImpl implements BPMFactory {
 				return getProcessManager(pdId);
 			}
 		});
+	}
+	
+	public TaskInstanceW getTaskInstanceW(long taskInstanceId) {
+		
+		return getProcessManagerByTaskInstanceId(taskInstanceId)
+		        .getTaskInstance(taskInstanceId);
+	}
+	
+	public ProcessInstanceW getProcessInstanceW(long processInstanceId) {
+		
+		return getProcessManagerByProcessInstanceId(processInstanceId)
+		        .getProcessInstance(processInstanceId);
+	}
+	
+	public ProcessDefinitionW getProcessDefinitionW(String processName) {
+		
+		return getProcessManager(processName).getProcessDefinition(processName);
 	}
 	
 	public BPMContext getBpmContext() {
