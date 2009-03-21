@@ -23,7 +23,7 @@ import com.idega.jbpm.exe.TaskMgmtInstanceW;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $ Last modified: $Date: 2009/03/20 19:20:03 $ by $Author: civilis $
+ * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/21 12:46:27 $ by $Author: civilis $
  */
 @Scope("prototype")
 @Service
@@ -89,8 +89,7 @@ public class TaskMgmtInstanceDefaultW implements TaskMgmtInstanceW {
 		
 		for (TaskInstanceW tiw : tiws) {
 			
-			TaskInstance taskInstance = tiw.getTaskInstance();
-			taskInstance.getTaskMgmtInstance().removeTaskInstance(taskInstance);
+			tiw.hide();
 		}
 	}
 	
