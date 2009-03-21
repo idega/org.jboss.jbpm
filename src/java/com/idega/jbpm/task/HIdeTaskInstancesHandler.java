@@ -10,7 +10,6 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessInstanceW;
@@ -19,7 +18,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $ Last modified: $Date: 2009/03/20 19:20:03 $ by $Author: civilis $
+ * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/21 15:56:04 $ by $Author: civilis $
  */
 @Service("hideTaskInstances")
 @Scope("prototype")
@@ -33,8 +32,6 @@ public class HIdeTaskInstancesHandler implements ActionHandler {
 	private BPMFactory bpmFactory;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
-		
-		System.out.println("___HIDE by___TASK NAME=" + getTaskName());
 		
 		if (isValidParams()) {
 			
