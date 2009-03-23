@@ -13,13 +13,15 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $ Last modified: $Date: 2009/03/02 15:35:04 $ by $Author: civilis $
+ * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/23 09:21:24 $ by $Author: civilis $
  */
 @Service("taskControllerDefault")
 @Scope("prototype")
 public class TaskControllerDefaultHandler implements TaskControllerHandler {
 	
 	private static final long serialVersionUID = 9022017251041205372L;
+	
+	private Boolean submitLocallyOnly = false;
 	
 	public void initializeTaskVariables(TaskInstance taskInstance,
 	        ContextInstance contextInstance, Token token) {
@@ -98,11 +100,16 @@ public class TaskControllerDefaultHandler implements TaskControllerHandler {
 						
 						if (value != null) {
 							
-							// we set it first for relatively global scope, or how jbpm it sets by
-							// default (looks for first token variable map, and usually this ends up
-							// to root token variable map)
-							contextInstance.setVariable(variableName, value,
-							    token);
+							if (!getSubmitLocallyOnly()) {
+								
+								// we set it first for relatively global scope, or how jbpm it sets
+								// by
+								// default (looks for first token variable map, and usually this
+								// ends up
+								// to root token variable map)
+								contextInstance.setVariable(variableName,
+								    value, token);
+							}
 							
 							// then we set it directly on token scope, so we have a really scoped
 							// variable. jbpm doesn't do that on it's own
@@ -113,5 +120,13 @@ public class TaskControllerDefaultHandler implements TaskControllerHandler {
 				}
 			}
 		}
+	}
+	
+	public Boolean getSubmitLocallyOnly() {
+		return submitLocallyOnly;
+	}
+	
+	public void setSubmitLocallyOnly(Boolean submitLocallyOnly) {
+		this.submitLocallyOnly = submitLocallyOnly;
 	}
 }
