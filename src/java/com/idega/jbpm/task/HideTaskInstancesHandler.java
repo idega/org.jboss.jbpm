@@ -14,15 +14,17 @@ import org.springframework.stereotype.Service;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.TaskInstanceW;
+import com.idega.transaction.TransactionContext;
+import com.idega.transaction.TransactionalCallback;
 import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/21 15:56:04 $ by $Author: civilis $
+ * @version $Revision: 1.1 $ Last modified: $Date: 2009/03/23 10:47:57 $ by $Author: civilis $
  */
 @Service("hideTaskInstances")
 @Scope("prototype")
-public class HIdeTaskInstancesHandler implements ActionHandler {
+public class HideTaskInstancesHandler implements ActionHandler {
 	
 	private static final long serialVersionUID = 5805122418836206146L;
 	
@@ -31,21 +33,35 @@ public class HIdeTaskInstancesHandler implements ActionHandler {
 	@Autowired
 	private BPMFactory bpmFactory;
 	
-	public void execute(ExecutionContext ectx) throws Exception {
+	@Autowired
+	private TransactionContext transactionContext;
+	
+	public void execute(final ExecutionContext ectx) throws Exception {
 		
-		if (isValidParams()) {
-			
-			ProcessInstance mainProcessInstance = getBpmFactory()
-			        .getMainProcessInstance(ectx.getProcessInstance().getId());
-			
-			ProcessInstanceW mainPIW = getBpmFactory().getProcessInstanceW(
-			    mainProcessInstance.getId());
-			
-			List<TaskInstanceW> tiws = mainPIW
-			        .getUnfinishedTaskInstancesForTask(getTaskName());
-			
-			mainPIW.getTaskMgmtInstance().hideTaskInstances(tiws);
-		}
+		getTransactionContext().executeInTransaction(
+		    new TransactionalCallback() {
+			    
+			    public <T> T execute() {
+				    
+				    if (isValidParams()) {
+					    
+					    ProcessInstance mainProcessInstance = getBpmFactory()
+					            .getMainProcessInstance(
+					                ectx.getProcessInstance().getId());
+					    
+					    ProcessInstanceW mainPIW = getBpmFactory()
+					            .getProcessInstanceW(
+					                mainProcessInstance.getId());
+					    
+					    List<TaskInstanceW> tiws = mainPIW
+					            .getUnfinishedTaskInstancesForTask(getTaskName());
+					    
+					    mainPIW.getTaskMgmtInstance().hideTaskInstances(tiws);
+				    }
+				    return null;
+			    }
+			    
+		    });
 	}
 	
 	private boolean isValidParams() {
@@ -70,5 +86,9 @@ public class HIdeTaskInstancesHandler implements ActionHandler {
 	
 	public void setTaskName(String taskName) {
 		this.taskName = taskName;
+	}
+	
+	TransactionContext getTransactionContext() {
+		return transactionContext;
 	}
 }
