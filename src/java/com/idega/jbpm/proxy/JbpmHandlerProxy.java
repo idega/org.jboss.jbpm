@@ -349,31 +349,6 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 				final Object propertyValue = getPropertyValue(ectx,
 				    propertyValueExp);
 				
-				/*
-				if (propertyValueExp.startsWith("#{")
-						&& propertyValueExp.endsWith("}")) {
-
-					propertyValue = JbpmExpressionEvaluator.evaluate(
-							getPropertyMap().get(propertyName), ectx);
-
-				} else if (propertyValueExp.startsWith("${")
-						&& propertyValueExp.endsWith("}")) {
-
-					String script = propertyValueExp.substring(2,
-							propertyValueExp.length() - 1);
-
-					try {
-						propertyValue = ScriptEvaluator.evaluate(script, ectx);
-
-					} catch (Exception e) {
-						throw new RuntimeException(e);
-					}
-
-				} else {
-					propertyValue = propertyValueExp;
-				}
-				*/
-
 				try {
 					wrapper.setPropertyValue(propertyName, propertyValue);
 					
