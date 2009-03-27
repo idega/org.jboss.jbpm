@@ -1,6 +1,7 @@
 package com.idega.jbpm.variables.impl;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $ Last modified: $Date: 2009/03/18 11:55:55 $ by $Author: civilis $
+ * @version $Revision: 1.18 $ Last modified: $Date: 2009/03/27 15:35:28 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -59,41 +60,51 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				TaskController tiController = ti.getTask().getTaskController();
 				
 				if (tiController == null)
-					// this occurs when no variables defined in the controller
+					// this occurs when no controller specified for the task
 					return null;
 				
-				if (validate) {
+				@SuppressWarnings("unchecked")
+				List<VariableAccess> variableAccesses = tiController
+				        .getVariableAccesses();
+				
+				HashSet<String> undeclaredVariables = new HashSet<String>(
+				        variables.keySet());
+				
+				for (VariableAccess variableAccess : variableAccesses) {
 					
-					@SuppressWarnings("unchecked")
-					List<VariableAccess> variableAccesses = tiController
-					        .getVariableAccesses();
+					String variableName = variableAccess.getVariableName();
 					
-					for (VariableAccess variableAccess : variableAccesses) {
+					if (validate) {
 						
 						if (variableAccess.getAccess().isRequired()
-						        && !variables.containsKey(variableAccess
-						                .getVariableName()))
+						        && !variables.containsKey(variableName))
 							throw new TaskInstanceVariablesException(
-							        "Required variable ("
-							                + variableAccess.getVariableName()
+							        "Required variable (" + variableName
 							                + ") not submitted.");
 						
 						if (!variableAccess.isWritable()
-						        && variables.containsKey(variableAccess
-						                .getVariableName())) {
+						        && variables.containsKey(variableName)) {
 							
 							Logger.getLogger(getClass().getName()).log(
 							    Level.WARNING,
 							    "Tried to submit read-only variable ("
 							            + variableAccess.getVariableName()
 							            + "), ignoring.");
-							variables.remove(variableAccess.getVariableName());
+							variables.remove(variableName);
 						}
 					}
+					
+					undeclaredVariables.remove(variableName);
 				}
 				
 				final Map<String, Object> variablesToSubmit = getBinaryVariablesHandler()
 				        .storeBinaryVariables(taskInstanceId, variables);
+				
+				for (String undeclaredVariable : undeclaredVariables) {
+					
+					ti.setVariableLocally(undeclaredVariable, variablesToSubmit
+					        .get(undeclaredVariable));
+				}
 				
 				ti.setVariables(variablesToSubmit);
 				
