@@ -7,38 +7,49 @@ import java.util.Map;
 import javax.faces.component.UIComponent;
 
 /**
- * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
- *
- * Last modified: $Date: 2008/12/22 08:58:40 $ by $Author: juozas $
+ * @version $Revision: 1.9 $ Last modified: $Date: 2009/03/27 15:47:21 $ by $Author: civilis $
  */
 public interface View {
-
-	//TODO: create view submission interface with method that are needed only on submit
+	
+	// TODO: create view submission interface with method that are needed only on submit
 	public abstract void setTaskInstanceId(Long taskInstanceId);
+	
 	public abstract Long getTaskInstanceId();
 	
 	public abstract void setViewId(String viewId);
+	
 	public abstract String getViewId();
 	
 	public abstract String getDisplayName();
+	
 	public abstract String getDisplayName(Locale locale);
+	
 	public abstract String getDefaultDisplayName();
 	
 	public abstract void setViewType(String viewType);
+	
 	public abstract String getViewType();
 	
+	/**
+	 * @return if the getViewForDisplay() has implementation - i.e. would return the UIComponent
+	 */
+	public abstract boolean hasViewForDisplay();
+	
 	public abstract UIComponent getViewForDisplay();
+	
 	public abstract UIComponent getViewForDisplay(boolean pdfViewer);
 	
 	public abstract boolean isSubmitable();
+	
 	public abstract void setSubmitable(boolean submitable);
 	
 	public abstract void populateVariables(Map<String, Object> variables);
+	
 	public abstract void populateParameters(Map<String, String> parameters);
 	
 	public abstract Map<String, Object> resolveVariables();
+	
 	public abstract Map<String, String> resolveParameters();
 	
 	public abstract Date getDateCreated();
@@ -46,6 +57,4 @@ public interface View {
 	public abstract void takeView();
 	
 	public abstract ViewToTask getViewToTask();
-	
-	
 }
