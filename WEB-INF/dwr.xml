@@ -22,8 +22,12 @@
             <include method="getAllHandlerUsers" />
             <include method="setRoleDefaultContactsForUser" />
             <include method="getSigningAction" />
+            
         </create>
         
+        <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.GridEntriesBean">
+            <param name="include" value="processInstanceId, gridEntries, rowsParams" />
+        </convert>
         <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.ProcessArtifactsParamsBean" />
   	</allow>
   	<signatures>
