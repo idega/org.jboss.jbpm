@@ -78,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.105 $ Last modified: $Date: 2009/03/16 20:47:14 $ by $Author: civilis $
+ * @version $Revision: 1.106 $ Last modified: $Date: 2009/03/27 15:33:00 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -101,7 +101,7 @@ public class ProcessArtifacts {
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
-	private Document getDocumentsListDocument(IWContext iwc,
+	private GridEntriesBean getDocumentsListDocument(IWContext iwc,
 	        Collection<BPMDocument> processDocuments, Long processInstanceId,
 	        ProcessArtifactsParamsBean params) {
 		
@@ -123,6 +123,9 @@ public class ProcessArtifacts {
 		        .getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
 		String errorMessage = iwrb.getLocalizedString("error_generating_pdf",
 		    "Sorry, unable to generate PDF file from selected document");
+		
+		GridEntriesBean entries = new GridEntriesBean(processInstanceId);
+		
 		for (BPMDocument submittedDocument : processDocuments) {
 			
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
@@ -131,7 +134,9 @@ public class ProcessArtifacts {
 			        .getTaskInstance(taskInstanceId).getProcessInstanceW();
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
-			row.setId(taskInstanceId.toString());
+			
+			String rowId = taskInstanceId.toString();
+			row.setId(rowId);
 			
 			row.addCell(submittedDocument.getDocumentName());
 			row.addCell(submittedDocument.getSubmittedByName());
@@ -179,10 +184,15 @@ public class ProcessArtifacts {
 				addRightsChangerCell(row, processInstanceId, taskInstanceId,
 				    null, null, true);
 			}
+			
+			if (!submittedDocument.isHasViewUI()) {
+				entries.setRowHasViewUI(rowId, false);
+			}
 		}
 		
 		try {
-			return rows.getDocument();
+			entries.setGridEntries(rows.getDocument());
+			return entries;
 			
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Exception while parsing rows", e);
@@ -276,7 +286,8 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	public Document getProcessDocumentsList(ProcessArtifactsParamsBean params) {
+	public GridEntriesBean getProcessDocumentsList(
+	        ProcessArtifactsParamsBean params) {
 		Long processInstanceId = params.getPiId();
 		
 		if (processInstanceId == null) {
@@ -285,9 +296,13 @@ public class ProcessArtifacts {
 			rows.setPage(0);
 			
 			try {
-				return rows.getDocument();
+				GridEntriesBean entries = new GridEntriesBean();
+				entries.setProcessInstanceId(processInstanceId);
+				entries.setGridEntries(rows.getDocument());
+				return entries;
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.log(Level.SEVERE,
+				    "Exception while creating empty grid entries", e);
 			}
 		}
 		
@@ -396,6 +411,8 @@ public class ProcessArtifacts {
 			row.setDateCellIndex(row.getCells().size() - 1);
 			// TODO commented for future use. 'Taken by' column isn't shown now
 			// row.addCell(assignedToName);
+			
+			disableSelection = true;
 			
 			if (disableSelection) {
 				
