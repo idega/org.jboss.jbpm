@@ -1,6 +1,9 @@
 package com.idega.jbpm.task;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jbpm.context.def.VariableAccess;
 import org.jbpm.context.exe.ContextInstance;
@@ -13,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/23 09:21:24 $ by $Author: civilis $
+ * @version $Revision: 1.3 $ Last modified: $Date: 2009/03/27 15:34:09 $ by $Author: civilis $
  */
 @Service("taskControllerDefault")
 @Scope("prototype")
@@ -89,10 +92,18 @@ public class TaskControllerDefaultHandler implements TaskControllerHandler {
 					        "missing task variables: " + missingTaskVariables);
 				}
 				
+				@SuppressWarnings("unchecked")
+				Map<String, Object> varsLoc = taskInstance
+				        .getVariablesLocally();
+				HashSet<String> unsubmittedVariables = new HashSet<String>(
+				        varsLoc.keySet());
+				
 				for (VariableAccess variableAccess : variableAccesses) {
 					
 					String mappedName = variableAccess.getMappedName();
 					String variableName = variableAccess.getVariableName();
+					
+					unsubmittedVariables.remove(variableName);
 					
 					if (variableAccess.isWritable()) {
 						
@@ -116,6 +127,32 @@ public class TaskControllerDefaultHandler implements TaskControllerHandler {
 							contextInstance.setVariableLocally(variableName,
 							    value, token);
 						}
+					}
+				}
+				
+				for (Entry<String, Object> varEntry : varsLoc.entrySet()) {
+					
+					Object value = varEntry.getValue();
+					
+					if (value != null) {
+						
+						String variableName = varEntry.getKey();
+						
+						if (!getSubmitLocallyOnly()) {
+							
+							// we set it first for relatively global scope, or how jbpm it sets
+							// by
+							// default (looks for first token variable map, and usually this
+							// ends up
+							// to root token variable map)
+							contextInstance.setVariable(variableName, value,
+							    token);
+						}
+						
+						// then we set it directly on token scope, so we have a really scoped
+						// variable. jbpm doesn't do that on it's own
+						contextInstance.setVariableLocally(variableName, value,
+						    token);
 					}
 				}
 			}
