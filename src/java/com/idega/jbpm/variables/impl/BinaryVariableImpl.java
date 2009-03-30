@@ -20,7 +20,7 @@ import com.idega.util.expression.ELUtil;
  * the actual persisting and resolving is left to BinaryVariableHandler
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $ Last modified: $Date: 2009/03/16 11:04:08 $ by $Author: juozas $
+ * @version $Revision: 1.8 $ Last modified: $Date: 2009/03/30 13:14:27 $ by $Author: civilis $
  */
 public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	
@@ -37,9 +37,6 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	private Boolean hidden;
 	private long taskInstanceId;
 	private Map<String, Object> metadata;
-
-
-	
 	
 	@Autowired
 	private transient VariablesHandler variablesHandler;
@@ -235,6 +232,12 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		            + " and task instanceid=" + getTaskInstanceId());
 	}
 	
+	public Object getPersistentResource() {
+		
+		return getVariablesHandler().getBinaryVariablesHandler()
+		        .getBinaryVariablePersistentResource(this);
+	}
+	
 	private VariablesHandler getVariablesHandler() {
 		if (variablesHandler == null) {
 			ELUtil.getInstance().autowire(this);
@@ -257,15 +260,15 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		
 		return false;
 	}
-
+	
 	public Map<String, Object> getMetadata() {
-		if(metadata == null)
+		if (metadata == null)
 			metadata = new HashMap<String, Object>();
-    	return metadata;
-    }
-
+		return metadata;
+	}
+	
 	public void setMetadata(Map<String, Object> metadata) {
-    	this.metadata = metadata;
-    }
-
+		this.metadata = metadata;
+	}
+	
 }

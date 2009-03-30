@@ -6,7 +6,7 @@ import com.idega.block.process.variables.Variable;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $ Last modified: $Date: 2009/03/16 11:04:08 $ by $Author: juozas $
+ * @version $Revision: 1.12 $ Last modified: $Date: 2009/03/30 13:14:27 $ by $Author: civilis $
  */
 public interface BinaryVariable {
 	
@@ -73,4 +73,11 @@ public interface BinaryVariable {
 	public Map<String, Object> getMetadata();
 	
 	public void setMetadata(Map<String, Object> metadata);
+	
+	/**
+	 * @return resource for binaryVariable, which reflects the actual persistence method. The one
+	 *         used now is WebdavExtendedResource. TODO: we should either use here the standard
+	 *         filesystem resource api, or create our own
+	 */
+	public abstract Object getPersistentResource();
 }
