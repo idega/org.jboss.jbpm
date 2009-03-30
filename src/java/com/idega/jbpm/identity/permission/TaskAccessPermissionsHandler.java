@@ -29,7 +29,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $ Last modified: $Date: 2009/03/20 19:19:43 $ by $Author: civilis $
+ * @version $Revision: 1.11 $ Last modified: $Date: 2009/03/30 17:24:28 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -86,7 +86,9 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 			if (loggedInActorId == null) {
 				
 				if (PermissionsFactoryImpl.submitTaskParametersPermType
-				        .equals(permission.getType()))
+				        .equals(permission.getType())
+				        || PermissionsFactoryImpl.viewTaskInstanceVariablePermType
+				                .equals(permission.getType()))
 					result = new PermissionHandleResult(
 					        PermissionHandleResultStatus.hasAccess);
 				else
