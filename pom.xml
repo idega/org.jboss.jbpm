@@ -91,6 +91,9 @@
       <groupId>org.jbpm.jbpm3</groupId>
       <artifactId>jbpm-jpdl</artifactId>
       <version>3.3.0.GA</version>
+      <!-- TODO: fall back to 3.2.x, as that is only supported for bugfixes
+      see http://www.jboss.org/index.html?module=bb&op=viewtopic&p=4219178
+       -->
       <type>jar</type>
 	  <exclusions>
         <exclusion>
