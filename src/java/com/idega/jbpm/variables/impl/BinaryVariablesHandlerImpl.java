@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.webdav.lib.WebdavResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $ Last modified: $Date: 2009/03/30 13:14:48 $ by $Author: civilis $
+ * @version $Revision: 1.26 $ Last modified: $Date: 2009/03/30 17:25:25 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -332,11 +333,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		try {
 			IWSlideService slideService = getIWSlideService();
 			
-			UsernamePasswordCredentials credentials = slideService
-			        .getRootUserCredentials();
-			WebdavExtendedResource res = slideService
-			        .getWebdavExtendedResource(variable.getIdentifier(),
-			            credentials);
+			WebdavResource res = slideService
+			        .getWebdavResourceAuthenticatedAsRoot(variable
+			                .getIdentifier());
 			
 			if (!res.exists()) {
 				
