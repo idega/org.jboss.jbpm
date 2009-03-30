@@ -38,7 +38,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.24 $ Last modified: $Date: 2009/03/19 15:45:52 $ by $Author: juozas $
+ * @version $Revision: 1.25 $ Last modified: $Date: 2009/03/30 13:14:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -311,6 +311,43 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			}
 			
 			return res.getMethodData();
+			
+		} catch (Exception e) {
+			Logger.getLogger(getClass().getName()).log(
+			    Level.SEVERE,
+			    "Exception while resolving binary variable. Path: "
+			            + variable.getIdentifier(), e);
+		}
+		
+		return null;
+	}
+	
+	public Object getBinaryVariablePersistentResource(BinaryVariable variable) {
+		
+		if (!STORAGE_TYPE.equals(variable.getStorageType()))
+			throw new IllegalArgumentException(
+			        "Unsupported binary variable storage type: "
+			                + variable.getStorageType());
+		
+		try {
+			IWSlideService slideService = getIWSlideService();
+			
+			UsernamePasswordCredentials credentials = slideService
+			        .getRootUserCredentials();
+			WebdavExtendedResource res = slideService
+			        .getWebdavExtendedResource(variable.getIdentifier(),
+			            credentials);
+			
+			if (!res.exists()) {
+				
+				Logger.getLogger(getClass().getName()).log(
+				    Level.WARNING,
+				    "No webdav resource found for path provided: "
+				            + variable.getIdentifier());
+				return null;
+			}
+			
+			return res;
 			
 		} catch (Exception e) {
 			Logger.getLogger(getClass().getName()).log(

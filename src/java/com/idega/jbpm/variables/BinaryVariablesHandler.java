@@ -5,31 +5,42 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
- *
- * Last modified: $Date: 2008/10/14 18:30:18 $ by $Author: civilis $
+ * @version $Revision: 1.4 $ Last modified: $Date: 2009/03/30 13:14:48 $ by $Author: civilis $
  */
 public interface BinaryVariablesHandler {
-
+	
 	/**
-	 * checks variables for binary variables types (e.g. file and files data type), stores them to some persistence (e.g. slide),
-	 * puts the identifiers in the variables values, instead of File object(s)
-	 * @param identifier - any identifier, usually task instance id
+	 * checks variables for binary variables types (e.g. file and files data type), stores them to
+	 * some persistence (e.g. slide), puts the identifiers in the variables values, instead of File
+	 * object(s)
+	 * 
+	 * @param identifier
+	 *            - any identifier, usually task instance id
 	 * @param variables
 	 * @return new map with binary variables values changed to string identifier(s)
 	 */
-	public abstract Map<String, Object> storeBinaryVariables(long taskInstanceId,
-			Map<String, Object> variables);
-
+	public abstract Map<String, Object> storeBinaryVariables(
+	        long taskInstanceId, Map<String, Object> variables);
+	
 	public abstract InputStream getBinaryVariableContent(BinaryVariable variable);
 	
 	public abstract Map<String, Object> resolveBinaryVariables(
-			Map<String, Object> variables);
+	        Map<String, Object> variables);
 	
-	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables);
+	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(
+	        Map<String, Object> variables);
 	
-	public abstract void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri);
+	public abstract void persistBinaryVariable(BinaryVariable binaryVariable,
+	        final URI fileUri);
+	
+	/**
+	 * @param variable
+	 * @return resource for binaryVariable, which reflects the actual persistence method. The one
+	 *         used now is WebdavExtendedResource. TODO: we should either use here the standard
+	 *         filesystem resource api, or create our own
+	 */
+	public abstract Object getBinaryVariablePersistentResource(
+	        BinaryVariable variable);
 }
