@@ -30,7 +30,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $ Last modified: $Date: 2009/03/27 15:35:28 $ by $Author: civilis $
+ * @version $Revision: 1.19 $ Last modified: $Date: 2009/04/10 06:44:05 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service("bpmVariablesHandler")
@@ -170,19 +170,9 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				
 				if (!ti.hasEnded()) {
 					
-					// Map<String, VariableInstance> variablesInstances;
-					//				
-					// variablesInstances = ti
-					// .getVariableInstances();
-					//					
-					// variables = new HashMap<String, Object>(variablesInstances
-					// .size());
-					
 					@SuppressWarnings("unchecked")
 					List<VariableAccess> accesses = ti.getTask()
 					        .getTaskController().getVariableAccesses();
-					
-					// String tokenReadAccess = "mamamia";
 					
 					for (VariableAccess variableAccess : accesses) {
 						
@@ -215,61 +205,9 @@ public class VariablesHandlerImpl implements VariablesHandler {
 							variables.remove(variableAccess.getVariableName());
 						}
 						
-						/*
-						if (!variableAccess.isWritable() || variableAccess.getAccess().hasAccess(tokenReadAccess)) {
-							
-							VariableInstance variableInstance = variablesInstances
-						        .get(variableAccess.getVariableName());
-						
-							variables.put(variableAccess.getVariableName(),
-							    variableInstance.getValue());
-						}
-						*/
 					}
 				}
-				// else {
-				// variables = new HashMap<String, Object>(ti.getVariablesLocally());
-				// }
 				
-				// if (variablesInstances != null) {
-				// variables = new HashMap<String, Object>(variablesInstances
-				// .size());
-				// } else {
-				// variables = Collections.emptyMap();
-				// }
-				
-				// readonly
-				/*
-				if (ti.hasEnded()) {
-					
-				//					for (VariableInstance variableInstance : variablesInstances
-				//					        .values()) {
-				//						variables.put(variableInstance.getName(),
-				//						    variableInstance.getValue());
-				//					}
-					
-				} else {
-					
-					@SuppressWarnings("unchecked")
-					List<VariableAccess> accesses = ti.getTask()
-					        .getTaskController().getVariableAccesses();
-					
-					String tokenReadAccess = "mamamia";
-					
-					for (VariableAccess variableAccess : accesses) {
-						
-						if (!variableAccess.isWritable() || variableAccess.getAccess().hasAccess(tokenReadAccess)) {
-							
-							VariableInstance variableInstance = variablesInstances
-						        .get(variableAccess.getVariableName());
-						
-							variables.put(variableAccess.getVariableName(),
-							    variableInstance.getValue());
-						}
-					}
-				}
-				*/
-
 				return variables;
 			}
 		});
