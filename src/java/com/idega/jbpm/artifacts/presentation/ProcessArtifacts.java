@@ -76,9 +76,10 @@ import com.idega.util.StringUtil;
 
 /**
  * TODO: access control checks shouldn't be done here at all - remake!
+ * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.107 $ Last modified: $Date: 2009/04/16 12:18:30 $ by $Author: civilis $
+ * @version $Revision: 1.108 $ Last modified: $Date: 2009/04/16 12:20:03 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
