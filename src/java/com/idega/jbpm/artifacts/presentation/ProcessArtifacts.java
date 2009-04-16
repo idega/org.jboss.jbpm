@@ -78,7 +78,7 @@ import com.idega.util.StringUtil;
  * TODO: access control checks shouldn't be done here at all - remake!
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.106 $ Last modified: $Date: 2009/03/27 15:33:00 $ by $Author: civilis $
+ * @version $Revision: 1.107 $ Last modified: $Date: 2009/04/16 12:18:30 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -578,7 +578,12 @@ public class ProcessArtifacts {
 		}
 		
 		try {
-			return rows.getDocument();
+			if (!ListUtil.isEmpty(rows.getRows())) {
+				
+				return rows.getDocument();
+			} else {
+				return null;
+			}
 			
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Exception while parsing rows", e);
