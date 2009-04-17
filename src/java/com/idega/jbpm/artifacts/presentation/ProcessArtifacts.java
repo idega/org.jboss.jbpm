@@ -1,5 +1,7 @@
 package com.idega.jbpm.artifacts.presentation;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
@@ -75,13 +77,14 @@ import com.idega.util.FileUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.URIUtil;
 
 /**
  * TODO: access control checks shouldn't be done here at all - remake!
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.109 $ Last modified: $Date: 2009/04/17 11:24:09 $ by $Author: valdas $
+ * @version $Revision: 1.110 $ Last modified: $Date: 2009/04/17 12:57:17 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -279,8 +282,9 @@ public class ProcessArtifacts {
 			rows.addRow(row);
 			row.setId(taskInstanceId.toString());
 			
-			row.addCell(email.getSubject());
-			row.addCell(getEmailCell(sendEmailComponent, plainFrom, fromStr));
+			String subject = email.getSubject();
+			row.addCell(subject);
+			row.addCell(getEmailCell(sendEmailComponent, plainFrom, fromStr, subject));
 			row.addCell(email.getEndDate() == null ? CoreConstants.EMPTY
 			        : new IWTimestamp(email.getEndDate()).getLocaleDateAndTime(
 			            iwc.getCurrentLocale(), IWTimestamp.SHORT,
@@ -302,12 +306,25 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	private String getEmailCell(String componentUri, String emailAddress, String valueToShow) {
+	private String getEmailCell(String componentUri, String emailAddress, String valueToShow, String subject) {
 		if (StringUtil.isEmpty(emailAddress)) {
 			return CoreConstants.EMPTY;
 		}
 		
-		componentUri = new StringBuilder(componentUri).append("&").append(EmailSender.RECIPIENT_TO_PARAMETER).append("=").append(emailAddress).toString();
+		URIUtil uri = new URIUtil(componentUri);
+		uri.setParameter(EmailSender.RECIPIENT_TO_PARAMETER, emailAddress);
+		if (StringUtil.isEmpty(subject)) {
+			subject = CoreConstants.EMPTY;
+		} else {
+			try {
+				subject = URLEncoder.encode(subject, CoreConstants.ENCODING_UTF8);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		uri.setParameter(EmailSender.SUBJECT_PARAMETER, new StringBuilder("Re: ").append(subject).toString());
+		componentUri = uri.getUri();
+		
 		return new StringBuilder("<a class=\"emailSenderLightboxinBPMCasesStyle\" href=\"").append(componentUri).append("\" ")
 			.append("onclick=\"CasesBPMAssets.showSendEmailWindow(event);\">").append(valueToShow).append("</a>").toString();
 	}
