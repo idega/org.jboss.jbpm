@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -20,6 +21,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
+import com.idega.block.email.presentation.EmailSender;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.builder.business.BuilderLogicWrapper;
 import com.idega.business.IBOLookup;
@@ -79,7 +81,7 @@ import com.idega.util.StringUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.108 $ Last modified: $Date: 2009/04/16 12:20:03 $ by $Author: civilis $
+ * @version $Revision: 1.109 $ Last modified: $Date: 2009/04/17 11:24:09 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -232,9 +234,7 @@ public class ProcessArtifacts {
 		    ".pdf").toString();
 	}
 	
-	private Document getEmailsListDocument(
-	        Collection<BPMEmailDocument> processEmails, Long processInstanceId,
-	        boolean rightsChanger) {
+	private Document getEmailsListDocument(Collection<BPMEmailDocument> processEmails, Long processInstanceId, boolean rightsChanger, User currentUser) {
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 		
@@ -242,11 +242,26 @@ public class ProcessArtifacts {
 		rows.setTotal(size);
 		rows.setPage(size == 0 ? 0 : 1);
 		
-		IWContext iwc = IWContext.getIWContext(FacesContext
-		        .getCurrentInstance());
+		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+		
+		String userEmail = null;
+		if (currentUser != null) {
+			Email email = null;
+			try {
+				email = getUserBusiness().getUsersMainEmail(currentUser);
+			} catch (Exception e) {}
+			userEmail = email == null ? null : email.getEmailAddress();
+		}
+
+		String sendEmailComponent = getBuilderLogicWrapper().getBuilderService(iwc).getUriToObject(EmailSender.class, Arrays.asList(
+			new AdvancedProperty("iframe", Boolean.TRUE.toString()),
+			new AdvancedProperty(EmailSender.FROM_PARAMETER, userEmail)
+		));
+		
 		for (BPMEmailDocument email : processEmails) {
 			
-			String fromStr = email.getFromAddress();
+			String plainFrom = email.getFromAddress();
+			String fromStr = plainFrom;
 			
 			if (email.getFromAddress() != null) {
 				
@@ -265,7 +280,7 @@ public class ProcessArtifacts {
 			row.setId(taskInstanceId.toString());
 			
 			row.addCell(email.getSubject());
-			row.addCell(fromStr == null ? CoreConstants.EMPTY : fromStr);
+			row.addCell(getEmailCell(sendEmailComponent, plainFrom, fromStr));
 			row.addCell(email.getEndDate() == null ? CoreConstants.EMPTY
 			        : new IWTimestamp(email.getEndDate()).getLocaleDateAndTime(
 			            iwc.getCurrentLocale(), IWTimestamp.SHORT,
@@ -285,6 +300,16 @@ public class ProcessArtifacts {
 			logger.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
+	}
+	
+	private String getEmailCell(String componentUri, String emailAddress, String valueToShow) {
+		if (StringUtil.isEmpty(emailAddress)) {
+			return CoreConstants.EMPTY;
+		}
+		
+		componentUri = new StringBuilder(componentUri).append("&").append(EmailSender.RECIPIENT_TO_PARAMETER).append("=").append(emailAddress).toString();
+		return new StringBuilder("<a class=\"emailSenderLightboxinBPMCasesStyle\" href=\"").append(componentUri).append("\" ")
+			.append("onclick=\"CasesBPMAssets.showSendEmailWindow(event);\">").append(valueToShow).append("</a>").toString();
 	}
 	
 	public GridEntriesBean getProcessDocumentsList(
@@ -658,8 +683,7 @@ public class ProcessArtifacts {
 			}
 			
 		} else
-			return getEmailsListDocument(processEmails, processInstanceId,
-			    params.isRightsChanger());
+			return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger(), loggedInUser);
 	}
 	
 	@SuppressWarnings("unchecked")
