@@ -84,7 +84,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.110 $ Last modified: $Date: 2009/04/17 12:57:17 $ by $Author: valdas $
+ * @version $Revision: 1.111 $ Last modified: $Date: 2009/04/22 12:55:46 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -106,6 +106,9 @@ public class ProcessArtifacts {
 	private SigningHandler signingHandler;
 	
 	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
+	
+	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
+	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
 	
 	private GridEntriesBean getDocumentsListDocument(IWContext iwc,
 	        Collection<BPMDocument> processDocuments, Long processInstanceId,
@@ -258,7 +261,9 @@ public class ProcessArtifacts {
 
 		String sendEmailComponent = getBuilderLogicWrapper().getBuilderService(iwc).getUriToObject(EmailSender.class, Arrays.asList(
 			new AdvancedProperty("iframe", Boolean.TRUE.toString()),
-			new AdvancedProperty(EmailSender.FROM_PARAMETER, userEmail)
+			new AdvancedProperty(EmailSender.FROM_PARAMETER, userEmail),
+			new AdvancedProperty(EmailSender.NAMES_FOR_EXTERNAL_PARAMETERS, PROCESS_INSTANCE_ID_PARAMETER),
+			new AdvancedProperty(EmailSender.EXTERNAL_PARAMETERS, String.valueOf(processInstanceId))
 		));
 		
 		for (BPMEmailDocument email : processEmails) {
@@ -284,7 +289,7 @@ public class ProcessArtifacts {
 			
 			String subject = email.getSubject();
 			row.addCell(subject);
-			row.addCell(getEmailCell(sendEmailComponent, plainFrom, fromStr, subject));
+			row.addCell(getEmailCell(sendEmailComponent, plainFrom, fromStr, subject, taskInstanceId));
 			row.addCell(email.getEndDate() == null ? CoreConstants.EMPTY
 			        : new IWTimestamp(email.getEndDate()).getLocaleDateAndTime(
 			            iwc.getCurrentLocale(), IWTimestamp.SHORT,
@@ -306,16 +311,18 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	private String getEmailCell(String componentUri, String emailAddress, String valueToShow, String subject) {
+	private String getEmailCell(String componentUri, String emailAddress, String valueToShow, String subject, Long taskInstanceId) {
 		if (StringUtil.isEmpty(emailAddress)) {
 			return CoreConstants.EMPTY;
 		}
 		
 		URIUtil uri = new URIUtil(componentUri);
 		uri.setParameter(EmailSender.RECIPIENT_TO_PARAMETER, emailAddress);
+		
 		if (StringUtil.isEmpty(subject)) {
 			subject = CoreConstants.EMPTY;
-		} else {
+		}
+		else {
 			try {
 				subject = URLEncoder.encode(subject, CoreConstants.ENCODING_UTF8);
 			} catch (UnsupportedEncodingException e) {
@@ -323,10 +330,12 @@ public class ProcessArtifacts {
 			}
 		}
 		uri.setParameter(EmailSender.SUBJECT_PARAMETER, new StringBuilder("Re: ").append(subject).toString());
-		componentUri = uri.getUri();
-		
+		componentUri = new StringBuilder(uri.getUri()).append("&").append(EmailSender.EXTERNAL_PARAMETERS).append("=").append(String.valueOf(taskInstanceId))
+		.append("&").append(EmailSender.NAMES_FOR_EXTERNAL_PARAMETERS).append("=").append(TASK_INSTANCE_ID_PARAMETER).toString();
+
 		return new StringBuilder("<a class=\"emailSenderLightboxinBPMCasesStyle\" href=\"").append(componentUri).append("\" ")
-			.append("onclick=\"CasesBPMAssets.showSendEmailWindow(event);\">").append(valueToShow).append("</a>").toString();
+			.append("onclick=\"CasesBPMAssets.showSendEmailWindow(event);\">")
+			.append(valueToShow).append("</a>").toString();
 	}
 	
 	public GridEntriesBean getProcessDocumentsList(
