@@ -26,103 +26,101 @@ import com.idega.idegaweb.IWMainApplication;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
- * 
- *          Last modified: $Date: 2009/03/16 16:33:27 $ by $Author: civilis $
+ * @version $Revision: 1.19 $ Last modified: $Date: 2009/04/22 10:48:53 $ by $Author: civilis $
  */
 public class IdegaJbpmContext implements BPMContext, InitializingBean {
-
+	
 	public static final String beanIdentifier = "idegaJbpmContext";
 	private EntityManagerFactory entityManagerFactory;
-
+	
 	private HibernateTemplate hibernateTemplate;
-
+	
 	public JbpmConfiguration getJbpmConfiguration() {
 		return JbpmConfiguration.getInstance();
 	}
-
+	
 	public JbpmContext createJbpmContext() {
-
+		
 		return JbpmConfiguration.getInstance().createJbpmContext();
 	}
-
+	
 	public void closeAndCommit(JbpmContext ctx) {
-
+		
 		ctx.close();
 	}
-
+	
 	public EntityManagerFactory getEntityManagerFactory() {
 		return entityManagerFactory;
 	}
-
+	
 	public void setEntityManagerFactory(
-			EntityManagerFactory entityManagerFactory) {
+	        EntityManagerFactory entityManagerFactory) {
 		this.entityManagerFactory = entityManagerFactory;
 	}
-
+	
 	public void saveProcessEntity(Object entity) {
-
+		
 		JbpmContext current = getJbpmConfiguration().getCurrentJbpmContext();
-
+		
 		if (current != null) {
-
+			
 			current.getSession().save(entity);
 		} else
 			throw new IllegalStateException(
-					"No current JbpmContext resolved. Create JbpmContext around calling this method");
+			        "No current JbpmContext resolved. Create JbpmContext around calling this method");
 	}
-
+	
 	public <T> T mergeProcessEntity(T entity) {
-
+		
 		JbpmContext ctx = getJbpmConfiguration().getCurrentJbpmContext();
-
+		
 		if (ctx != null) {
-
+			
 			@SuppressWarnings("unchecked")
 			T merged = (T) ctx.getSession().merge(entity);
 			return merged;
-
+			
 		} else
 			throw new IllegalStateException(
-					"No current JbpmContext resolved. Create JbpmContext around calling this method");
+			        "No current JbpmContext resolved. Create JbpmContext around calling this method");
 	}
-
+	
 	/**
-	 * Idea taken from jbpm springmodules
-	 * 
-	 * Execute the action specified by the given action object within a
-	 * JbpmSession.
+	 * Idea taken from jbpm springmodules Execute the action specified by the given action object
+	 * within a JbpmSession.
 	 * 
 	 * @param callback
 	 * @return
 	 */
-	@Transactional // temporal let's hope. need to understand and merge jbpm + jpa transactions behavior
+	@Transactional
+	// temporal let's hope. need to understand and merge jbpm + jpa transactions behavior
 	public <T> T execute(final JbpmCallback callback) {
-
+		
 		final JbpmContext context = JbpmConfiguration.getInstance()
-				.createJbpmContext();
-
+		        .createJbpmContext();
+		
 		try {
 			
-			String useNewTransactionHandlingProp = IWMainApplication
-			.getDefaultIWMainApplication().getSettings()
-			.getProperty("bpm_use_new_transaction_handling",
-					"true");
-			
-			Boolean useNewTransactionHandling = "true".equals(useNewTransactionHandlingProp);
+			Boolean useNewTransactionHandling = isUseNewTransactionHandling();
 			
 			HibernateTemplate hibernateTemplate;
 			
-			if(useNewTransactionHandling) {
+			if (useNewTransactionHandling) {
 				
-				EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager.getResource(getEntityManagerFactory());
+				EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager
+				        .getResource(getEntityManagerFactory());
 				if (holder != null) {
-					Session session = ((HibernateEntityManager) (holder.getEntityManager())).getSession();
-					SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory()).getSessionFactory();
-					if (!SessionFactoryUtils.isSessionTransactional(session, sessionFactory)) {
-						TransactionSynchronizationManager.unbindResourceIfPossible(sessionFactory);
+					Session session = ((HibernateEntityManager) (holder
+					        .getEntityManager())).getSession();
+					SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory())
+					        .getSessionFactory();
+					if (!SessionFactoryUtils.isSessionTransactional(session,
+					    sessionFactory)) {
+						TransactionSynchronizationManager
+						        .unbindResourceIfPossible(sessionFactory);
 						SessionHolder holderToUse = new SessionHolder(session);
-						TransactionSynchronizationManager.bindResource(sessionFactory, holderToUse);
+						TransactionSynchronizationManager.bindResource(
+						    sessionFactory, holderToUse);
 					}
 					hibernateTemplate = new HibernateTemplate(sessionFactory);
 				} else {
@@ -133,19 +131,20 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 				hibernateTemplate = this.hibernateTemplate;
 			}
 			
+			@SuppressWarnings("unchecked")
 			T res = (T) hibernateTemplate.execute(new HibernateCallback() {
 				/**
 				 * @see org.springframework.orm.hibernate3.HibernateCallback#doInHibernate(org.hibernate.Session)
 				 */
 				public Object doInHibernate(Session session)
-						throws HibernateException, SQLException {
+				        throws HibernateException, SQLException {
 					// inject the session in the context
-
+					
 					context.setSession(session);
 					return callback.doInJbpm(context);
 				}
 			});
-
+			
 			return res;
 		} catch (JbpmException ex) {
 			throw convertJbpmException(ex);
@@ -153,23 +152,46 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			context.close();
 		}
 	}
-
+	
+	private boolean isUseNewTransactionHandling() {
+		
+		final IWMainApplication iwma = IWMainApplication
+		        .getDefaultIWMainApplication();
+		
+		final Boolean useNewTransactionHandling;
+		
+		if (iwma != null) {
+			
+			String useNewTransactionHandlingProp = IWMainApplication
+			        .getDefaultIWMainApplication().getSettings().getProperty(
+			            "bpm_use_new_transaction_handling", "true");
+			
+			useNewTransactionHandling = "true"
+			        .equals(useNewTransactionHandlingProp);
+		} else {
+			
+			// unit test case
+			useNewTransactionHandling = true;
+		}
+		
+		return useNewTransactionHandling;
+	}
+	
 	/**
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
 	public void afterPropertiesSet() throws Exception {
-
+		
 		Session hibernateSession = (Session) getEntityManagerFactory()
-				.createEntityManager().getDelegate();
-
+		        .createEntityManager().getDelegate();
+		
 		hibernateTemplate = new HibernateTemplate(hibernateSession
-				.getSessionFactory());
+		        .getSessionFactory());
 	}
-
+	
 	/**
-	 * Copied from jbpm springmodules
-	 * 
-	 * Converts Jbpm RuntimeExceptions into Spring specific ones (if possible).
+	 * Copied from jbpm springmodules Converts Jbpm RuntimeExceptions into Spring specific ones (if
+	 * possible).
 	 * 
 	 * @param ex
 	 * @return
@@ -178,11 +200,11 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 		// decode nested exceptions
 		if (ex.getCause() instanceof HibernateException) {
 			DataAccessException rootCause = SessionFactoryUtils
-					.convertHibernateAccessException((HibernateException) ex
-							.getCause());
+			        .convertHibernateAccessException((HibernateException) ex
+			                .getCause());
 			return rootCause;
 		}
-
+		
 		// cannot convert the exception in any meaningful way
 		return ex;
 	}
