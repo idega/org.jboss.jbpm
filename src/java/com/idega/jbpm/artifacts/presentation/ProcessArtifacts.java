@@ -84,7 +84,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.111 $ Last modified: $Date: 2009/04/22 12:55:46 $ by $Author: valdas $
+ * @version $Revision: 1.112 $ Last modified: $Date: 2009/04/22 14:44:23 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -265,6 +265,7 @@ public class ProcessArtifacts {
 			new AdvancedProperty(EmailSender.NAMES_FOR_EXTERNAL_PARAMETERS, PROCESS_INSTANCE_ID_PARAMETER),
 			new AdvancedProperty(EmailSender.EXTERNAL_PARAMETERS, String.valueOf(processInstanceId))
 		));
+		String replyToSystemAddress = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_ACCOUNT);
 		
 		for (BPMEmailDocument email : processEmails) {
 			
@@ -289,7 +290,7 @@ public class ProcessArtifacts {
 			
 			String subject = email.getSubject();
 			row.addCell(subject);
-			row.addCell(getEmailCell(sendEmailComponent, plainFrom, fromStr, subject, taskInstanceId));
+			row.addCell(getEmailCell(sendEmailComponent, plainFrom, fromStr, subject, taskInstanceId, replyToSystemAddress));
 			row.addCell(email.getEndDate() == null ? CoreConstants.EMPTY
 			        : new IWTimestamp(email.getEndDate()).getLocaleDateAndTime(
 			            iwc.getCurrentLocale(), IWTimestamp.SHORT,
@@ -311,7 +312,7 @@ public class ProcessArtifacts {
 		}
 	}
 	
-	private String getEmailCell(String componentUri, String emailAddress, String valueToShow, String subject, Long taskInstanceId) {
+	private String getEmailCell(String componentUri, String emailAddress, String valueToShow, String subject, Long taskInstanceId, String replyTo) {
 		if (StringUtil.isEmpty(emailAddress)) {
 			return CoreConstants.EMPTY;
 		}
@@ -330,6 +331,10 @@ public class ProcessArtifacts {
 			}
 		}
 		uri.setParameter(EmailSender.SUBJECT_PARAMETER, new StringBuilder("Re: ").append(subject).toString());
+		
+		String fullReplyTo = StringUtil.isEmpty(replyTo) ? emailAddress : new StringBuilder(emailAddress).append(CoreConstants.COMMA).append(replyTo).toString();
+		uri.setParameter(EmailSender.REPLY_TO_PARAMETER, fullReplyTo);
+		
 		componentUri = new StringBuilder(uri.getUri()).append("&").append(EmailSender.EXTERNAL_PARAMETERS).append("=").append(String.valueOf(taskInstanceId))
 		.append("&").append(EmailSender.NAMES_FOR_EXTERNAL_PARAMETERS).append("=").append(TASK_INSTANCE_ID_PARAMETER).toString();
 
