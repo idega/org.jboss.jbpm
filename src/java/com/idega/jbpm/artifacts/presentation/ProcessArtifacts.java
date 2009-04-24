@@ -84,7 +84,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.112 $ Last modified: $Date: 2009/04/22 14:44:23 $ by $Author: valdas $
+ * @version $Revision: 1.113 $ Last modified: $Date: 2009/04/24 12:12:28 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -263,7 +263,8 @@ public class ProcessArtifacts {
 			new AdvancedProperty("iframe", Boolean.TRUE.toString()),
 			new AdvancedProperty(EmailSender.FROM_PARAMETER, userEmail),
 			new AdvancedProperty(EmailSender.NAMES_FOR_EXTERNAL_PARAMETERS, PROCESS_INSTANCE_ID_PARAMETER),
-			new AdvancedProperty(EmailSender.EXTERNAL_PARAMETERS, String.valueOf(processInstanceId))
+			new AdvancedProperty(EmailSender.EXTERNAL_PARAMETERS, String.valueOf(processInstanceId)),
+			new AdvancedProperty(EmailSender.ALLOW_CHANGE_RECIPIENT_ADDRESS_PARAMETER, Boolean.FALSE.toString())
 		));
 		String replyToSystemAddress = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_ACCOUNT);
 		
