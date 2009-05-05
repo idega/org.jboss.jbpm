@@ -18,7 +18,7 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.28 $ Last modified: $Date: 2009/03/30 13:13:45 $ by $Author: civilis $
+ * @version $Revision: 1.29 $ Last modified: $Date: 2009/05/05 09:04:31 $ by $Author: civilis $
  */
 public interface TaskInstanceW {
 	
@@ -104,4 +104,6 @@ public interface TaskInstanceW {
 	public abstract Object getVariable(String variableName);
 	
 	public abstract void hide();
+	
+	public abstract void addVariable(Variable variable, Object value);
 }
