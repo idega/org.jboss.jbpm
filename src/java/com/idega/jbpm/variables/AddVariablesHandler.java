@@ -36,7 +36,7 @@ public class AddVariablesHandler implements ActionHandler {
 		        .parseDefaultStringRepresentation(getVariableName());
 		
 		Map<String, Object> variables = new HashMap<String, Object>();
-		variables.put(variable.getName(), getValue());
+		variables.put(variable.getDefaultStringRepresentation(), getValue());
 		getVariablesHandler().submitVariablesExplicitly(variables,
 		    getTaskInstanceId());
 	}
