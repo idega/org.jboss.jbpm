@@ -1,8 +1,5 @@
 package com.idega.jbpm.variables;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +8,12 @@ import org.springframework.stereotype.Service;
 
 import com.idega.block.process.variables.Variable;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.TaskInstanceW;
 
 @Scope("singleton")
 @Service("addVariablesHandler")
 public class AddVariablesHandler implements ActionHandler {
 	
-	/**
-     * 
-     */
 	private static final long serialVersionUID = 2507035610551135901L;
 	private long taskInstanceId;
 	private String variableName;
@@ -35,10 +30,9 @@ public class AddVariablesHandler implements ActionHandler {
 		Variable variable = Variable
 		        .parseDefaultStringRepresentation(getVariableName());
 		
-		Map<String, Object> variables = new HashMap<String, Object>();
-		variables.put(variable.getDefaultStringRepresentation(), getValue());
-		getVariablesHandler().submitVariablesExplicitly(variables,
+		TaskInstanceW tiw = getBpmFactory().getTaskInstanceW(
 		    getTaskInstanceId());
+		tiw.addVariable(variable, getValue());
 	}
 	
 	public long getTaskInstanceId() {
