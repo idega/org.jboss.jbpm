@@ -3,6 +3,7 @@ package com.idega.jbpm.variables;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +11,7 @@ import com.idega.block.process.variables.Variable;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.TaskInstanceW;
 
-@Scope("singleton")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service("addVariablesHandler")
 public class AddVariablesHandler implements ActionHandler {
 	

@@ -17,6 +17,7 @@ import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,9 +31,9 @@ import com.idega.jbpm.variables.VariablesHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $ Last modified: $Date: 2009/04/10 06:44:05 $ by $Author: civilis $
+ * @version $Revision: 1.20 $ Last modified: $Date: 2009/05/19 13:19:04 $ by $Author: valdas $
  */
-@Scope("singleton")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service("bpmVariablesHandler")
 @Transactional(readOnly = true)
 public class VariablesHandlerImpl implements VariablesHandler {
