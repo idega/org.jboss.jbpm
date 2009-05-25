@@ -21,7 +21,7 @@ import javax.persistence.Table;
  * permissive permission should be used. Also used for contacts access management.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $ Last modified: $Date: 2009/01/18 16:48:11 $ by $Author: civilis $
+ * @version $Revision: 1.13 $ Last modified: $Date: 2009/05/25 13:43:53 $ by $Author: valdas $
  */
 @Entity
 @Table(name = "BPM_ACTORS_PERMISSIONS")
@@ -94,7 +94,25 @@ import javax.persistence.Table;
                 + Actor.processInstanceIdProperty
                 + " and ap."
                 + ActorPermissions.canSeeContactsOfRoleNameProperty
-                + " is not null") })
+                + " is not null"),
+        @NamedQuery(name = ActorPermissions.getSetByProcessInstanceIdAndCanSeeComments, query = "select ap from ActorPermissions ap inner join ap."
+                    + ActorPermissions.actorsProperty
+                    + " act where act."
+                    + Actor.processInstanceIdProperty
+                    + " = :"
+                    + Actor.processInstanceIdProperty
+                    + " and ap."
+                    + ActorPermissions.canSeeCommentsProperty
+                    + " is not null"),
+        @NamedQuery(name = ActorPermissions.getSetByProcessInstanceIdAndCanWriteComments, query = "select ap from ActorPermissions ap inner join ap."
+                 + ActorPermissions.actorsProperty
+                 + " act where act."
+                 + Actor.processInstanceIdProperty
+                 + " = :"
+                 + Actor.processInstanceIdProperty
+                 + " and ap."
+                 + ActorPermissions.canWriteCommentsProperty
+                 + " is not null")})        
 public class ActorPermissions implements Serializable {
 	
 	private static final long serialVersionUID = 4768266953928292205L;
@@ -106,6 +124,8 @@ public class ActorPermissions implements Serializable {
 	public static final String getSetByProcessInstanceIdAndContactPermissionsRolesNames = "ActorPermissions.getSetByProcessInstanceIdAndContactPermissionsRolesNames";
 	public static final String getSetByProcessInstanceIdAndAccess = "ActorPermissions.getSetByProcessInstanceIdAndAccess";
 	public static final String getSetByProcessInstanceIdAndCanSeeContacts = "ActorPermissions.getSetByProcessInstanceIdAndCanSeeContacts";
+	public static final String getSetByProcessInstanceIdAndCanSeeComments = "ActorPermissions.getSetByProcessInstanceIdAndCanSeeComments";
+	public static final String getSetByProcessInstanceIdAndCanWriteComments = "ActorPermissions.getSetByProcessInstanceIdAndCanWriteComments";
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -150,6 +170,14 @@ public class ActorPermissions implements Serializable {
 	public static final String canSeeContactsProperty = "canSeeContacts";
 	@Column(name = "can_see_contacts")
 	private Boolean canSeeContacts;
+	
+	public static final String canSeeCommentsProperty = "canSeeComments";
+	@Column(name = "can_see_comments")
+	private Boolean canSeeComments;
+	
+	public static final String canWriteCommentsProperty = "canWriteComments";
+	@Column(name = "can_write_comments")
+	private Boolean canWriteComments;
 	
 	public static final String actorsProperty = "actors";
 	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, mappedBy = Actor.actorPermissionsProperty, targetEntity = Actor.class)
@@ -261,4 +289,21 @@ public class ActorPermissions implements Serializable {
 	public void setCanSeeContacts(Boolean canSeeContacts) {
 		this.canSeeContacts = canSeeContacts;
 	}
+
+	public Boolean getCanSeeComments() {
+		return canSeeComments;
+	}
+
+	public void setCanSeeComments(Boolean canSeeComments) {
+		this.canSeeComments = canSeeComments;
+	}
+
+	public Boolean getCanWriteComments() {
+		return canWriteComments;
+	}
+
+	public void setCanWriteComments(Boolean canWriteComments) {
+		this.canWriteComments = canWriteComments;
+	}
+	
 }
