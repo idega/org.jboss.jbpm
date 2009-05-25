@@ -9,9 +9,9 @@ import com.idega.jbpm.identity.permission.RoleScope;
 /**
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  * 
- * Last modified: $Date: 2009/03/19 15:41:24 $ by $Author: juozas $
+ * Last modified: $Date: 2009/05/25 13:44:27 $ by $Author: valdas $
  */
 public class Role {
 
@@ -30,6 +30,7 @@ public class Role {
 	private RoleScope scope;
 	private List<Access> accesses;
 	private List<String> rolesContacts;
+	private List<String> rolesComments;
 	private String userId;
 	private boolean forTaskInstance = false;
 	private Long processInstanceId;
@@ -46,6 +47,7 @@ public class Role {
 	public Role() {	}
 	
 	public Role(String roleName, Access... accesses) {
+		this();
 		
 		this.roleName = roleName;
 		setAccesses(accesses == null ? null : Arrays.asList(accesses));
@@ -136,4 +138,13 @@ public class Role {
 	public void setIdentities(List<Identity> identities) {
 		this.identities = identities;
 	}
+
+	public List<String> getRolesComments() {
+		return rolesComments;
+	}
+
+	public void setRolesComments(List<String> rolesComments) {
+		this.rolesComments = rolesComments;
+	}
+	
 }

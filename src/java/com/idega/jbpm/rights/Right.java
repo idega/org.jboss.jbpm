@@ -7,14 +7,16 @@ package com.idega.jbpm.rights;
  * Please comment for each enum, where it can be used (processinstance, processdefinition, or taskinstance)
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/10/08 18:50:57 $ by $Author: civilis $
+ * Last modified: $Date: 2009/05/25 13:44:27 $ by $Author: valdas $
  */
 public enum Right {
 
 	/**
 	 * represents right of process handler. Should be used for process instance only
 	 */
-	processHandler
+	processHandler,
+	
+	commentsViewer
 }

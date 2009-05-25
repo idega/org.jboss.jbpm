@@ -25,7 +25,7 @@ import com.idega.user.data.User;
  * Recommended getting rolesManager from BPMFactory
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.34 $ Last modified: $Date: 2009/02/26 08:52:54 $ by $Author: civilis $
+ * @version $Revision: 1.35 $ Last modified: $Date: 2009/05/25 13:44:27 $ by $Author: valdas $
  */
 public interface RolesManager {
 	
@@ -152,4 +152,6 @@ public interface RolesManager {
 	 */
 	public abstract void assignIdentities(ProcessInstance processInstance,
 	        List<Role> roles);
+	
+	public abstract boolean canSeeComments(Long processInstanceId, User user);
 }

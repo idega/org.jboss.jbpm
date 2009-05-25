@@ -64,7 +64,7 @@ import com.idega.util.StringUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.65 $ Last modified: $Date: 2009/02/26 08:52:54 $ by $Author: civilis $
+ * @version $Revision: 1.66 $ Last modified: $Date: 2009/05/25 13:44:27 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -661,13 +661,15 @@ public class RolesManagerImpl implements RolesManager {
 			
 			HashSet<String> rolesNames = new HashSet<String>(roles.size());
 			boolean hasContactsPermissions = false;
+			boolean hasCommentsPermissions = false;
 			
 			for (Role role : roles) {
 				rolesNames.add(role.getRoleName());
 				
-				if (!hasContactsPermissions && role.getRolesContacts() != null
-				        && !role.getRolesContacts().isEmpty())
+				if (!hasContactsPermissions && role.getRolesContacts() != null && !role.getRolesContacts().isEmpty())
 					hasContactsPermissions = true;
+				if (!hasCommentsPermissions && !ListUtil.isEmpty(role.getRolesComments()))
+					hasCommentsPermissions = true;
 			}
 			
 			for (Role role : roles) {
@@ -703,6 +705,18 @@ public class RolesManagerImpl implements RolesManager {
 						createdPermissions = createdContactsPermissions;
 					else
 						createdPermissions.addAll(createdContactsPermissions);
+				}
+			}
+			
+			if (hasCommentsPermissions) {
+				List<ActorPermissions> createdCommentsPermissions = createRolesCommentsPermissions(roles, processInstance);
+					
+				if (createdCommentsPermissions != null) {
+					
+					if (createdPermissions == null)
+						createdPermissions = createdCommentsPermissions;
+					else
+						createdPermissions.addAll(createdCommentsPermissions);
 				}
 			}
 		}
@@ -756,6 +770,56 @@ public class RolesManagerImpl implements RolesManager {
 					if (!contactsRolesToCreate.isEmpty())
 						createProcessActors(contactsRolesToCreate,
 						    processInstance);
+				}
+			}
+		}
+		return createdPermissions;
+	}
+	
+	@Transactional(readOnly = false)
+	public List<ActorPermissions> createRolesCommentsPermissions(List<Role> roles, ProcessInstance processInstance) {
+		
+		List<ActorPermissions> createdPermissions = null;
+		
+		if (!roles.isEmpty()) {
+			
+			Set<String> rolesNames = new HashSet<String>(roles.size());
+			
+			for (Role role : roles) {
+				rolesNames.add(role.getRoleName());
+			}
+			
+			for (Role role : roles) {
+				
+				if (!ListUtil.isEmpty(role.getRolesComments())) {
+					
+					List<Role> commentsRolesToCreate = new ArrayList<Role>(role.getRolesComments().size());
+					
+					for (String roleComment : role.getRolesComments()) {
+						
+						ActorPermissions perm = new ActorPermissions();
+						perm.setRoleName(role.getRoleName());
+						if ("all".equals(roleComment)) {
+							perm.setCanSeeComments(Boolean.TRUE);
+							perm.setCanWriteComments(Boolean.TRUE);
+						} else {
+							perm.setCanSeeComments(role.getAccesses() != null && role.getAccesses().contains(Access.seeComments));
+							perm.setCanWriteComments(role.getAccesses() != null && role.getAccesses().contains(Access.writeComments));
+						}
+						
+						getBpmDAO().persist(perm);
+						
+						if (createdPermissions == null) {
+							createdPermissions = new ArrayList<ActorPermissions>();
+						}
+						createdPermissions.add(perm);
+						
+						if (!"all".equals(roleComment))
+							commentsRolesToCreate.add(new Role(roleComment));
+					}
+					
+					if (!commentsRolesToCreate.isEmpty())
+						createProcessActors(commentsRolesToCreate, processInstance);
 				}
 			}
 		}
@@ -2040,5 +2104,32 @@ public class RolesManagerImpl implements RolesManager {
 	
 	protected BPMFactory getBpmFactory() {
 		return bpmFactory;
+	}
+
+	public boolean canSeeComments(Long processInstanceId, User user) {
+		if (user == null) {
+			return false;
+		}
+		
+		List<ActorPermissions> perms = null;
+		try {
+			perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessInstanceIdAndCanSeeComments, ActorPermissions.class,
+					new Param(Actor.processInstanceIdProperty, processInstanceId)
+			);
+		} catch(Exception e) {
+			logger.log(Level.WARNING, "Error getting permissions", e);
+		}
+		if (ListUtil.isEmpty(perms)) {
+			return false;
+		}
+		
+		AccessController accessController = IWMainApplication.getDefaultIWMainApplication().getAccessController();
+		for (ActorPermissions permission: perms) {
+			if (permission.getCanSeeComments().booleanValue() && accessController.hasRole(user, permission.getRoleName())) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 }
