@@ -22,9 +22,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2009/01/27 11:31:37 $ by $Author: civilis $
+ * Last modified: $Date: 2009/06/04 12:30:52 $ by $Author: valdas $
  */
 public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
@@ -35,6 +35,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 	public AttachmentWriter() {
 	}
 
+	@Override
 	public void init(HttpServletRequest req, IWContext iwc) {
 		
 		binaryVariable = resolveBinaryVariable(iwc);
@@ -45,7 +46,8 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 			return;
 		}
 		
-		setAsDownload(iwc, binaryVariable.getFileName(), binaryVariable.getContentLength() == null ? 0 : binaryVariable.getContentLength().intValue());
+		setAsDownload(iwc, binaryVariable.getFileName(), binaryVariable.getContentLength() == null ? 0 : binaryVariable.getContentLength().intValue(),
+				binaryVariable.getHash());
 	}
 	
 	protected BinaryVariable resolveBinaryVariable(IWContext iwc) {
@@ -55,7 +57,8 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		
 		if(taskInstanceIdSR == null || variableHashSR == null) {
 			
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Tried to download, but params not provided.\nTaskInstanceId: "+taskInstanceIdSR+", variableHash: "+variableHashSR);
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Tried to download, but params not provided.\nTaskInstanceId: "+taskInstanceIdSR+
+					", variableHash: "+variableHashSR);
 			return null;
 		}
 		
@@ -68,6 +71,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		return binaryVariable;
 	}
 
+	@Override
 	public String getMimeType() {
 		
 		if(binaryVariable != null && binaryVariable.getMimeType() != null)
@@ -76,6 +80,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		return super.getMimeType();
 	}
 
+	@Override
 	public void writeTo(OutputStream out) throws IOException {
 		
 		if(binaryVariable == null)
