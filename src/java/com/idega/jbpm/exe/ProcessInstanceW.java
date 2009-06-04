@@ -14,7 +14,7 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.30 $ Last modified: $Date: 2009/03/20 19:17:42 $ by $Author: civilis $
+ * @version $Revision: 1.31 $ Last modified: $Date: 2009/06/04 12:29:54 $ by $Author: valdas $
  */
 public interface ProcessInstanceW {
 	
@@ -162,7 +162,7 @@ public interface ProcessInstanceW {
 	/**
 	 * @return a list of documents that where added with addAttachment subprocess
 	 */
-	public List<BinaryVariable> getAttachements();
+	public List<BinaryVariable> getAttachments();
 	
 	/**
 	 * @param variableName
