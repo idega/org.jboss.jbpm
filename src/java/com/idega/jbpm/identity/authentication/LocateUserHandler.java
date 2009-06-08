@@ -2,6 +2,7 @@ package com.idega.jbpm.identity.authentication;
 
 import java.rmi.RemoteException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +26,8 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.identity.UserPersonalData;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.User;
-import com.idega.util.CoreConstants;
+import com.idega.util.ListUtil;
+import com.idega.util.StringUtil;
 
 /**
  * Jbpm action handler, which searches for ic_user by personal id, or email
@@ -33,9 +35,9 @@ import com.idega.util.CoreConstants;
  * provided.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- *          Last modified: $Date: 2009/01/26 16:27:00 $ by $Author: arunas $
+ *          Last modified: $Date: 2009/06/08 14:29:25 $ by $Author: valdas $
  */
 @Service("locateUserHandler")
 @Scope("prototype")
@@ -62,30 +64,28 @@ public class LocateUserHandler implements ActionHandler {
 						.getIWApplicationContext();
 
 			final UserBusiness userBusiness = getUserBusiness(iwac);
-			User usrFound;
+			User usrFound = null;
 
-			if (personalId != null && !CoreConstants.EMPTY.equals(personalId)) {
-
+			if (!StringUtil.isEmpty(personalId)) {
 				// lookup by personal id if present
 				try {
 					usrFound = userBusiness.getUser(personalId);
-
 				} catch (IDOFinderException e) {
 					usrFound = null;
 				}
-
-			} else
-				usrFound = null;
+			}
 
 			if (usrFound == null && upd.getUserEmail() != null) {
-
 				// degrade to lookup by email if present
+				Collection<User> users = userBusiness.getUserHome().findUsersByEmail(upd.getUserEmail());
 
-				Collection<User> users = userBusiness.getUserHome()
-						.findUsersByEmail(upd.getUserEmail());
-
-				if (users != null && !users.isEmpty()) {
-					usrFound = users.iterator().next();
+				if (!ListUtil.isEmpty(users)) {
+					for (Iterator<User> usersIter = users.iterator(); (usrFound == null && usersIter.hasNext());) {
+						usrFound = usersIter.next();
+						if (!personalId.equals(usrFound.getPersonalID())) {
+							usrFound = null;
+						}
+					}
 				}
 			}
 
