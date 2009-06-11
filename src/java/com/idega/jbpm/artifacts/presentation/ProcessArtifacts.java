@@ -58,6 +58,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.Image;
 import com.idega.presentation.Layer;
+import com.idega.presentation.PDFRenderedComponent;
 import com.idega.presentation.Table2;
 import com.idega.presentation.TableBodyRowGroup;
 import com.idega.presentation.TableCell2;
@@ -84,7 +85,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.113 $ Last modified: $Date: 2009/04/24 12:12:28 $ by $Author: valdas $
+ * @version $Revision: 1.114 $ Last modified: $Date: 2009/06/11 07:19:42 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -138,9 +139,10 @@ public class ProcessArtifacts {
 		for (BPMDocument submittedDocument : processDocuments) {
 			
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
-			ProcessInstanceW piw = getBpmFactory()
-			        .getProcessManagerByTaskInstanceId(taskInstanceId)
-			        .getTaskInstance(taskInstanceId).getProcessInstanceW();
+			
+			TaskInstanceW taskInstance = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
+			ProcessInstanceW piw = taskInstance.getProcessInstanceW();
+			
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 			
@@ -157,14 +159,11 @@ public class ProcessArtifacts {
 			row.setDateCellIndex(row.getCells().size() - 1);
 			
 			if (params.getDownloadDocument()) {
-				row
-				        .addCell(new StringBuilder(
-				                "<img class=\"downloadCaseAsPdfStyle\" src=\"")
-				                .append(pdfUri)
-				                .append(
-				                    "\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '")
-				                .append(taskInstanceId).append("');\" />")
-				                .toString());
+				row.addCell(isTaskRenderable(taskInstance) ?
+						new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri)
+						.append("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").append(taskInstanceId).append("');\" />").toString() :
+						"<span onclick=\"return false;\"></span>"
+				);
 			}
 			
 			if (params.getAllowPDFSigning()) {
@@ -207,6 +206,19 @@ public class ProcessArtifacts {
 			logger.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
+	}
+	
+	private boolean isTaskRenderable(TaskInstanceW taskInstance) {
+		if (taskInstance == null) {
+			return false;
+		}
+		
+		UIComponent view = null;
+		try {
+			view = taskInstance.getView().getViewForDisplay();
+		} catch(Exception e) {}
+		
+		return view == null ? false : (view instanceof PDFRenderedComponent) ? !((PDFRenderedComponent) view).isPdfViewer() : true;
 	}
 	
 	private boolean hasDocumentGeneratedPDF(Long taskInstanceId) {
