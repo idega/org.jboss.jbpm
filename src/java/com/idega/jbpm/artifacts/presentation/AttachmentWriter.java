@@ -1,7 +1,5 @@
 package com.idega.jbpm.artifacts.presentation;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,13 +16,15 @@ import com.idega.io.MediaWritable;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
+import com.idega.util.FileUtil;
+import com.idega.util.IOUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2009/06/04 12:30:52 $ by $Author: valdas $
+ * Last modified: $Date: 2009/06/11 12:34:01 $ by $Author: valdas $
  */
 public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
@@ -88,22 +88,11 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		
 		InputStream is = getVariablesHandler().getBinaryVariablesHandler().getBinaryVariableContent(binaryVariable);
 		
-		BufferedInputStream fis = new BufferedInputStream(is);
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		FileUtil.streamToOutputStream(is, out);
 		
-		byte buffer[] = new byte[1024];
-		int noRead = 0;
-		noRead = fis.read(buffer, 0, 1024);
-		//Write out the stream to the file
-		while (noRead != -1) {
-			baos.write(buffer, 0, noRead);
-			noRead = fis.read(buffer, 0, 1024);
-		}
-		
-		baos.writeTo(out);
-		baos.flush();
-		baos.close();
-		fis.close();
+		out.flush();
+		IOUtil.closeInputStream(is);
+		IOUtil.closeOutputStream(out);
 	}
 	
 	protected BinaryVariable getBinVar(VariablesHandler variablesHandler, long taskInstanceId, int binaryVariableHash) {
