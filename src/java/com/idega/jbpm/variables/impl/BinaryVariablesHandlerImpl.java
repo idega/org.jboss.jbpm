@@ -2,6 +2,7 @@ package com.idega.jbpm.variables.impl;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.logging.Logger;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.webdav.lib.WebdavResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -39,9 +41,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $ Last modified: $Date: 2009/03/30 17:25:25 $ by $Author: civilis $
+ * @version $Revision: 1.27 $ Last modified: $Date: 2009/06/11 12:35:59 $ by $Author: valdas $
  */
-@Scope("singleton")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service
 public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
@@ -303,12 +305,15 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			            credentials);
 			
 			if (!res.exists()) {
+				res = slideService.getWebdavExtendedResource(URLDecoder.decode(variable.getIdentifier(), CoreConstants.ENCODING_UTF8), credentials);
 				
-				Logger.getLogger(getClass().getName()).log(
-				    Level.WARNING,
-				    "No webdav resource found for path provided: "
-				            + variable.getIdentifier());
-				return null;
+				if (!res.exists()) {
+					Logger.getLogger(getClass().getName()).log(
+					    Level.WARNING,
+					    "No webdav resource found for path provided: "
+					            + variable.getIdentifier());
+					return null;
+				}
 			}
 			
 			return res.getMethodData();
