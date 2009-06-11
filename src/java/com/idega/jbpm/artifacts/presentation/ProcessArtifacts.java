@@ -55,6 +55,7 @@ import com.idega.jbpm.rights.Right;
 import com.idega.jbpm.signing.SigningHandler;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
+import com.idega.jbpm.view.View;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.Image;
 import com.idega.presentation.Layer;
@@ -85,7 +86,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.114 $ Last modified: $Date: 2009/06/11 07:19:42 $ by $Author: valdas $
+ * @version $Revision: 1.115 $ Last modified: $Date: 2009/06/11 12:34:45 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -213,12 +214,19 @@ public class ProcessArtifacts {
 			return false;
 		}
 		
-		UIComponent view = null;
+		UIComponent component = null;
 		try {
-			view = taskInstance.getView().getViewForDisplay();
+			View view = taskInstance.getView();
+			
+			component = view.getViewForDisplay();
+			if (component instanceof PDFRenderedComponent) {
+				return !((PDFRenderedComponent) component).isPdfViewer();
+			}
+			
+			return view.hasViewForDisplay();
 		} catch(Exception e) {}
 		
-		return view == null ? false : (view instanceof PDFRenderedComponent) ? !((PDFRenderedComponent) view).isPdfViewer() : true;
+		return false;
 	}
 	
 	private boolean hasDocumentGeneratedPDF(Long taskInstanceId) {
