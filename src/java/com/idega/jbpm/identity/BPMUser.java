@@ -2,6 +2,7 @@ package com.idega.jbpm.identity;
 
 import java.util.List;
 
+import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.user.data.User;
 import com.idega.util.URIParam;
 
@@ -13,12 +14,12 @@ import com.idega.util.URIParam;
  * Use case example is when user gets to the process by following link.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $ Last modified: $Date: 2009/01/22 11:12:35 $ by $Author: civilis $
+ * @version $Revision: 1.11 $ Last modified: $Date: 2009/06/15 09:50:13 $ by $Author: valdas $
  */
 public interface BPMUser {
 	
 	public static final String defaultAssetsViewPageType = "bpm_assets_view";
-	public static final String processInstanceIdParam = "piId";
+	public static final String processInstanceIdParam = ProcessManagerBind.processInstanceIdParam;
 	
 	public static final String bpmUsrParam = "bpmusr";
 	public static final String USER_TYPE_NATURAL = "BPM_USER_NATURAL";
