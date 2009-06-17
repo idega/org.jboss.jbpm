@@ -25,7 +25,7 @@ import com.idega.user.data.User;
  * Recommended getting rolesManager from BPMFactory
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.35 $ Last modified: $Date: 2009/05/25 13:44:27 $ by $Author: valdas $
+ * @version $Revision: 1.36 $ Last modified: $Date: 2009/06/17 14:07:29 $ by $Author: valdas $
  */
 public interface RolesManager {
 	
@@ -104,6 +104,9 @@ public interface RolesManager {
 	
 	public abstract void setContactsPermission(Role role,
 	        Long processInstanceId, Integer userId);
+	
+	public abstract void setAttachmentsPermission(Role role, Long processInstanceId, Integer userId);
+	public abstract void setAttachmentsPermission(Role role, Long processInstanceId, Long taskInstanceId, Integer userId);
 	
 	public abstract List<Role> getRolesPermissionsForTaskInstance(
 	        Long taskInstanceId, String variableName);

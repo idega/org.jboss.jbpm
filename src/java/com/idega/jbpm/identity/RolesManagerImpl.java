@@ -64,7 +64,7 @@ import com.idega.util.StringUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.66 $ Last modified: $Date: 2009/05/25 13:44:27 $ by $Author: valdas $
+ * @version $Revision: 1.67 $ Last modified: $Date: 2009/06/17 14:07:29 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -545,7 +545,7 @@ public class RolesManagerImpl implements RolesManager {
 	public List<Actor> createProcessActors(Collection<Role> roles,
 	        ProcessInstance processInstance) {
 		
-		HashSet<String> rolesNamesToCreate = new HashSet<String>(roles.size());
+		Set<String> rolesNamesToCreate = new HashSet<String>(roles.size());
 		
 		for (Role role : roles) {
 			
@@ -1194,9 +1194,7 @@ public class RolesManagerImpl implements RolesManager {
 	}
 	
 	@Transactional(readOnly = false)
-	public void setContactsPermission(Role role, final Long processInstanceId,
-	        Integer userId) {
-		
+	private Actor getPreparedActor(Role role, final Long processInstanceId, Integer userId) {
 		if (userId == null)
 			throw new IllegalArgumentException("User id not provided");
 		
@@ -1262,6 +1260,76 @@ public class RolesManagerImpl implements RolesManager {
 			        .iterator().next();
 		}
 		
+		return actor;
+	}
+	
+	public void setAttachmentsPermission(Role role, Long processInstanceId, Integer userId) {
+		setAttachmentsPermission(role, processInstanceId, null, userId);
+	}
+	
+	@Transactional(readOnly = false)
+	public void setAttachmentsPermission(Role role, final Long processInstanceId, Long taskInstanceId, Integer userId) {
+		Actor actor = getPreparedActor(role, processInstanceId, userId);
+		
+		boolean setDefault = "default".equals(role.getRoleName());
+		if (setDefault) {
+			if (actor != null) {
+				// only caring if there's an specific actor for the user
+				List<ActorPermissions> perms = actor.getActorPermissions();
+				if (perms != null) {
+					for (ActorPermissions perm : perms) {
+						getBpmDAO().remove(perm);
+					}
+					actor.setActorPermissions(null);
+				}
+			}
+		} else if ("all".equals(role.getRoleName())) {
+		} else {
+			List<ActorPermissions> perms = actor.getActorPermissions();
+			ActorPermissions canSeeRolePerm = null;
+			if (perms != null) {
+				for (ActorPermissions perm : perms) {
+					
+					// find the permission, if exist first
+					
+					if (role.getRoleName().equals(perm.getCanSeeAttachmentsOfRoleName())) {
+						canSeeRolePerm = perm;
+						break;
+					}
+				}
+			}
+			
+			if (canSeeRolePerm == null) {
+				// create permission
+				canSeeRolePerm = new ActorPermissions();
+				canSeeRolePerm.setCanSeeAttachmentsOfRoleName(role.getRoleName());
+				canSeeRolePerm.addActor(actor);
+				canSeeRolePerm.setTaskInstanceId(taskInstanceId);
+				getBpmDAO().persist(canSeeRolePerm);
+				
+				actor.addActorPermission(canSeeRolePerm);
+			} else {
+				canSeeRolePerm.setTaskInstanceId(taskInstanceId);
+				getBpmDAO().persist(canSeeRolePerm);
+			}
+			
+			if (role.getAccesses() != null && role.getAccesses().contains(Access.seeAttachments)) {
+				// has rights to see role, setting access to see role name contacts
+				canSeeRolePerm.setCanSeeAttachments(Boolean.TRUE);
+			} else {
+				// doesn't have rights to see role, removing see contact permission
+				canSeeRolePerm.setCanSeeAttachments(Boolean.FALSE);
+			}
+		}
+	}
+	
+	@Transactional(readOnly = false)
+	public void setContactsPermission(Role role, final Long processInstanceId,
+	        Integer userId) {
+		
+		Actor actor = getPreparedActor(role, processInstanceId, userId);
+		
+		boolean setDefault = "default".equals(role.getRoleName());
 		if (setDefault) {
 			
 			if (actor != null) {
