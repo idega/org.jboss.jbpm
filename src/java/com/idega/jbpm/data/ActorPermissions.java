@@ -21,7 +21,7 @@ import javax.persistence.Table;
  * permissive permission should be used. Also used for contacts access management.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $ Last modified: $Date: 2009/05/25 13:43:53 $ by $Author: valdas $
+ * @version $Revision: 1.14 $ Last modified: $Date: 2009/06/17 14:05:20 $ by $Author: valdas $
  */
 @Entity
 @Table(name = "BPM_ACTORS_PERMISSIONS")
@@ -112,7 +112,17 @@ import javax.persistence.Table;
                  + Actor.processInstanceIdProperty
                  + " and ap."
                  + ActorPermissions.canWriteCommentsProperty
-                 + " is not null")})        
+                 + " is not null"),
+        @NamedQuery(name = ActorPermissions.getSetByProcessInstanceIdAndCanSeeAttachments, query = "select ap from ActorPermissions ap inner join ap."
+                 + ActorPermissions.actorsProperty
+                 + " act where act."
+                 + Actor.processInstanceIdProperty
+                 + " = :"
+                 + Actor.processInstanceIdProperty
+                 + " and ap."
+                 + ActorPermissions.canSeeAttachmentsProperty
+                 + " is not null")
+})
 public class ActorPermissions implements Serializable {
 	
 	private static final long serialVersionUID = 4768266953928292205L;
@@ -126,6 +136,7 @@ public class ActorPermissions implements Serializable {
 	public static final String getSetByProcessInstanceIdAndCanSeeContacts = "ActorPermissions.getSetByProcessInstanceIdAndCanSeeContacts";
 	public static final String getSetByProcessInstanceIdAndCanSeeComments = "ActorPermissions.getSetByProcessInstanceIdAndCanSeeComments";
 	public static final String getSetByProcessInstanceIdAndCanWriteComments = "ActorPermissions.getSetByProcessInstanceIdAndCanWriteComments";
+	public static final String getSetByProcessInstanceIdAndCanSeeAttachments = "ActorPermissions.getSetByProcessInstanceIdAndCanSeeAttachments";
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -167,6 +178,10 @@ public class ActorPermissions implements Serializable {
 	@Column(name = "can_see_contacts_of_role_name")
 	private String canSeeContactsOfRoleName;
 	
+	public static final String canSeeAttachmentsOfRoleNameProperty = "canSeeAttachmentsOfRoleName";
+	@Column(name = "can_see_attachments_of_role_name")
+	private String canSeeAttachmentsOfRoleName;
+	
 	public static final String canSeeContactsProperty = "canSeeContacts";
 	@Column(name = "can_see_contacts")
 	private Boolean canSeeContacts;
@@ -178,6 +193,10 @@ public class ActorPermissions implements Serializable {
 	public static final String canWriteCommentsProperty = "canWriteComments";
 	@Column(name = "can_write_comments")
 	private Boolean canWriteComments;
+	
+	public static final String canSeeAttachmentsProperty = "canSeeAttachments";
+	@Column(name = "can_see_attachments")
+	private Boolean canSeeAttachments;
 	
 	public static final String actorsProperty = "actors";
 	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, mappedBy = Actor.actorPermissionsProperty, targetEntity = Actor.class)
@@ -304,6 +323,22 @@ public class ActorPermissions implements Serializable {
 
 	public void setCanWriteComments(Boolean canWriteComments) {
 		this.canWriteComments = canWriteComments;
+	}
+
+	public Boolean getCanSeeAttachments() {
+		return canSeeAttachments;
+	}
+
+	public void setCanSeeAttachments(Boolean canSeeAttachments) {
+		this.canSeeAttachments = canSeeAttachments;
+	}
+
+	public String getCanSeeAttachmentsOfRoleName() {
+		return canSeeAttachmentsOfRoleName;
+	}
+
+	public void setCanSeeAttachmentsOfRoleName(String canSeeAttachmentsOfRoleName) {
+		this.canSeeAttachmentsOfRoleName = canSeeAttachmentsOfRoleName;
 	}
 	
 }
