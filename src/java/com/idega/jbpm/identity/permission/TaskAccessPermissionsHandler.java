@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.idega.core.accesscontrol.business.AccessController;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
@@ -29,7 +31,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $ Last modified: $Date: 2009/03/30 17:24:28 $ by $Author: civilis $
+ * @version $Revision: 1.12 $ Last modified: $Date: 2009/06/17 14:07:10 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service
@@ -249,7 +251,17 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 					
 					// checking permission for variable
 					
-					if (variableIdentifier.equals(perm.getVariableIdentifier())) {
+					if (perm.getCanSeeAttachments() != null && perm.getCanSeeAttachments().booleanValue() &&
+							!StringUtil.isEmpty(perm.getCanSeeAttachmentsOfRoleName())) {
+						boolean hasTaskInstanceScopeAndAttachmentsAccess = false;
+						AccessController accessControler = IWMainApplication.getDefaultIWMainApplication().getAccessController();
+						hasTaskInstanceScopeAndAttachmentsAccess = accessControler.hasRole(user, perm.getCanSeeAttachmentsOfRoleName());
+						
+						putAccess(accessesForRoles, hasTaskInstanceScopeAndAttachmentsAccess, TI_VAR, perm.getCanSeeAttachmentsOfRoleName());
+						if (hasTaskInstanceScopeAndAttachmentsAccess)
+							// we have the permission for attachments, so we can search no more
+							break;
+					} else if (variableIdentifier.equals(perm.getVariableIdentifier())) {
 						
 						boolean hasTaskInstanceScopeANDVarAccess = hasAccess(
 						    perm, checkReadAccess, checkWriteAccess);
