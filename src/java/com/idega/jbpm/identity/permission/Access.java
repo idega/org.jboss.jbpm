@@ -15,11 +15,11 @@ package com.idega.jbpm.identity.permission;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2009/05/25 13:44:27 $ by $Author: valdas $
+ * Last modified: $Date: 2009/06/17 14:06:27 $ by $Author: valdas $
  */
 public enum Access {
 
-	read, write, modifyPermissions, caseHandler, contactsCanBeSeen, seeContacts, seeComments, writeComments
+	read, write, modifyPermissions, caseHandler, contactsCanBeSeen, seeContacts, seeComments, writeComments, seeAttachments
 }
