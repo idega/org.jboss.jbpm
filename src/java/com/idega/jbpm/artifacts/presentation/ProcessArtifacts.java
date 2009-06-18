@@ -86,7 +86,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.115 $ Last modified: $Date: 2009/06/11 12:34:45 $ by $Author: valdas $
+ * @version $Revision: 1.116 $ Last modified: $Date: 2009/06/18 13:20:18 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -1117,22 +1117,22 @@ public class ProcessArtifacts {
 			roles = piw.getRolesContactsPermissions(userId);
 		}
 		
-		ArrayList<String[]> accessParamsList = new ArrayList<String[]>();
+		List<String[]> accessParamsList = new ArrayList<String[]>();
 		
+		Layer buttonsContainer = new Layer();
+		buttonsContainer.setStyleClass("links");
 		Link closeLink = new Link(iwrb.getLocalizedString("close", "Close"));
 		closeLink.setURL("javascript:void(0);");
-		closeLink
-		        .setOnClick("CasesBPMAssets.closeAccessRightsSetterBox(this);");
+		closeLink.setOnClick("CasesBPMAssets.closeAccessRightsSetterBox(event);");
 		
 		if (ListUtil.isEmpty(roles)) {
 			container.add(new Heading3(iwrb.getLocalizedString(
 			    "no_roles_to_set_permissions",
 			    "There are no roles to set access rights")));
 			
-			Layer buttonsContainer = new Layer();
-			container.add(buttonsContainer);
 			
-			container.add(closeLink);
+			container.add(buttonsContainer);
+			buttonsContainer.add(closeLink);
 		} else {
 			
 			if (userId == null || setSameRightsForAttachments == null)
@@ -1178,7 +1178,6 @@ public class ProcessArtifacts {
 				TableRow bodyRow = bodyRowGroup.createRow();
 				TableCell2 cell = bodyRow.createCell();
 				
-				// cell.add(new Text(iwrb.getLocalizedString(roleName, roleName)));
 				cell.add(new Text(iwc.getIWMainApplication()
 				        .getLocalisedStringMessage(roleName, roleName, null,
 				            iwc.getCurrentLocale())));
@@ -1245,40 +1244,28 @@ public class ProcessArtifacts {
 				}
 			}
 			
-			TableRow bodyRow = bodyRowGroup.createRow();
-			TableCell2 cell = bodyRow.createCell();
-			
-			cell.add(closeLink);
+			container.add(buttonsContainer);
+			buttonsContainer.add(closeLink);
 			
 			if (taskInstanceId == null) {
-				
-				Link setDefaultsLink = new Link(iwrb.getLocalizedString(
-				    "bpm_resetToDefault", "Reset to default"));
+				Link setDefaultsLink = new Link(iwrb.getLocalizedString("bpm_resetToDefault", "Reset to default"));
 				setDefaultsLink.setURL("javascript:void(0);");
-				
-				StringBuffer onclick = new StringBuffer(
-				        "CasesBPMAssets.setRoleDefaultContactsForUser(this, ");
-				
-				onclick.append(processInstanceId).append(", ").append(userId)
-				        .append(");");
-				
+				StringBuffer onclick = new StringBuffer("CasesBPMAssets.setRoleDefaultContactsForUser(event, ");
+				onclick.append(processInstanceId).append(", ").append(userId).append(");");
 				setDefaultsLink.setOnClick(onclick.toString());
 				setDefaultsLink.setStyleClass("setRoleDefaults");
 				
-				cell.add(setDefaultsLink);
+				buttonsContainer.add(setDefaultsLink);
 			}
 			
+			setSameRightsForAttachments = true;
 			if (setSameRightsForAttachments) {
 				
-				GenericButton saveAllRightsButton = new GenericButton();
-				Image saveRigtsImage = new Image(
-				        bundle
-				                .getVirtualPathWithFileNameString("images/save_rights_button.png"));
-				saveRigtsImage.setTitle(iwrb.getLocalizedString(
-				    "set_same_access_to_attachments_for_all_roles",
-				    "Set same access to attachments for all roles"));
+				Image saveRigtsImage = new Image(bundle.getVirtualPathWithFileNameString("images/save_rights_button.png"));
+				saveRigtsImage.setTitle(iwrb.getLocalizedString("set_same_access_to_attachments_for_all_roles", "Set same access to attachments for all roles"));
 				saveRigtsImage.setStyleClass("setSameAccessRightsStyle");
-				saveAllRightsButton.setButtonImage(saveRigtsImage);
+				Link saveAllRightsButton = new Link(saveRigtsImage);
+				saveAllRightsButton.setURL("javascript:void(0);");
 				
 				StringBuilder paramsArray = new StringBuilder("[ ");
 				
@@ -1298,16 +1285,10 @@ public class ProcessArtifacts {
 				}
 				paramsArray.append("]");
 				
-				saveAllRightsButton
-				        .setOnClick("for each (params in "
-				                + paramsArray.toString()
-				                + ") {CasesBPMAssets.setAccessRightsForBpmRelatedResource(params[0] ,params[1] ,params[2] ,params[3] ,params[4]); }");
+				saveAllRightsButton.setOnClick("for each (params in " + paramsArray.toString() +
+						") {CasesBPMAssets.setAccessRightsForBpmRelatedResource(params[0] ,params[1] ,params[2] ,params[3] ,params[4]); }");
 				
-				cell = bodyRow.createCell();
-				cell.empty();
-				cell = bodyRow.createCell();
-				cell.setStyleClass("alignCenterText");
-				cell.add(saveAllRightsButton);
+				buttonsContainer.add(saveAllRightsButton);	//	TODO
 			}
 		}
 		
