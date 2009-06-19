@@ -86,7 +86,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.116 $ Last modified: $Date: 2009/06/18 13:20:18 $ by $Author: valdas $
+ * @version $Revision: 1.117 $ Last modified: $Date: 2009/06/19 07:27:47 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -1258,7 +1258,7 @@ public class ProcessArtifacts {
 				buttonsContainer.add(setDefaultsLink);
 			}
 			
-			setSameRightsForAttachments = true;
+			
 			if (setSameRightsForAttachments) {
 				
 				Image saveRigtsImage = new Image(bundle.getVirtualPathWithFileNameString("images/save_rights_button.png"));
@@ -1288,7 +1288,7 @@ public class ProcessArtifacts {
 				saveAllRightsButton.setOnClick("for each (params in " + paramsArray.toString() +
 						") {CasesBPMAssets.setAccessRightsForBpmRelatedResource(params[0] ,params[1] ,params[2] ,params[3] ,params[4]); }");
 				
-				buttonsContainer.add(saveAllRightsButton);	//	TODO
+				buttonsContainer.add(saveAllRightsButton);
 			}
 		}
 		
