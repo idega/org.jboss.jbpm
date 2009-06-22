@@ -64,7 +64,7 @@ import com.idega.util.StringUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.67 $ Last modified: $Date: 2009/06/17 14:07:29 $ by $Author: valdas $
+ * @version $Revision: 1.68 $ Last modified: $Date: 2009/06/22 09:54:48 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -1293,8 +1293,16 @@ public class RolesManagerImpl implements RolesManager {
 					// find the permission, if exist first
 					
 					if (role.getRoleName().equals(perm.getCanSeeAttachmentsOfRoleName())) {
-						canSeeRolePerm = perm;
-						break;
+						if (role.getForTaskInstance()) {
+							Long permissionTaskInstance = perm.getTaskInstanceId();
+							if (permissionTaskInstance != null && taskInstanceId != null && permissionTaskInstance.longValue() == taskInstanceId.longValue()) {
+								canSeeRolePerm = perm;
+								break;
+							}
+						} else {
+							canSeeRolePerm = perm;
+							break;
+						}
 					}
 				}
 			}
