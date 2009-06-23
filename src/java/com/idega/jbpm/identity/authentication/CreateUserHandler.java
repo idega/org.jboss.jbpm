@@ -9,6 +9,7 @@ import javax.faces.context.FacesContext;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -33,12 +34,12 @@ import com.idega.util.text.Name;
  *  Stores result (ic_user id) to variable provided.
  *   
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- * Last modified: $Date: 2008/11/30 08:17:52 $ by $Author: civilis $
+ * Last modified: $Date: 2009/06/23 15:37:21 $ by $Author: valdas $
  */
 @Service("createUserHandler")
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class CreateUserHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -1181069105207752204L;
