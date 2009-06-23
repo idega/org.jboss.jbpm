@@ -21,7 +21,7 @@ import javax.persistence.Table;
  * permissive permission should be used. Also used for contacts access management.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $ Last modified: $Date: 2009/06/17 14:05:20 $ by $Author: valdas $
+ * @version $Revision: 1.15 $ Last modified: $Date: 2009/06/23 15:37:40 $ by $Author: valdas $
  */
 @Entity
 @Table(name = "BPM_ACTORS_PERMISSIONS")
@@ -179,7 +179,7 @@ public class ActorPermissions implements Serializable {
 	private String canSeeContactsOfRoleName;
 	
 	public static final String canSeeAttachmentsOfRoleNameProperty = "canSeeAttachmentsOfRoleName";
-	@Column(name = "can_see_attachments_of_role_name")
+	@Column(name = "can_see_attachments_of_role")
 	private String canSeeAttachmentsOfRoleName;
 	
 	public static final String canSeeContactsProperty = "canSeeContacts";
