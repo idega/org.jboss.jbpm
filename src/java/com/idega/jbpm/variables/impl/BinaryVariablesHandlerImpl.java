@@ -41,7 +41,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.27 $ Last modified: $Date: 2009/06/11 12:35:59 $ by $Author: valdas $
+ * @version $Revision: 1.28 $ Last modified: $Date: 2009/06/30 13:57:15 $ by $Author: valdas $
  */
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service
@@ -63,7 +63,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	public Map<String, Object> storeBinaryVariables(long taskInstanceId,
 	        Map<String, Object> variables) {
 		
-		HashMap<String, Object> newVars = new HashMap<String, Object>(variables);
+		Map<String, Object> newVars = new HashMap<String, Object>(variables);
 		
 		for (Entry<String, Object> entry : newVars.entrySet()) {
 			
@@ -78,13 +78,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			
 			JSONUtil json = getBinVarJSONConverter();
 			
-			if (variable.getDataType() == VariableDataType.FILE
-			        || variable.getDataType() == VariableDataType.FILES) {
+			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
 				
 				@SuppressWarnings("unchecked")
 				Collection<BinaryVariable> binVars = (Collection<BinaryVariable>) val;
-				ArrayList<String> binaryVariables = new ArrayList<String>(
-				        binVars.size());
+				List<String> binaryVariables = new ArrayList<String>(binVars.size());
 				
 				for (BinaryVariable binVar : binVars) {
 					
@@ -229,7 +227,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	public List<BinaryVariable> resolveBinaryVariablesAsList(
 	        Map<String, Object> variables) {
 		
-		ArrayList<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
+		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
 		
 		for (Entry<String, Object> entry : variables.entrySet()) {
 			
@@ -384,8 +382,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	}
 	
 	private JSONUtil getBinVarJSONConverter() {
-		HashMap<String, Class<?>> binVarAliasMap = new HashMap<String, Class<?>>(
-		        2);
+		Map<String, Class<?>> binVarAliasMap = new HashMap<String, Class<?>>(2);
 		binVarAliasMap.put(BINARY_VARIABLE, BinaryVariableImpl.class);
 		binVarAliasMap.put(VARIABLE, Variable.class);
 		
