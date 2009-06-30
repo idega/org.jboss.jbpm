@@ -10,6 +10,7 @@ import org.jbpm.graph.node.TaskNode;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +24,9 @@ import com.idega.jbpm.exe.TaskMgmtInstanceW;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/21 12:46:27 $ by $Author: civilis $
+ * @version $Revision: 1.3 $ Last modified: $Date: 2009/06/30 13:15:55 $ by $Author: valdas $
  */
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 @Service
 @Qualifier("default")
 public class TaskMgmtInstanceDefaultW implements TaskMgmtInstanceW {
