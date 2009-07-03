@@ -43,10 +43,13 @@ import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.ProcessInstanceW;
+import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.jbpm.identity.permission.RoleAccessPermissionsHandler;
+import com.idega.jbpm.rights.Right;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
@@ -64,7 +67,7 @@ import com.idega.util.StringUtil;
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.68 $ Last modified: $Date: 2009/06/22 09:54:48 $ by $Author: valdas $
+ * @version $Revision: 1.69 $ Last modified: $Date: 2009/07/03 08:59:57 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service("bpmRolesManager")
@@ -1263,12 +1266,8 @@ public class RolesManagerImpl implements RolesManager {
 		return actor;
 	}
 	
-	public void setAttachmentsPermission(Role role, Long processInstanceId, Integer userId) {
-		setAttachmentsPermission(role, processInstanceId, null, userId);
-	}
-	
 	@Transactional(readOnly = false)
-	public void setAttachmentsPermission(Role role, final Long processInstanceId, Long taskInstanceId, Integer userId) {
+	public void setAttachmentPermission(Role role, final Long processInstanceId, Long taskInstanceId, String variableIdentifier, Integer userId) {
 		Actor actor = getPreparedActor(role, processInstanceId, userId);
 		
 		boolean setDefault = "default".equals(role.getRoleName());
@@ -1289,15 +1288,16 @@ public class RolesManagerImpl implements RolesManager {
 			ActorPermissions canSeeRolePerm = null;
 			if (perms != null) {
 				for (ActorPermissions perm : perms) {
-					
-					// find the permission, if exist first
-					
+					//	Find the permission, if exist first
 					if (role.getRoleName().equals(perm.getCanSeeAttachmentsOfRoleName())) {
 						if (role.getForTaskInstance()) {
 							Long permissionTaskInstance = perm.getTaskInstanceId();
 							if (permissionTaskInstance != null && taskInstanceId != null && permissionTaskInstance.longValue() == taskInstanceId.longValue()) {
-								canSeeRolePerm = perm;
-								break;
+								String varId = perm.getVariableIdentifier();
+								if (!StringUtil.isEmpty(varId) && varId.equals(variableIdentifier)) {
+									canSeeRolePerm = perm;
+									break;
+								}
 							}
 						} else {
 							canSeeRolePerm = perm;
@@ -1313,6 +1313,7 @@ public class RolesManagerImpl implements RolesManager {
 				canSeeRolePerm.setCanSeeAttachmentsOfRoleName(role.getRoleName());
 				canSeeRolePerm.addActor(actor);
 				canSeeRolePerm.setTaskInstanceId(taskInstanceId);
+				canSeeRolePerm.setVariableIdentifier(variableIdentifier);
 				getBpmDAO().persist(canSeeRolePerm);
 				
 				actor.addActorPermission(canSeeRolePerm);
@@ -2207,5 +2208,60 @@ public class RolesManagerImpl implements RolesManager {
 		}
 		
 		return false;
+	}
+
+	@Transactional(readOnly = false)
+	public boolean disableAttachmentForAllRoles(Integer fileHash, Long processInstanceId, Long taskInstanceId) {
+		if (fileHash == null && taskInstanceId == null) {
+			return false;
+		}
+		
+		TaskInstanceW taskInstance = getBpmFactory().getTaskInstanceW(taskInstanceId);
+		if (taskInstance == null) {
+			return false;
+		}
+		
+		ProcessInstanceW processInstance = null;
+		if (processInstanceId == null) {
+			processInstance = taskInstance.getProcessInstanceW();
+		} else {
+			processInstance = getBpmFactory().getProcessInstanceW(processInstanceId);
+		}
+		if (processInstance == null) {
+			return false;
+		}
+		
+		if (!processInstance.hasRight(Right.processHandler) && !processInstance.hasHandlerAssignmentSupport()) {
+			return false;
+		}
+		
+		List<ActorPermissions> perms = null;
+		try {
+			perms = getBpmDAO().getResultList(ActorPermissions.getSetByTaskIdOrTaskInstanceId, ActorPermissions.class,
+					new Param(ActorPermissions.taskInstanceIdProperty, taskInstanceId),
+					new Param(ActorPermissions.taskIdProperty, taskInstance.getTaskInstance().getTask().getId())
+			);
+		} catch(Exception e) {
+			logger.log(Level.WARNING, "Error getting permissions", e);
+		}
+		if (ListUtil.isEmpty(perms)) {
+			return false;
+		}
+		
+		String variableIdentifier = String.valueOf(fileHash);
+		for (ActorPermissions permissions: perms) {
+			Boolean canSeeAttachments = permissions.getCanSeeAttachments();
+			if (canSeeAttachments != null && canSeeAttachments) {
+				String varId = permissions.getVariableIdentifier();
+				if (!StringUtil.isEmpty(varId) && variableIdentifier.equals(varId)) {
+					permissions.setCanSeeAttachments(Boolean.FALSE);
+					permissions.setReadPermission(Boolean.FALSE);
+					permissions.setCanSeeAttachmentsOfRoleName("all");
+					getBpmDAO().persist(permissions);
+				}
+			}
+		}
+		
+		return true;
 	}
 }
