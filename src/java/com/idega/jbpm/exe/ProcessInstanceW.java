@@ -14,7 +14,7 @@ import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.32 $ Last modified: $Date: 2009/06/17 14:05:55 $ by $Author: valdas $
+ * @version $Revision: 1.33 $ Last modified: $Date: 2009/07/03 08:56:49 $ by $Author: valdas $
  */
 public interface ProcessInstanceW {
 	
@@ -105,9 +105,7 @@ public interface ProcessInstanceW {
 	public abstract List<User> getUsersConnectedToProcess();
 	
 	public abstract void setContactsPermission(Role role, Integer userId);
-	
-	public abstract void setAttachmentsPermission(Role role, Integer userId);
-	
+		
 	/**
 	 * get jbpm process instance this wrapper wraps
 	 * 
