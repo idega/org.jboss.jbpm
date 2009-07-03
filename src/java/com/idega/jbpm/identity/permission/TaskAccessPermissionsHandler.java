@@ -31,7 +31,7 @@ import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $ Last modified: $Date: 2009/06/17 14:07:10 $ by $Author: valdas $
+ * @version $Revision: 1.13 $ Last modified: $Date: 2009/07/03 08:58:56 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service
@@ -253,14 +253,16 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 					
 					if (perm.getCanSeeAttachments() != null && perm.getCanSeeAttachments().booleanValue() &&
 							!StringUtil.isEmpty(perm.getCanSeeAttachmentsOfRoleName())) {
-						boolean hasTaskInstanceScopeAndAttachmentsAccess = false;
-						AccessController accessControler = IWMainApplication.getDefaultIWMainApplication().getAccessController();
-						hasTaskInstanceScopeAndAttachmentsAccess = accessControler.hasRole(user, perm.getCanSeeAttachmentsOfRoleName());
-						
-						putAccess(accessesForRoles, hasTaskInstanceScopeAndAttachmentsAccess, TI_VAR, perm.getCanSeeAttachmentsOfRoleName());
-						if (hasTaskInstanceScopeAndAttachmentsAccess)
-							// we have the permission for attachments, so we can search no more
-							break;
+						if (variableIdentifier.equals(perm.getVariableIdentifier())) {
+							boolean hasTaskInstanceScopeAndAttachmentsAccess = false;
+							AccessController accessControler = IWMainApplication.getDefaultIWMainApplication().getAccessController();
+							hasTaskInstanceScopeAndAttachmentsAccess = accessControler.hasRole(user, perm.getCanSeeAttachmentsOfRoleName());
+							
+							putAccess(accessesForRoles, hasTaskInstanceScopeAndAttachmentsAccess, TI_VAR, perm.getCanSeeAttachmentsOfRoleName());
+							if (hasTaskInstanceScopeAndAttachmentsAccess)
+								// we have the permission for attachments, so we can search no more
+								break;
+						}
 					} else if (variableIdentifier.equals(perm.getVariableIdentifier())) {
 						
 						boolean hasTaskInstanceScopeANDVarAccess = hasAccess(
