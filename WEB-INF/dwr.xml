@@ -22,7 +22,7 @@
             <include method="getAllHandlerUsers" />
             <include method="setRoleDefaultContactsForUser" />
             <include method="getSigningAction" />
-            
+            <include method="disableAttachmentForAllRoles" />
         </create>
         
         <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.GridEntriesBean">

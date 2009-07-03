@@ -86,7 +86,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.117 $ Last modified: $Date: 2009/06/19 07:27:47 $ by $Author: valdas $
+ * @version $Revision: 1.118 $ Last modified: $Date: 2009/07/03 08:58:00 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -1292,7 +1292,18 @@ public class ProcessArtifacts {
 			}
 		}
 		
+		Link disableThisAttachmentForAllRoles = new Link(iwrb.getLocalizedString("disable_attachment_for_everybody", "Hide from all users"));
+		disableThisAttachmentForAllRoles.setURL("javascript:void(0);");
+		buttonsContainer.add(disableThisAttachmentForAllRoles);
+		disableThisAttachmentForAllRoles.setOnClick(new StringBuilder("CasesBPMAssets.disableAttachmentForAllRoles(event, ")
+			.append(fileHashValue).append(", ").append(processInstanceId).append(", ").append(taskInstanceId == null ? "null" : taskInstanceId)
+		.append(");").toString());
+		
 		return builder.getRenderedComponent(iwc, container, false);
+	}
+	
+	public boolean disableAttachmentForAllRoles(Integer fileHash, Long processInstanceId, Long taskInstanceId) {
+		return getBpmFactory().getRolesManager().disableAttachmentForAllRoles(fileHash, processInstanceId, taskInstanceId);
 	}
 	
 	public String takeBPMProcessTask(Long taskInstanceId, boolean reAssign) {
