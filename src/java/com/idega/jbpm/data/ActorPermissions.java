@@ -21,7 +21,7 @@ import javax.persistence.Table;
  * permissive permission should be used. Also used for contacts access management.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $ Last modified: $Date: 2009/06/23 15:37:40 $ by $Author: valdas $
+ * @version $Revision: 1.16 $ Last modified: $Date: 2009/07/03 08:58:28 $ by $Author: valdas $
  */
 @Entity
 @Table(name = "BPM_ACTORS_PERMISSIONS")
@@ -121,7 +121,19 @@ import javax.persistence.Table;
                  + Actor.processInstanceIdProperty
                  + " and ap."
                  + ActorPermissions.canSeeAttachmentsProperty
-                 + " is not null")
+                 + " is not null"),
+        @NamedQuery(name = ActorPermissions.getSetByTaskIdOrTaskInstanceIdAndVariableIdentifier, query = "from ActorPermissions ap where ap."
+                 + ActorPermissions.taskIdProperty
+                 + " = :"
+                 + ActorPermissions.taskIdProperty
+                 + " or ap."
+                 + ActorPermissions.taskInstanceIdProperty
+                 + " = :"
+                 + ActorPermissions.taskInstanceIdProperty
+                 + " and ap."
+                 + ActorPermissions.variableIdentifierProperty
+                 + " = :"
+                 + ActorPermissions.variableIdentifierProperty)
 })
 public class ActorPermissions implements Serializable {
 	
@@ -137,6 +149,7 @@ public class ActorPermissions implements Serializable {
 	public static final String getSetByProcessInstanceIdAndCanSeeComments = "ActorPermissions.getSetByProcessInstanceIdAndCanSeeComments";
 	public static final String getSetByProcessInstanceIdAndCanWriteComments = "ActorPermissions.getSetByProcessInstanceIdAndCanWriteComments";
 	public static final String getSetByProcessInstanceIdAndCanSeeAttachments = "ActorPermissions.getSetByProcessInstanceIdAndCanSeeAttachments";
+	public static final String getSetByTaskIdOrTaskInstanceIdAndVariableIdentifier = "ActorPermissions.getSetByTaskIdOrTaskInstanceIdAndVariableIdentifier";
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -151,6 +164,7 @@ public class ActorPermissions implements Serializable {
 	@Column(name = "task_instance_id")
 	private Long taskInstanceId;
 	
+	public static final String variableIdentifierProperty = "variableIdentifier";
 	@Column(name = "variable_identifier")
 	private String variableIdentifier;
 	
