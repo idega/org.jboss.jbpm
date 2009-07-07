@@ -16,13 +16,13 @@ import com.idega.util.StringUtil;
 
 /**
  * fires event by name provided to the process by processInstanceId provided. if
- * variablesToPopoulate is provided, values are taken from context instance <b>depending on
+ * variablesToPopulate is provided, values are taken from context instance <b>depending on
  * variableScope value provided</b>. So if you want to populate variables, make sure they are
  * present on the scope presented. By default global scope is used (as this is jbpm default -
  * globality). Scopes supported: global, local
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $ Last modified: $Date: 2009/03/04 14:11:06 $ by $Author: civilis $
+ * @version $Revision: 1.3 $ Last modified: $Date: 2009/07/07 14:00:35 $ by $Author: eiki $
  */
 @Service("fireProcessEventHandler")
 @Scope("prototype")
@@ -32,7 +32,7 @@ public class FireProcessEventHandler implements ActionHandler {
 	
 	private Long processInstanceId;
 	private String eventName;
-	private Collection<String> variablesToPopoulate;
+	private Collection<String> variablesToPopulate;
 	private String variablesScope;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
@@ -54,7 +54,7 @@ public class FireProcessEventHandler implements ActionHandler {
 		
 		ExecutionContext newEctx = new ExecutionContext(newToken);
 		
-		if (!ListUtil.isEmpty(getVariablesToPopoulate())) {
+		if (!ListUtil.isEmpty(getVariablesToPopulate())) {
 			
 			// populating variables from current token to new one
 			
@@ -80,7 +80,7 @@ public class FireProcessEventHandler implements ActionHandler {
 				                + ". Only global and local scopes are supported");
 			}
 			
-			for (String variableName : getVariablesToPopoulate()) {
+			for (String variableName : getVariablesToPopulate()) {
 				
 				Object variableValue;
 				
@@ -109,12 +109,12 @@ public class FireProcessEventHandler implements ActionHandler {
 		this.processInstanceId = processInstanceId;
 	}
 	
-	public Collection<String> getVariablesToPopoulate() {
-		return variablesToPopoulate;
+	public Collection<String> getVariablesToPopulate() {
+		return variablesToPopulate;
 	}
 	
-	public void setVariablesToPopoulate(Collection<String> variablesToPopoulate) {
-		this.variablesToPopoulate = variablesToPopoulate;
+	public void setVariablesToPopulate(Collection<String> variablesToPopulate) {
+		this.variablesToPopulate = variablesToPopulate;
 	}
 	
 	public String getEventName() {
