@@ -34,6 +34,7 @@ import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.contact.data.Email;
 import com.idega.core.contact.data.Phone;
+import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
@@ -66,6 +67,7 @@ import com.idega.presentation.TableCell2;
 import com.idega.presentation.TableHeaderCell;
 import com.idega.presentation.TableHeaderRowGroup;
 import com.idega.presentation.TableRow;
+import com.idega.presentation.file.FileDownloadStatisticsViewer;
 import com.idega.presentation.text.Heading3;
 import com.idega.presentation.text.Link;
 import com.idega.presentation.text.Text;
@@ -86,7 +88,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.118 $ Last modified: $Date: 2009/07/03 08:58:00 $ by $Author: valdas $
+ * @version $Revision: 1.119 $ Last modified: $Date: 2009/07/14 16:29:09 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -604,6 +606,13 @@ public class ProcessArtifacts {
 		    "unable_to_sign_attachment",
 		    "Sorry, unable to sign selected attachment");
 		
+		String attachmentWindowLabel = null;
+		String attachmentInfoImage = null;
+		if (params.isShowAttachmentStatistics()) {
+			attachmentWindowLabel = iwrb.getLocalizedString("download_statistics", "Download statistics");
+			attachmentInfoImage = bundle.getVirtualPathWithFileNameString("images/attachment_info.png");
+		}
+		
 		for (BinaryVariable binaryVariable : binaryVariables) {
 			
 			if (binaryVariable.getHash() == null
@@ -627,6 +636,12 @@ public class ProcessArtifacts {
 			Long fileSize = binaryVariable.getContentLength();
 			row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long
 			        .valueOf(0) : fileSize));
+			
+			if (params.isShowAttachmentStatistics()) {
+				row.addCell(new StringBuilder("<a class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\" href=\"")
+						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId)).append("\" title=\"")
+						.append(attachmentWindowLabel).append("\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
+			}
 			
 			if (params.getAllowPDFSigning() && getSigningHandler() != null
 			        && tiw.isSignable() && binaryVariable.isSignable()
@@ -667,6 +682,18 @@ public class ProcessArtifacts {
 			logger.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
+	}
+	
+	private String getAttachmentInfoWindowLink(IWApplicationContext iwac, BinaryVariable binaryVariable, String caseId, Long taskInstanceId) {
+		String hash = String.valueOf(binaryVariable.getHash());
+		
+		String uri = getBuilderLogicWrapper().getBuilderService(iwac).getUriToObject(BPMFileDownloadsStatistics.class, Arrays.asList(
+				new AdvancedProperty(FileDownloadStatisticsViewer.PARAMETER_FILE_HASH, hash),
+				new AdvancedProperty(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash),
+				new AdvancedProperty(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, taskInstanceId.toString()),
+				new AdvancedProperty("caseId", StringUtil.isEmpty(caseId) ? "-1" : caseId)
+		));
+		return uri;
 	}
 	
 	private String getJavaScriptActionForPDF(IWResourceBundle iwrb,

@@ -22,13 +22,19 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2009/06/11 12:34:01 $ by $Author: valdas $
+ * Last modified: $Date: 2009/07/14 16:29:09 $ by $Author: valdas $
  */
 public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
+	private static final Logger LOGGER = Logger.getLogger(AttachmentWriter.class.getName());
+	
+	public static final String PARAMETER_TASK_INSTANCE_ID = "taskInstanceId";
+	public static final String PARAMETER_VARIABLE_HASH = "varHash";
+	
 	protected BinaryVariable binaryVariable;
+	
 	@Autowired
 	private VariablesHandler variablesHandler;
 
@@ -42,7 +48,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		
 		if(binaryVariable == null) {
 			
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Failed to resolve binary variable");
+			LOGGER.log(Level.SEVERE, "Failed to resolve binary variable");
 			return;
 		}
 		
@@ -52,13 +58,12 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 	
 	protected BinaryVariable resolveBinaryVariable(IWContext iwc) {
 		
-		String taskInstanceIdSR = iwc.getParameter("taskInstanceId");
-		String variableHashSR = iwc.getParameter("varHash");
+		String taskInstanceIdSR = iwc.getParameter(PARAMETER_TASK_INSTANCE_ID);
+		String variableHashSR = iwc.getParameter(PARAMETER_VARIABLE_HASH);
 		
 		if(taskInstanceIdSR == null || variableHashSR == null) {
 			
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Tried to download, but params not provided.\nTaskInstanceId: "+taskInstanceIdSR+
-					", variableHash: "+variableHashSR);
+			LOGGER.log(Level.SEVERE, "Tried to download, but params not provided.\nTaskInstanceId: "+taskInstanceIdSR+", variableHash: "+variableHashSR);
 			return null;
 		}
 		
