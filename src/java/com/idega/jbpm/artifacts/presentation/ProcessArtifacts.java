@@ -88,7 +88,7 @@ import com.idega.util.URIUtil;
  * TODO: All this class is too big and total mess almost. Refactor 
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.119 $ Last modified: $Date: 2009/07/14 16:29:09 $ by $Author: valdas $
+ * @version $Revision: 1.120 $ Last modified: $Date: 2009/07/16 14:03:38 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
@@ -582,6 +582,7 @@ public class ProcessArtifacts {
 		
 		TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(
 		    taskInstanceId).getTaskInstance(taskInstanceId);
+		ProcessInstanceW piw = tiw.getProcessInstanceW();
 		
 		List<BinaryVariable> binaryVariables = tiw.getAttachments();
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
@@ -608,6 +609,10 @@ public class ProcessArtifacts {
 		
 		String attachmentWindowLabel = null;
 		String attachmentInfoImage = null;
+		boolean canSeeStatistics = piw.hasRight(Right.processHandler);
+		if (params.isShowAttachmentStatistics()) {
+			params.setShowAttachmentStatistics(canSeeStatistics);	
+		}
 		if (params.isShowAttachmentStatistics()) {
 			attachmentWindowLabel = iwrb.getLocalizedString("download_statistics", "Download statistics");
 			attachmentInfoImage = bundle.getVirtualPathWithFileNameString("images/attachment_info.png");
