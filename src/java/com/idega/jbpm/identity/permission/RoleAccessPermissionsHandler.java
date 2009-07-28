@@ -18,6 +18,7 @@ import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.UnavailableIWContext;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -94,7 +95,7 @@ public class RoleAccessPermissionsHandler implements BPMTypedHandler {
 			if (checkContactsForRole) {
 				
 				// super admin always gets an access
-				if (IWContext.getCurrentInstance().isSuperAdmin()) {
+				if (isCurrentUserSuperAdmin()) {
 					
 					result = new PermissionHandleResult(
 					        PermissionHandleResultStatus.hasAccess);
@@ -246,5 +247,20 @@ public class RoleAccessPermissionsHandler implements BPMTypedHandler {
 	
 	public void setRolesManager(RolesManager rolesManager) {
 		this.rolesManager = rolesManager;
+	}
+	
+	protected boolean isCurrentUserSuperAdmin() {
+		try {
+			IWContext iwc = IWContext.getCurrentInstance();
+			if(iwc!=null){
+				return iwc.isSuperAdmin();
+			}
+		}
+		catch (UnavailableIWContext e) {
+			//we are not in a request
+		}
+		
+		return false;
+		
 	}
 }

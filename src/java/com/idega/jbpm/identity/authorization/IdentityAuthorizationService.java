@@ -82,14 +82,19 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	@Transactional(readOnly = true, noRollbackFor = { AccessControlException.class })
 	public void checkPermission(Permission perm) throws AccessControlException {
 		
-		FacesContext fctx = FacesContext.getCurrentInstance();
-		
-		// faces context == null when permission is called by the system (i.e. not the result of
-		// user navigation)
-		if (fctx == null)
-			return;
-		
 		if ((perm instanceof BPMTypedPermission)) {
+
+			FacesContext fctx = FacesContext.getCurrentInstance();
+			// faces context == null when permission is called by the system (i.e. not the result of user navigation)
+			if (fctx == null){
+				//if there is no httprequest and no credentials either in the permission object this must be the system doing stuff so allow it.
+				//(eiki) I added this small change so not to bust up something that was working before.
+				//But this should be taken under review. I didn't have time to test more with the fctx==null check totally removed but it seemed to work.
+				//Vytautas suggested that async operations might fail if this wasn't here.
+				 if(((BPMTypedPermission) perm).getUserId()==null){
+					 return;
+				 }
+			}
 			
 			BPMTypedHandler handler = getHandlers().get(
 			    ((BPMTypedPermission) perm).getType());

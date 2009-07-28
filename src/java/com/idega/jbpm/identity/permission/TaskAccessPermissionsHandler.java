@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.UnavailableIWContext;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
@@ -131,7 +132,7 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 			} else {
 				
 				// super admin always gets an access
-				if (IWContext.getCurrentInstance().isSuperAdmin()) {
+				if (isCurrentUserSuperAdmin()) {
 					
 					result = new PermissionHandleResult(
 					        PermissionHandleResultStatus.hasAccess);
@@ -417,5 +418,20 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 	
 	protected BPMDAO getBpmDAO() {
 		return bpmDAO;
+	}
+	
+	protected boolean isCurrentUserSuperAdmin() {
+		try {
+			IWContext iwc = IWContext.getCurrentInstance();
+			if(iwc!=null){
+				return iwc.isSuperAdmin();
+			}
+		}
+		catch (UnavailableIWContext e) {
+			//we are not in a request
+		}
+		
+		return false;
+		
 	}
 }
