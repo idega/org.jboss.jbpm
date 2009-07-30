@@ -785,8 +785,17 @@ public class ProcessArtifacts {
 		        .getProcessManagerByProcessInstanceId(processInstanceId)
 		        .getProcessInstance(processInstanceId);
 		
-		Collection<User> peopleConnectedToProcess = piw
-		        .getUsersConnectedToProcess();
+		Collection<User> peopleConnectedToProcess = null;
+		if (params.isShowOnlyCreatorInContacts()) {
+			User owner = piw.getOwner();
+			if (owner == null) {
+				logger.warning("Owner was not foung for process instance: " + piw.getProcessInstanceId());
+			} else {
+				peopleConnectedToProcess = Arrays.asList(owner);
+			}
+		} else {
+			peopleConnectedToProcess = piw.getUsersConnectedToProcess();
+		}
 		List<User> uniqueUsers = new ArrayList<User>();
 		if (peopleConnectedToProcess != null) {
 			for (User user : peopleConnectedToProcess) {

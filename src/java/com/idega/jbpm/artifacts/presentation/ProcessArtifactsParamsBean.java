@@ -20,6 +20,7 @@ public class ProcessArtifactsParamsBean {
 	private Boolean allowPDFSigning = Boolean.TRUE;
 	private boolean showAttachmentStatistics;
 	private String caseId;
+	private boolean showOnlyCreatorInContacts;
 	
 	public Integer getPage() {
 		return page;
@@ -92,6 +93,12 @@ public class ProcessArtifactsParamsBean {
 	}
 	public void setCaseId(String caseId) {
 		this.caseId = caseId;
+	}
+	public boolean isShowOnlyCreatorInContacts() {
+		return showOnlyCreatorInContacts;
+	}
+	public void setShowOnlyCreatorInContacts(boolean showOnlyCreatorInContacts) {
+		this.showOnlyCreatorInContacts = showOnlyCreatorInContacts;
 	}
 	
 }
