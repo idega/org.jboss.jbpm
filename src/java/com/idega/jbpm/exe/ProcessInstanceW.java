@@ -175,4 +175,6 @@ public interface ProcessInstanceW {
 	public abstract Object getVariableLocally(String variableName, Token token);
 	
 	public abstract TaskMgmtInstanceW getTaskMgmtInstance();
+	
+	public abstract User getOwner();
 }
