@@ -789,7 +789,7 @@ public class ProcessArtifacts {
 		if (params.isShowOnlyCreatorInContacts()) {
 			User owner = piw.getOwner();
 			if (owner == null) {
-				logger.warning("Owner was not foung for process instance: " + piw.getProcessInstanceId());
+				logger.warning("Owner was not found for process instance: " + piw.getProcessInstanceId());
 			} else {
 				peopleConnectedToProcess = Arrays.asList(owner);
 			}
