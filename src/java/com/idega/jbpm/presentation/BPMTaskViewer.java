@@ -16,6 +16,7 @@ import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.view.View;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
+import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
 
@@ -103,6 +104,8 @@ public class BPMTaskViewer extends IWBaseComponent {
 		final IWContext iwc = IWContext.getIWContext(context);
 		final Integer initiatorId;
 
+		PresentationUtil.addJavaScriptActionToBody(iwc, "var BPMConfiguration = {}; BPMConfiguration.processName = '"+processName+"';");
+		
 		if (iwc.isLoggedOn())
 			initiatorId = iwc.getCurrentUserId();
 		else
