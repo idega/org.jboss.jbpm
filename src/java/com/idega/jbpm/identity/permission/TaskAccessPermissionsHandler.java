@@ -18,8 +18,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.idega.core.accesscontrol.business.AccessController;
-import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.UnavailableIWContext;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -255,14 +253,8 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 					if (perm.getCanSeeAttachments() != null && perm.getCanSeeAttachments().booleanValue() &&
 							!StringUtil.isEmpty(perm.getCanSeeAttachmentsOfRoleName())) {
 						if (variableIdentifier.equals(perm.getVariableIdentifier())) {
-							boolean hasTaskInstanceScopeAndAttachmentsAccess = false;
-							AccessController accessControler = IWMainApplication.getDefaultIWMainApplication().getAccessController();
-							hasTaskInstanceScopeAndAttachmentsAccess = accessControler.hasRole(user, perm.getCanSeeAttachmentsOfRoleName());
-							
-							putAccess(accessesForRoles, hasTaskInstanceScopeAndAttachmentsAccess, TI_VAR, perm.getCanSeeAttachmentsOfRoleName());
-							if (hasTaskInstanceScopeAndAttachmentsAccess)
-								// we have the permission for attachments, so we can search no more
-								break;
+							putAccess(accessesForRoles, Boolean.TRUE, TI_VAR, perm.getCanSeeAttachmentsOfRoleName());
+							break;
 						}
 					} else if (variableIdentifier.equals(perm.getVariableIdentifier())) {
 						
