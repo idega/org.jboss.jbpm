@@ -22,6 +22,7 @@ import org.jbpm.security.AuthorizationService;
 import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,15 +62,15 @@ import com.idega.util.StringUtil;
 
 /**
  * <p>
- * No synchornizations or constraints are put, so the entries might duplicate on race condition.
+ * No synchronizations or constraints are put, so the entries might duplicate on race condition.
  * Yet, in all cases (afaik) extra entries, that could happen, don't do any real harm. TODO: but
- * noone said it would be nice to fix that.
+ * none said it would be nice to fix that.
  * </p>
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.69 $ Last modified: $Date: 2009/07/03 08:59:57 $ by $Author: valdas $
  */
-@Scope("singleton")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service("bpmRolesManager")
 @Transactional(readOnly = true, noRollbackFor = { AccessControlException.class,
         BPMAccessControlException.class })
@@ -445,7 +446,6 @@ public class RolesManagerImpl implements RolesManager {
 				if (actor.getNativeIdentities() == null
 				        || actor.getNativeIdentities().isEmpty()) {
 					
-					@SuppressWarnings("unchecked")
 					Collection<Group> grps = getAccessController()
 					        .getAllGroupsForRoleKey(actor.getProcessRoleName(),
 					            iwac);
@@ -480,7 +480,6 @@ public class RolesManagerImpl implements RolesManager {
 								
 							} else if (identity.getIdentityType() == IdentityType.ROLE) {
 								
-								@SuppressWarnings("unchecked")
 								Collection<Group> grps = getAccessController()
 								        .getAllGroupsForRoleKey(
 								            identity.getIdentityId(), iwac);
@@ -839,7 +838,7 @@ public class RolesManagerImpl implements RolesManager {
 				
 				for (Identity identity : role.getIdentities()) {
 					
-					HashSet<String> rolesNames = new HashSet<String>(1);
+					Set<String> rolesNames = new HashSet<String>(1);
 					rolesNames.add(role.getRoleName());
 					
 					createIdentitiesForRolesNames(rolesNames, identity,
@@ -2200,9 +2199,9 @@ public class RolesManagerImpl implements RolesManager {
 			return false;
 		}
 		
-		AccessController accessController = IWMainApplication.getDefaultIWMainApplication().getAccessController();
 		for (ActorPermissions permission: perms) {
-			if (permission.getCanSeeComments().booleanValue() && accessController.hasRole(user, permission.getRoleName())) {
+			Boolean canSeeComments = permission.getCanSeeComments();
+			if (canSeeComments != null && canSeeComments) {
 				return true;
 			}
 		}
