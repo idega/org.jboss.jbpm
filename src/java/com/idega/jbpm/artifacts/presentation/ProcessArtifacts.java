@@ -25,6 +25,7 @@ import org.w3c.dom.Document;
 
 import com.idega.block.email.presentation.EmailSender;
 import com.idega.builder.bean.AdvancedProperty;
+import com.idega.builder.business.BuilderLogic;
 import com.idega.builder.business.BuilderLogicWrapper;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -692,7 +693,8 @@ public class ProcessArtifacts {
 	private String getAttachmentInfoWindowLink(IWApplicationContext iwac, BinaryVariable binaryVariable, String caseId, Long taskInstanceId) {
 		String hash = String.valueOf(binaryVariable.getHash());
 		
-		String uri = getBuilderLogicWrapper().getBuilderService(iwac).getUriToObject(BPMFileDownloadsStatistics.class, Arrays.asList(
+		//	TODO: remove hard-coding!
+		String uri = BuilderLogic.getInstance().getUriToObject("is.idega.idegaweb.egov.bpm.artifacts.BPMFileDownloadsStatistics", Arrays.asList(
 				new AdvancedProperty(FileDownloadStatisticsViewer.PARAMETER_FILE_HASH, hash),
 				new AdvancedProperty(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash),
 				new AdvancedProperty(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, taskInstanceId.toString()),
