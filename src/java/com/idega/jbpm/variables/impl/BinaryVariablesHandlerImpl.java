@@ -128,14 +128,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return path + CoreConstants.SLASH + fileName;
 	}
 	
-	public void persistBinaryVariable(BinaryVariable binaryVariable,
-	        final URI fileUri) {
+	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
 		
-		String path = BPM_UPLOADED_FILES_PATH
-		        + binaryVariable.getTaskInstanceId() + "/files";
+		String path = BPM_UPLOADED_FILES_PATH + binaryVariable.getTaskInstanceId() + "/files";
 		
-		final FileURIHandler fileURIHandler = getFileURIHandlerFactory()
-		        .getHandler(fileUri);
+		final FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
 		
 		final FileInfo fileInfo = fileURIHandler.getFileInfo(fileUri);
 		String fileName = fileInfo.getFileName();
@@ -143,11 +140,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		try {
 			IWSlideService slideService = getIWSlideService();
 			
-			UsernamePasswordCredentials credentials = slideService
-			        .getRootUserCredentials();
-			WebdavExtendedResource res = slideService
-			        .getWebdavExtendedResource(concPF(path, fileName),
-			            credentials);
+			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();
+			WebdavExtendedResource res = slideService.getWebdavExtendedResource(concPF(path, fileName), credentials);
 			
 			if (res.exists()) {
 				
@@ -157,8 +151,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				while (!success) {
 					
 					String p = path + (i++);
-					res = slideService.getWebdavExtendedResource(concPF(p,
-					    fileName), credentials);
+					res = slideService.getWebdavExtendedResource(concPF(p, fileName), credentials);
 					
 					if (!res.exists()) {
 						path = p;
@@ -172,8 +165,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			for (int i = 0; i < 5; i++) {
 				try {
 					InputStream is = fileURIHandler.getFile(fileUri);
-					slideService.uploadFileAndCreateFoldersFromStringAsRoot(
-					    path + CoreConstants.SLASH, fileName, is, null, false);
+					slideService.uploadFileAndCreateFoldersFromStringAsRoot(path + CoreConstants.SLASH, fileName, is, null, false);
 					
 				} catch (Exception e) {
 					if (i < 4) {
@@ -195,8 +187,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				binaryVariable.setDescription(fileName);
 			
 		} catch (Exception e) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE,
-			    "Exception while storing binary variable. Path: " + path, e);
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while storing binary variable. Path: " + path, e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -296,26 +287,19 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			
 			IWSlideService slideService = getIWSlideService();
 			
-			UsernamePasswordCredentials credentials = slideService
-			        .getRootUserCredentials();
-			WebdavExtendedResource res = slideService
-			        .getWebdavExtendedResource(variable.getIdentifier(),
-			            credentials);
+			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();
+			WebdavExtendedResource res = slideService.getWebdavExtendedResource(variable.getIdentifier(), credentials);
 			
 			if (!res.exists()) {
 				res = slideService.getWebdavExtendedResource(URLDecoder.decode(variable.getIdentifier(), CoreConstants.ENCODING_UTF8), credentials);
 				
 				if (!res.exists()) {
-					Logger.getLogger(getClass().getName()).log(
-					    Level.WARNING,
-					    "No webdav resource found for path provided: "
-					            + variable.getIdentifier());
+					Logger.getLogger(getClass().getName()).log(Level.WARNING, "No webdav resource found for path provided: " + variable.getIdentifier());
 					return null;
 				}
 			}
 			
 			return res.getMethodData();
-			
 		} catch (Exception e) {
 			Logger.getLogger(getClass().getName()).log(
 			    Level.SEVERE,
@@ -329,33 +313,21 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	public Object getBinaryVariablePersistentResource(BinaryVariable variable) {
 		
 		if (!STORAGE_TYPE.equals(variable.getStorageType()))
-			throw new IllegalArgumentException(
-			        "Unsupported binary variable storage type: "
-			                + variable.getStorageType());
+			throw new IllegalArgumentException("Unsupported binary variable storage type: "+ variable.getStorageType());
 		
 		try {
 			IWSlideService slideService = getIWSlideService();
 			
-			WebdavResource res = slideService
-			        .getWebdavResourceAuthenticatedAsRoot(variable
-			                .getIdentifier());
+			WebdavResource res = slideService.getWebdavResourceAuthenticatedAsRoot(variable.getIdentifier());
 			
 			if (!res.exists()) {
-				
-				Logger.getLogger(getClass().getName()).log(
-				    Level.WARNING,
-				    "No webdav resource found for path provided: "
-				            + variable.getIdentifier());
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "No webdav resource found for path provided: " + variable.getIdentifier());
 				return null;
 			}
 			
 			return res;
-			
 		} catch (Exception e) {
-			Logger.getLogger(getClass().getName()).log(
-			    Level.SEVERE,
-			    "Exception while resolving binary variable. Path: "
-			            + variable.getIdentifier(), e);
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
 		}
 		
 		return null;
