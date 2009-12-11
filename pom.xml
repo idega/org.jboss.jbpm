@@ -82,10 +82,6 @@
       <artifactId>com.idega.slide</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.idega.block.platform</groupId>
-      <artifactId>com.idega.springframework</artifactId>
-    </dependency>
-    <dependency>
     	<groupId>com.idega.block.addon</groupId>
 		<artifactId>com.idega.block.email</artifactId>
     </dependency>
