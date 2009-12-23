@@ -41,6 +41,9 @@ public interface BinaryVariablesHandler {
 	 *         used now is WebdavExtendedResource. TODO: we should either use here the standard
 	 *         filesystem resource api, or create our own
 	 */
-	public abstract Object getBinaryVariablePersistentResource(
-	        BinaryVariable variable);
+	public abstract Object getBinaryVariablePersistentResource(BinaryVariable variable);
+	
+	public BinaryVariable convertToBinaryVariable(String jsonStr);
+	
+	public List<String> convertToBinaryVariablesRepresentation(String jsonStr);
 }

@@ -200,12 +200,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return jsonStr;
 	}
 	
-	protected BinaryVariable convertToBinaryVariable(String jsonStr) {
-		XStream xstream = new XStream(new JettisonMappedXmlDriver());
-		xstream.alias(BINARY_VARIABLE, BinaryVariableImpl.class);
-		xstream.alias(VARIABLE, Variable.class);
-		BinaryVariable binVar = (BinaryVariable) xstream.fromXML(jsonStr);
-		return binVar;
+	public List<String> convertToBinaryVariablesRepresentation(String jsonStr) {
+		return getBinVarJSONConverter().convertToObject(jsonStr);
+	}
+	
+	public BinaryVariable convertToBinaryVariable(String jsonStr) {
+		return getBinVarJSONConverter().convertToObject(jsonStr);
 	}
 	
 	public Map<String, Object> resolveBinaryVariables(
