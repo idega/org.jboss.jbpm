@@ -225,12 +225,15 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 			
 				ExternalContext extCtx = iwc.getExternalContext();
 				
-				if(extCtx != null) {
+				if(extCtx != null && extCtx.getRequestParameterMap() != null) {
 					
 //					happens on redirect
 				
-					bpmUserUUID = extCtx.getRequestParameterMap().get(BPMUserImpl.bpmUsrParam);
-					bpmUserUUID = !StringUtil.isEmpty(bpmUserUUID) ? bpmUserUUID : null;
+					try {
+						bpmUserUUID = extCtx.getRequestParameterMap().get(BPMUserImpl.bpmUsrParam);
+					} catch (Exception e) {
+					}
+					bpmUserUUID = StringUtil.isEmpty(bpmUserUUID) ? null : bpmUserUUID;
 					
 					if(bpmUserUUID != null) {
 						
