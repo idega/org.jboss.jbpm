@@ -1166,7 +1166,7 @@ public class ProcessArtifacts {
 		buttonsContainer.setStyleClass("links");
 		Link closeLink = new Link(iwrb.getLocalizedString("close", "Close"));
 		closeLink.setURL("javascript:void(0);");
-		closeLink.setOnClick("CasesBPMAssets.closeAccessRightsSetterBox(event);");
+		closeLink.setOnClick("CasesBPMAssets.closeAccessRightsSetterBox(event, '" + container.getId() + "');");
 		
 		if (ListUtil.isEmpty(roles)) {
 			container.add(new Heading3(iwrb.getLocalizedString(
