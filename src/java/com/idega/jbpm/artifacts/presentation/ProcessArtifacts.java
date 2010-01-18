@@ -14,11 +14,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.faces.component.UIComponent;
-import javax.faces.context.FacesContext;
-
 import org.jboss.jbpm.IWBundleStarter;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -91,7 +90,7 @@ import com.idega.util.URIUtil;
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.120 $ Last modified: $Date: 2009/07/16 14:03:38 $ by $Author: valdas $
  */
-@Scope("singleton")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
 public class ProcessArtifacts {
 	
@@ -171,21 +170,15 @@ public class ProcessArtifacts {
 			}
 			
 			if (params.getAllowPDFSigning()) {
-				if (hasDocumentGeneratedPDF(taskInstanceId)
-				        || !submittedDocument.isSignable()) {
+				if (hasDocumentGeneratedPDF(taskInstanceId) || !submittedDocument.isSignable()) {
 					// Sign icon will be in attachments' list (if not signed)
 					row.addCell(CoreConstants.EMPTY);
 				} else if (getSigningHandler() != null && !piw.hasEnded()) {
-					row
-					        .addCell(new StringBuilder(
+					row.addCell(new StringBuilder(
 					                "<img class=\"signGeneratedFormToPdfStyle\" src=\"")
 					                .append(signPdfUri)
-					                .append(
-					                    "\" onclick=\"CasesBPMAssets.signCaseDocument")
-					                .append(
-					                    getJavaScriptActionForPDF(iwrb,
-					                        taskInstanceId, null, message,
-					                        errorMessage)).append("\" />")
+					                .append("\" onclick=\"CasesBPMAssets.signCaseDocument")
+					                .append(getJavaScriptActionForPDF(iwrb, taskInstanceId, null, message, errorMessage)).append("\" />")
 					                .toString());
 				}
 			}
@@ -193,8 +186,7 @@ public class ProcessArtifacts {
 			// FIXME: don't use client side stuff for validating security constraints, check if
 			// rights changer in this method.
 			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, processInstanceId, taskInstanceId,
-				    null, null, true);
+				addRightsChangerCell(row, processInstanceId, taskInstanceId, null, null, true);
 			}
 			
 			if (!submittedDocument.isHasViewUI()) {
@@ -271,7 +263,10 @@ public class ProcessArtifacts {
 		rows.setTotal(size);
 		rows.setPage(size == 0 ? 0 : 1);
 		
-		IWContext iwc = IWContext.getIWContext(FacesContext.getCurrentInstance());
+		IWContext iwc = getIWContext(true);
+		if (iwc == null) {
+			return null;
+		}
 		
 		String userEmail = null;
 		if (currentUser != null) {
@@ -387,7 +382,11 @@ public class ProcessArtifacts {
 			}
 		}
 		
-		IWContext iwc = IWContext.getCurrentInstance();
+		IWContext iwc = getIWContext(true);
+		if (iwc == null) {
+			return null;
+		}
+		
 		User loggedInUser = getBpmFactory().getBpmUserFactory()
 		        .getCurrentBPMUser().getUserToUse();
 		Locale userLocale = iwc.getCurrentLocale();
@@ -408,7 +407,11 @@ public class ProcessArtifacts {
 		if (processInstanceId == null)
 			return null;
 		
-		IWContext iwc = IWContext.getCurrentInstance();
+		IWContext iwc = getIWContext(true);
+		if (iwc == null) {
+			return null;
+		}
+		
 		User loggedInUser = getBpmFactory().getBpmUserFactory()
 		        .getCurrentBPMUser().getUserToUse();
 		Locale userLocale = iwc.getCurrentLocale();
@@ -596,7 +599,11 @@ public class ProcessArtifacts {
 		rows.setTotal(size);
 		rows.setPage(size == 0 ? 0 : 1);
 		
-		IWContext iwc = CoreUtil.getIWContext();
+		IWContext iwc = getIWContext(true);
+		if (iwc == null) {
+			return null;
+		}
+		
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(
 		    IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
@@ -988,9 +995,12 @@ public class ProcessArtifacts {
 	
 	public org.jdom.Document getViewDisplay(Long taskInstanceId) {
 		try {
-			return getBuilderService().getRenderedComponent(
-			    IWContext.getIWContext(FacesContext.getCurrentInstance()),
-			    getViewInUIComponent(taskInstanceId), true);
+			IWContext iwc = getIWContext(false);
+			if (iwc == null) {
+				return null;
+			}
+			
+			return getBuilderService().getRenderedComponent(iwc, getViewInUIComponent(taskInstanceId), true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1038,54 +1048,50 @@ public class ProcessArtifacts {
 		return true;
 	}
 	
-	public String setAccessRightsForProcessResource(String roleName,
-	        Long processInstanceId, Long taskInstanceId,
-	        String variableIdentifier, boolean hasReadAccess,
-	        boolean setSameRightsForAttachments, Integer userId) {
+	private IWContext getIWContext(boolean checkIfLogged) {
+		IWContext iwc = CoreUtil.getIWContext();
+		if (checkIfLogged && (iwc == null || !iwc.isLoggedOn())) {
+			logger.warning("IWContext is unavailable or user is not logged");
+			return null;
+		}
+		return iwc;
+	}
+	
+	public String setAccessRightsForProcessResource(String roleName, Long processInstanceId, Long taskInstanceId, String variableIdentifier,
+			boolean hasReadAccess, boolean setSameRightsForAttachments, Integer userId) {
 		
-		IWContext iwc = IWContext.getIWContext(FacesContext
-		        .getCurrentInstance());
-		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication()
-		        .getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		String errorMessage = "Attachments permissions update failed!";
+		
+		IWContext iwc = getIWContext(true);
+		if (iwc == null) {
+			return errorMessage;
+		}
+		
+		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
+		errorMessage = iwrb.getLocalizedString("attachments_permissions_update_failed", errorMessage);
 		
-		if (roleName == null || CoreConstants.EMPTY.equals(roleName)
-		        || (taskInstanceId == null && userId == null)) {
-			logger
-			        .log(
-			            Level.WARNING,
-			            "setAccessRightsForProcessResource called, but insufficient parameters provided. Got: roleName="
-			                    + roleName
-			                    + ", taskInstanceId="
-			                    + taskInstanceId + ", userId=" + userId);
-			return iwrb.getLocalizedString(
-			    "attachments_permissions_update_failed",
-			    "Attachments permissions update failed!");
+		String errorToLog = "Got: roleName=" + roleName + ", taskInstanceId=" + taskInstanceId + ", userId=" + userId;
+		if (StringUtil.isEmpty(roleName) || (taskInstanceId == null && userId == null)) {
+			logger.warning("Insufficient parameters provided. " + errorToLog);
+			return errorMessage;
 		}
 		
-		if (taskInstanceId != null) {
+		try {
+			if (taskInstanceId == null) {
+				ProcessInstanceW piw = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
+				piw.setContactsPermission(new Role(roleName, hasReadAccess ? Access.contactsCanBeSeen : null), userId);
+			} else {
+				TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
+				tiw.setTaskRolePermissions(new Role(roleName, hasReadAccess ? Access.read : null), setSameRightsForAttachments, variableIdentifier);				
+			}
 			
-			TaskInstanceW tiw = getBpmFactory()
-			        .getProcessManagerByTaskInstanceId(taskInstanceId)
-			        .getTaskInstance(taskInstanceId);
-			
-			tiw.setTaskRolePermissions(new Role(roleName,
-			        hasReadAccess ? Access.read : null),
-			    setSameRightsForAttachments, variableIdentifier);
-			
-		} else {
-			
-			ProcessInstanceW piw = getBpmFactory()
-			        .getProcessManagerByProcessInstanceId(processInstanceId)
-			        .getProcessInstance(processInstanceId);
-			
-			piw.setContactsPermission(new Role(roleName,
-			        hasReadAccess ? Access.contactsCanBeSeen : null), userId);
+			return iwrb.getLocalizedString("attachments_permissions_successfully_updated", "Permissions successfully updated.");
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Error changing access rights. " + errorToLog, e);
 		}
 		
-		return iwrb.getLocalizedString(
-		    "attachments_permissions_successfully_updated",
-		    "Permissions successfully updated.");
+		return errorMessage;
 	}
 	
 	public org.jdom.Document setRoleDefaultContactsForUser(
@@ -1119,7 +1125,7 @@ public class ProcessArtifacts {
 		if (taskInstanceId == null && userId == null) {
 			return null;
 		}
-		final IWContext iwc = IWContext.getCurrentInstance();
+		final IWContext iwc = getIWContext(true);
 		if (iwc == null) {
 			return null;
 		}
@@ -1354,7 +1360,7 @@ public class ProcessArtifacts {
 			return null;
 		}
 		
-		IWContext iwc = CoreUtil.getIWContext();
+		IWContext iwc = getIWContext(true);
 		if (iwc == null) {
 			return null;
 		}
@@ -1395,7 +1401,7 @@ public class ProcessArtifacts {
 	public String watchOrUnwatchBPMProcessTask(Long processInstanceId) {
 		String errorMessage = "Sorry, error occurred - can not fulfill your action";
 		
-		IWContext iwc = CoreUtil.getIWContext();
+		IWContext iwc = getIWContext(false);
 		if (iwc == null) {
 			return errorMessage;
 		}
@@ -1486,8 +1492,10 @@ public class ProcessArtifacts {
 				ArrayList<AdvancedProperty> allHandlers = new ArrayList<AdvancedProperty>(
 				        1);
 				
-				IWContext iwc = IWContext.getIWContext(FacesContext
-				        .getCurrentInstance());
+				IWContext iwc = getIWContext(true);
+				if (iwc == null) {
+					return null;
+				}
 				IWBundle bundle = iwc.getIWMainApplication().getBundle(
 				    IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 				IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
