@@ -1,6 +1,7 @@
 package com.idega.jbpm.variables.impl;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -47,8 +48,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 @Service
 public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
-	public static final String BPM_UPLOADED_FILES_PATH = JBPMConstants.BPM_PATH
-	        + "/uploadedFiles/";
+	private static final Logger LOGGER = Logger.getLogger(BinaryVariablesHandlerImpl.class.getName());
+	
+	public static final String BPM_UPLOADED_FILES_PATH = JBPMConstants.BPM_PATH + "/uploadedFiles/";
 	public static final String STORAGE_TYPE = "slide";
 	public static final String BINARY_VARIABLE = "binaryVariable";
 	public static final String VARIABLE = "variable";
@@ -187,7 +189,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				binaryVariable.setDescription(fileName);
 			
 		} catch (Exception e) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while storing binary variable. Path: " + path, e);
+			LOGGER.log(Level.SEVERE, "Exception while storing binary variable. Path: " + path, e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -254,20 +256,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 						if (binaryVariable != null)
 							binaryVars.add(binaryVariable);
 						else {
-							
-							Logger.getLogger(getClass().getName()).log(
-							    Level.WARNING,
-							    "Null returned from json.convertToObject by json="
-							            + binVarJSON
-							            + ". All json expression = "
-							            + binVarsInJSON);
+							LOGGER.log(Level.WARNING, "Null returned from json.convertToObject by json="+ binVarJSON+ ". All json expression = "+ binVarsInJSON);
 						}
 						
 					} catch (StreamException e) {
-						Logger.getLogger(getClass().getName()).log(
-						    Level.WARNING,
-						    "Exception while parsing binary variable json="
-						            + binVarJSON);
+						LOGGER.log(Level.WARNING, "Exception while parsing binary variable json=" + binVarJSON);
 					}
 				}
 			}
@@ -276,38 +269,51 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return binaryVars;
 	}
 	
-	public InputStream getBinaryVariableContent(BinaryVariable variable) {
-		
-		if (!STORAGE_TYPE.equals(variable.getStorageType()))
-			throw new IllegalArgumentException(
-			        "Unsupported binary variable storage type: "
-			                + variable.getStorageType());
+	private String getDecodedUri(String uri) {
+		if (uri == null) {
+			return null;
+		}
 		
 		try {
-			
-			IWSlideService slideService = getIWSlideService();
-			
-			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();
-			WebdavExtendedResource res = slideService.getWebdavExtendedResource(variable.getIdentifier(), credentials);
-			
-			if (!res.exists()) {
-				res = slideService.getWebdavExtendedResource(URLDecoder.decode(variable.getIdentifier(), CoreConstants.ENCODING_UTF8), credentials);
-				
-				if (!res.exists()) {
-					Logger.getLogger(getClass().getName()).log(Level.WARNING, "No webdav resource found for path provided: " + variable.getIdentifier());
-					return null;
-				}
-			}
-			
-			return res.getMethodData();
-		} catch (Exception e) {
-			Logger.getLogger(getClass().getName()).log(
-			    Level.SEVERE,
-			    "Exception while resolving binary variable. Path: "
-			            + variable.getIdentifier(), e);
+			return URLDecoder.decode(uri, CoreConstants.ENCODING_UTF8);
+		} catch (UnsupportedEncodingException e) {
+			LOGGER.log(Level.WARNING, "Error while decoding: " + uri, e);
 		}
 		
 		return null;
+	}
+	
+	public InputStream getBinaryVariableContent(BinaryVariable variable) {
+		if (!STORAGE_TYPE.equals(variable.getStorageType()))
+			throw new IllegalArgumentException("Unsupported binary variable storage type: " + variable.getStorageType());
+		
+		try {
+			IWSlideService slideService = getIWSlideService();
+			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();
+			
+			String fileUri = variable.getIdentifier();
+			String decodedFileUri = null;
+			WebdavExtendedResource res = slideService.getWebdavExtendedResource(fileUri, credentials);
+			InputStream stream = slideService.getInputStream(res);
+			if (stream == null) {
+				decodedFileUri = getDecodedUri(fileUri);
+				res = slideService.getWebdavExtendedResource(decodedFileUri, credentials);
+				if (!res.exists()) {
+					LOGGER.log(Level.WARNING, "No WebdavResource found for path provided: " + fileUri + " nor for decoded path: " + decodedFileUri);
+					return null;
+				}
+				
+				stream = slideService.getInputStream(res);
+				if (stream == null) {
+					stream = slideService.getInputStream(fileUri);
+				}
+			}
+			
+			return stream;
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
+			return null;
+		}
 	}
 	
 	public Object getBinaryVariablePersistentResource(BinaryVariable variable) {
@@ -321,13 +327,13 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			WebdavResource res = slideService.getWebdavResourceAuthenticatedAsRoot(variable.getIdentifier());
 			
 			if (!res.exists()) {
-				Logger.getLogger(getClass().getName()).log(Level.WARNING, "No webdav resource found for path provided: " + variable.getIdentifier());
+				LOGGER.log(Level.WARNING, "No webdav resource found for path provided: " + variable.getIdentifier());
 				return null;
 			}
 			
 			return res;
 		} catch (Exception e) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
+			LOGGER.log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
 		}
 		
 		return null;
