@@ -1050,9 +1050,8 @@ public class ProcessArtifacts {
 	
 	private IWContext getIWContext(boolean checkIfLogged) {
 		IWContext iwc = CoreUtil.getIWContext();
-		if (checkIfLogged && (iwc == null || !iwc.isLoggedOn())) {
-			logger.warning("IWContext is unavailable or user is not logged");
-			return null;
+		if (iwc == null) {
+			logger.warning("IWContext is unavailable!");
 		}
 		return iwc;
 	}
