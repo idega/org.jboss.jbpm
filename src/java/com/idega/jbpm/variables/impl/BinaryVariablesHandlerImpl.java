@@ -298,9 +298,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if (stream == null) {
 				decodedFileUri = getDecodedUri(fileUri);
 				res = slideService.getWebdavExtendedResource(decodedFileUri, credentials);
-				if (!res.exists()) {
-					LOGGER.log(Level.WARNING, "No WebdavResource found for path provided: " + fileUri + " nor for decoded path: " + decodedFileUri);
-					return null;
+				if (res == null || !res.exists()) {
+					LOGGER.warning("No WebdavResource found for path provided: " + fileUri + " nor for decoded path: " + decodedFileUri);
+					
+					res = slideService.getWebdavExtendedResource(fileUri, credentials, false);
+					if (res == null || !res.exists()) {
+						LOGGER.warning("Unable to load WebdavResource '" + fileUri + "' using Slide via HTTP");
+						return null;
+					}
 				}
 				
 				stream = slideService.getInputStream(res);
