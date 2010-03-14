@@ -94,6 +94,7 @@ import com.idega.util.URIUtil;
 @Service(ProcessArtifacts.SPRING_BEAN_NAME_PROCESS_ARTIFACTS)
 public class ProcessArtifacts {
 	
+	private static final Logger LOGGER = Logger.getLogger(ProcessArtifacts.class.getName());
 	public static final String SPRING_BEAN_NAME_PROCESS_ARTIFACTS = "BPMProcessAssets";
 	
 	@Autowired
@@ -108,8 +109,6 @@ public class ProcessArtifacts {
 	private BuilderLogicWrapper builderLogicWrapper;
 	@Autowired(required = false)
 	private SigningHandler signingHandler;
-	
-	private Logger logger = Logger.getLogger(ProcessArtifacts.class.getName());
 	
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
@@ -199,7 +198,7 @@ public class ProcessArtifacts {
 			return entries;
 			
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Exception while parsing rows", e);
+			LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
 	}
@@ -256,7 +255,6 @@ public class ProcessArtifacts {
 	}
 	
 	private Document getEmailsListDocument(Collection<BPMEmailDocument> processEmails, Long processInstanceId, boolean rightsChanger, User currentUser) {
-		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 		
 		int size = processEmails.size();
@@ -278,7 +276,6 @@ public class ProcessArtifacts {
 		}
 
 		String sendEmailComponent = getBuilderLogicWrapper().getBuilderService(iwc).getUriToObject(EmailSender.class, Arrays.asList(
-			new AdvancedProperty("iframe", Boolean.TRUE.toString()),
 			new AdvancedProperty(EmailSender.FROM_PARAMETER, userEmail),
 			new AdvancedProperty(EmailSender.NAMES_FOR_EXTERNAL_PARAMETERS, PROCESS_INSTANCE_ID_PARAMETER),
 			new AdvancedProperty(EmailSender.EXTERNAL_PARAMETERS, String.valueOf(processInstanceId)),
@@ -296,8 +293,7 @@ public class ProcessArtifacts {
 				if (fromStr == null) {
 					fromStr = email.getFromAddress();
 				} else {
-					fromStr = new StringBuilder(fromStr).append(" (").append(
-					    email.getFromAddress()).append(")").toString();
+					fromStr = new StringBuilder(fromStr).append(" (").append(email.getFromAddress()).append(")").toString();
 				}
 			}
 			
@@ -311,22 +307,18 @@ public class ProcessArtifacts {
 			row.addCell(subject);
 			row.addCell(getEmailCell(sendEmailComponent, plainFrom, fromStr, subject, taskInstanceId, replyToSystemAddress));
 			row.addCell(email.getEndDate() == null ? CoreConstants.EMPTY
-			        : new IWTimestamp(email.getEndDate()).getLocaleDateAndTime(
-			            iwc.getCurrentLocale(), IWTimestamp.SHORT,
-			            IWTimestamp.SHORT));
+			        : new IWTimestamp(email.getEndDate()).getLocaleDateAndTime(iwc.getCurrentLocale(), IWTimestamp.SHORT, IWTimestamp.SHORT));
 			row.setDateCellIndex(row.getCells().size() - 1);
 			
 			if (rightsChanger) {
-				addRightsChangerCell(row, processInstanceId, taskInstanceId,
-				    null, null, true);
+				addRightsChangerCell(row, processInstanceId, taskInstanceId, null, null, true);
 			}
 		}
 		
 		try {
 			return rows.getDocument();
-			
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Exception while parsing rows", e);
+			LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
 	}
@@ -357,7 +349,7 @@ public class ProcessArtifacts {
 		componentUri = new StringBuilder(uri.getUri()).append("&").append(EmailSender.EXTERNAL_PARAMETERS).append("=").append(String.valueOf(taskInstanceId))
 		.append("&").append(EmailSender.NAMES_FOR_EXTERNAL_PARAMETERS).append("=").append(TASK_INSTANCE_ID_PARAMETER).toString();
 
-		return new StringBuilder("<a class=\"emailSenderLightboxinBPMCasesStyle\" href=\"").append(componentUri).append("\" ")
+		return new StringBuilder("<a class=\"iframe emailSenderLightboxinBPMCasesStyle\" href=\"").append(componentUri).append("\" ")
 			.append("onclick=\"CasesBPMAssets.showSendEmailWindow(event);\">")
 			.append(valueToShow).append("</a>").toString();
 	}
@@ -377,7 +369,7 @@ public class ProcessArtifacts {
 				entries.setGridEntries(rows.getDocument());
 				return entries;
 			} catch (Exception e) {
-				logger.log(Level.SEVERE,
+				LOGGER.log(Level.SEVERE,
 				    "Exception while creating empty grid entries", e);
 			}
 		}
@@ -524,7 +516,7 @@ public class ProcessArtifacts {
 			return rows.getDocument();
 			
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Exception while parsing rows", e);
+			LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
 	}
@@ -692,7 +684,7 @@ public class ProcessArtifacts {
 			}
 			
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Exception while parsing rows", e);
+			LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
 		}
 	}
@@ -748,22 +740,17 @@ public class ProcessArtifacts {
 	}
 	
 	public Document getProcessEmailsList(ProcessArtifactsParamsBean params) {
-		
 		Long processInstanceId = params.getPiId();
 		
 		if (processInstanceId == null)
 			return null;
 		
-		User loggedInUser = getBpmFactory().getBpmUserFactory()
-		        .getCurrentBPMUser().getUserToUse();
+		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
 		
-		Collection<BPMEmailDocument> processEmails = getBpmFactory()
-		        .getProcessManagerByProcessInstanceId(processInstanceId)
-		        .getProcessInstance(processInstanceId).getAttachedEmails(
-		            loggedInUser);
+		Collection<BPMEmailDocument> processEmails = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId)
+			.getProcessInstance(processInstanceId).getAttachedEmails(loggedInUser);
 		
 		if (ListUtil.isEmpty(processEmails)) {
-			
 			try {
 				ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 				rows.setTotal(0);
@@ -771,10 +758,9 @@ public class ProcessArtifacts {
 				
 				return rows.getDocument();
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Exception while parsing rows", e);
+				LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
 				return null;
 			}
-			
 		} else
 			return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger(), loggedInUser);
 	}
@@ -798,7 +784,7 @@ public class ProcessArtifacts {
 		if (params.isShowOnlyCreatorInContacts()) {
 			User owner = piw.getOwner();
 			if (owner == null) {
-				logger.warning("Owner was not found for process instance: " + piw.getProcessInstanceId());
+				LOGGER.warning("Owner was not found for process instance: " + piw.getProcessInstanceId());
 			} else {
 				peopleConnectedToProcess = Arrays.asList(owner);
 			}
@@ -851,7 +837,7 @@ public class ProcessArtifacts {
 		try {
 			return rows.getDocument();
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Exception parsing rows for contacts", e);
+			LOGGER.log(Level.SEVERE, "Exception parsing rows for contacts", e);
 		}
 		
 		return null;
@@ -1051,7 +1037,7 @@ public class ProcessArtifacts {
 	private IWContext getIWContext(boolean checkIfLogged) {
 		IWContext iwc = CoreUtil.getIWContext();
 		if (iwc == null) {
-			logger.warning("IWContext is unavailable!");
+			LOGGER.warning("IWContext is unavailable!");
 		}
 		return iwc;
 	}
@@ -1072,7 +1058,7 @@ public class ProcessArtifacts {
 		
 		String errorToLog = "Got: roleName=" + roleName + ", taskInstanceId=" + taskInstanceId + ", userId=" + userId;
 		if (StringUtil.isEmpty(roleName) || (taskInstanceId == null && userId == null)) {
-			logger.warning("Insufficient parameters provided. " + errorToLog);
+			LOGGER.warning("Insufficient parameters provided. " + errorToLog);
 			return errorMessage;
 		}
 		
@@ -1087,7 +1073,7 @@ public class ProcessArtifacts {
 			
 			return iwrb.getLocalizedString("attachments_permissions_successfully_updated", "Permissions successfully updated.");
 		} catch (Exception e) {
-			logger.log(Level.WARNING, "Error changing access rights. " + errorToLog, e);
+			LOGGER.log(Level.WARNING, "Error changing access rights. " + errorToLog, e);
 		}
 		
 		return errorMessage;
@@ -1410,7 +1396,7 @@ public class ProcessArtifacts {
 			iwrb = iwc.getIWMainApplication().getBundle(
 			    IWBundleStarter.IW_BUNDLE_IDENTIFIER).getResourceBundle(iwc);
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Can not get IWResourceBundle", e);
+			LOGGER.log(Level.SEVERE, "Can not get IWResourceBundle", e);
 		}
 		if (iwrb == null) {
 			return errorMessage;
