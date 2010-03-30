@@ -29,6 +29,7 @@
             <param name="include" value="processInstanceId, gridEntries, rowsParams" />
         </convert>
         <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.ProcessArtifactsParamsBean" />
+        <convert converter="bean" match="com.idega.jbpm.bean.BPMProcessVariable" />
   	</allow>
   	<signatures>
 	</signatures>
