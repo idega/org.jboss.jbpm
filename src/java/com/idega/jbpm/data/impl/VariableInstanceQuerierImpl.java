@@ -32,11 +32,11 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 
 	private static final String STANDARD_COLUMNS = "select var.NAME_ as name, var.CLASS_ as type";
 	private static final String FROM = " from JBPM_VARIABLEINSTANCE var";
-	private static final String VAR_DEFAULT_CONDITION = " where var.NAME_ is not null and var.CLASS_ <> '" + VariableInstanceType.NULL.getTypeKeys().get(0) + "'";
+	private static final String CONDITION = " var.NAME_ is not null and var.CLASS_ <> '" + VariableInstanceType.NULL.getTypeKeys().get(0) + "' ";
+	private static final String VAR_DEFAULT_CONDITION = " and" + CONDITION;
 	private static final String GROUP_BY_NAME = " group by var.NAME_";
 	private static final String PROCESS_INSTANCE_INNER_JOIN = " inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ ";
 	private static final String PROCESS_INSTANCE_INNER_JOIN_EQUALS = PROCESS_INSTANCE_INNER_JOIN + "= ";
-	private static final String PROCESS_INSTANCE_INNER_JOIN_IN = PROCESS_INSTANCE_INNER_JOIN + "in";
 	private static final String PROCESS_DEFINITION_INNER_JOIN = " inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ ";
 	
 	private static final int COLUMNS = 2;
@@ -53,7 +53,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			String start = full ? getFullColumns() : STANDARD_COLUMNS;
 			int columns = full ? FULL_COLUMNS : COLUMNS;
 			data = SimpleQuerier.executeQuery(start + FROM + PROCESS_INSTANCE_INNER_JOIN_EQUALS + "pi.ID_" + PROCESS_DEFINITION_INNER_JOIN +
-					VAR_DEFAULT_CONDITION + "and pd.NAME_ = '" + processDefinitionName + "'" + GROUP_BY_NAME, columns);
+					"where" + CONDITION + "and pd.NAME_ = '" + processDefinitionName + "'" + GROUP_BY_NAME, columns);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error getting variable instances by process definition: " + processDefinitionName, e);
 		}
@@ -79,7 +79,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		try {
 			String start = full ? getFullColumns() : STANDARD_COLUMNS;
 			int columns = full ? FULL_COLUMNS : COLUMNS;
-			data = SimpleQuerier.executeQuery(start + FROM + PROCESS_INSTANCE_INNER_JOIN_EQUALS + processInstanceId + VAR_DEFAULT_CONDITION + GROUP_BY_NAME,
+			data = SimpleQuerier.executeQuery(start + FROM + " where var.PROCESSINSTANCE_ = " + processInstanceId + VAR_DEFAULT_CONDITION + GROUP_BY_NAME,
 					columns);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error getting variable instances by process instance: " + processInstanceId, e);
@@ -107,10 +107,10 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		
 		List<Serializable[]> data = null;
 		try {
-			String procIdsIn = getQueryParameters(procIds);
+			String procIdsIn = getQueryParameters("var.PROCESSINSTANCE_", procIds);
 			String varNamesIn = getQueryParameters("var.NAME_", names);
-			data = SimpleQuerier.executeQuery(getFullColumns() + FROM + PROCESS_INSTANCE_INNER_JOIN_IN + procIdsIn + VAR_DEFAULT_CONDITION + " and" + varNamesIn +
-					GROUP_BY_NAME + ", var.PROCESSINSTANCE_", FULL_COLUMNS);
+			data = SimpleQuerier.executeQuery(getFullColumns() + FROM + " where" + procIdsIn + VAR_DEFAULT_CONDITION + " and" +
+					varNamesIn + GROUP_BY_NAME + ", var.PROCESSINSTANCE_", FULL_COLUMNS);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error getting variables for process instance(s) : " + procIds + " and name(s): " + names, e);
 		}
@@ -208,10 +208,6 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	private String getFullColumns() {
 		return STANDARD_COLUMNS.concat(", var.STRINGVALUE_ as sv, var.LONGVALUE_ as lv, var.DOUBLEVALUE_ as dov, var.DATEVALUE_ as dav, var.PROCESSINSTANCE_" +
 				" as piid");
-	}
-	
-	private String getQueryParameters(Collection<? extends Serializable> values) {
-		return getQueryParameters(null, values);
 	}
 	
 	private String getQueryParameters(String columnName, Collection<? extends Serializable> values) {
