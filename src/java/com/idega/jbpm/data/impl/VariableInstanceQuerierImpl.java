@@ -30,11 +30,10 @@ import com.idega.util.StringUtil;
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class VariableInstanceQuerierImpl extends DefaultSpringBean implements VariableInstanceQuerier {
 
-	private static final String STANDARD_COLUMNS = "select var.NAME_ as name, var.CLASS_ as type";
+	private static final String STANDARD_COLUMNS = "var.NAME_ as name, var.CLASS_ as type";
 	private static final String FROM = " from JBPM_VARIABLEINSTANCE var";
 	private static final String CONDITION = " var.NAME_ is not null and var.CLASS_ <> '" + VariableInstanceType.NULL.getTypeKeys().get(0) + "' ";
 	private static final String VAR_DEFAULT_CONDITION = " and" + CONDITION;
-	private static final String GROUP_BY_NAME = " group by var.NAME_";
 	private static final String PROCESS_INSTANCE_INNER_JOIN = " inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ ";
 	private static final String PROCESS_INSTANCE_INNER_JOIN_EQUALS = PROCESS_INSTANCE_INNER_JOIN + "= ";
 	private static final String PROCESS_DEFINITION_INNER_JOIN = " inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ ";
@@ -42,20 +41,27 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	private static final int COLUMNS = 2;
 	private static final int FULL_COLUMNS = COLUMNS + 5;
 	
+	private String getSelectPart(String columns, boolean distinct) {
+		return "select ".concat(distinct ? "distinct " : CoreConstants.EMPTY).concat(columns);
+	}
+	
 	private Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName, boolean full) {
 		if (StringUtil.isEmpty(processDefinitionName)) {
 			getLogger().warning("Process definition name is not provided");
 			return null;
 		}
 		
+		String query = null;
 		List<Serializable[]> data = null;
 		try {
-			String start = full ? getFullColumns() : STANDARD_COLUMNS;
+			String selectColumns = full ? getFullColumns() : STANDARD_COLUMNS;
 			int columns = full ? FULL_COLUMNS : COLUMNS;
-			data = SimpleQuerier.executeQuery(start + FROM + PROCESS_INSTANCE_INNER_JOIN_EQUALS + "pi.ID_" + PROCESS_DEFINITION_INNER_JOIN +
-					"where" + CONDITION + "and pd.NAME_ = '" + processDefinitionName + "'" + GROUP_BY_NAME, columns);
+			query = getQuery(getSelectPart(selectColumns, !full), FROM, PROCESS_INSTANCE_INNER_JOIN_EQUALS, "pi.ID_", PROCESS_DEFINITION_INNER_JOIN,
+					"where", CONDITION, "and pd.NAME_ = '", processDefinitionName, "'");
+			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error getting variable instances by process definition: " + processDefinitionName, e);
+			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process definition: " +
+					processDefinitionName, e);
 		}
 		
 		return getConverted(data, full ? FULL_COLUMNS : COLUMNS);
@@ -75,14 +81,17 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			return null;
 		}
 		
+		String query = null;
 		List<Serializable[]> data = null;
 		try {
-			String start = full ? getFullColumns() : STANDARD_COLUMNS;
+			String selectColumns = full ? getFullColumns() : STANDARD_COLUMNS;
 			int columns = full ? FULL_COLUMNS : COLUMNS;
-			data = SimpleQuerier.executeQuery(start + FROM + " where var.PROCESSINSTANCE_ = " + processInstanceId + VAR_DEFAULT_CONDITION + GROUP_BY_NAME,
-					columns);
+			query = getQuery(getSelectPart(selectColumns, Boolean.FALSE), FROM, " where var.PROCESSINSTANCE_ = ", String.valueOf(processInstanceId),
+					VAR_DEFAULT_CONDITION);
+			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error getting variable instances by process instance: " + processInstanceId, e);
+			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process instance: " +
+					processInstanceId, e);
 		}
 		
 		return getConverted(data, full ? FULL_COLUMNS : COLUMNS);
@@ -105,14 +114,16 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			getLogger().warning("Variable name(s) unknown");
 		}
 		
+		String query = null;
 		List<Serializable[]> data = null;
 		try {
 			String procIdsIn = getQueryParameters("var.PROCESSINSTANCE_", procIds);
 			String varNamesIn = getQueryParameters("var.NAME_", names);
-			data = SimpleQuerier.executeQuery(getFullColumns() + FROM + " where" + procIdsIn + VAR_DEFAULT_CONDITION + " and" +
-					varNamesIn + GROUP_BY_NAME + ", var.PROCESSINSTANCE_", FULL_COLUMNS);
+			query = getQuery(getSelectPart(getFullColumns(), Boolean.FALSE), FROM, " where", procIdsIn, VAR_DEFAULT_CONDITION, " and", varNamesIn);
+			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error getting variables for process instance(s) : " + procIds + " and name(s): " + names, e);
+			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procIds +
+					" and name(s): " + names, e);
 		}
 		
 		return getConverted(data, FULL_COLUMNS);
@@ -123,7 +134,8 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			getLogger().warning("Variable name and/or value is not provided");
 			return null;
 		}
-		
+
+		String query = null;
 		int columns = COLUMNS + 1;
 		List<Serializable[]> data = null;
 		try {
@@ -142,12 +154,17 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			} else if (value instanceof Timestamp) {
 				columnName = columnName.concat("DATEVALUE_");
 				type = VariableInstanceType.DATE;
+			} else {
+				getLogger().warning("Unsupported type of value: " + value + ", " + value.getClass());
+				return null;
 			}
 			
-			data = SimpleQuerier.executeQuery(STANDARD_COLUMNS + ", " + columnName + FROM + VAR_DEFAULT_CONDITION + " and " + columnName + " = " + value +
-					" and" + getQueryParameters("var.CLASS_", type.getTypeKeys()) + GROUP_BY_NAME, columns);
+			//	TODO: speed up for Oracle!
+			query = getQuery(getSelectPart(STANDARD_COLUMNS, Boolean.FALSE), ", ", columnName, " as v ", FROM, " where ", CONDITION, " and ", columnName,
+					" like ", value.toString(), " and", getQueryParameters("var.CLASS_", type.getTypeKeys()));
+			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error getting variables by name: " + name + " and value: " + value, e);
+			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by name: " + name + " and value: " + value, e);
 		}
 		
 		return getConverted(data, columns);
@@ -158,9 +175,14 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			return null;
 		}
 		
+		List<String> addedVariables = new ArrayList<String>();
 		List<VariableInstanceInfo> objects = new ArrayList<VariableInstanceInfo>(data.size());
 		for (Serializable[] dataSet: data) {
 			String name = (String) dataSet[0];
+			if (addedVariables.contains(name)) {
+				continue;
+			}
+			
 			String type = (String) dataSet[1];
 			
 			Serializable value = null;
@@ -201,6 +223,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			} else {
 				info.setProcessInstanceId(piId);
 				objects.add(info);
+				addedVariables.add(name);
 			}
 		}
 		
@@ -238,14 +261,23 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			return null;
 		}
 		
+		String query = null;
 		List<Serializable[]> data = null;
 		try {
-			data = SimpleQuerier.executeQuery(getFullColumns() + FROM + VAR_DEFAULT_CONDITION + " and" + getQueryParameters("var.NAME_", names) + GROUP_BY_NAME,
-					FULL_COLUMNS);
+			query = getQuery(getSelectPart(getFullColumns(), Boolean.FALSE), FROM, VAR_DEFAULT_CONDITION, " and", getQueryParameters("var.NAME_", names));
+			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error getting variables by names: " + names, e);
+			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names: " + names, e);
 		}
 		
 		return getConverted(data, FULL_COLUMNS);
+	}
+	
+	private String getQuery(String... parts) {
+		StringBuffer query = new StringBuffer();
+		for (String part: parts) {
+			query.append(part);
+		}
+		return query.toString();
 	}
 }
