@@ -36,6 +36,7 @@ import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
+import com.idega.util.IWTimestamp;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
@@ -44,8 +45,8 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.28 $ Last modified: $Date: 2009/06/30 13:57:15 $ by $Author: valdas $
  */
-@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
 	private static final Logger LOGGER = Logger.getLogger(BinaryVariablesHandlerImpl.class.getName());
@@ -62,15 +63,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	 * stores binary file if needed, converts to binary variable json format, and puts to variables
 	 * return variables ready map to be stored to process variables map
 	 */
-	public Map<String, Object> storeBinaryVariables(long taskInstanceId,
-	        Map<String, Object> variables) {
-		
+	public Map<String, Object> storeBinaryVariables(long taskInstanceId, Map<String, Object> variables) {
 		Map<String, Object> newVars = new HashMap<String, Object>(variables);
 		
 		for (Entry<String, Object> entry : newVars.entrySet()) {
-			
 			Object val = entry.getValue();
-			
 			if (val == null)
 				continue;
 			
@@ -120,19 +117,21 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	}
 	
 	protected String getDataName(String mapping) {
-		
-		String strRepr = mapping.contains(CoreConstants.UNDER) ? mapping
-		        .substring(mapping.indexOf(CoreConstants.UNDER) + 1) : "";
+		String strRepr = mapping.contains(CoreConstants.UNDER) ? mapping.substring(mapping.indexOf(CoreConstants.UNDER) + 1) : CoreConstants.EMPTY;
 		return strRepr;
 	}
 	
 	private String concPF(String path, String fileName) {
-		return path + CoreConstants.SLASH + fileName;
+		return path.concat(CoreConstants.SLASH).concat(fileName);
 	}
 	
 	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
-		
-		String path = BPM_UPLOADED_FILES_PATH + binaryVariable.getTaskInstanceId() + "/files";
+		IWTimestamp currentTime = IWTimestamp.RightNow();
+		String year = String.valueOf(currentTime.getYear());
+		String month = String.valueOf(currentTime.getMonth());
+		String day = String.valueOf(currentTime.getDay());
+		String path = BPM_UPLOADED_FILES_PATH.concat(year).concat(month).concat(day).concat(CoreConstants.SLASH)
+			.concat(String.valueOf(binaryVariable.getTaskInstanceId())).concat("/files");
 		
 		final FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
 		
@@ -210,16 +209,13 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return getBinVarJSONConverter().convertToObject(jsonStr);
 	}
 	
-	public Map<String, Object> resolveBinaryVariables(
-	        Map<String, Object> variables) {
+	public Map<String, Object> resolveBinaryVariables(Map<String, Object> variables) {
 		
 		// TODO: shouldn't even be needed
 		return null;
 	}
 	
-	public List<BinaryVariable> resolveBinaryVariablesAsList(
-	        Map<String, Object> variables) {
-		
+	public List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables) {
 		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
 		
 		for (Entry<String, Object> entry : variables.entrySet()) {
@@ -322,7 +318,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	}
 	
 	public Object getBinaryVariablePersistentResource(BinaryVariable variable) {
-		
 		if (!STORAGE_TYPE.equals(variable.getStorageType()))
 			throw new IllegalArgumentException("Unsupported binary variable storage type: "+ variable.getStorageType());
 		
@@ -345,7 +340,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	}
 	
 	protected IWSlideService getIWSlideService() {
-		
 		try {
 			return (IWSlideService) IBOLookup.getServiceInstance(
 			    IWMainApplication.getDefaultIWApplicationContext(),
