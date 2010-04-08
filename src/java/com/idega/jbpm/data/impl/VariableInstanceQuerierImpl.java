@@ -32,7 +32,8 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 
 	private static final String STANDARD_COLUMNS = "var.NAME_ as name, var.CLASS_ as type";
 	private static final String FROM = " from JBPM_VARIABLEINSTANCE var";
-	private static final String CONDITION = " var.NAME_ is not null and var.CLASS_ <> '" + VariableInstanceType.NULL.getTypeKeys().get(0) + "' ";
+	private static final String CLASS_CONDITION = " var.CLASS_ <> '" + VariableInstanceType.NULL.getTypeKeys().get(0) + "' ";
+	private static final String CONDITION = " var.NAME_ is not null and" + CLASS_CONDITION;
 	private static final String VAR_DEFAULT_CONDITION = " and" + CONDITION;
 	private static final String PROCESS_INSTANCE_INNER_JOIN = " inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ ";
 	private static final String PROCESS_INSTANCE_INNER_JOIN_EQUALS = PROCESS_INSTANCE_INNER_JOIN + "= ";
@@ -159,9 +160,8 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 				return null;
 			}
 			
-			//	TODO: speed up for Oracle!
-			query = getQuery(getSelectPart(STANDARD_COLUMNS, Boolean.FALSE), ", ", columnName, " as v ", FROM, " where ", CONDITION, " and ", columnName,
-					" like ", value.toString(), " and", getQueryParameters("var.CLASS_", type.getTypeKeys()));
+			query = getQuery(getSelectPart(STANDARD_COLUMNS, Boolean.FALSE), ", ", columnName, " as v ", FROM, " where var.NAME_ = '", name, "' and",
+					CLASS_CONDITION, " and ", columnName, " like ", value.toString(), " and", getQueryParameters("var.CLASS_", type.getTypeKeys()));
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by name: " + name + " and value: " + value, e);
