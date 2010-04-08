@@ -51,7 +51,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
 	private static final Logger LOGGER = Logger.getLogger(BinaryVariablesHandlerImpl.class.getName());
 	
-	public static final String BPM_UPLOADED_FILES_PATH = JBPMConstants.BPM_PATH + "/uploadedFiles/";
+	public static final String BPM_UPLOADED_FILES_PATH = JBPMConstants.BPM_PATH + "/attachments/";
 	public static final String STORAGE_TYPE = "slide";
 	public static final String BINARY_VARIABLE = "binaryVariable";
 	public static final String VARIABLE = "variable";
@@ -126,12 +126,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	}
 	
 	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
-		IWTimestamp currentTime = IWTimestamp.RightNow();
-		String year = String.valueOf(currentTime.getYear());
-		String month = String.valueOf(currentTime.getMonth());
-		String day = String.valueOf(currentTime.getDay());
-		String path = BPM_UPLOADED_FILES_PATH.concat(year).concat(month).concat(day).concat(CoreConstants.SLASH)
-			.concat(String.valueOf(binaryVariable.getTaskInstanceId())).concat("/files");
+		String date = IWTimestamp.RightNow().getDateString(IWTimestamp.DATE_PATTERN);
+		String path = BPM_UPLOADED_FILES_PATH.concat(date).concat(CoreConstants.SLASH).concat(String.valueOf(binaryVariable.getTaskInstanceId())).concat("/files");
 		
 		final FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
 		
