@@ -3,6 +3,7 @@ package com.idega.jbpm.bean;
 import java.io.Serializable;
 import java.util.logging.Logger;
 
+import com.idega.util.CoreConstants;
 import com.idega.util.StringUtil;
 
 public abstract class VariableInstanceInfo implements Serializable {
@@ -90,6 +91,8 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Variable ".concat(getName()).concat(", type ").concat(getType().toString()).concat(", value: ").concat((String) getValue());
+		String prInstId = processInstanceId == null ? CoreConstants.MINUS : String.valueOf(processInstanceId);
+		return "Variable ".concat(getName()).concat(", type ").concat(getType().toString()).concat(", value: ").concat((String) getValue())
+			.concat(", process instance ID: ").concat(prInstId);
 	}
 }
