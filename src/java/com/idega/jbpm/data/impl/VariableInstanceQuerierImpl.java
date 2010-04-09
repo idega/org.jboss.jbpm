@@ -181,10 +181,6 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		List<VariableInstanceInfo> objects = new ArrayList<VariableInstanceInfo>(data.size());
 		for (Serializable[] dataSet: data) {
 			String name = (String) dataSet[0];
-			if (addedVariables.contains(name)) {
-				continue;
-			}
-			
 			String type = (String) dataSet[1];
 			
 			Serializable value = null;
