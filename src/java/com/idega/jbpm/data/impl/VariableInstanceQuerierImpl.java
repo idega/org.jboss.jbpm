@@ -120,7 +120,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		try {
 			String procIdsIn = getQueryParameters("var.PROCESSINSTANCE_", procIds);
 			String varNamesIn = getQueryParameters("var.NAME_", names);
-			query = getQuery(getSelectPart(getFullColumns(), Boolean.FALSE), FROM, " where", procIdsIn, VAR_DEFAULT_CONDITION, " and", varNamesIn);
+			query = getQuery(getSelectPart(getFullColumns(), Boolean.TRUE), FROM, " where", procIdsIn, VAR_DEFAULT_CONDITION, " and", varNamesIn);
 			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procIds +
