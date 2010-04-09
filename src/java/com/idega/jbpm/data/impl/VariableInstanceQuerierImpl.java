@@ -175,6 +175,8 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			return null;
 		}
 		
+		getLogger().info("Will convert: " + data + " (" + data.size() + "), number of columns: " + numberOfColumns);	//	TODO
+		
 		List<String> addedVariables = new ArrayList<String>();
 		List<VariableInstanceInfo> objects = new ArrayList<VariableInstanceInfo>(data.size());
 		for (Serializable[] dataSet: data) {
@@ -193,6 +195,8 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 					value = dataSet[index];
 					index++;
 				}
+				
+				getLogger().info("Got value: " + value + " from n-th column: " + index);	//	TODO
 				
 				if (numberOfColumns == FULL_COLUMNS) {
 					Serializable id = dataSet[numberOfColumns - 1];
@@ -227,6 +231,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			}
 		}
 		
+		getLogger().info("Converted: " + objects);	//	TODO
 		return objects;
 	}
 	
