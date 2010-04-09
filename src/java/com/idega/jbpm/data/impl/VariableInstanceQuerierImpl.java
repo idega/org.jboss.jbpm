@@ -197,7 +197,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 				if (numberOfColumns == FULL_COLUMNS) {
 					Serializable id = dataSet[numberOfColumns - 1];
 					if (id instanceof Number) {
-						piId = ((Number) id).longValue();
+						piId = Long.valueOf(((Number) id).longValue());
 					} else if (id != null) {
 						getLogger().warning("Unable to convert " + id + " ("+id.getClass()+") to Long!");
 					}
