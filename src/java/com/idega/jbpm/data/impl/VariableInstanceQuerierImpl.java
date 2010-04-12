@@ -43,7 +43,11 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	private static final int FULL_COLUMNS = COLUMNS + 5;
 	
 	private String getSelectPart(String columns) {
-		return "select distinct ".concat(columns);
+		return getSelectPart(columns, Boolean.TRUE);
+	}
+	
+	private String getSelectPart(String columns, boolean distinct) {
+		return "select ".concat(distinct ? "distinct " : CoreConstants.EMPTY).concat(columns);
 	}
 	
 	private Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName, boolean full) {
@@ -120,7 +124,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		try {
 			String procIdsIn = getQueryParameters("var.PROCESSINSTANCE_", procIds);
 			String varNamesIn = getQueryParameters("var.NAME_", names);
-			query = getQuery(getSelectPart(getFullColumns()), FROM, " where", procIdsIn, VAR_DEFAULT_CONDITION, " and", varNamesIn);
+			query = getQuery(getSelectPart(getFullColumns(), false), FROM, " where", procIdsIn, VAR_DEFAULT_CONDITION, " and", varNamesIn);
 			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procIds +
