@@ -229,7 +229,6 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 					addedVariables.add(name);
 				}
 			} else {
-				getLogger().info("Setting new value '"+value+"' for the existing variable: " + variable);	//	TODO
 				variable.setValue(value);
 			}
 		}
@@ -248,7 +247,6 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			
 			if (variable.getProcessInstanceId() != null && variable.getProcessInstanceId().longValue() == piId.longValue() && variable.getName() != null &&
 					variable.getName().equals(name)) {
-				getLogger().info("Found the same variable: " + variable);	//	TODO
 			} else {
 				variable = null;
 			}
