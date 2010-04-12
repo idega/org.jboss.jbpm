@@ -176,7 +176,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		}
 		
 		List<String> addedVariables = new ArrayList<String>();
-		List<VariableInstanceInfo> objects = new ArrayList<VariableInstanceInfo>(data.size());
+		List<VariableInstanceInfo> variables = new ArrayList<VariableInstanceInfo>(data.size());
 		for (Serializable[] dataSet: data) {
 			String name = (String) dataSet[0];
 			String type = (String) dataSet[1];
@@ -199,31 +199,61 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 					}
 				}
 			}
-			VariableInstanceInfo info = null;
-			if (value == null) {
-				info = new VariableDefaultInstance(name, type);
-			} else if (value instanceof String) {
-				info = new VariableStringInstance(name, (String) value);
-			} else if (value instanceof Long) {
-				info = new VariableLongInstance(name, (Long) value);
-			} else if (value instanceof Double) {
-				info = new VariableDoubleInstance(name, (Double) value);
-			} else if (value instanceof Timestamp) {
-				info = new VariableDateInstance(name, (Timestamp) value);
-			} else if (value instanceof Byte[]) {
-				info = new VariableByteArrayInstance(name, (Byte[]) value);
+			
+			VariableInstanceInfo variable = null;
+			
+			if (piId != null && addedVariables.contains(name)) {
+				variable = findVariable(variables, piId, name);
 			}
 			
-			if (info == null) {
-				getLogger().warning("Unkown variable instance with name: '" + name + "', type: '" + type + "' and value: " + value);
+			if (variable == null) {
+				if (value == null) {
+					variable = new VariableDefaultInstance(name, type);
+				} else if (value instanceof String) {
+					variable = new VariableStringInstance(name, (String) value);
+				} else if (value instanceof Long) {
+					variable = new VariableLongInstance(name, (Long) value);
+				} else if (value instanceof Double) {
+					variable = new VariableDoubleInstance(name, (Double) value);
+				} else if (value instanceof Timestamp) {
+					variable = new VariableDateInstance(name, (Timestamp) value);
+				} else if (value instanceof Byte[]) {
+					variable = new VariableByteArrayInstance(name, (Byte[]) value);
+				}
+				
+				if (variable == null) {
+					getLogger().warning("Unkown variable instance with name: '" + name + "', type: '" + type + "' and value: " + value);
+				} else {
+					variable.setProcessInstanceId(piId);
+					variables.add(variable);
+					addedVariables.add(name);
+				}
 			} else {
-				info.setProcessInstanceId(piId);
-				objects.add(info);
-				addedVariables.add(name);
+				getLogger().info("Setting new value '"+value+"' for the existing variable: " + variable);	//	TODO
+				variable.setValue(value);
 			}
 		}
 		
-		return objects;
+		return variables;
+	}
+	
+	private VariableInstanceInfo findVariable(List<VariableInstanceInfo> variables, Long piId, String name) {
+		if (ListUtil.isEmpty(variables) || piId == null || name == null) {
+			return null;
+		}
+		
+		VariableInstanceInfo variable = null;
+		for (Iterator<VariableInstanceInfo> varsIter = variables.iterator(); (varsIter.hasNext() && variable == null);) {
+			variable = varsIter.next();
+			
+			if (variable.getProcessInstanceId() != null && variable.getProcessInstanceId().longValue() == piId.longValue() && variable.getName() != null &&
+					variable.getName().equals(name)) {
+				getLogger().info("Found the same variable: " + variable);	//	TODO
+			} else {
+				variable = null;
+			}
+		}
+		return variable;
 	}
 	
 	private String getFullColumns() {
