@@ -124,7 +124,9 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		try {
 			String procIdsIn = getQueryParameters("var.PROCESSINSTANCE_", procIds);
 			String varNamesIn = getQueryParameters("var.NAME_", names);
-			query = getQuery(getSelectPart(getFullColumns(), false), FROM, " where", procIdsIn, VAR_DEFAULT_CONDITION, " and", varNamesIn);
+			query = getQuery(getSelectPart(getFullColumns(), false), FROM, " where", procIdsIn, VAR_DEFAULT_CONDITION, " and", varNamesIn,
+					" and var.TASKINSTANCE_ in (select t.ID_ from jbpm_taskinstance t where ", getQueryParameters("t.PROCINST_", procIds),
+					" and t.END_ is not null) order by var.TASKINSTANCE_");
 			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procIds +
