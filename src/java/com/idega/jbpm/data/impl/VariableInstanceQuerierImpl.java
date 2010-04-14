@@ -166,8 +166,8 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 				return null;
 			}
 			
-			query = getQuery(getSelectPart(STANDARD_COLUMNS), ", ", columnName, " as v ", FROM, " where var.NAME_ = '", name, "' and",
-					CLASS_CONDITION, " and ", columnName, " like ", value.toString(), " and", getQueryParameters("var.CLASS_", type.getTypeKeys()));
+			query = getQuery(getSelectPart(STANDARD_COLUMNS, false), ", ", columnName, " as v ", FROM, " where var.NAME_ = '", name, "' and", columnName,
+					" like ", value.toString(), " and", getQueryParameters("var.CLASS_", type.getTypeKeys()));
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by name: " + name + " and value: " + value, e);
