@@ -63,8 +63,8 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		try {
 			String selectColumns = full ? getFullColumns() : STANDARD_COLUMNS;
 			int columns = full ? FULL_COLUMNS : COLUMNS;
-			query = getQuery(getSelectPart(selectColumns, false), FROM, PROCESS_INSTANCE_INNER_JOIN_EQUALS, "pi.ID_", PROCESS_DEFINITION_INNER_JOIN,
-					"where pd.NAME_ = '", processDefinitionName, "' and", CONDITION);
+			query = getQuery(getSelectPart(selectColumns), FROM, PROCESS_INSTANCE_INNER_JOIN_EQUALS, "pi.ID_", PROCESS_DEFINITION_INNER_JOIN, "where", CONDITION,
+					"and pd.NAME_ = '", processDefinitionName, "'");
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process definition: " +
