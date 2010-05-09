@@ -271,4 +271,8 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		this.metadata = metadata;
 	}
 	
+	@Override
+	public String toString() {
+		return getFileName() + ": " + getIdentifier();
+	}
 }
