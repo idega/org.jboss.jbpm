@@ -113,9 +113,8 @@ public class ProcessArtifacts {
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
 	
-	private GridEntriesBean getDocumentsListDocument(IWContext iwc,
-	        Collection<BPMDocument> processDocuments, Long processInstanceId,
-	        ProcessArtifactsParamsBean params) {
+	private GridEntriesBean getDocumentsListDocument(IWContext iwc, Collection<BPMDocument> processDocuments, Long processInstanceId,
+			ProcessArtifactsParamsBean params) {
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 		
@@ -124,22 +123,16 @@ public class ProcessArtifacts {
 		rows.setPage(size == 0 ? 0 : 1);
 		
 		Locale userLocale = iwc.getCurrentLocale();
-		IWBundle bundle = iwc.getIWMainApplication().getBundle(
-		    IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
 		String message = iwrb.getLocalizedString("generating", "Generating...");
-		String pdfUri = bundle
-		        .getVirtualPathWithFileNameString("images/pdf.gif");
-		String signPdfUri = bundle
-		        .getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
-		String errorMessage = iwrb.getLocalizedString("error_generating_pdf",
-		    "Sorry, unable to generate PDF file from selected document");
+		String pdfUri = bundle.getVirtualPathWithFileNameString("images/pdf.gif");
+		String signPdfUri = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
+		String errorMessage = iwrb.getLocalizedString("error_generating_pdf", "Sorry, unable to generate PDF file from selected document");
 		
 		GridEntriesBean entries = new GridEntriesBean(processInstanceId);
-		
 		for (BPMDocument submittedDocument : processDocuments) {
-			
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
 			
 			TaskInstanceW taskInstance = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
@@ -151,17 +144,20 @@ public class ProcessArtifacts {
 			String rowId = taskInstanceId.toString();
 			row.setId(rowId);
 			
+			boolean hasViewUI = submittedDocument.isHasViewUI();
+			boolean renderableTask = isTaskRenderable(taskInstance);
+			if (hasViewUI && !renderableTask) {
+				row.setStyleClass("pdfViewableItem");
+			}
+			
 			row.addCell(submittedDocument.getDocumentName());
 			row.addCell(submittedDocument.getSubmittedByName());
-			row
-			        .addCell(submittedDocument.getEndDate() == null ? CoreConstants.EMPTY
-			                : new IWTimestamp(submittedDocument.getEndDate())
-			                        .getLocaleDateAndTime(userLocale,
-			                            IWTimestamp.SHORT, IWTimestamp.SHORT));
+			row.addCell(submittedDocument.getEndDate() == null ? CoreConstants.EMPTY
+			                : new IWTimestamp(submittedDocument.getEndDate()).getLocaleDateAndTime(userLocale, IWTimestamp.SHORT, IWTimestamp.SHORT));
 			row.setDateCellIndex(row.getCells().size() - 1);
 			
 			if (params.getDownloadDocument()) {
-				row.addCell(isTaskRenderable(taskInstance) ?
+				row.addCell(renderableTask ?
 						new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri)
 						.append("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").append(taskInstanceId).append("');\" />").toString() :
 						"<span onclick=\"return false;\"></span>"
@@ -188,7 +184,7 @@ public class ProcessArtifacts {
 				addRightsChangerCell(row, processInstanceId, taskInstanceId, null, null, true);
 			}
 			
-			if (!submittedDocument.isHasViewUI()) {
+			if (!hasViewUI) {
 				entries.setRowHasViewUI(rowId, false);
 			}
 		}
