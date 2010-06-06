@@ -15,6 +15,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
+import com.idega.jbpm.exe.ProcessConstants;
+
 /**
  * Actor permissions for task or taskInstance. TaskInstance permissions should override ones
  * specified for Task. If variableName is not null, then for taskInstance or task, the most
@@ -160,7 +162,7 @@ public class ActorPermissions implements Serializable {
 	@Column(name = "task_id")
 	private Long taskId;
 	
-	public static final String taskInstanceIdProperty = "taskInstanceId";
+	public static final String taskInstanceIdProperty = ProcessConstants.TASK_INSTANCE_ID;
 	@Column(name = "task_instance_id")
 	private Long taskInstanceId;
 	

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
+import com.idega.jbpm.exe.ProcessConstants;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
@@ -30,7 +31,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 	private static final Logger LOGGER = Logger.getLogger(AttachmentWriter.class.getName());
 	
-	public static final String PARAMETER_TASK_INSTANCE_ID = "taskInstanceId";
+	public static final String PARAMETER_TASK_INSTANCE_ID = ProcessConstants.TASK_INSTANCE_ID;
 	public static final String PARAMETER_VARIABLE_HASH = "varHash";
 	
 	protected BinaryVariable binaryVariable;

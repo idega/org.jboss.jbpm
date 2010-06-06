@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.ProcessConstants;
 import com.idega.jbpm.view.View;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
@@ -31,7 +32,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 	public static final String COMPONENT_TYPE = "BPMTaskViewer";
 
 	public static final String PROCESS_DEFINITION_PROPERTY = "processDefinitionId";
-	public static final String TASK_INSTANCE_PROPERTY = "taskInstanceId";
+	public static final String TASK_INSTANCE_PROPERTY = ProcessConstants.TASK_INSTANCE_ID;
 
 	private static final String VIEWER_FACET = "viewer";
 

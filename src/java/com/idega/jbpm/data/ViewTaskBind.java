@@ -12,6 +12,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
+import com.idega.jbpm.exe.ProcessConstants;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.18 $
@@ -59,7 +61,7 @@ public class ViewTaskBind implements Serializable {
 	@Column(name="task_id", nullable=true)
 	private Long taskId;
 	
-	public static final String taskInstanceIdProp = "taskInstanceId";
+	public static final String taskInstanceIdProp = ProcessConstants.TASK_INSTANCE_ID;
 	@Column(name="task_instance_id", nullable=true)
 	private Long taskInstanceId;
 	
