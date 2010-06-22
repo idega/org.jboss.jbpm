@@ -2,6 +2,8 @@ package com.idega.jbpm.data.impl;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,6 +26,7 @@ import com.idega.jbpm.bean.VariableInstanceType;
 import com.idega.jbpm.bean.VariableLongInstance;
 import com.idega.jbpm.bean.VariableStringInstance;
 import com.idega.jbpm.data.VariableInstanceQuerier;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
@@ -136,7 +139,25 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		return getConverted(data, FULL_COLUMNS);
 	}
 
-	public Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value) {
+	public boolean isVariableStored(String name, Serializable value) {
+		Collection<VariableInstanceInfo> variables = getVariablesByNameAndValue(name, value);
+		if (ListUtil.isEmpty(variables)) {
+			return false;
+		}
+		
+		if (value instanceof String) {
+			for (VariableInstanceInfo var: variables) {
+				if (value.toString().equals(var.getValue())) {
+					return Boolean.TRUE;
+				}
+			}
+			return Boolean.FALSE;
+		}
+		
+		return Boolean.TRUE;
+	}
+	
+	private Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value) {
 		if (StringUtil.isEmpty(name) || value == null) {
 			getLogger().warning("Variable name and/or value is not provided");
 			return null;
@@ -150,7 +171,12 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			String columnName = "var.";
 			if (value instanceof String) {
 				columnName = columnName.concat("STRINGVALUE_");
-				value = CoreConstants.QOUTE_SINGLE_MARK.concat(value.toString()).concat(CoreConstants.QOUTE_SINGLE_MARK);
+				
+//				TODO: fix CLOB problem for Oracle
+				getLogger().warning("Will not use string value ('".concat(value.toString()).concat("') in SQL query, because it is inefficient!"));
+				value = null;
+//				value = CoreConstants.QOUTE_SINGLE_MARK.concat(value.toString()).concat(CoreConstants.QOUTE_SINGLE_MARK);
+				
 				type = VariableInstanceType.STRING;
 			} else if (value instanceof Long) {
 				columnName = columnName.concat("LONGVALUE_");
@@ -166,8 +192,13 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 				return null;
 			}
 			
-			query = getQuery(getSelectPart(STANDARD_COLUMNS, false), ", ", columnName, " as v ", FROM, " where var.NAME_ = '", name, "' and ", columnName,
-					" like ", value.toString(), " and", getQueryParameters("var.CLASS_", type.getTypeKeys()));
+			List<String> parts = new ArrayList<String>();
+			parts.addAll(Arrays.asList(getSelectPart(STANDARD_COLUMNS, false), ", ", columnName, " as v ", FROM, " where var.NAME_ = '", name, "' "));
+			if (value != null) {
+				parts.addAll(Arrays.asList(" and ", columnName, " = ", value.toString()));
+			}
+			parts.addAll(Arrays.asList(" and", getQueryParameters("var.CLASS_", type.getTypeKeys())));
+			query = getQuery(ArrayUtil.convertListToArray(parts));
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by name: " + name + " and value: " + value, e);
