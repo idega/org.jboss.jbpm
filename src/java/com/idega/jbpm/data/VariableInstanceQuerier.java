@@ -18,7 +18,9 @@ public interface VariableInstanceQuerier {
 	
 	public Collection<VariableInstanceInfo> getVariablesByNames(List<String> names);
 	
-	//	TODO: enable this method when CLOB problem is fixed for Oracle
-//	public Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value);
+	public Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value);
+	
 	public boolean isVariableStored(String name, Serializable value);
+	
+	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value);
 }

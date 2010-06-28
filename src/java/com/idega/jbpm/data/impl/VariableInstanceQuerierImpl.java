@@ -140,7 +140,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	}
 
 	public boolean isVariableStored(String name, Serializable value) {
-		Collection<VariableInstanceInfo> variables = getVariablesByNameAndValue(name, value);
+		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, false);
 		if (ListUtil.isEmpty(variables)) {
 			return false;
 		}
@@ -157,26 +157,71 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		return Boolean.TRUE;
 	}
 	
-	private Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value) {
+	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value) {
+		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, true);
+		if (ListUtil.isEmpty(variables)) {
+			return null;
+		}
+		
+		Collection<Long> piIds = new ArrayList<Long>();
+		for (VariableInstanceInfo variable: variables) {
+			Long piId = null;
+			if (value instanceof String) {
+				if (isValueEquivalent(variable, value)) {
+					piId = variable.getProcessInstanceId();
+				}
+			} else {
+				piId = variable.getProcessInstanceId();
+			}
+			
+			if (piId != null && !piIds.contains(piId)) {
+				piIds.add(piId);
+			}
+		}
+		
+		return piIds;
+	}
+	
+	public Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value) {
+		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, false);
+		if (ListUtil.isEmpty(variables) || !(value instanceof String)) {
+			return variables;
+		}
+		
+		Collection<VariableInstanceInfo> filtered = new ArrayList<VariableInstanceInfo>();
+		for (VariableInstanceInfo variable: variables) {
+			if (isValueEquivalent(variable, value)) {
+				filtered.add(variable);
+			}
+		}
+		
+		return filtered;
+	}
+	
+	private boolean isValueEquivalent(VariableInstanceInfo variable, Serializable value) {
+		if (value instanceof String && variable instanceof VariableStringInstance && value.equals(((VariableStringInstance) variable).getValue())) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(String name, Serializable value, boolean selectProcessInstanceId) {
 		if (StringUtil.isEmpty(name) || value == null) {
 			getLogger().warning("Variable name and/or value is not provided");
 			return null;
 		}
 
 		String query = null;
-		int columns = COLUMNS + 1;
+		int columns = COLUMNS + (selectProcessInstanceId ? 2 : 1);
 		List<Serializable[]> data = null;
 		try {
 			VariableInstanceType type = null;
 			String columnName = "var.";
 			if (value instanceof String) {
-				columnName = columnName.concat("STRINGVALUE_");
-				
-//				TODO: fix CLOB problem for Oracle
-				getLogger().warning("Will not use string value ('".concat(value.toString()).concat("') in SQL query, because it is inefficient!"));
 				value = null;
-//				value = CoreConstants.QOUTE_SINGLE_MARK.concat(value.toString()).concat(CoreConstants.QOUTE_SINGLE_MARK);
-				
+				columnName = columnName.concat("STRINGVALUE_");
+				columnName = getSubstring(columnName);
 				type = VariableInstanceType.STRING;
 			} else if (value instanceof Long) {
 				columnName = columnName.concat("LONGVALUE_");
@@ -193,7 +238,9 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			}
 			
 			List<String> parts = new ArrayList<String>();
-			parts.addAll(Arrays.asList(getSelectPart(STANDARD_COLUMNS, false), ", ", columnName, " as v ", FROM, " where var.NAME_ = '", name, "' "));
+			parts.addAll(Arrays.asList(getSelectPart(STANDARD_COLUMNS, false), ", ", columnName, " as v ",
+					selectProcessInstanceId ? ", var.PROCESSINSTANCE_ as piid" : CoreConstants.EMPTY,
+					FROM, " where var.NAME_ = '", name, "' "));
 			if (value != null) {
 				parts.addAll(Arrays.asList(" and ", columnName, " = ", value.toString()));
 			}
@@ -232,12 +279,16 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 					index++;
 				}
 				
+				int piIdIndex = -1;
 				if (numberOfColumns == FULL_COLUMNS) {
-					Serializable temp = dataSet[numberOfColumns - 1];
+					piIdIndex = numberOfColumns - 1;
+				} else {
+					piIdIndex = index;
+				}
+				if (piIdIndex >= index && piIdIndex < dataSet.length) {
+					Serializable temp = dataSet[piIdIndex];
 					if (temp instanceof Number) {
 						piId = Long.valueOf(((Number) temp).longValue());
-					} else if (temp != null) {
-						getLogger().warning("Unable to convert " + temp + " ("+temp.getClass()+") to Long!");
 					}
 				}
 			}
@@ -273,8 +324,12 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	}
 	
 	private String getFullColumns() {
-		return STANDARD_COLUMNS.concat(", var.STRINGVALUE_ as sv, var.LONGVALUE_ as lv, var.DOUBLEVALUE_ as dov, var.DATEVALUE_ as dav, var.PROCESSINSTANCE_" +
-				" as piid");
+		return STANDARD_COLUMNS.concat(", ").concat(getSubstring("var.STRINGVALUE_")).concat(" as sv, var.LONGVALUE_ as lv, var.DOUBLEVALUE_ as dov,")
+			.concat(" var.DATEVALUE_ as dav, var.PROCESSINSTANCE_ as piid");
+	}
+	
+	private String getSubstring(String column) {
+		return "substr(".concat(column).concat(", 1, 255)");
 	}
 	
 	private String getQueryParameters(String columnName, Collection<? extends Serializable> values) {
