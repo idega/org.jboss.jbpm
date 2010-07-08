@@ -297,16 +297,16 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			if (variable == null) {
 				if (value == null) {
 					variable = new VariableDefaultInstance(name, type);
-				} else if (value instanceof String) {
-					variable = new VariableStringInstance(name, (String) value);
+				} else if (value instanceof String || VariableInstanceType.STRING.getTypeKeys().contains(type)) {
+					variable = new VariableStringInstance(name, value);
 				} else if (value instanceof Long) {
 					variable = new VariableLongInstance(name, (Long) value);
 				} else if (value instanceof Double) {
 					variable = new VariableDoubleInstance(name, (Double) value);
 				} else if (value instanceof Timestamp) {
 					variable = new VariableDateInstance(name, (Timestamp) value);
-				} else if (value instanceof Byte[]) {
-					variable = new VariableByteArrayInstance(name, (Byte[]) value);
+				} else if (value instanceof Byte[] || VariableInstanceType.BYTE_ARRAY.getTypeKeys().contains(type)) {
+					variable = new VariableByteArrayInstance(name, value);
 				}
 				
 				if (variable == null) {
