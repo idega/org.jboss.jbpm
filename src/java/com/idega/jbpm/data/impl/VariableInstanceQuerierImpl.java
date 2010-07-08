@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -40,12 +42,11 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	private static final String CLASS_CONDITION = " var.CLASS_ <> '" + VariableInstanceType.NULL.getTypeKeys().get(0) + "' ";
 	private static final String CONDITION = " var.NAME_ is not null and" + CLASS_CONDITION;
 	private static final String VAR_DEFAULT_CONDITION = " and" + CONDITION;
-	private static final String PROCESS_INSTANCE_INNER_JOIN = " inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ ";
-	private static final String PROCESS_INSTANCE_INNER_JOIN_EQUALS = PROCESS_INSTANCE_INNER_JOIN + "= ";
-	private static final String PROCESS_DEFINITION_INNER_JOIN = " inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ ";
 	
 	private static final int COLUMNS = 3;
 	private static final int FULL_COLUMNS = COLUMNS + 5;
+	
+	private static final Random ID_GENERATOR = new Random();
 	
 	private String getSelectPart(String columns) {
 		return getSelectPart(columns, Boolean.FALSE);
@@ -61,20 +62,22 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			return null;
 		}
 		
+		int columns = full ? FULL_COLUMNS : 2;
+		
 		String query = null;
 		List<Serializable[]> data = null;
 		try {
-			String selectColumns = full ? getFullColumns() : STANDARD_COLUMNS;
-			int columns = full ? FULL_COLUMNS : COLUMNS;
-			query = getQuery(getSelectPart(selectColumns), FROM, PROCESS_INSTANCE_INNER_JOIN_EQUALS, "pi.ID_", PROCESS_DEFINITION_INNER_JOIN, "where", CONDITION,
-					"and pd.NAME_ = '", processDefinitionName, "'");
+			String selectColumns = full ? getFullColumns() : "var.NAME_ as name, var.CLASS_ as type";
+			query = getQuery(getSelectPart(selectColumns, !full), FROM, " where ", CONDITION, " and var.PROCESSINSTANCE_ in ",
+						"(select pi.ID_ from JBPM_PROCESSINSTANCE pi where pi.PROCESSDEFINITION_ in ",
+							"(select pd.ID_ from JBPM_PROCESSDEFINITION pd where pd.NAME_ = '", processDefinitionName, "'))");
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process definition: " +
 					processDefinitionName, e);
 		}
 		
-		return getConverted(data, full ? FULL_COLUMNS : COLUMNS);
+		return getConverted(data, columns);
 	}
 	
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName) {
@@ -254,6 +257,19 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		return getConverted(data, columns);
 	}
 
+	private Number getRandomId(Set<Number> existingIds) {
+		long id = ID_GENERATOR.nextLong();
+		if (ListUtil.isEmpty(existingIds)) {
+			return id;
+		}
+		
+		if (existingIds.contains(id)) {
+			return getRandomId(existingIds);
+		}
+		
+		return id;
+	}
+	
 	private Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns) {
 		if (ListUtil.isEmpty(data)) {
 			return null;
@@ -261,12 +277,30 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		
 		Map<Number, VariableInstanceInfo> variables = new HashMap<Number, VariableInstanceInfo>();
 		for (Serializable[] dataSet: data) {
-			Number id = (Number) dataSet[0];
-			String name = (String) dataSet[1];
-			String type = (String) dataSet[2];
+			int startValues = 0;
+			Number id = null;
+			String name = null;
+			
+			Serializable idOrName = dataSet[startValues];
+			if (idOrName instanceof Number) {
+				id = (Number) idOrName;
+			} else if (idOrName instanceof String) {
+				name = (String) idOrName;
+			}
+			if (id != null || name != null) {
+				startValues++;
+			}
+			if (id == null) {
+				id = getRandomId(variables.keySet());	//	Generate ID
+			}
+			if (name == null) {
+				name = (String) dataSet[startValues];
+				startValues++;
+			}
+			String type = (String) dataSet[startValues];
 			
 			if (id == null || name == null || type == null) {
-				getLogger().warning("Unable to create variable from initial values: ID: " + id + ", name: " + name + ", class: " + type);
+				getLogger().warning("Unable to create variable from initial values (" + dataSet + "): ID: " + id + ", name: " + name + ", class: " + type);
 				continue;
 			}
 			
@@ -329,7 +363,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	}
 	
 	private String getSubstring(String column) {
-		return "substr(".concat(column).concat(", 1, 255)");
+		return "substr(".concat(column).concat(", 1, 256)");
 	}
 	
 	private String getQueryParameters(String columnName, Collection<? extends Serializable> values) {
