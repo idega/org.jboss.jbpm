@@ -68,9 +68,8 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		List<Serializable[]> data = null;
 		try {
 			String selectColumns = full ? getFullColumns() : "var.NAME_ as name, var.CLASS_ as type";
-			query = getQuery(getSelectPart(selectColumns, !full), FROM, " where ", CONDITION, " and var.PROCESSINSTANCE_ in ",
-						"(select pi.ID_ from JBPM_PROCESSINSTANCE pi where pi.PROCESSDEFINITION_ in ",
-							"(select pd.ID_ from JBPM_PROCESSDEFINITION pd where pd.NAME_ = '", processDefinitionName, "'))");
+			query = getQuery(getSelectPart(selectColumns, !full), FROM, " inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ ",
+					"inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ where ", CONDITION, " and pd.NAME_ = '", processDefinitionName, "'");
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process definition: " +
