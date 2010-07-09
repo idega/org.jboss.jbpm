@@ -2,8 +2,6 @@ package com.idega.jbpm.bean;
 
 import java.io.Serializable;
 import java.sql.Clob;
-import java.sql.SQLException;
-
 import com.idega.util.CoreConstants;
 import com.idega.util.StringHandler;
 
@@ -23,10 +21,15 @@ public class VariableStringInstance extends VariableInstanceInfo {
 			Clob clob = (Clob) value;
 			try {
 				variableValue = StringHandler.getContentFromInputStream(clob.getAsciiStream());
-			} catch (SQLException e) {
-				e.printStackTrace();
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
+			if (variableValue == null) {
+				try {
+					variableValue = clob.getSubString(0, 255);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		
