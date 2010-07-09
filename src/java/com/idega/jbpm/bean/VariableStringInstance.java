@@ -26,7 +26,7 @@ public class VariableStringInstance extends VariableInstanceInfo {
 			}
 			if (variableValue == null) {
 				try {
-					variableValue = clob.getSubString(0, 255);
+					variableValue = clob.getSubString(1, (int)clob.length());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
