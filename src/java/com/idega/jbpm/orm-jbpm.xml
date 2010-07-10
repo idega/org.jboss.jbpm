@@ -10,5 +10,6 @@
     <entity class="com.idega.jbpm.data.Actor" />
     <entity class="com.idega.jbpm.data.AutoloadedProcessDefinition" />
     <entity class="com.idega.jbpm.data.ActorPermissions" />
+    <entity class="com.idega.jbpm.data.ProcessDefinitionVariablesBind" />
         
 </entity-mappings>

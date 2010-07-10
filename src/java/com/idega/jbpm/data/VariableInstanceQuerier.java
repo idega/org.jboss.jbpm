@@ -4,10 +4,12 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
+import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.bean.VariableInstanceInfo;
 
-public interface VariableInstanceQuerier {
+public interface VariableInstanceQuerier extends GenericDao {
 
+	public Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(String processDefinitionName);
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName);
 	public Collection<VariableInstanceInfo> getFullVariablesByProcessDefinition(String processDefinitionName);
 	

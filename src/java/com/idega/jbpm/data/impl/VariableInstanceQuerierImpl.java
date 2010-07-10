@@ -12,12 +12,13 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-
-import com.idega.core.business.DefaultSpringBean;
+import com.idega.core.persistence.Param;
+import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.data.SimpleQuerier;
 import com.idega.jbpm.bean.VariableByteArrayInstance;
 import com.idega.jbpm.bean.VariableDateInstance;
@@ -27,6 +28,7 @@ import com.idega.jbpm.bean.VariableInstanceInfo;
 import com.idega.jbpm.bean.VariableInstanceType;
 import com.idega.jbpm.bean.VariableLongInstance;
 import com.idega.jbpm.bean.VariableStringInstance;
+import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
@@ -35,7 +37,9 @@ import com.idega.util.StringUtil;
 
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class VariableInstanceQuerierImpl extends DefaultSpringBean implements VariableInstanceQuerier {
+public class VariableInstanceQuerierImpl extends GenericDaoImpl implements VariableInstanceQuerier {
+
+	private static final Logger LOGGER = Logger.getLogger(VariableInstanceQuerierImpl.class.getName());
 
 	private static final String STANDARD_COLUMNS = "var.ID_ as varid, var.NAME_ as name, var.CLASS_ as type";
 	private static final String FROM = " from JBPM_VARIABLEINSTANCE var";
@@ -56,9 +60,13 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		return "select ".concat(distinct ? "distinct " : CoreConstants.EMPTY).concat(columns);
 	}
 	
-	private Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName, boolean full) {
+	public Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(String processDefinitionName) {
+		return getVariablesByProcessDefinitionNaiveWay(processDefinitionName, false);
+	}
+	
+	private Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(String processDefinitionName, boolean full) {
 		if (StringUtil.isEmpty(processDefinitionName)) {
-			getLogger().warning("Process definition name is not provided");
+			LOGGER.warning("Process definition name is not provided");
 			return null;
 		}
 		
@@ -72,7 +80,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 					"inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ where ", CONDITION, " and pd.NAME_ = '", processDefinitionName, "'");
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process definition: " +
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process definition: " +
 					processDefinitionName, e);
 		}
 		
@@ -80,16 +88,25 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	}
 	
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName) {
-		return getVariablesByProcessDefinition(processDefinitionName, false);
+		if (StringUtil.isEmpty(processDefinitionName)) {
+			LOGGER.warning("Process definition name is not provided");
+			return null;
+		}
+		
+		List<ProcessDefinitionVariablesBind> binds = getResultList(ProcessDefinitionVariablesBind.QUERY_SELECT_BY_PROCESS_DEFINITION_NAMES,
+				ProcessDefinitionVariablesBind.class,
+				new Param(ProcessDefinitionVariablesBind.PARAM_PROC_DEF_NAMES, Arrays.asList(processDefinitionName)));
+		
+		return getConverted(binds);
 	}
 	
 	public Collection<VariableInstanceInfo> getFullVariablesByProcessDefinition(String processDefinitionName) {
-		return getVariablesByProcessDefinition(processDefinitionName, true);
+		return getVariablesByProcessDefinitionNaiveWay(processDefinitionName, true);
 	}
 
 	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceId(Long processInstanceId, boolean full) {
 		if (processInstanceId == null) {
-			getLogger().warning("Invalid ID of process instance");
+			LOGGER.warning("Invalid ID of process instance");
 			return null;
 		}
 		
@@ -101,7 +118,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			query = getQuery(getSelectPart(selectColumns), FROM, " where var.PROCESSINSTANCE_ = ", String.valueOf(processInstanceId), VAR_DEFAULT_CONDITION);
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process instance: " +
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process instance: " +
 					processInstanceId, e);
 		}
 		
@@ -118,11 +135,11 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names) {
 		if (ListUtil.isEmpty(procIds)) {
-			getLogger().warning("Process instance(s) unkown");
+			LOGGER.warning("Process instance(s) unkown");
 			return null;
 		}
 		if (ListUtil.isEmpty(names)) {
-			getLogger().warning("Variable name(s) unknown");
+			LOGGER.warning("Variable name(s) unknown");
 		}
 		
 		String query = null;
@@ -130,11 +147,11 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		try {
 			String procIdsIn = getQueryParameters("var.PROCESSINSTANCE_", procIds);
 			String varNamesIn = getQueryParameters("var.NAME_", names);
-			query = getQuery(getSelectPart(getFullColumns(), false), FROM, ", jbpm_taskinstance task ", " where", procIdsIn, " and ", varNamesIn,
+			query = getQuery(getSelectPart(getFullColumns(), false), FROM, ", jbpm_taskinstance task where", procIdsIn, " and ", varNamesIn,
 					" and var.TASKINSTANCE_ = task.ID_ and task.END_ is not null and ", CLASS_CONDITION, " order by var.TASKINSTANCE_");
 			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procIds +
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procIds +
 					" and name(s): " + names, e);
 		}
 		
@@ -210,7 +227,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	
 	private Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(String name, Serializable value, boolean selectProcessInstanceId) {
 		if (StringUtil.isEmpty(name) || value == null) {
-			getLogger().warning("Variable name and/or value is not provided");
+			LOGGER.warning("Variable name and/or value is not provided");
 			return null;
 		}
 
@@ -235,7 +252,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 				columnName = columnName.concat("DATEVALUE_");
 				type = VariableInstanceType.DATE;
 			} else {
-				getLogger().warning("Unsupported type of value: " + value + ", " + value.getClass());
+				LOGGER.warning("Unsupported type of value: " + value + ", " + value.getClass());
 				return null;
 			}
 			
@@ -250,7 +267,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			query = getQuery(ArrayUtil.convertListToArray(parts));
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by name: " + name + " and value: " + value, e);
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by name: " + name + " and value: " + value, e);
 		}
 		
 		return getConverted(data, columns);
@@ -267,6 +284,29 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 		}
 		
 		return id;
+	}
+	
+	private Collection<VariableInstanceInfo> getConverted(List<ProcessDefinitionVariablesBind> binds) {
+		if (ListUtil.isEmpty(binds)) {
+			return null;
+		}
+		
+		List<String> variables = new ArrayList<String>();
+		List<Serializable[]> data = new ArrayList<Serializable[]>();
+		for (ProcessDefinitionVariablesBind bind: binds) {
+			String variableName = bind.getVariableName();
+			if (StringUtil.isEmpty(variableName) || variables.contains(variableName)) {
+				continue;
+			}
+			
+			Serializable[] dataSet = new Serializable[2];
+			dataSet[0] = variableName;
+			dataSet[1] = bind.getVariableType();
+			data.add(dataSet);
+			variables.add(variableName);
+		}
+		
+		return getConverted(data, 2);
 	}
 	
 	private Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns) {
@@ -299,7 +339,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			String type = (String) dataSet[startValues];
 			
 			if (id == null || name == null || type == null) {
-				getLogger().warning("Unable to create variable from initial values (" + dataSet + "): ID: " + id + ", name: " + name + ", class: " + type);
+				LOGGER.warning("Unable to create variable from initial values (" + dataSet + "): ID: " + id + ", name: " + name + ", class: " + type);
 				continue;
 			}
 			
@@ -343,7 +383,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 				}
 				
 				if (variable == null) {
-					getLogger().warning("Unkown variable instance with id: " + id + ", name: '" + name + "', type: '" + type + "' and value: " + value);
+					LOGGER.warning("Unkown variable instance with id: " + id + ", name: '" + name + "', type: '" + type + "' and value: " + value);
 				} else {
 					variable.setProcessInstanceId(piId);
 					variables.put(id, variable);
@@ -362,7 +402,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 	}
 	
 	private String getSubstring(String column) {
-		return "substr(".concat(column).concat(", 1, 256)");
+		return "substr(".concat(column).concat(", 1, 255)");
 	}
 	
 	private String getQueryParameters(String columnName, Collection<? extends Serializable> values) {
@@ -397,7 +437,7 @@ public class VariableInstanceQuerierImpl extends DefaultSpringBean implements Va
 			query = getQuery(getSelectPart(getFullColumns()), FROM, " where", getQueryParameters("var.NAME_", names), VAR_DEFAULT_CONDITION);
 			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names: " + names, e);
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names: " + names, e);
 		}
 		
 		return getConverted(data, FULL_COLUMNS);

@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -12,6 +14,9 @@ import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,27 +25,39 @@ import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
+import com.idega.jbpm.bean.VariableInstanceInfo;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
+import com.idega.jbpm.data.AutoloadedProcessDefinition;
 import com.idega.jbpm.data.NativeIdentityBind;
+import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.ProcessManagerBind;
+import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.events.VariableCreatedEvent;
 import com.idega.jbpm.identity.Role;
 import com.idega.util.ListUtil;
+import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.28 $ Last modified: $Date: 2009/02/13 17:06:30 $ by $Author: donatas $
  */
-@Scope("singleton")
+
 @Repository("bpmBindsDAO")
 @Transactional(readOnly = true)
-public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationListener {
+	
+	private static final Logger LOGGER = Logger.getLogger(BPMDAOImpl.class.getName());
 	
 	@Autowired
 	private BPMContext bpmContext;
+	
+	@Autowired
+	private VariableInstanceQuerier variablesQuerier;
 	
 	public ViewTaskBind getViewTaskBind(long taskId, String viewType) {
 		
@@ -362,6 +379,99 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			    ViewTaskBind.class, new Param(ViewTaskBind.viewIdParam, viewId),
 			    new Param(ViewTaskBind.viewTypeParam, viewType)).size();
 	}
+
+	private List<AutoloadedProcessDefinition> getAllLoadedProcessDefinitions() {
+		try {
+			return getResultList(AutoloadedProcessDefinition.QUERY_SELECT_ALL, AutoloadedProcessDefinition.class);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting auto loaded process definitions");
+		}
+		return null;
+	}
+
+	private List<ProcessDefinitionVariablesBind> getAllProcDefVariableBinds() {
+		try {
+			return getResultList(ProcessDefinitionVariablesBind.QUERY_SELECT_ALL, ProcessDefinitionVariablesBind.class);
+		} catch(Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting variables for process definitions", e);
+		}
+		return null;
+	}
 	
+	public void bindProcessVariables() {
+		List<AutoloadedProcessDefinition> procDefs = getAllLoadedProcessDefinitions();
+		if (ListUtil.isEmpty(procDefs)) {
+			return;
+		}
+		
+		List<ProcessDefinitionVariablesBind> currentBinds = getAllProcDefVariableBinds();
+		
+		for (AutoloadedProcessDefinition apd: procDefs) {
+			bindProcessVariables(apd.getProcessDefinitionName(), currentBinds);
+		}
+	}
 	
+	private void bindProcessVariables(String processDefinitionName) {
+		bindProcessVariables(processDefinitionName, getAllProcDefVariableBinds());
+	}
+	
+	@Transactional(readOnly = false)
+	private void bindProcessVariables(String processDefinitionName, List<ProcessDefinitionVariablesBind> currentBinds) {
+		if (StringUtil.isEmpty(processDefinitionName)) {
+			return;
+		}
+		
+		Collection<VariableInstanceInfo> vars = getVariablesQuerier().getVariablesByProcessDefinitionNaiveWay(processDefinitionName);
+		if (ListUtil.isEmpty(vars)) {
+			return;
+		}
+		
+		currentBinds = currentBinds == null ? new ArrayList<ProcessDefinitionVariablesBind>(0) : currentBinds;
+		
+		for (VariableInstanceInfo var: vars) {
+			String variableName = var.getName();
+			if (StringUtil.isEmpty(variableName)) {
+				continue;
+			}
+			
+			try {
+				if (!bindExists(currentBinds, variableName, processDefinitionName)) {
+					ProcessDefinitionVariablesBind bind = new ProcessDefinitionVariablesBind();
+					bind.setProcessDefinition(processDefinitionName);
+					bind.setVariableName(var.getName());
+					bind.setVariableType(var.getType().getTypeKeys().get(0));
+					persist(bind);
+					currentBinds.add(bind);
+					LOGGER.info("Added new bind: " + bind);
+				}
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Error adding new bind: " + var + " for process: " + processDefinitionName, e);
+			}
+		}
+	}
+	
+	private boolean bindExists(List<ProcessDefinitionVariablesBind> currentBinds, String variableName, String processDefinitionName) {
+		if (ListUtil.isEmpty(currentBinds)) {
+			return false;
+		}
+		
+		String expression = variableName.concat("@").concat(processDefinitionName);
+		for (ProcessDefinitionVariablesBind bind: currentBinds) {
+			if (bind.toString().equals(expression)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	VariableInstanceQuerier getVariablesQuerier() {
+		return variablesQuerier;
+	}
+
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (event instanceof VariableCreatedEvent) {
+			VariableCreatedEvent variableCreated = (VariableCreatedEvent) event;
+			bindProcessVariables(variableCreated.getProcessDefinitionName());
+		}
+	}
 }
