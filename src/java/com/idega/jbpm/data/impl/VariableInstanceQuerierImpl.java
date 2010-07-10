@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -17,6 +18,7 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.data.SimpleQuerier;
@@ -32,6 +34,7 @@ import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
@@ -218,8 +221,21 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 	
 	private boolean isValueEquivalent(VariableInstanceInfo variable, Serializable value) {
-		if (value instanceof String && variable instanceof VariableStringInstance && value.equals(((VariableStringInstance) variable).getValue())) {
-			return true;
+		if (value instanceof String && variable instanceof VariableStringInstance) {
+			String searchValue = (String) value;
+			String variableValue = ((VariableStringInstance) variable).getValue();
+			if (variableValue == null) {
+				return false;
+			}
+			
+			if (searchValue.equals(variableValue)) {
+				return true;
+			}
+			
+			Locale locale = CoreUtil.getCurrentLocale();
+			searchValue = searchValue.toLowerCase(locale);
+			variableValue = variableValue.toLowerCase(locale);
+			return searchValue.equals(variableValue);
 		}
 		
 		return false;
