@@ -38,25 +38,21 @@ import com.idega.jbpm.variables.VariablesHandler;
 @Transactional(readOnly = true)
 public class VariablesHandlerImpl implements VariablesHandler {
 	
+	private static final Logger LOGGER = Logger.getLogger(VariablesHandlerImpl.class.getName());
+	
 	private BPMContext idegaJbpmContext;
 	private BinaryVariablesHandler binaryVariablesHandler;
 	
 	@Transactional(readOnly = false)
-	public void submitVariables(final Map<String, Object> variables,
-	        final long taskInstanceId, final boolean validate) {
-		
+	public void submitVariables(final Map<String, Object> variables, final long taskInstanceId, final boolean validate) {
 		if (variables == null || variables.isEmpty())
 			return;
 		
 		getIdegaJbpmContext().execute(new JbpmCallback() {
-			
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
-				
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
-				
 				if (ti.hasEnded())
-					throw new TaskInstanceVariablesException(
-					        "Task instance has already ended");
+					throw new TaskInstanceVariablesException("Task instance has already ended");
 				
 				TaskController tiController = ti.getTask().getTaskController();
 				
@@ -65,32 +61,18 @@ public class VariablesHandlerImpl implements VariablesHandler {
 					return null;
 				
 				@SuppressWarnings("unchecked")
-				List<VariableAccess> variableAccesses = tiController
-				        .getVariableAccesses();
+				List<VariableAccess> variableAccesses = tiController.getVariableAccesses();
 				
-				HashSet<String> undeclaredVariables = new HashSet<String>(
-				        variables.keySet());
+				HashSet<String> undeclaredVariables = new HashSet<String>(variables.keySet());
 				
 				for (VariableAccess variableAccess : variableAccesses) {
-					
 					String variableName = variableAccess.getVariableName();
-					
 					if (validate) {
+						if (variableAccess.getAccess().isRequired() && !variables.containsKey(variableName))
+							throw new TaskInstanceVariablesException("Required variable (" + variableName + ") not submitted.");
 						
-						if (variableAccess.getAccess().isRequired()
-						        && !variables.containsKey(variableName))
-							throw new TaskInstanceVariablesException(
-							        "Required variable (" + variableName
-							                + ") not submitted.");
-						
-						if (!variableAccess.isWritable()
-						        && variables.containsKey(variableName)) {
-							
-							Logger.getLogger(getClass().getName()).log(
-							    Level.WARNING,
-							    "Tried to submit read-only variable ("
-							            + variableAccess.getVariableName()
-							            + "), ignoring.");
+						if (!variableAccess.isWritable() && variables.containsKey(variableName)) {
+							LOGGER.log(Level.WARNING, "Tried to submit read-only variable (" + variableAccess.getVariableName() + "), ignoring.");
 							variables.remove(variableName);
 						}
 					}
@@ -98,16 +80,13 @@ public class VariablesHandlerImpl implements VariablesHandler {
 					undeclaredVariables.remove(variableName);
 				}
 				
-				final Map<String, Object> variablesToSubmit = getBinaryVariablesHandler()
-				        .storeBinaryVariables(taskInstanceId, variables);
+				final Map<String, Object> variablesToSubmit = getBinaryVariablesHandler().storeBinaryVariables(taskInstanceId, variables);
 				
 				for (String undeclaredVariable : undeclaredVariables) {
-					
-					ti.setVariableLocally(undeclaredVariable, variablesToSubmit
-					        .get(undeclaredVariable));
+					ti.setVariableLocally(undeclaredVariable, variablesToSubmit.get(undeclaredVariable));
 				}
 				
-				ti.setVariables(variablesToSubmit);
+				setVariables(ti, variablesToSubmit);
 				
 				return null;
 			}
@@ -125,25 +104,17 @@ public class VariablesHandlerImpl implements VariablesHandler {
 		return getIdegaJbpmContext().execute(new JbpmCallback() {
 			
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
-				
-				final Map<String, Object> variables = getBinaryVariablesHandler()
-				        .storeBinaryVariables(taskInstanceId, originalVariables);
+				final Map<String, Object> variables = getBinaryVariablesHandler().storeBinaryVariables(taskInstanceId, originalVariables);
 				
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 				Token taskInstanceToken = ti.getToken();
 				
 				@SuppressWarnings("unchecked")
-				Map<String, VariableInstance> varInstances = ti
-				        .getVariableInstances();
+				Map<String, VariableInstance> varInstances = ti.getVariableInstances();
 				
 				for (Entry<String, Object> entry : variables.entrySet()) {
-					
-					if (varInstances != null
-					        && !varInstances.containsKey(entry.getKey())) {
-						
-						VariableInstance vi = VariableInstance
-						        .create(taskInstanceToken, entry.getKey(),
-						            entry.getValue());
+					if (varInstances != null && !varInstances.containsKey(entry.getKey())) {
+						VariableInstance vi = VariableInstance.create(taskInstanceToken, entry.getKey(), entry.getValue());
 						ti.addVariableInstance(vi);
 					}
 				}
@@ -151,11 +122,16 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				@SuppressWarnings("unchecked")
 				Map<String, Object> vars = ti.getVariables();
 				vars.putAll(variables);
-				ti.setVariables(vars);
+				setVariables(ti, vars);
 				
 				return variables;
 			}
 		});
+	}
+	
+	@Transactional(readOnly = false)
+	private void setVariables(TaskInstance ti, Map<String, Object> variables) {
+		ti.setVariables(variables);
 	}
 	
 	public Map<String, Object> populateVariables(final long taskInstanceId) {
