@@ -1,0 +1,6 @@
+alter table JBPM_VARIABLEINSTANCE add column stringvalue2_ varchar(255);
+update JBPM_VARIABLEINSTANCE set stringvalue2_ = stringvalue_;
+alter table JBPM_VARIABLEINSTANCE drop column stringvalue_;
+alter table JBPM_VARIABLEINSTANCE add column stringvalue_ varchar(31000);
+update JBPM_VARIABLEINSTANCE set stringvalue_ = stringvalue2_;
+alter table JBPM_VARIABLEINSTANCE drop column stringvalue2_;
