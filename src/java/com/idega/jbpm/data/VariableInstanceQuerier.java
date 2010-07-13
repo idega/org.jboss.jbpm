@@ -13,6 +13,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName);
 	public Collection<VariableInstanceInfo> getFullVariablesByProcessDefinition(String processDefinitionName);
 	
+	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds);
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceId(Long processInstanceId);
 	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceId(Long processInstanceId);
 	
@@ -21,8 +22,6 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Collection<VariableInstanceInfo> getVariablesByNames(List<String> names);
 	
 	public Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value);
-	
 	public boolean isVariableStored(String name, Serializable value);
-	
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value);
 }
