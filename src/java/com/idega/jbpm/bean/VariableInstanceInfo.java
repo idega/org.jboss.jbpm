@@ -13,6 +13,7 @@ public abstract class VariableInstanceInfo implements Serializable {
 	private String name;
 	private VariableInstanceType type;
 	
+	private Long id;
 	private Long processInstanceId;
 	
 	public VariableInstanceInfo() {
@@ -25,6 +26,10 @@ public abstract class VariableInstanceInfo implements Serializable {
 	
 	public VariableInstanceInfo(String name, Serializable value) {
 		this(name, value, null);
+	}
+	
+	public VariableInstanceInfo(String name, VariableInstanceType type) {
+		this(name, null, type);
 	}
 	
 	public VariableInstanceInfo(String name, Serializable value, VariableInstanceType type) {
@@ -86,6 +91,14 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	public void setProcessInstanceId(Long processInstanceId) {
 		this.processInstanceId = processInstanceId;
+	}
+	
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	@Override
