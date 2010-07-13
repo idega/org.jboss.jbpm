@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
+import com.idega.data.SimpleQuerier;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.BPMContext;
@@ -515,7 +516,34 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			}
 		}
 		
+		createTrigger("CREATE TRIGGER variable_inserted_trigger AFTER INSERT ON JBPM_VARIABLEINSTANCE " +
+						"FOR EACH ROW BEGIN " +
+							"IF NEW.stringvalue_ is not null THEN " +
+								"insert into BPM_VARIABLE_DATA (variable_id, stringvalue) values (NEW.ID_, substr(NEW.stringvalue_, 1, 255)); " +
+							"END IF; "+
+						"END;"
+		);
+		createTrigger("CREATE TRIGGER variable_updated_trigger AFTER UPDATE ON JBPM_VARIABLEINSTANCE "+
+						"FOR EACH ROW BEGIN " +
+							" update BPM_VARIABLE_DATA set stringvalue=substr(NEW.stringvalue_, 1, 255) where variable_id=NEW.ID_; " +
+						"END;"
+		);
+		createTrigger("CREATE TRIGGER variable_deleted_trigger BEFORE DELETE ON JBPM_VARIABLEINSTANCE " +
+						"FOR EACH ROW BEGIN " + 
+							"delete from BPM_VARIABLE_DATA where variable_id=OLD.ID_; " +
+						"END;"
+		);
+		
 		settings.setProperty(property, Boolean.TRUE.toString());
+	}
+	
+	@SuppressWarnings("deprecation")
+	private void createTrigger(String triggerSQL) {
+		try {
+			SimpleQuerier.execute(triggerSQL);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error creating trigger: " + triggerSQL, e);
+		}
 	}
 	
 	private void importVariablesData(Collection<VariableInstanceInfo> variables) {
