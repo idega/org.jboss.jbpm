@@ -1,6 +1,8 @@
 package com.idega.jbpm.data;
 
 import java.io.Serializable;
+import java.util.Random;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -27,6 +29,12 @@ public class ProcessDefinitionVariablesBind implements Serializable {
 	public static final String QUERY_SELECT_BY_PROCESS_DEFINITION_NAMES = "ProcessDefinitionVariablesBind.getByProcessDefinitionNames";
 	
 	public static final String PARAM_PROC_DEF_NAMES = "processDefinition_parameter";
+	
+	private int hashCode;
+	
+	public ProcessDefinitionVariablesBind() {
+		hashCode = new Random().nextInt();
+	}
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
@@ -75,6 +83,10 @@ public class ProcessDefinitionVariablesBind implements Serializable {
 		this.variableType = variableType;
 	}
 	
+	public int getHashCode() {
+		return hashCode;
+	}
+
 	@Override
 	public String toString() {
 		return getVariableName() + "@" + getProcessDefinition();
