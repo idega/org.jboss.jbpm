@@ -23,12 +23,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
+import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.bean.VariableInstanceInfo;
+import com.idega.jbpm.bean.VariableStringInstance;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.AutoloadedProcessDefinition;
+import com.idega.jbpm.data.BPMVariableData;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.ProcessManagerBind;
@@ -472,6 +476,70 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		if (event instanceof VariableCreatedEvent) {
 			VariableCreatedEvent variableCreated = (VariableCreatedEvent) event;
 			bindProcessVariables(variableCreated.getProcessDefinitionName());
+		}
+	}
+	
+	private List<Long> getAllProcessInstances() {
+		try {
+			return getResultListByInlineQuery("select pi.id from org.jbpm.graph.exe.ProcessInstance pi", Long.class);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting all process instances", e);
+		}
+		return null;
+	}
+	
+	public void importVariablesData() {
+		IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
+		String property = "jbpm_vars_data_imported";
+		if (settings.getBoolean(property, Boolean.FALSE)) {
+			return;
+		}
+		
+		List<Long> piIds = getAllProcessInstances();
+		if (ListUtil.isEmpty(piIds)) {
+			return;
+		}
+		
+		int step = 50;
+		for (int i = 0; i < piIds.size(); i = i + step) {
+			List<Long> subList = null;
+			try {
+				int from = i;
+				int to = piIds.size() < (i + step) ? (i + piIds.size()) : (i + step);
+				to = to < from ? from : to;
+				to = to > piIds.size() ? piIds.size() : to;
+				subList = piIds.subList(from, to);
+				importVariablesData(getVariablesQuerier().getFullVariablesByProcessInstanceIdsNaiveWay(subList));
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Error getting variables by IDs: " + subList, e);
+			}
+		}
+		
+		settings.setProperty(property, Boolean.TRUE.toString());
+	}
+	
+	private void importVariablesData(Collection<VariableInstanceInfo> variables) {
+		if (ListUtil.isEmpty(variables)) {
+			return;
+		}
+		
+		for (VariableInstanceInfo var: variables) {
+			if (var instanceof VariableStringInstance) {
+				VariableStringInstance stringVar = (VariableStringInstance) var;
+				String value = stringVar.getValue();
+				if (value != null && value.length() > 255) {
+					value = value.substring(0, 254);
+				}
+				
+				BPMVariableData varData = new BPMVariableData();
+				varData.setValue(value);
+				varData.setVariableId(stringVar.getId());
+				try {
+					persist(varData);
+				} catch (Exception e) {
+					LOGGER.log(Level.WARNING, "Error storing data to DB: " + varData, e);
+				}
+			}
 		}
 	}
 }

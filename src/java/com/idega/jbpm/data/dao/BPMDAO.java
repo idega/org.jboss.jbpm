@@ -69,5 +69,6 @@ public interface BPMDAO extends GenericDao {
 	public abstract int getTaskViewBindCount(String viewId, String viewType);
 	
 	public abstract void bindProcessVariables();
-		
+	
+	public abstract void importVariablesData();
 }
