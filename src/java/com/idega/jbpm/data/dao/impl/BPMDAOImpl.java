@@ -422,6 +422,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	
 	@Transactional(readOnly = false)
 	private void bindProcessVariables(String processDefinitionName, List<ProcessDefinitionVariablesBind> currentBinds) {
+		LOGGER.info("Started binder");	//	TODO
 		if (StringUtil.isEmpty(processDefinitionName)) {
 			return;
 		}
@@ -453,6 +454,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				LOGGER.log(Level.WARNING, "Error adding new bind: " + var + " for process: " + processDefinitionName, e);
 			}
 		}
+		LOGGER.info("Finished binder");	//	TODO
 	}
 	
 	private boolean bindExists(List<ProcessDefinitionVariablesBind> currentBinds, String variableName, String processDefinitionName) {
