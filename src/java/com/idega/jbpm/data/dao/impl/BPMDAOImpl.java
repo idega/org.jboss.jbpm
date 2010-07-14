@@ -476,6 +476,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 
 	public void onApplicationEvent(final ApplicationEvent event) {
+		if (true) {	//	TODO
+			return;
+		}
 		if (event instanceof VariableCreatedEvent) {
 			Thread binder = new Thread(new Runnable() {
 				public void run() {
