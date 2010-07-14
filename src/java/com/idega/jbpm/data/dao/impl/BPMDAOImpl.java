@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
+import com.idega.data.DatastoreInterface;
 import com.idega.data.SimpleQuerier;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
@@ -422,7 +423,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	
 	@Transactional(readOnly = false)
 	private void bindProcessVariables(String processDefinitionName, List<ProcessDefinitionVariablesBind> currentBinds) {
-		LOGGER.info("Started binder");	//	TODO
 		if (StringUtil.isEmpty(processDefinitionName)) {
 			return;
 		}
@@ -454,7 +454,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				LOGGER.log(Level.WARNING, "Error adding new bind: " + var + " for process: " + processDefinitionName, e);
 			}
 		}
-		LOGGER.info("Finished binder");	//	TODO
 	}
 	
 	private boolean bindExists(List<ProcessDefinitionVariablesBind> currentBinds, String variableName, String processDefinitionName) {
@@ -476,9 +475,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 
 	public void onApplicationEvent(final ApplicationEvent event) {
-		if (true) {	//	TODO
-			return;
-		}
 		if (event instanceof VariableCreatedEvent) {
 			Thread binder = new Thread(new Runnable() {
 				public void run() {
@@ -505,6 +501,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		if (settings.getBoolean(property, Boolean.FALSE)) {
 			return;
 		}
+		
+		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAR", BPMVariableData.COLUMN_VARIABLE_ID);
+		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAL", BPMVariableData.COLUMN_VALUE);
 		
 		List<Long> piIds = getAllProcessInstances();
 		if (ListUtil.isEmpty(piIds)) {
@@ -545,6 +544,15 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		);
 		
 		settings.setProperty(property, Boolean.TRUE.toString());
+	}
+	
+	private void createIndex(String table, String name, String column) {
+		try {
+			DatastoreInterface dataInterface = DatastoreInterface.getInstance();
+			dataInterface.createIndex(table, name, new String[] {column});
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error creating index '" + name + "' for table '" + table + "' and column: '" + column + "'", e);
+		}
 	}
 	
 	private void createTrigger(String triggerSQL) {

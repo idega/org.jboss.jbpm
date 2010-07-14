@@ -9,8 +9,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Index;
-
 @Entity
 @Table(name=BPMVariableData.TABLE_NAME)
 public class BPMVariableData implements Serializable {
@@ -19,17 +17,18 @@ public class BPMVariableData implements Serializable {
 
 	public static final String TABLE_NAME = "BPM_VARIABLE_DATA";
 	
+	public static final String COLUMN_VARIABLE_ID = "variable_id";
+	public static final String COLUMN_VALUE = "stringvalue";
+	
 	@Id
 	@Column(name="id")
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	private Long id;
 	
-	@Column(name="variable_id")
-	@Index(columnNames={"variable_id"}, name="IDX_" + TABLE_NAME + "_1")
+	@Column(name=COLUMN_VARIABLE_ID)
 	private Long variableId;
 	
-	@Column(name="stringvalue")
-	@Index(columnNames={"stringvalue"}, name="IDX_" + TABLE_NAME + "_2")
+	@Column(name=COLUMN_VALUE)
 	private String stringvalue;
 
 	public Long getId() {
