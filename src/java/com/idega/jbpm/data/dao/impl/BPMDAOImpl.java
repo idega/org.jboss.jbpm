@@ -537,10 +537,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		settings.setProperty(property, Boolean.TRUE.toString());
 	}
 	
-	@SuppressWarnings("deprecation")
 	private void createTrigger(String triggerSQL) {
 		try {
-			SimpleQuerier.execute(triggerSQL);
+			SimpleQuerier.executeUpdate(triggerSQL, Boolean.FALSE);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error creating trigger: " + triggerSQL, e);
 		}
