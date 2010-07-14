@@ -473,10 +473,15 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return variablesQuerier;
 	}
 
-	public void onApplicationEvent(ApplicationEvent event) {
+	public void onApplicationEvent(final ApplicationEvent event) {
 		if (event instanceof VariableCreatedEvent) {
-			VariableCreatedEvent variableCreated = (VariableCreatedEvent) event;
-			bindProcessVariables(variableCreated.getProcessDefinitionName());
+			Thread binder = new Thread(new Runnable() {
+				public void run() {
+					VariableCreatedEvent variableCreated = (VariableCreatedEvent) event;
+					bindProcessVariables(variableCreated.getProcessDefinitionName());
+				}
+			});
+			binder.start();
 		}
 	}
 	
