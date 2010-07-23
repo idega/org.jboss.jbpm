@@ -437,23 +437,40 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 	
 	private String getQueryParameters(String columnName, Collection<? extends Serializable> values) {
-		String params = StringUtil.isEmpty(columnName) ? " (" : " ".concat(columnName).concat(" in (");
-		for (Iterator<? extends Serializable> iter = values.iterator(); iter.hasNext();) {
-			Serializable value = iter.next();
+		String params = CoreConstants.EMPTY;
+		if (values.size() == 1) {
+			params = StringUtil.isEmpty(columnName) ? CoreConstants.SPACE : CoreConstants.SPACE.concat(columnName);
+			params = params.concat(" = ");
+			Serializable value = values.iterator().next();
 			boolean isString = value instanceof String;
 			if (isString) {
 				params = params.concat(CoreConstants.QOUTE_SINGLE_MARK);
 			}
-			params = params.concat(value.toString());
+			params = params.concat(String.valueOf(value));
 			if (isString) {
 				params = params.concat(CoreConstants.QOUTE_SINGLE_MARK);
 			}
-			
-			if (iter.hasNext()) {
-				params = params.concat(CoreConstants.COMMA).concat(CoreConstants.SPACE);
+		} else {
+			params = StringUtil.isEmpty(columnName) ? " (" : CoreConstants.SPACE.concat(columnName).concat(" in (");
+			for (Iterator<? extends Serializable> iter = values.iterator(); iter.hasNext();) {
+				Serializable value = iter.next();
+				boolean isString = value instanceof String;
+				if (isString) {
+					params = params.concat(CoreConstants.QOUTE_SINGLE_MARK);
+				}
+				params = params.concat(value.toString());
+				if (isString) {
+					params = params.concat(CoreConstants.QOUTE_SINGLE_MARK);
+				}
+				
+				if (iter.hasNext()) {
+					params = params.concat(CoreConstants.COMMA).concat(CoreConstants.SPACE);
+				}
 			}
+			params = params.concat(CoreConstants.BRACKET_RIGHT);
 		}
-		params = params.concat(CoreConstants.BRACKET_RIGHT).concat(CoreConstants.SPACE);
+		
+		params.concat(CoreConstants.SPACE);
 		return params;
 	}
 

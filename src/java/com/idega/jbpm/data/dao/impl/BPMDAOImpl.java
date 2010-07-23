@@ -510,7 +510,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			return;
 		}
 		
-		int step = 10;
+		int step = 5;
 		for (int i = 0; i < piIds.size(); i = i + step) {
 			List<Long> subList = null;
 			try {
