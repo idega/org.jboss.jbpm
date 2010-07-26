@@ -520,6 +520,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		
 		List<Long> varsIds = getExisitingVariables();
+		if (ListUtil.isEmpty(varsIds)) {
+			LOGGER.info("There are no existing variables in table " + BPMVariableData.TABLE_NAME);
+		}
 		
 		int step = 50;
 		try {

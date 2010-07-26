@@ -532,6 +532,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return from;
 	}
 
+	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds) {
+		return getFullVariablesByProcessInstanceIdsNaiveWay(processInstanceIds, null);
+	}
+	
 	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds, List<Long> existingVars) {
 		if (ListUtil.isEmpty(processInstanceIds)) {
 			return null;
