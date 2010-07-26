@@ -495,6 +495,15 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return null;
 	}
 	
+	private List<Long> getExisitingVariables() {
+		try {
+			return getResultListByInlineQuery("select distinct var.variableId from " + BPMVariableData.class.getName() + " var", Long.class);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting all process instances", e);
+		}
+		return null;
+	}
+	
 	public void importVariablesData() {
 		IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
 		String property = "jbpm_vars_data_imported";
@@ -510,19 +519,27 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			return;
 		}
 		
-		int step = 5;
-		for (int i = 0; i < piIds.size(); i = i + step) {
-			List<Long> subList = null;
-			try {
-				int from = i;
-				int to = piIds.size() < (i + step) ? (i + piIds.size()) : (i + step);
-				to = to < from ? from : to;
-				to = to > piIds.size() ? piIds.size() : to;
-				subList = piIds.subList(from, to);
-				importVariablesData(getVariablesQuerier().getFullVariablesByProcessInstanceIdsNaiveWay(subList));
-			} catch (Exception e) {
-				LOGGER.log(Level.WARNING, "Error getting variables by IDs: " + subList, e);
+		List<Long> varsIds = getExisitingVariables();
+		
+		int step = 50;
+		try {
+			for (int i = 0; i < piIds.size(); i = i + step) {
+				List<Long> subList = null;
+				try {
+					int from = i;
+					int to = piIds.size() < (i + step) ? (i + piIds.size()) : (i + step);
+					to = to < from ? from : to;
+					to = to > piIds.size() ? piIds.size() : to;
+					subList = piIds.subList(from, to);
+					if (importVariablesData(getVariablesQuerier().getFullVariablesByProcessInstanceIdsNaiveWay(subList, varsIds))) {
+						flush();
+					}
+				} catch (Exception e) {
+					LOGGER.log(Level.WARNING, "Error getting variables by IDs: " + subList, e);
+				}
 			}
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error while importing data for processes: " + piIds + "\n, number of processes: " + piIds.size(), e);
 		}
 		
 		createTrigger("CREATE TRIGGER variable_inserted_trigger AFTER INSERT ON JBPM_VARIABLEINSTANCE " +
@@ -563,11 +580,13 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 	}
 	
-	private void importVariablesData(Collection<VariableInstanceInfo> variables) {
+	private boolean importVariablesData(Collection<VariableInstanceInfo> variables) {
 		if (ListUtil.isEmpty(variables)) {
-			return;
+			LOGGER.info("No variables to import: empty list provided.");
+			return Boolean.FALSE;
 		}
 		
+		boolean peristedAny = Boolean.FALSE;;
 		for (VariableInstanceInfo var: variables) {
 			if (var instanceof VariableStringInstance) {
 				VariableStringInstance stringVar = (VariableStringInstance) var;
@@ -581,10 +600,13 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				varData.setVariableId(stringVar.getId());
 				try {
 					persist(varData);
+					peristedAny = Boolean.TRUE;
 				} catch (Exception e) {
 					LOGGER.log(Level.WARNING, "Error storing data to DB: " + varData, e);
 				}
 			}
 		}
+		
+		return peristedAny;
 	}
 }

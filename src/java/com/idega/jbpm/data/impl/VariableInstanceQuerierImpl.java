@@ -437,10 +437,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 	
 	private String getQueryParameters(String columnName, Collection<? extends Serializable> values) {
+		return getQueryParameters(columnName, values, Boolean.FALSE);
+	}
+	
+	private String getQueryParameters(String columnName, Collection<? extends Serializable> values, boolean notEquals) {
 		String params = CoreConstants.EMPTY;
 		if (values.size() == 1) {
 			params = StringUtil.isEmpty(columnName) ? CoreConstants.SPACE : CoreConstants.SPACE.concat(columnName);
-			params = params.concat(" = ");
+			params = params.concat(notEquals ? " <> " : " = ");
 			Serializable value = values.iterator().next();
 			boolean isString = value instanceof String;
 			if (isString) {
@@ -451,7 +455,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				params = params.concat(CoreConstants.QOUTE_SINGLE_MARK);
 			}
 		} else {
-			params = StringUtil.isEmpty(columnName) ? " (" : CoreConstants.SPACE.concat(columnName).concat(" in (");
+			params = StringUtil.isEmpty(columnName) ? " (" : CoreConstants.SPACE.concat(columnName).concat(notEquals ? " not ":CoreConstants.EMPTY).concat(" in (");
 			for (Iterator<? extends Serializable> iter = values.iterator(); iter.hasNext();) {
 				Serializable value = iter.next();
 				boolean isString = value instanceof String;
@@ -528,7 +532,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return from;
 	}
 
-	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds) {
+	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds, List<Long> existingVars) {
 		if (ListUtil.isEmpty(processInstanceIds)) {
 			return null;
 		}
@@ -538,6 +542,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		String query = getQuery("select ", STANDARD_COLUMNS, ", ", getSubstring("var.STRINGVALUE_"), " as sv, var.PROCESSINSTANCE_ ", FROM, " where ",
 				getQueryParameters("var.PROCESSINSTANCE_", processInstanceIds), " and ", NAME_CONDITION + " and ",
 				getQueryParameters("var.CLASS_", VariableInstanceType.STRING.getTypeKeys()));
+		if (!ListUtil.isEmpty(existingVars)) {
+			query = query.concat(" and ").concat(getQueryParameters("var.ID_", existingVars, true));
+		}
 		try {
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
