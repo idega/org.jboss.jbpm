@@ -530,8 +530,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 						"FOR EACH ROW\n" +
 						"BEGIN\n" +
 							"IF (" + refNew + ".ID_ is not null and " + refNew + ".stringvalue_ is not null) THEN\n" +
-								"insert into BPM_VARIABLE_DATA (id, variable_id, stringvalue) values (" + BPMVariableData.TABLE_NAME + "_seq.NEXTVAL, " +
-									refNew + ".ID_, substr(" + refNew + ".stringvalue_, 1, 255));\n" +
+								"insert into BPM_VARIABLE_DATA (" + (oracle ? "id, " : CoreConstants.EMPTY) + "variable_id, stringvalue) values (" +
+									(oracle ? BPMVariableData.TABLE_NAME + "_seq.NEXTVAL, " : CoreConstants.EMPTY) + refNew + ".ID_, substr(" + refNew +
+																																	".stringvalue_, 1, 255));\n" +
 							"END IF;\n"+
 						"END;"
 		);
