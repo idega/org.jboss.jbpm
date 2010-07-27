@@ -2,6 +2,8 @@ package com.idega.jbpm.bean;
 
 import java.io.Serializable;
 import java.sql.Clob;
+import java.util.logging.Logger;
+
 import com.idega.util.CoreConstants;
 import com.idega.util.StringHandler;
 
@@ -30,6 +32,10 @@ public class VariableStringInstance extends VariableInstanceInfo {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+			}
+			
+			if (variableValue == null) {
+				Logger.getLogger(this.getClass().getName()).warning("Unable to fetch value from Clob: " + clob);
 			}
 		}
 		
