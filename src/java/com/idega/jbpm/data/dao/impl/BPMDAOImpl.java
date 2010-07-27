@@ -44,6 +44,7 @@ import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.events.VariableCreatedEvent;
 import com.idega.jbpm.identity.Role;
+import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
@@ -518,34 +519,55 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 	
 	private void prepareTable() {
+		createSequence(BPMVariableData.TABLE_NAME);
+		
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAR", BPMVariableData.COLUMN_VARIABLE_ID);
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAL", BPMVariableData.COLUMN_VALUE);
 		
+		boolean oracle = isOracle();
 		String refNew = getTriggerReference("NEW");
-		createTrigger("CREATE TRIGGER BPM_VARIABLE_INSERTED AFTER INSERT ON JBPM_VARIABLEINSTANCE " +
-						"FOR EACH ROW BEGIN " +
-							"IF (NEW.stringvalue_ is not null) THEN " +
-								"insert into BPM_VARIABLE_DATA (variable_id, stringvalue) values ("+refNew+".ID_, substr("+refNew+".stringvalue_, 1, 255)); " +
-							"END IF; "+
+		createTrigger("CREATE TRIGGER BPM_VARIABLE_INSERTED AFTER INSERT ON JBPM_VARIABLEINSTANCE " + (oracle ? "referencing new as new ": CoreConstants.EMPTY) +
+						"FOR EACH ROW\n" +
+						"BEGIN\n" +
+							"IF (" + refNew + ".ID_ is not null and " + refNew + ".stringvalue_ is not null) THEN\n" +
+								"insert into BPM_VARIABLE_DATA (id, variable_id, stringvalue) values (" + BPMVariableData.TABLE_NAME + "_seq.NEXTVAL, " +
+									refNew + ".ID_, substr(" + refNew + ".stringvalue_, 1, 255));\n" +
+							"END IF;\n"+
 						"END;"
 		);
-		createTrigger("CREATE TRIGGER BPM_VARIABLE_UPDATED AFTER UPDATE ON JBPM_VARIABLEINSTANCE "+
-						"FOR EACH ROW BEGIN " +
-							" update BPM_VARIABLE_DATA set stringvalue=substr("+refNew+".stringvalue_, 1, 255) where variable_id="+refNew+".ID_; " +
+		createTrigger("CREATE TRIGGER BPM_VARIABLE_UPDATED AFTER UPDATE ON JBPM_VARIABLEINSTANCE " + (oracle ? "referencing new as new ": CoreConstants.EMPTY) +
+						"FOR EACH ROW\n" +
+						"BEGIN\n" +
+							"update BPM_VARIABLE_DATA set stringvalue=substr("+refNew+".stringvalue_, 1, 255) where variable_id="+refNew+".ID_;\n" +
 						"END;"
 		);
 		String refOld = getTriggerReference("OLD");
-		createTrigger("CREATE TRIGGER BPM_VARIABLE_DELETED BEFORE DELETE ON JBPM_VARIABLEINSTANCE " +
-						"FOR EACH ROW BEGIN " +
-							"delete from BPM_VARIABLE_DATA where variable_id="+refOld+".ID_; " +
+		createTrigger("CREATE TRIGGER BPM_VARIABLE_DELETED BEFORE DELETE ON JBPM_VARIABLEINSTANCE " + (oracle ? "referencing old as old ": CoreConstants.EMPTY) +
+						"FOR EACH ROW\n" + 
+						"BEGIN\n" +
+							"delete from BPM_VARIABLE_DATA where variable_id="+refOld+".ID_;\n" +
 						"END;"
 		);
 	}
 	
-	private String getTriggerReference(String reference) {
+	private void createSequence(String tableName) {
+		try {
+			DatastoreInterface dataStore = DatastoreInterface.getInstance();
+			dataStore.createSequence(tableName, 1);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error creating sequence for table: " + tableName, e);
+		}
+	}
+	
+	private boolean isOracle() {
 		DatastoreInterface dataStore = DatastoreInterface.getInstance();
-		if (dataStore instanceof OracleDatastoreInterface) {
+		return dataStore instanceof OracleDatastoreInterface;
+	}
+	
+	private String getTriggerReference(String reference) {
+		if (isOracle()) {
 			reference = ":".concat(reference);
+			reference = reference.toLowerCase();
 		}
 		return reference;
 	}
@@ -561,7 +583,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			LOGGER.info("There are no existing variables in table " + BPMVariableData.TABLE_NAME);
 		}
 		
-		int step = 100;
+		int step = 10;
 		try {
 			for (int i = 0; i < piIds.size(); i = i + step) {
 				List<Long> subList = null;
@@ -571,9 +593,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 					to = to < from ? from : to;
 					to = to > piIds.size() ? piIds.size() : to;
 					subList = piIds.subList(from, to);
-					if (importVariablesData(getVariablesQuerier().getFullVariablesByProcessInstanceIdsNaiveWay(subList, varsIds))) {
-						flush();
-					}
+					importVariablesData(getVariablesQuerier().getFullVariablesByProcessInstanceIdsNaiveWay(subList, varsIds));
 				} catch (Exception e) {
 					LOGGER.log(Level.WARNING, "Error getting variables by IDs: " + subList, e);
 				}
