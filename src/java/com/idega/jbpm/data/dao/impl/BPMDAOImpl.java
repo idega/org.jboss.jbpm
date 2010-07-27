@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.data.DatastoreInterface;
-import com.idega.data.SimpleQuerier;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.BPMContext;
@@ -511,9 +510,36 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			return;
 		}
 		
+		prepareTable();
+		doImportData();
+		
+		settings.setProperty(property, Boolean.TRUE.toString());
+	}
+	
+	private void prepareTable() {
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAR", BPMVariableData.COLUMN_VARIABLE_ID);
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAL", BPMVariableData.COLUMN_VALUE);
 		
+		createTrigger("CREATE TRIGGER BPM_VARIABLE_INSERTED AFTER INSERT ON JBPM_VARIABLEINSTANCE " +
+						"FOR EACH ROW BEGIN " +
+							"IF NEW.stringvalue_ is not null THEN " +
+								"insert into BPM_VARIABLE_DATA (variable_id, stringvalue) values (NEW.ID_, substr(NEW.stringvalue_, 1, 255)); " +
+							"END IF; "+
+						"END;"
+		);
+		createTrigger("CREATE TRIGGER BPM_VARIABLE_UPDATED AFTER UPDATE ON JBPM_VARIABLEINSTANCE "+
+						"FOR EACH ROW BEGIN " +
+							" update BPM_VARIABLE_DATA set stringvalue=substr(NEW.stringvalue_, 1, 255) where variable_id=NEW.ID_; " +
+						"END;"
+		);
+		createTrigger("CREATE TRIGGER BPM_VARIABLE_DELETED BEFORE DELETE ON JBPM_VARIABLEINSTANCE " +
+						"FOR EACH ROW BEGIN " +
+							"delete from BPM_VARIABLE_DATA where variable_id=OLD.ID_; " +
+						"END;"
+		);
+	}
+	
+	private void doImportData() {
 		List<Long> piIds = getAllProcessInstances();
 		if (ListUtil.isEmpty(piIds)) {
 			return;
@@ -524,7 +550,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			LOGGER.info("There are no existing variables in table " + BPMVariableData.TABLE_NAME);
 		}
 		
-		int step = 50;
+		int step = 100;
 		try {
 			for (int i = 0; i < piIds.size(); i = i + step) {
 				List<Long> subList = null;
@@ -544,26 +570,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while importing data for processes: " + piIds + "\n, number of processes: " + piIds.size(), e);
 		}
-		
-		createTrigger("CREATE TRIGGER variable_inserted_trigger AFTER INSERT ON JBPM_VARIABLEINSTANCE " +
-						"FOR EACH ROW BEGIN " +
-							"IF NEW.stringvalue_ is not null THEN " +
-								"insert into BPM_VARIABLE_DATA (variable_id, stringvalue) values (NEW.ID_, substr(NEW.stringvalue_, 1, 255)); " +
-							"END IF; "+
-						"END;"
-		);
-		createTrigger("CREATE TRIGGER variable_updated_trigger AFTER UPDATE ON JBPM_VARIABLEINSTANCE "+
-						"FOR EACH ROW BEGIN " +
-							" update BPM_VARIABLE_DATA set stringvalue=substr(NEW.stringvalue_, 1, 255) where variable_id=NEW.ID_; " +
-						"END;"
-		);
-		createTrigger("CREATE TRIGGER variable_deleted_trigger BEFORE DELETE ON JBPM_VARIABLEINSTANCE " +
-						"FOR EACH ROW BEGIN " + 
-							"delete from BPM_VARIABLE_DATA where variable_id=OLD.ID_; " +
-						"END;"
-		);
-		
-		settings.setProperty(property, Boolean.TRUE.toString());
 	}
 	
 	private void createIndex(String table, String name, String column) {
@@ -577,7 +583,8 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	
 	private void createTrigger(String triggerSQL) {
 		try {
-			SimpleQuerier.executeUpdate(triggerSQL, Boolean.FALSE);
+			DatastoreInterface dataInterface = DatastoreInterface.getInstance();
+			dataInterface.createTrigger(triggerSQL);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error creating trigger: " + triggerSQL, e);
 		}

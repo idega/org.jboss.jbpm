@@ -24,7 +24,12 @@ public class IWBundleStarter implements IWBundleStartable {
 		BPMViewManager vm = BPMViewManager.getInstance(starterBundle.getApplication());
 		vm.initializeStandardNodes(starterBundle);
 		
-		getBpmDAO().importVariablesData();
+		Thread variablesDataImporter = new Thread(new Runnable() {
+			public void run() {
+				getBpmDAO().importVariablesData();
+			}
+		});
+		variablesDataImporter.start();
 		
 		Thread procVarsBinder = new Thread(new Runnable() {
 			public void run() {
