@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.data.DatastoreInterface;
+import com.idega.data.OracleDatastoreInterface;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.BPMContext;
@@ -520,23 +521,33 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAR", BPMVariableData.COLUMN_VARIABLE_ID);
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAL", BPMVariableData.COLUMN_VALUE);
 		
+		String refNew = getTriggerReference("NEW");
 		createTrigger("CREATE TRIGGER BPM_VARIABLE_INSERTED AFTER INSERT ON JBPM_VARIABLEINSTANCE " +
 						"FOR EACH ROW BEGIN " +
-							"IF NEW.stringvalue_ is not null THEN " +
-								"insert into BPM_VARIABLE_DATA (variable_id, stringvalue) values (NEW.ID_, substr(NEW.stringvalue_, 1, 255)); " +
+							"IF (NEW.stringvalue_ is not null) THEN " +
+								"insert into BPM_VARIABLE_DATA (variable_id, stringvalue) values ("+refNew+".ID_, substr("+refNew+".stringvalue_, 1, 255)); " +
 							"END IF; "+
 						"END;"
 		);
 		createTrigger("CREATE TRIGGER BPM_VARIABLE_UPDATED AFTER UPDATE ON JBPM_VARIABLEINSTANCE "+
 						"FOR EACH ROW BEGIN " +
-							" update BPM_VARIABLE_DATA set stringvalue=substr(NEW.stringvalue_, 1, 255) where variable_id=NEW.ID_; " +
+							" update BPM_VARIABLE_DATA set stringvalue=substr("+refNew+".stringvalue_, 1, 255) where variable_id="+refNew+".ID_; " +
 						"END;"
 		);
+		String refOld = getTriggerReference("OLD");
 		createTrigger("CREATE TRIGGER BPM_VARIABLE_DELETED BEFORE DELETE ON JBPM_VARIABLEINSTANCE " +
 						"FOR EACH ROW BEGIN " +
-							"delete from BPM_VARIABLE_DATA where variable_id=OLD.ID_; " +
+							"delete from BPM_VARIABLE_DATA where variable_id="+refOld+".ID_; " +
 						"END;"
 		);
+	}
+	
+	private String getTriggerReference(String reference) {
+		DatastoreInterface dataStore = DatastoreInterface.getInstance();
+		if (dataStore instanceof OracleDatastoreInterface) {
+			reference = ":".concat(reference);
+		}
+		return reference;
 	}
 	
 	private void doImportData() {
