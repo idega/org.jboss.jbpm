@@ -519,12 +519,14 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 	
 	private void prepareTable() {
-		createSequence(BPMVariableData.TABLE_NAME);
+		boolean oracle = isOracle();
+		if (oracle) {
+			createSequence(BPMVariableData.TABLE_NAME);
+		}
 		
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAR", BPMVariableData.COLUMN_VARIABLE_ID);
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAL", BPMVariableData.COLUMN_VALUE);
 		
-		boolean oracle = isOracle();
 		String refNew = getTriggerReference("NEW");
 		createTrigger("CREATE TRIGGER BPM_VARIABLE_INSERTED AFTER INSERT ON JBPM_VARIABLEINSTANCE " + (oracle ? "referencing new as new ": CoreConstants.EMPTY) +
 						"FOR EACH ROW\n" +
