@@ -21,14 +21,22 @@ public class VariableStringInstance extends VariableInstanceInfo {
 			variableValue = (String) value;
 		} else if (value instanceof Clob) {
 			Clob clob = (Clob) value;
+			
 			try {
-				variableValue = StringHandler.getContentFromInputStream(clob.getAsciiStream());
+				variableValue = clob.getSubString(1, (int)clob.length());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			if (variableValue == null) {
 				try {
-					variableValue = clob.getSubString(1, (int)clob.length());
+					variableValue = StringHandler.getContentFromInputStream(clob.getAsciiStream());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			if (variableValue == null) {
+				try {
+					variableValue = StringHandler.getContentFromReader(clob.getCharacterStream(1, (int)clob.length()));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
