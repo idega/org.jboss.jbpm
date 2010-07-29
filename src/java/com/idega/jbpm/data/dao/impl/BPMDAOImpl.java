@@ -575,7 +575,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return reference;
 	}
 	
-	@Transactional(readOnly = false)
 	private void doImportData() {
 		List<Long> piIds = getAllProcessInstances();
 		if (ListUtil.isEmpty(piIds)) {
@@ -587,22 +586,25 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			LOGGER.info("There are no existing variables in table " + BPMVariableData.TABLE_NAME);
 		}
 		
-		int step = 25;
+		int step = 5;
 		try {
 			for (int i = 0; i < piIds.size(); i = i + step) {
 				List<Long> subList = null;
+				Collection<VariableInstanceInfo> vars = null;
+				
 				try {
 					int from = i;
 					int to = piIds.size() < (i + step) ? (i + piIds.size()) : (i + step);
 					to = to < from ? from : to;
 					to = to > piIds.size() ? piIds.size() : to;
 					subList = piIds.subList(from, to);
-					if (importVariablesData(getVariablesQuerier().getFullVariablesByProcessInstanceIdsNaiveWay(subList, varsIds))) {
+					vars = getVariablesQuerier().getFullVariablesByProcessInstanceIdsNaiveWay(subList, varsIds);
+					if (importVariablesData(vars)) {
 						flush();
 						getEntityManager().clear();
 					}
 				} catch (Exception e) {
-					LOGGER.log(Level.WARNING, "Error getting variables by IDs: " + subList, e);
+					LOGGER.log(Level.WARNING, "Error getting variables by IDs: " + subList + " or inserting data (" + vars + ")", e);
 				}
 			}
 		} catch (Exception e) {
@@ -635,7 +637,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			return Boolean.FALSE;
 		}
 		
-		boolean peristedAny = Boolean.FALSE;;
+		boolean peristedAny = Boolean.FALSE;
 		for (VariableInstanceInfo var: variables) {
 			if (var instanceof VariableStringInstance) {
 				VariableStringInstance stringVar = (VariableStringInstance) var;

@@ -55,4 +55,8 @@ public class BPMVariableData implements Serializable {
 		this.variableId = variableId;
 	}
 
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() +": ID: " + getId() + ", variable ID: " + getVariableId() + ", value: " + getValue();
+	}
 }
