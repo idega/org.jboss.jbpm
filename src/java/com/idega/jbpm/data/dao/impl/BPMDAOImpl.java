@@ -30,7 +30,6 @@ import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.bean.VariableInstanceInfo;
-import com.idega.jbpm.bean.VariableStringInstance;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.AutoloadedProcessDefinition;
@@ -487,7 +486,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 	}
 	
-	private List<Long> getAllProcessInstances() {
+	protected List<Long> getAllProcessInstances() {
 		try {
 			return getResultListByInlineQuery("select pi.id from org.jbpm.graph.exe.ProcessInstance pi", Long.class);
 		} catch (Exception e) {
@@ -496,7 +495,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return null;
 	}
 	
-	private List<Long> getExisitingVariables() {
+	protected List<Long> getExisitingVariables() {
 		try {
 			return getResultListByInlineQuery("select distinct var.variableId from " + BPMVariableData.class.getName() + " var", Long.class);
 		} catch (Exception e) {
@@ -513,7 +512,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		
 		prepareTable();
-		doImportData();
 		
 		settings.setProperty(property, Boolean.TRUE.toString());
 	}
@@ -575,43 +573,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return reference;
 	}
 	
-	private void doImportData() {
-		List<Long> piIds = getAllProcessInstances();
-		if (ListUtil.isEmpty(piIds)) {
-			return;
-		}
-		
-		List<Long> varsIds = getExisitingVariables();
-		if (ListUtil.isEmpty(varsIds)) {
-			LOGGER.info("There are no existing variables in table " + BPMVariableData.TABLE_NAME);
-		}
-		
-		int step = 5;
-		try {
-			for (int i = 0; i < piIds.size(); i = i + step) {
-				List<Long> subList = null;
-				Collection<VariableInstanceInfo> vars = null;
-				
-				try {
-					int from = i;
-					int to = piIds.size() < (i + step) ? (i + piIds.size()) : (i + step);
-					to = to < from ? from : to;
-					to = to > piIds.size() ? piIds.size() : to;
-					subList = piIds.subList(from, to);
-					vars = getVariablesQuerier().getFullVariablesByProcessInstanceIdsNaiveWay(subList, varsIds);
-					if (importVariablesData(vars)) {
-						flush();
-						getEntityManager().clear();
-					}
-				} catch (Exception e) {
-					LOGGER.log(Level.WARNING, "Error getting variables by IDs: " + subList + " or inserting data (" + vars + ")", e);
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error while importing data for processes: " + piIds + "\n, number of processes: " + piIds.size(), e);
-		}
-	}
-	
 	private void createIndex(String table, String name, String column) {
 		try {
 			DatastoreInterface dataInterface = DatastoreInterface.getInstance();
@@ -628,36 +589,5 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error creating trigger: " + triggerSQL, e);
 		}
-	}
-	
-	@Transactional(readOnly = false)
-	private boolean importVariablesData(Collection<VariableInstanceInfo> variables) {
-		if (ListUtil.isEmpty(variables)) {
-			LOGGER.info("No variables to import: empty list provided.");
-			return Boolean.FALSE;
-		}
-		
-		boolean peristedAny = Boolean.FALSE;
-		for (VariableInstanceInfo var: variables) {
-			if (var instanceof VariableStringInstance) {
-				VariableStringInstance stringVar = (VariableStringInstance) var;
-				String value = stringVar.getValue();
-				if (value != null && value.length() > 255) {
-					value = value.substring(0, 254);
-				}
-				
-				BPMVariableData varData = new BPMVariableData();
-				varData.setValue(value);
-				varData.setVariableId(stringVar.getId());
-				try {
-					persist(varData);
-					peristedAny = Boolean.TRUE;
-				} catch (Exception e) {
-					LOGGER.log(Level.WARNING, "Error storing data to DB: " + varData, e);
-				}
-			}
-		}
-		
-		return peristedAny;
 	}
 }

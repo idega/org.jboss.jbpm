@@ -4,3 +4,5 @@ alter table JBPM_VARIABLEINSTANCE drop column stringvalue_;
 alter table JBPM_VARIABLEINSTANCE add column stringvalue_ varchar(31000);
 update JBPM_VARIABLEINSTANCE set stringvalue_ = stringvalue2_;
 alter table JBPM_VARIABLEINSTANCE drop column stringvalue2_;
+
+insert into bpm_variable_data (variable_id, stringvalue) select var.id_, substr(var.stringvalue_, 1, 254) from jbpm_variableinstance var where var.stringvalue_ is not null and var.class_ in ('S', 'I');
