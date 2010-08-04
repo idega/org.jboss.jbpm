@@ -389,7 +389,6 @@ public class ProcessArtifacts {
 	}
 	
 	public Document getProcessTasksList(ProcessArtifactsParamsBean params) {
-		
 		Long processInstanceId = params.getPiId();
 		
 		if (processInstanceId == null)
@@ -400,18 +399,21 @@ public class ProcessArtifacts {
 			return null;
 		}
 		
-		User loggedInUser = getBpmFactory().getBpmUserFactory()
-		        .getCurrentBPMUser().getUserToUse();
+		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
 		Locale userLocale = iwc.getCurrentLocale();
 		
-		IWBundle bundle = iwc.getIWMainApplication().getBundle(
-		    IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
-		Collection<BPMDocument> tasksDocuments = getBpmFactory()
-		        .getProcessManagerByProcessInstanceId(processInstanceId)
-		        .getProcessInstance(processInstanceId).getTaskDocumentsForUser(
-		            loggedInUser, userLocale);
+		Collection<BPMDocument> tasksDocuments = null;
+		try {
+			tasksDocuments = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId)
+								.getTaskDocumentsForUser(loggedInUser, userLocale);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +
+					userLocale, e);
+		}
+		tasksDocuments = tasksDocuments == null ? new ArrayList<BPMDocument>(0) : tasksDocuments;
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 		
@@ -419,18 +421,13 @@ public class ProcessArtifacts {
 		rows.setTotal(size);
 		rows.setPage(size == 0 ? 0 : 1);
 		
-		String noOneLocalized = iwrb.getLocalizedString(
-		    "cases_bpm.case_assigned_to_no_one", "No one");
-		String takeTaskImage = bundle
-		        .getVirtualPathWithFileNameString("images/take_task.png");
-		String takeTaskTitle = iwrb.getLocalizedString(
-		    "cases_bpm.case_take_task", "Take task");
+		String noOneLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_no_one", "No one");
+		String takeTaskImage = bundle.getVirtualPathWithFileNameString("images/take_task.png");
+		String takeTaskTitle = iwrb.getLocalizedString("cases_bpm.case_take_task", "Take task");
 		boolean allowReAssignTask = false;
 		
-		for (BPMDocument taskDocument : tasksDocuments) {
-			
-			boolean disableSelection = false; // this is not used now, and implementation can be
-			// different when we finally decide to use it
+		for (BPMDocument taskDocument: tasksDocuments) {
+			boolean disableSelection = false; // this is not used now, and implementation can be different when we finally decide to use it
 			
 			Long taskInstanceId = taskDocument.getTaskInstanceId();
 			
@@ -438,35 +435,21 @@ public class ProcessArtifacts {
 			String assignedToName;
 			
 			if (StringUtil.isEmpty(taskDocument.getAssignedToName())) {
-				
 				addTaskAssigment = true; // Because is not assigned yet
 				assignedToName = noOneLocalized;
-				
 			} else {
-				
 				addTaskAssigment = false;
 				assignedToName = taskDocument.getAssignedToName();
 			}
 			
 			if (addTaskAssigment || allowReAssignTask) {
-				String imageId = new StringBuilder("id").append(taskInstanceId)
-				        .append("_assignTask").toString();
-				StringBuilder assignedToCell = new StringBuilder("<img src=\"")
-				        .append(takeTaskImage).append("\" title=\"").append(
-				            takeTaskTitle).append("\"");
-				assignedToCell
-				        .append(" id=\"")
-				        .append(imageId)
-				        .append("\"")
-				        .append(
-				            " onclick=\"CasesBPMAssets.takeCurrentProcessTask(event, '")
-				        .append(taskInstanceId);
-				assignedToCell.append("', '").append(imageId).append("', ")
-				        .append(allowReAssignTask).append(");\" />");
+				String imageId = new StringBuilder("id").append(taskInstanceId).append("_assignTask").toString();
+				StringBuilder assignedToCell = new StringBuilder("<img src=\"").append(takeTaskImage).append("\" title=\"").append(takeTaskTitle).append("\"");
+				assignedToCell.append(" id=\"").append(imageId).append("\"").append(" onclick=\"CasesBPMAssets.takeCurrentProcessTask(event, '")
+					.append(taskInstanceId);
+				assignedToCell.append("', '").append(imageId).append("', ").append(allowReAssignTask).append(");\" />");
 				
-				assignedToName = new StringBuilder(assignedToCell.toString())
-				        .append(CoreConstants.SPACE).append(assignedToName)
-				        .toString();
+				assignedToName = new StringBuilder(assignedToCell.toString()).append(CoreConstants.SPACE).append(assignedToName).toString();
 			}
 			
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
@@ -475,26 +458,22 @@ public class ProcessArtifacts {
 			row.setId(taskInstanceId.toString());
 			
 			row.addCell(taskDocument.getDocumentName());
-			row
-			        .addCell(taskDocument.getCreateDate() == null ? CoreConstants.EMPTY
-			                : new IWTimestamp(taskDocument.getCreateDate())
-			                        .getLocaleDateAndTime(userLocale,
+			row.addCell(taskDocument.getCreateDate() == null ? CoreConstants.EMPTY : new IWTimestamp(taskDocument.getCreateDate()).getLocaleDateAndTime(userLocale,
 			                            IWTimestamp.SHORT, IWTimestamp.SHORT));
 			row.setDateCellIndex(row.getCells().size() - 1);
+			
 			// TODO commented for future use. 'Taken by' column isn't shown now
 			// row.addCell(assignedToName);
 			
 			disableSelection = true;
 			
 			if (disableSelection) {
-				
 				row.setStyleClass("disabledSelection");
 				row.setDisabledSelection(disableSelection);
 			}
 			
 			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, processInstanceId, taskInstanceId,
-				    null, null, true);
+				addRightsChangerCell(row, processInstanceId, taskInstanceId, null, null, true);
 			}
 		}
 		
@@ -503,16 +482,13 @@ public class ProcessArtifacts {
 			if (params.isRightsChanger()) {
 				cellsCount++;
 			}
-			addMessageIfNoContentExists(rows, iwrb.getLocalizedString(
-			    "no_tasks_available_currently",
-			    "You currently don't have any tasks awaiting"), cellsCount);
+			addMessageIfNoContentExists(rows, iwrb.getLocalizedString("no_tasks_available_currently", "You currently don't have any tasks awaiting"), cellsCount);
 		}
 		
 		try {
 			return rows.getDocument();
-			
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
+			LOGGER.log(Level.SEVERE, "Exception while parsing rows: " + rows, e);
 			return null;
 		}
 	}
