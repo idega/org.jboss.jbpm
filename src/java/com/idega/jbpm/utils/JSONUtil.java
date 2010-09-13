@@ -1,5 +1,6 @@
 package com.idega.jbpm.utils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.thoughtworks.xstream.XStream;
@@ -21,7 +22,7 @@ public class JSONUtil {
 	private Map<String, Class<?>> aliasMap;
 	
 	public JSONUtil() {
-		xstream = new XStream(new JettisonMappedXmlDriver());
+		this(new HashMap<String, Class<?>>());
 	}
 	
 	public JSONUtil(Map<String, Class<?>> aliases) {
@@ -64,5 +65,16 @@ public class JSONUtil {
 		@SuppressWarnings("unchecked")
 		T obj = (T)xstream.fromXML(jsonStr);
 		return obj;
+	}
+	
+	public void setAliases(Map<String, Class<?>> aliases) {
+		this.aliasMap = aliases;
+	}
+	
+	public void addAlias(String key, Class<?> theClass) {
+		if (aliasMap == null) {
+			aliasMap = new HashMap<String, Class<?>>();
+		}
+		aliasMap.put(key, theClass);
 	}
 }
