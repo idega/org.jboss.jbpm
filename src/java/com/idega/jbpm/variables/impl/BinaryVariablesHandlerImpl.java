@@ -36,6 +36,7 @@ import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
+import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
@@ -141,15 +142,13 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			WebdavExtendedResource res = slideService.getWebdavExtendedResource(concPF(path, fileName), credentials);
 			
 			if (res.exists()) {
-				
+				//	File by the same name already exists! Renaming this file not to overwrite existing file
 				boolean success = false;
 				int i = 0;
 				
 				while (!success) {
-					
 					String p = path + (i++);
 					res = slideService.getWebdavExtendedResource(concPF(p, fileName), credentials);
-					
 					if (!res.exists()) {
 						path = p;
 						success = true;
@@ -157,22 +156,27 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				}
 			}
 			
-			// This should be changed, temporal fix. user will not be able submit a form if
-			// exception will be thrown here
-			for (int i = 0; i < 5; i++) {
-				try {
-					InputStream is = fileURIHandler.getFile(fileUri);
-					slideService.uploadFileAndCreateFoldersFromStringAsRoot(path + CoreConstants.SLASH, fileName, is, null, false);
-					
-				} catch (Exception e) {
-					if (i < 4) {
-						Thread.sleep(500);
-						continue;
+			// This should be changed, temporal fix. user will not be able submit a form if exception will be thrown here
+			InputStream stream = null;
+			try {
+				String uploadPath = path.concat(CoreConstants.SLASH);
+				for (int i = 0; i < 5; i++) {
+					try {
+						stream = fileURIHandler.getFile(fileUri);
+						if (!slideService.uploadFile(uploadPath, fileName, null, stream)) {
+							throw new RuntimeException("Unable to upload file to " + uploadPath.concat(fileName));
+						}
+					} catch (Exception e) {
+						if (i < 4) {
+							Thread.sleep(500);
+							continue;
+						}
+						throw e;
 					}
-					
-					throw e;
+					break;
 				}
-				break;
+			} finally {
+				IOUtil.close(stream);
 			}
 			
 			binaryVariable.setFileName(fileName);
