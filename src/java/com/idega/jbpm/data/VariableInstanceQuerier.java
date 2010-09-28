@@ -19,6 +19,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceId(Long processInstanceId);
 	
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names);
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean checkTaskInstance);
 	
 	public Collection<VariableInstanceInfo> getVariablesByNames(List<String> names);
 	
