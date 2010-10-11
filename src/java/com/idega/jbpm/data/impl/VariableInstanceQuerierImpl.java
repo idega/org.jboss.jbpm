@@ -179,7 +179,19 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		
 		List<VariableInstanceInfo> variables = null;
 		if (vars.size() > 0) {
-			variables = new ArrayList<VariableInstanceInfo>(vars.size());
+			variables = new ArrayList<VariableInstanceInfo>(names.size());
+			for (int i = 0; i < names.size(); i++) {
+				VariableInstanceInfo info = vars.get(i);
+				if (info == null) {
+					info = getEmptyVariable(names.get(i));
+					if (info == null) {
+						throw new RuntimeException();
+					} else {
+						vars.put(i, info);
+					}
+				}
+			}
+			
 			List<Integer> keys = new ArrayList<Integer>(vars.keySet());
 			Collections.sort(keys);
 			for (Integer key: keys) {
@@ -188,6 +200,23 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 		
 		return variables;
+	}
+	
+	private VariableInstanceInfo getEmptyVariable(String name) {
+		if (name.startsWith(VariableInstanceType.STRING.getPrefix())) {
+			return new VariableStringInstance(name, null);
+		} else if (name.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix())) {
+			return new VariableByteArrayInstance(name, null);
+		} else if (name.startsWith(VariableInstanceType.DATE.getPrefix())) {
+			return new VariableDateInstance(name, null);
+		} else if (name.startsWith(VariableInstanceType.DOUBLE.getPrefix())) {
+			return new VariableDoubleInstance(name, null);
+		} else if (name.startsWith(VariableInstanceType.LONG.getPrefix())) {
+			return new VariableLongInstance(name, null);
+		} else {
+			LOGGER.warning("Can not resolve variable type from name: " + name);
+		}
+		return null;
 	}
 	
 	private void fillMapWithData(Map<Integer, VariableInstanceInfo> vars, List<String> names, Collection<VariableInstanceInfo> variables) {
