@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.dom4j.Element;
 import org.dom4j.Namespace;
@@ -15,6 +16,7 @@ import org.jbpm.context.def.VariableAccess;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.instantiation.Delegation;
 import org.jbpm.jpdl.xml.JpdlXmlReader;
+import org.jbpm.module.def.ModuleDefinition;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.InputSource;
@@ -64,6 +66,10 @@ public class IdegaJpdlReader extends JpdlXmlReader {
 	@Override
 	public ProcessDefinition readProcessDefinition() {
 		ProcessDefinition procDef = super.readProcessDefinition();
+		if (procDef.getDefinitions() == null) {
+			Logger.getLogger(getClass().getName()).warning("Process should have definitions. Setting empty map for process definition " + procDef + ", ID: " + procDef.getId());
+			procDef.setDefinitions(new HashMap<String, ModuleDefinition>());
+		}
 		readMapStrings();
 		return procDef;
 	}
