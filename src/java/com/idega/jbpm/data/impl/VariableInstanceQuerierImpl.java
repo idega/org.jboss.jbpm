@@ -18,9 +18,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.idega.core.cache.IWCacheManager2;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.data.SimpleQuerier;
@@ -36,6 +39,7 @@ import com.idega.jbpm.bean.VariableStringInstance;
 import com.idega.jbpm.data.BPMVariableData;
 import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.VariableInstanceQuerier;
+import com.idega.jbpm.events.VariableCreatedEvent;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -45,7 +49,7 @@ import com.idega.util.reflect.MethodInvoker;
 
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class VariableInstanceQuerierImpl extends GenericDaoImpl implements VariableInstanceQuerier {
+public class VariableInstanceQuerierImpl extends GenericDaoImpl implements VariableInstanceQuerier, ApplicationListener {
 
 	private static final Logger LOGGER = Logger.getLogger(VariableInstanceQuerierImpl.class.getName());
 
@@ -276,6 +280,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 	
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value) {
+		VariableInstanceInfo cachedVariable = getCachedVariable(name, value);
+		if (cachedVariable != null && cachedVariable.getProcessInstanceId() != null) {
+			return Arrays.asList(cachedVariable.getProcessInstanceId());
+		}
+		
 		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, true);
 		if (ListUtil.isEmpty(variables)) {
 			return null;
@@ -673,5 +682,101 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 		
 		return getConverted(data, columns);
+	}
+
+	@Override
+	public void loadVariable(String variableName) {
+		if (StringUtil.isEmpty(variableName)) {
+			LOGGER.warning("Variable name is not provided!");
+			return;
+		}
+		
+		Collection<VariableInstanceInfo> vars = getVariablesByNames(Arrays.asList(variableName));
+		if (vars == null) {
+			return;
+		}
+		
+		Map<String, List<VariableInstanceInfo>> cache = getVariablesCache();
+		List<VariableInstanceInfo> variables = cache.get(variableName);
+		if (variables == null) {
+			variables = new ArrayList<VariableInstanceInfo>();
+			cache.put(variableName, variables);
+		}
+		for (VariableInstanceInfo info: vars) {
+			Serializable value = info.getValue();
+			if (value == null) {
+				continue;
+			}
+			
+			variables.add(info);
+		}
+	}
+	
+	private VariableInstanceInfo getCachedVariable(String name, Serializable value) {
+		if (StringUtil.isEmpty(name) || value == null) {
+			return null;
+		}
+		
+		Map<String, List<VariableInstanceInfo>> cache = getVariablesCache();
+		List<VariableInstanceInfo> vars = cache.get(name);
+		if (ListUtil.isEmpty(vars)) {
+			return null;
+		}
+		
+		VariableInstanceInfo variable = null;
+		for (Iterator<VariableInstanceInfo> varsIterator = vars.iterator(); (variable == null && varsIterator.hasNext());) {
+			VariableInstanceInfo var = varsIterator.next();
+			
+			if (var.getValue() != null && var instanceof VariableStringInstance && value.toString().equals(var.getValue())) {
+				variable = var;
+			}
+		}
+		
+		return variable;
+	}
+	
+	private Map<String, List<VariableInstanceInfo>> getVariablesCache() {
+		IWMainApplication iwma = IWMainApplication.getDefaultIWMainApplication();
+		Map<String, List<VariableInstanceInfo>> cache = IWCacheManager2.getInstance(iwma).getCache("bpmVariablesInfoCache", 1000, true, false, 259200);
+		return cache;
+	}
+
+	@Override
+	public void onApplicationEvent(final ApplicationEvent event) {
+		if (event instanceof VariableCreatedEvent) {
+			Thread importer = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					VariableCreatedEvent varCreated = (VariableCreatedEvent) event;
+					
+					Map<String, Object> vars = varCreated.getVariables();
+					if (vars == null) {
+						return;
+					}
+					
+					Long processInstanceId = varCreated.getProcessInstanceId();
+					Map<String, List<VariableInstanceInfo>> cache = getVariablesCache();
+					for (String name: vars.keySet()) {
+						List<VariableInstanceInfo> cachedValues = cache.get(name);
+						if (cachedValues == null) {
+							continue;
+						}
+						
+						VariableInstanceInfo info = getEmptyVariable(name);
+						if (info == null) {
+							continue;
+						}
+						
+						Object value = vars.get(name);
+						if (value instanceof Serializable) {
+							info.setProcessInstanceId(processInstanceId);
+							info.setValue((Serializable) value);
+							cachedValues.add(info);
+						}
+					}
+				}
+			});
+			importer.start();
+		}
 	}
 }

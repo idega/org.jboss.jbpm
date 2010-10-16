@@ -26,4 +26,6 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value);
 	public boolean isVariableStored(String name, Serializable value);
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value);
+	
+	public void loadVariable(String variableName);
 }
