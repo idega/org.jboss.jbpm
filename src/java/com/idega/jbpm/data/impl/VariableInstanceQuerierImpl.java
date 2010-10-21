@@ -737,7 +737,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	
 	private Map<String, List<VariableInstanceInfo>> getVariablesCache() {
 		IWMainApplication iwma = IWMainApplication.getDefaultIWMainApplication();
-		Map<String, List<VariableInstanceInfo>> cache = IWCacheManager2.getInstance(iwma).getCache("bpmVariablesInfoCache", 1000, true, false, 259200);
+		Map<String, List<VariableInstanceInfo>> cache = IWCacheManager2.getInstance(iwma).getCache("bpmVariablesInfoCache", 1000, true, false, 1209600);	//	14 days
 		return cache;
 	}
 
