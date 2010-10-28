@@ -13,6 +13,13 @@
         <h:commandButton value="Force all autoloaded processes redeploy" action="#{bpmProcessDefinitionsAutoloader.forceAutodeploy}" />
         <t:inputFileUpload id="fileupload" value="#{bpmDeployProcess.processBundle}" storage="file" />
         <h:commandButton value="Deploy bundle" action="#{bpmDeployProcess.deploy}" />
+        
+        <div>
+            Token id: <h:inputText value="#{bpmSandbox.tokenId}"/>
+            <div>
+                <h:commandButton value="executeLicenseFeeClaimReceived" action="#{bpmSandbox.executeLicenseFeeClaimReceived}" />
+            </div>
+        </div>
 	</h:form>
 </ws:page>
 </html>
