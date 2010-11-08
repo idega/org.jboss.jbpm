@@ -35,11 +35,11 @@ import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.AutoloadedProcessDefinition;
 import com.idega.jbpm.data.BPMVariableData;
 import com.idega.jbpm.data.NativeIdentityBind;
+import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.data.ViewTaskBind;
-import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.events.VariableCreatedEvent;
 import com.idega.jbpm.identity.Role;
@@ -62,7 +62,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	@Autowired
 	private BPMContext bpmContext;
 	
-	@Autowired
+	@Autowired(required=false)
 	private VariableInstanceQuerier variablesQuerier;
 	
 	public ViewTaskBind getViewTaskBind(long taskId, String viewType) {
