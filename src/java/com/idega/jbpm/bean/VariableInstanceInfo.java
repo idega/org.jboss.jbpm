@@ -105,4 +105,19 @@ public abstract class VariableInstanceInfo implements Serializable {
 	public String toString() {
 		return "Variable " + getName() + ", type " + getType() + ", value: " + getValue() + ", process instance ID: " + getProcessInstanceId();
 	}
+	
+	public static VariableInstanceInfo getDefaultVariable(String name) {
+		VariableInstanceInfo info = new VariableInstanceInfo() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void setValue(Serializable value) {
+			}
+			@Override
+			public Serializable getValue() {
+				return null;
+			}
+		};
+		info.setName(name);
+		return info;
+	}
 }
