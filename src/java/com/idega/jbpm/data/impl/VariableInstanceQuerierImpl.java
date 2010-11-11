@@ -178,18 +178,21 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return getVariablesByProcessInstanceId(processInstanceId, false);
 	}
 	
-	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceId(
-	        Long processInstanceId) {
+	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceId(Long processInstanceId) {
 		return getVariablesByProcessInstanceId(processInstanceId, true);
 	}
 	
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(
-	        Collection<Long> procIds, List<String> names) {
-		return getVariablesByProcessInstanceIdAndVariablesNames(procIds, names,
-		    true);
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names) {
+		return getVariablesByProcessInstanceIdAndVariablesNames(procIds, names, true);
 	}
 	
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean checkTaskInstance) {
+		return getVariablesByProcessInstanceIdAndVariablesNames(procIds, names, checkTaskInstance, true);
+	}
+	
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(List<String> names, Collection<Long> procIds, boolean checkTaskInstance,
+			boolean addEmptyVars) {
+		
 		if (ListUtil.isEmpty(procIds)) {
 			LOGGER.warning("Process instance(s) unkown");
 			return null;
@@ -218,18 +221,20 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		
 		List<VariableInstanceInfo> variables = null;
 		if (vars.size() > 0) {
-			variables = new ArrayList<VariableInstanceInfo>(names.size());
-			for (int i = 0; i < names.size(); i++) {
-				VariableInstanceInfo info = vars.get(i);
-				if (info == null) {
-					info = getEmptyVariable(names.get(i));
+			variables = new ArrayList<VariableInstanceInfo>();
+			if (addEmptyVars) {
+				for (int i = 0; i < names.size(); i++) {
+					VariableInstanceInfo info = vars.get(i);
 					if (info == null) {
-						throw new RuntimeException();
-					} else {
-						vars.put(getKey(i, info.getProcessInstanceId()), info);
+						info = getEmptyVariable(names.get(i));
+						if (info == null) {
+							throw new RuntimeException();
+						} else {
+							vars.put(getKey(i, info.getProcessInstanceId()), info);
+						}
 					}
 				}
-			}
+			}	
 			
 			List<Integer> keys = new ArrayList<Integer>(vars.keySet());
 			Collections.sort(keys);
@@ -267,15 +272,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		for (VariableInstanceInfo var : variables) {
 			String name = var.getName();
 			Long processInstance = var.getProcessInstanceId();
+			int key = getKey(names.indexOf(name), processInstance);
 			if (processInstance != null && addedVars.contains(name + processInstance)) {
-				continue;
-			}
-			
-			if (processInstance != null) {
+				VariableInstanceInfo addedVar = vars.get(key);
+				if (addedVar.getValue() != null)
+					continue;	//	Added variable has value, it's OK
+			} else {
 				addedVars.add(name + processInstance);
 			}
 			
-			vars.put(getKey(names.indexOf(name), processInstance), var);
+			vars.put(key, var);
 		}
 	}
 	
@@ -283,9 +289,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return piId == null ? index : index * 1000 + piId.intValue();
 	}
 	
-	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(
-	        Collection<Long> procIds, List<String> names, boolean mirrow,
-	        boolean checkTaskInstance) {
+	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean mirrow,
+			boolean checkTaskInstance) {
 		
 		if (ListUtil.isEmpty(names)) {
 			return null;
