@@ -226,7 +226,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 					if (info == null) {
 						throw new RuntimeException();
 					} else {
-						vars.put(i, info);
+						vars.put(getKey(i, info.getProcessInstanceId()), info);
 					}
 				}
 			}
@@ -266,13 +266,21 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		List<String> addedVars = new ArrayList<String>();
 		for (VariableInstanceInfo var : variables) {
 			String name = var.getName();
-			if (addedVars.contains(name)) {
+			Long processInstance = var.getProcessInstanceId();
+			if (processInstance != null && addedVars.contains(name + processInstance)) {
 				continue;
 			}
 			
-			vars.put(names.indexOf(name), var);
-			addedVars.add(name);
+			if (processInstance != null) {
+				addedVars.add(name + processInstance);
+			}
+			
+			vars.put(getKey(names.indexOf(name), processInstance), var);
 		}
+	}
+	
+	private int getKey(int index, Long piId) {
+		return piId == null ? index : index * 1000 + piId.intValue();
 	}
 	
 	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(
