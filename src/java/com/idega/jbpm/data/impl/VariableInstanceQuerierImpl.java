@@ -102,7 +102,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		List<Serializable[]> data = null;
 		try {
 			String selectColumns = full ? getFullColumns()
-			        : "var.ID_ as varid, var.NAME_ as name, var.CLASS_ as type";
+			        : "var.NAME_ as name, var.CLASS_ as type";
 			query = getQuery(
 			    getSelectPart(selectColumns, !full),
 			    FROM,
@@ -238,9 +238,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 			}
 		}
 		
-		for (VariableInstanceInfo var: variables) {
-			LOGGER.info(var.toString());
-		}
 		return variables;
 	}
 	
