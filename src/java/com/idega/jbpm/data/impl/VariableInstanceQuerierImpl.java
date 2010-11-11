@@ -96,7 +96,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 			return null;
 		}
 		
-		int columns = full ? FULL_COLUMNS : 3;
+		int columns = full ? FULL_COLUMNS : 2;
 		
 		String query = null;
 		List<Serializable[]> data = null;
