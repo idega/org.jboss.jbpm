@@ -286,7 +286,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	}
 	
 	private int getKey(int index, Long piId) {
-		return piId == null ? index : index * 1000 + piId.intValue();
+		return piId == null ? index : index * 1000000000 + piId.intValue();
 	}
 	
 	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean mirrow,
