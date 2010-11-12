@@ -79,8 +79,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	}
 	
 	private String getSelectPart(String columns, boolean distinct) {
-		return "select ".concat(distinct ? "distinct " : CoreConstants.EMPTY)
-		        .concat(columns);
+		return "select ".concat(distinct ? "distinct " : CoreConstants.EMPTY).concat(columns);
 	}
 	
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(
@@ -192,6 +191,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(List<String> names, Collection<Long> procIds, boolean checkTaskInstance,
 			boolean addEmptyVars) {
+		return getVariablesByProcessInstanceIdAndVariablesNames(names, procIds, checkTaskInstance, addEmptyVars, true);
+	}
+	
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(List<String> names, Collection<Long> procIds, boolean checkTaskInstance,
+			boolean addEmptyVars, boolean mirrowData) {
 		
 		if (ListUtil.isEmpty(procIds)) {
 			LOGGER.warning("Process instance(s) unkown");
@@ -212,7 +216,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 			stringVariables.removeAll(notStringVariables);
 		}
 		
-		Collection<VariableInstanceInfo> stringVars = getVariablesByProcessInstanceIdAndVariablesNames(procIds, stringVariables, true, checkTaskInstance);
+		Collection<VariableInstanceInfo> stringVars = getVariablesByProcessInstanceIdAndVariablesNames(procIds, stringVariables, mirrowData, checkTaskInstance);
 		Collection<VariableInstanceInfo> otherVars = getVariablesByProcessInstanceIdAndVariablesNames(procIds, notStringVariables, false, checkTaskInstance);
 		
 		Map<Integer, VariableInstanceInfo> vars = new HashMap<Integer, VariableInstanceInfo>();
@@ -296,13 +300,18 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 			return null;
 		}
 		
+		boolean anyStringColumn = false;
+		for (Iterator<String> namesIter = names.iterator(); (!anyStringColumn && namesIter.hasNext());) {
+			anyStringColumn = namesIter.next().contains(VariableInstanceType.STRING.getPrefix());
+		}
+		
 		String query = null;
 		List<Serializable[]> data = null;
-		int columns = mirrow ? FULL_COLUMNS : FULL_COLUMNS - 1;
+		int columns = anyStringColumn ? FULL_COLUMNS : FULL_COLUMNS - 1;
 		try {
 			String procIdsIn = getQueryParameters("var.PROCESSINSTANCE_", procIds);
 			String varNamesIn = getQueryParameters("var.NAME_", names);
-			query = getQuery(getSelectPart(mirrow ? getFullColumns() : getAllButStringColumn(), false), getFromClause(true, mirrow),
+			query = getQuery(getSelectPart(anyStringColumn ? getFullColumns(mirrow, false) : getAllButStringColumn(), false), getFromClause(true, mirrow),
 					checkTaskInstance ? ", jbpm_taskinstance task " : CoreConstants.EMPTY, " where ", procIdsIn, " and ", varNamesIn,
 					checkTaskInstance ? " and var.TASKINSTANCE_ = task.ID_ and task.END_ is not null " : CoreConstants.EMPTY, " and ", CLASS_CONDITION,
 					mirrow ? getMirrowTableCondition(true) : CoreConstants.EMPTY, " order by var.TASKINSTANCE_");
@@ -625,12 +634,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	}
 	
 	private String getFullColumns() {
+		return getFullColumns(isDataMirrowed(), false);	//	TODO: is this right?
+	}
+
+	private String getFullColumns(boolean mirrow, boolean substring) {
 		String columns = STANDARD_COLUMNS.concat(", ");
-		String valueColumn = getStringValueColumn();
-		valueColumn = isDataMirrowed() ? valueColumn
-		        : getSubstring(valueColumn);
-		return columns.concat(valueColumn).concat(" as sv, ")
-		        .concat(NOT_STRING_VALUES);
+		String valueColumn = getStringValueColumn(mirrow);
+		valueColumn = mirrow ? valueColumn : substring ? getSubstring(valueColumn) : valueColumn;
+		return columns.concat(valueColumn).concat(" as sv, ").concat(NOT_STRING_VALUES);
 	}
 	
 	private String getAllButStringColumn() {
@@ -726,8 +737,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	}
 	
 	private String getStringValueColumn() {
-		return isDataMirrowed() ? MIRRROW_TABLE_ALIAS.concat(".stringvalue")
-		        : "var.stringvalue_";
+		return getStringValueColumn(isDataMirrowed());
+	}
+	private String getStringValueColumn(boolean mirrow) {
+		return mirrow ? MIRRROW_TABLE_ALIAS.concat(".stringvalue") : "var.stringvalue_";
 	}
 	
 	private String getMirrowTableCondition() {
