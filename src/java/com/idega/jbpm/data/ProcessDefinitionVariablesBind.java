@@ -30,10 +30,12 @@ public class ProcessDefinitionVariablesBind implements Serializable {
 	
 	public static final String PARAM_PROC_DEF_NAMES = "processDefinition_parameter";
 	
-	private int hashCode;
+	private Integer hashCode;
 	
 	public ProcessDefinitionVariablesBind() {
-		hashCode = new Random().nextInt();
+		Random random = new Random();
+		while (hashCode == null)
+			hashCode = random.nextInt();
 	}
 	
 	@Id
@@ -82,9 +84,10 @@ public class ProcessDefinitionVariablesBind implements Serializable {
 	public void setVariableType(String variableType) {
 		this.variableType = variableType;
 	}
-	
-	public int getHashCode() {
-		return hashCode;
+
+	@Override
+	public int hashCode() {
+		return hashCode == null ? -1 : hashCode;
 	}
 
 	@Override

@@ -405,15 +405,19 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 	
 	public void bindProcessVariables() {
-		List<AutoloadedProcessDefinition> procDefs = getAllLoadedProcessDefinitions();
-		if (ListUtil.isEmpty(procDefs)) {
-			return;
-		}
-		
-		List<ProcessDefinitionVariablesBind> currentBinds = getAllProcDefVariableBinds();
-		
-		for (AutoloadedProcessDefinition apd: procDefs) {
-			bindProcessVariables(apd.getProcessDefinitionName(), currentBinds);
+		try {
+			List<AutoloadedProcessDefinition> procDefs = getAllLoadedProcessDefinitions();
+			if (ListUtil.isEmpty(procDefs)) {
+				return;
+			}
+			
+			List<ProcessDefinitionVariablesBind> currentBinds = getAllProcDefVariableBinds();
+			
+			for (AutoloadedProcessDefinition apd: procDefs) {
+				bindProcessVariables(apd.getProcessDefinitionName(), currentBinds);
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error binding process variables", e);
 		}
 	}
 	
@@ -443,8 +447,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			try {
 				if (!bindExists(currentBinds, variableName, processDefinitionName)) {
 					ProcessDefinitionVariablesBind bind = new ProcessDefinitionVariablesBind();
+					if (bind.hashCode() < 0) {
+						continue;
+					}
+					
 					bind.setProcessDefinition(processDefinitionName);
-					bind.setVariableName(var.getName());
+					bind.setVariableName(variableName);
 					bind.setVariableType(var.getType().getTypeKeys().get(0));
 					persist(bind);
 					currentBinds.add(bind);
