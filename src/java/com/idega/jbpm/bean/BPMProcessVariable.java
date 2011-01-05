@@ -1,9 +1,14 @@
 package com.idega.jbpm.bean;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import com.idega.presentation.ui.handlers.IWDatePickerHandler;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
@@ -64,5 +69,39 @@ public class BPMProcessVariable {
 	@Override
 	public String toString() {
 		return new StringBuilder("Name: " ).append(getName()).append(", type: ").append(getType()).append(", value: ").append(getValue()).toString();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends Serializable> T getRealValue(Locale locale) {
+		Serializable realValue = null;
+		if (isStringType()) {
+			String value = getValue();
+			if (locale != null) {
+				value = value.toLowerCase(locale);
+			}
+			realValue = value;
+		} else if (isDateType()) {
+			try {
+				realValue = IWDatePickerHandler.getParsedTimestampByCurrentLocale(getValue());
+			} catch (Exception e) {
+				Logger.getLogger(BPMProcessVariable.class.getName()).log(Level.WARNING, "Error converting string to timestamp: "+ getValue(), e);
+			}
+		} else if (isDoubleType()) {
+			try {
+				realValue = Double.valueOf(getValue());
+			} catch (NumberFormatException e) {
+				Logger.getLogger(BPMProcessVariable.class.getName()).log(Level.WARNING, "Error converting string to double: "+ getValue(), e);
+			}
+		} else if (isLongType()) {
+			try {
+				realValue = Long.valueOf(getValue());
+			} catch (Exception e) {
+				Logger.getLogger(BPMProcessVariable.class.getName()).log(Level.WARNING, "Error converting string to long: " + getValue(), e);
+			}
+		}
+		
+		//	TODO: add more converters?
+		
+		return (T) realValue;
 	}
 }
