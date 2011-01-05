@@ -3,6 +3,7 @@ package com.idega.jbpm.data;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.bean.VariableInstanceInfo;
@@ -31,5 +32,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public boolean isVariableStored(String name, Serializable value);
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value);
 	
-	public void loadVariable(String variableName);
+	public void loadVariables(List<String> variablesNames);
+	
+	public Map<Long, List<VariableInstanceInfo>> getVariablesByNamesAndValues(Map<String, List<Serializable>> variables);
 }

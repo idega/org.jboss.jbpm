@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -50,20 +51,16 @@ import com.idega.util.reflect.MethodInvoker;
 
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
-        VariableInstanceQuerier, ApplicationListener {
+public class VariableInstanceQuerierImpl extends GenericDaoImpl implements VariableInstanceQuerier, ApplicationListener {
 	
-	private static final Logger LOGGER = Logger
-	        .getLogger(VariableInstanceQuerierImpl.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(VariableInstanceQuerierImpl.class.getName());
 	
 	private static final String VARIABLES_TABLE = "JBPM_VARIABLEINSTANCE";
 	private static final String STANDARD_COLUMNS = "var.ID_ as varid, var.NAME_ as name, var.CLASS_ as type";
 	private static final String FROM = " from " + VARIABLES_TABLE + " var";
-	private static final String CLASS_CONDITION = " var.CLASS_ <> '"
-	        + VariableInstanceType.NULL.getTypeKeys().get(0) + "' ";
+	private static final String CLASS_CONDITION = " var.CLASS_ <> '" + VariableInstanceType.NULL.getTypeKeys().get(0) + "' ";
 	private static final String NAME_CONDITION = " var.NAME_ is not null ";
-	private static final String CONDITION = NAME_CONDITION + " and"
-	        + CLASS_CONDITION;
+	private static final String CONDITION = NAME_CONDITION + " and" + CLASS_CONDITION;
 	private static final String VAR_DEFAULT_CONDITION = " and" + CONDITION;
 	private static final String NOT_STRING_VALUES = " var.LONGVALUE_ as lv, var.DOUBLEVALUE_ as dov, var.DATEVALUE_ as dav, var.PROCESSINSTANCE_ as piid";
 	
@@ -74,6 +71,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	
 	private static final Random ID_GENERATOR = new Random();
 	
+	private List<String> cachedVariablesNames = new ArrayList<String>();
+	
 	private String getSelectPart(String columns) {
 		return getSelectPart(columns, Boolean.FALSE);
 	}
@@ -82,14 +81,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return "select ".concat(distinct ? "distinct " : CoreConstants.EMPTY).concat(columns);
 	}
 	
-	public Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(
-	        String processDefinitionName) {
-		return getVariablesByProcessDefinitionNaiveWay(processDefinitionName,
-		    false);
+	public Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(String processDefinitionName) {
+		return getVariablesByProcessDefinitionNaiveWay(processDefinitionName, false);
 	}
 	
-	private Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(
-	        String processDefinitionName, boolean full) {
+	private Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(String processDefinitionName, boolean full) {
 		if (StringUtil.isEmpty(processDefinitionName)) {
 			LOGGER.warning("Process definition name is not provided");
 			return null;
@@ -100,29 +96,18 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		String query = null;
 		List<Serializable[]> data = null;
 		try {
-			String selectColumns = full ? getFullColumns()
-			        : "var.NAME_ as name, var.CLASS_ as type";
-			query = getQuery(
-			    getSelectPart(selectColumns, !full),
-			    FROM,
-			    " inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ ",
-			    "inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ where ",
-			    CONDITION, " and pd.NAME_ = '", processDefinitionName, "'");
+			String selectColumns = full ? getFullColumns() : "var.NAME_ as name, var.CLASS_ as type";
+			query = getQuery(getSelectPart(selectColumns, !full), FROM, " inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ ",
+			    "inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ where ", CONDITION, " and pd.NAME_ = '", processDefinitionName, "'");
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			LOGGER.log(
-			    Level.WARNING,
-			    "Error executing query: '"
-			            + query
-			            + "'. Error getting variable instances by process definition: "
-			            + processDefinitionName, e);
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process definition: " + processDefinitionName, e);
 		}
 		
 		return getConverted(data, columns);
 	}
 	
-	public Collection<VariableInstanceInfo> getVariablesByProcessDefinition(
-	        String processDefinitionName) {
+	public Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName) {
 		if (StringUtil.isEmpty(processDefinitionName)) {
 			LOGGER.warning("Process definition name is not provided");
 			return null;
@@ -137,14 +122,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return getConverted(binds);
 	}
 	
-	public Collection<VariableInstanceInfo> getFullVariablesByProcessDefinition(
-	        String processDefinitionName) {
-		return getVariablesByProcessDefinitionNaiveWay(processDefinitionName,
-		    true);
+	public Collection<VariableInstanceInfo> getFullVariablesByProcessDefinition(String processDefinitionName) {
+		return getVariablesByProcessDefinitionNaiveWay(processDefinitionName, true);
 	}
 	
-	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceId(
-	        Long processInstanceId, boolean full) {
+	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceId(Long processInstanceId, boolean full) {
 		if (processInstanceId == null) {
 			LOGGER.warning("Invalid ID of process instance");
 			return null;
@@ -155,25 +137,17 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		try {
 			String selectColumns = full ? getFullColumns() : STANDARD_COLUMNS;
 			int columns = full ? FULL_COLUMNS : COLUMNS;
-			query = getQuery(getSelectPart(selectColumns), getFromClause(full),
-			    " where var.PROCESSINSTANCE_ = ",
-			    String.valueOf(processInstanceId), VAR_DEFAULT_CONDITION,
-			    getMirrowTableCondition(full));
+			query = getQuery(getSelectPart(selectColumns), getFromClause(full), " where var.PROCESSINSTANCE_ = ", String.valueOf(processInstanceId),
+					VAR_DEFAULT_CONDITION, getMirrowTableCondition(full));
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			LOGGER.log(
-			    Level.WARNING,
-			    "Error executing query: '"
-			            + query
-			            + "'. Error getting variable instances by process instance: "
-			            + processInstanceId, e);
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process instance: " + processInstanceId, e);
 		}
 		
 		return getConverted(data, full ? FULL_COLUMNS : COLUMNS);
 	}
 	
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceId(
-	        Long processInstanceId) {
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceId(Long processInstanceId) {
 		return getVariablesByProcessInstanceId(processInstanceId, false);
 	}
 	
@@ -185,7 +159,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return getVariablesByProcessInstanceIdAndVariablesNames(procIds, names, true);
 	}
 	
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean checkTaskInstance) {
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names,
+			boolean checkTaskInstance) {
 		return getVariablesByProcessInstanceIdAndVariablesNames(procIds, names, checkTaskInstance, true);
 	}
 	
@@ -317,16 +292,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 					mirrow ? getMirrowTableCondition(true) : CoreConstants.EMPTY, " order by var.TASKINSTANCE_");
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error executing query: '" + query +
-					"'. Error getting variables for process instance(s) : " + procIds + " and name(s): " + names, e);
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procIds + " and name(s): "
+					+ names, e);
 		}
 		
 		return getConverted(data, columns);
 	}
 	
 	public boolean isVariableStored(String name, Serializable value) {
-		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(
-		    name, value, false);
+		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, false);
 		if (ListUtil.isEmpty(variables)) {
 			return false;
 		}
@@ -343,16 +317,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return Boolean.TRUE;
 	}
 	
-	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(
-	        String name, Serializable value) {
+	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value) {
 		VariableInstanceInfo cachedVariable = getCachedVariable(name, value);
-		if (cachedVariable != null
-		        && cachedVariable.getProcessInstanceId() != null) {
+		if (cachedVariable != null && cachedVariable.getProcessInstanceId() != null) {
 			return Arrays.asList(cachedVariable.getProcessInstanceId());
 		}
 		
-		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(
-		    name, value, true);
+		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, true);
 		if (ListUtil.isEmpty(variables)) {
 			return null;
 		}
@@ -376,10 +347,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return piIds;
 	}
 	
-	public Collection<VariableInstanceInfo> getVariablesByNameAndValue(
-	        String name, Serializable value) {
-		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(
-		    name, value, false);
+	public Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value) {
+		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, false);
 		if (ListUtil.isEmpty(variables) || !(value instanceof String)) {
 			return variables;
 		}
@@ -394,13 +363,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return filtered;
 	}
 	
-	private boolean isValueEquivalent(VariableInstanceInfo variable,
-	        Serializable value) {
-		if (value instanceof String
-		        && variable instanceof VariableStringInstance) {
+	private boolean isValueEquivalent(VariableInstanceInfo variable, Serializable value) {
+		if (value instanceof String && variable instanceof VariableStringInstance) {
 			String searchValue = (String) value;
-			String variableValue = ((VariableStringInstance) variable)
-			        .getValue();
+			String variableValue = ((VariableStringInstance) variable).getValue();
 			if (variableValue == null) {
 				return false;
 			}
@@ -418,26 +384,44 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return false;
 	}
 	
-	private Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(
-	        String name, Serializable value, boolean selectProcessInstanceId) {
+	private Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(String name, Serializable value, boolean selectProcessInstanceId) {
 		if (StringUtil.isEmpty(name) || value == null) {
 			LOGGER.warning("Variable name and/or value is not provided");
 			return null;
 		}
 		
-		String query = null;
-		int columns = COLUMNS + (selectProcessInstanceId ? 2 : 1);
-		List<Serializable[]> data = null;
-		try {
-			boolean stringColumn = false;
+		Map<String, List<Serializable>> namesAndValues = new HashMap<String, List<Serializable>>();
+		namesAndValues.put(name, Arrays.asList(value));
+		return getProcessVariablesByNamesAndValues(namesAndValues, selectProcessInstanceId);
+	}
+	
+	private Collection<VariableInstanceInfo> getProcessVariablesByNamesAndValues(Map<String, List<Serializable>> namesAndValues, boolean selectProcessInstanceId) {
+		if (namesAndValues == null || namesAndValues.isEmpty()) {
+			LOGGER.warning("Variables names and values are not provided");
+			return null;
+		}
+		
+		boolean anyStringColumn = false;
+		List<String> columnsNames = new ArrayList<String>();
+		List<VariableInstanceType> types = new ArrayList<VariableInstanceType>();
+		Map<String, List<Serializable>> valuesForColumns = new HashMap<String, List<Serializable>>();
+		for (String variable: namesAndValues.keySet()) {
+			List<Serializable> values = namesAndValues.get(variable);
+			if (ListUtil.isEmpty(values)) {
+				continue;
+			}
+			Serializable value = values.get(0);
+			if (value == null) {
+				continue;
+			}
+			
 			VariableInstanceType type = null;
 			String columnName = "var.";
 			if (value instanceof String) {
-				stringColumn = true;
+				anyStringColumn = true;
 				columnName = columnName.concat(getStringValueColumn());
 				columnName = getStringValueColumn();
-				columnName = isDataMirrowed() ? columnName
-				        : getSubstring(columnName);
+				columnName = isDataMirrowed() ? columnName : getSubstring(columnName);
 				type = VariableInstanceType.STRING;
 			} else if (value instanceof Long) {
 				columnName = columnName.concat("LONGVALUE_");
@@ -449,32 +433,102 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 				columnName = columnName.concat("DATEVALUE_");
 				type = VariableInstanceType.DATE;
 			} else {
-				LOGGER.warning("Unsupported type of value: " + value + ", "
-				        + value.getClass());
-				return null;
+				LOGGER.warning("Unsupported type of value: " + value + ", " + value.getClass());
+				continue;
 			}
 			
-			List<String> parts = new ArrayList<String>();
-			parts.addAll(Arrays.asList(getSelectPart(STANDARD_COLUMNS, false),
-			    ", ", columnName, " as v ",
-			    selectProcessInstanceId ? ", var.PROCESSINSTANCE_ as piid"
-			            : CoreConstants.EMPTY, getFromClause(stringColumn),
-			    " where var.NAME_ = '", name, "' and ", columnName, " "));
-			if (stringColumn) {
-				parts.addAll(Arrays.asList(isDataMirrowed() ? "=" : "like",
-				    " '", value.toString(), "'"));
-			} else {
-				parts.addAll(Arrays.asList("= ", value.toString()));
+			if (!columnsNames.contains(columnName)) {
+				columnsNames.add(columnName);
+				types.add(type);
 			}
-			parts.addAll(Arrays.asList(" and",
-			    getQueryParameters("var.CLASS_", type.getTypeKeys()),
-			    stringColumn ? getMirrowTableCondition() : CoreConstants.EMPTY));
+			
+			List<Serializable> valuesForColumn = valuesForColumns.get(columnName);
+			if (valuesForColumn == null) {
+				valuesForColumn = new ArrayList<Serializable>();
+				valuesForColumns.put(columnName, valuesForColumn);
+			}
+			valuesForColumn.addAll(values);
+		}
+		
+		StringBuffer columnsToSelect = new StringBuffer();
+		for (Iterator<String> columnsIter = columnsNames.iterator(); columnsIter.hasNext();) {
+			columnsToSelect.append(columnsIter.next());
+			if (columnsIter.hasNext()) {
+				columnsToSelect.append(CoreConstants.COMMA).append(CoreConstants.SPACE);
+			}
+		}
+		
+		List<String> typesKeys = new ArrayList<String>();
+		for (VariableInstanceType type: types) {
+			typesKeys.addAll(type.getTypeKeys());
+		}
+		
+		StringBuffer valuesToSelect = new StringBuffer();
+		for (Iterator<String> columnNamesIter = valuesForColumns.keySet().iterator(); columnNamesIter.hasNext();) {
+			String columnName = columnNamesIter.next();
+			List<Serializable> valuesForColumn = valuesForColumns.get(columnName);
+			if (ListUtil.isEmpty(valuesForColumn)) {
+				continue;
+			}
+			
+			boolean stringColumn = columnName.indexOf("string") != -1;
+			if (valuesForColumn.size() > 1) {
+				//	List of values
+				if (stringColumn) {
+					valuesToSelect.append("(");
+					for (Iterator<Serializable> valuesIter = valuesForColumn.iterator(); valuesIter.hasNext();) {
+						valuesToSelect.append(columnName).append(" like '").append(valuesIter.next()).append("'");
+						if (valuesIter.hasNext()) {
+							valuesToSelect.append(" or ");
+						}
+					}
+					valuesToSelect.append(")");
+				} else {
+					valuesToSelect.append(columnName).append(" in (");
+					for (Iterator<Serializable> valuesIter = valuesForColumn.iterator(); valuesIter.hasNext();) {
+						valuesToSelect.append(valuesIter.next());
+						if (valuesIter.hasNext()) {
+							valuesToSelect.append(", ");
+						}
+					}
+					valuesToSelect.append(") ");
+				}
+			} else {
+				//	Single value
+				valuesToSelect.append(columnName).append(stringColumn ? " like '" : " = ").append(valuesForColumn.get(0))
+					.append(stringColumn ? "'" : CoreConstants.EMPTY);
+			}
+			
+			if (columnNamesIter.hasNext()) {
+				valuesToSelect.append(" and ");
+			}
+		}
+		String valuesClause = valuesToSelect.toString();
+		if (!StringUtil.isEmpty(valuesClause)) {
+			valuesClause = " and ".concat(valuesClause);
+		}
+		
+		String additionalColumns = columnsToSelect.toString();
+		if (!StringUtil.isEmpty(additionalColumns)) {
+			additionalColumns = ", ".concat(additionalColumns);
+		}
+		
+		String query = null;
+		int columns = COLUMNS + (selectProcessInstanceId ? 1 : 0) + columnsNames.size();
+		List<Serializable[]> data = null;
+		try {
+			List<String> parts = new ArrayList<String>();
+			parts.addAll(Arrays.asList(getSelectPart(STANDARD_COLUMNS, false), additionalColumns, selectProcessInstanceId ?
+					", var.PROCESSINSTANCE_ as piid" : CoreConstants.EMPTY, getFromClause(anyStringColumn), " where ",
+					getQueryParameters("var.NAME_", namesAndValues.keySet()), valuesClause));
+			if (!ListUtil.isEmpty(typesKeys)) {
+				parts.addAll(Arrays.asList(" and", getQueryParameters("var.CLASS_", typesKeys)));
+			}
+			parts.add(anyStringColumn ? getMirrowTableCondition() : CoreConstants.EMPTY);
 			query = getQuery(ArrayUtil.convertListToArray(parts));
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error executing query: '" + query
-			        + "'. Error getting variables by name: " + name
-			        + " and value: " + value, e);
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names and values: " + namesAndValues, e);
 		}
 		
 		return getConverted(data, columns);
@@ -622,11 +676,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	@SuppressWarnings("unchecked")
 	private <T> T getValueFromCustomMethod(Object target, String method) {
 		try {
-			return (T) MethodInvoker.getInstance()
-			        .invokeMethodWithNoParameters(target, method);
+			return (T) MethodInvoker.getInstance().invokeMethodWithNoParameters(target, method);
 		} catch (Exception e) {
-			String message = "Error invoking method " + method + " on object: "
-			        + target;
+			String message = "Error invoking method " + method + " on object: " + target;
 			LOGGER.log(Level.WARNING, message, e);
 			CoreUtil.sendExceptionNotification(message, e);
 		}
@@ -652,17 +704,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return "substr(".concat(column).concat(", 1, 255)");
 	}
 	
-	private String getQueryParameters(String columnName,
-	        Collection<? extends Serializable> values) {
+	private String getQueryParameters(String columnName, Collection<? extends Serializable> values) {
 		return getQueryParameters(columnName, values, Boolean.FALSE);
 	}
 	
-	private String getQueryParameters(String columnName,
-	        Collection<? extends Serializable> values, boolean notEquals) {
+	private String getQueryParameters(String columnName, Collection<? extends Serializable> values, boolean notEquals) {
 		String params = CoreConstants.EMPTY;
 		if (values.size() == 1) {
-			params = StringUtil.isEmpty(columnName) ? CoreConstants.SPACE
-			        : CoreConstants.SPACE.concat(columnName);
+			params = StringUtil.isEmpty(columnName) ? CoreConstants.SPACE : CoreConstants.SPACE.concat(columnName);
 			params = params.concat(notEquals ? " <> " : " = ");
 			Serializable value = values.iterator().next();
 			boolean isString = value instanceof String;
@@ -674,12 +723,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 				params = params.concat(CoreConstants.QOUTE_SINGLE_MARK);
 			}
 		} else {
-			params = StringUtil.isEmpty(columnName) ? " ("
-			        : CoreConstants.SPACE.concat(columnName)
-			                .concat(notEquals ? " not " : CoreConstants.EMPTY)
-			                .concat(" in (");
-			for (Iterator<? extends Serializable> iter = values.iterator(); iter
-			        .hasNext();) {
+			params = StringUtil.isEmpty(columnName) ? " (" : CoreConstants.SPACE.concat(columnName).concat(notEquals ? " not " : CoreConstants.EMPTY).concat(" in (");
+			for (Iterator<? extends Serializable> iter = values.iterator(); iter.hasNext();) {
 				Serializable value = iter.next();
 				boolean isString = value instanceof String;
 				if (isString) {
@@ -691,8 +736,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 				}
 				
 				if (iter.hasNext()) {
-					params = params.concat(CoreConstants.COMMA).concat(
-					    CoreConstants.SPACE);
+					params = params.concat(CoreConstants.COMMA).concat(CoreConstants.SPACE);
 				}
 			}
 			params = params.concat(CoreConstants.BRACKET_RIGHT);
@@ -702,8 +746,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		return params;
 	}
 	
-	public Collection<VariableInstanceInfo> getVariablesByNames(
-	        List<String> names) {
+	public Collection<VariableInstanceInfo> getVariablesByNames(List<String> names) {
 		if (ListUtil.isEmpty(names)) {
 			return null;
 		}
@@ -711,13 +754,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		String query = null;
 		List<Serializable[]> data = null;
 		try {
-			query = getQuery(getSelectPart(getFullColumns()), getFromClause(),
-			    " where", getQueryParameters("var.NAME_", names),
-			    VAR_DEFAULT_CONDITION, getMirrowTableCondition());
+			query = getQuery(getSelectPart(getFullColumns()), getFromClause(), " where", getQueryParameters("var.NAME_", names), VAR_DEFAULT_CONDITION,
+					getMirrowTableCondition());
 			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error executing query: '" + query
-			        + "'. Error getting variables by names: " + names, e);
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names: " + names, e);
 		}
 		
 		return getConverted(data, FULL_COLUMNS);
@@ -732,8 +773,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	}
 	
 	public static final boolean isDataMirrowed() {
-		return IWMainApplication.getDefaultIWMainApplication().getSettings()
-		        .getBoolean("jbpm_variables_mirrowed", Boolean.TRUE);
+		return IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("jbpm_variables_mirrowed", Boolean.TRUE);
 	}
 	
 	private String getStringValueColumn() {
@@ -748,8 +788,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	}
 	
 	private String getMirrowTableCondition(boolean full) {
-		return (full && isDataMirrowed()) ? " and var.ID_ = "
-		        + MIRRROW_TABLE_ALIAS + ".variable_id " : CoreConstants.EMPTY;
+		return (full && isDataMirrowed()) ? " and var.ID_ = " + MIRRROW_TABLE_ALIAS + ".variable_id " : CoreConstants.EMPTY;
 	}
 	
 	private String getFromClause() {
@@ -763,8 +802,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	private String getFromClause(boolean full, boolean mirrow) {
 		String from = FROM;
 		if (full && mirrow) {
-			from = from.concat(", ").concat(BPMVariableData.TABLE_NAME)
-			        .concat(" ").concat(MIRRROW_TABLE_ALIAS);
+			from = from.concat(", ").concat(BPMVariableData.TABLE_NAME).concat(" ").concat(MIRRROW_TABLE_ALIAS);
 		}
 		return from;
 	}
@@ -775,72 +813,66 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		    null);
 	}
 	
-	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceIdsNaiveWay(
-	        List<Long> processInstanceIds, List<Long> existingVars) {
+	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds, List<Long> existingVars) {
 		if (ListUtil.isEmpty(processInstanceIds)) {
 			return null;
 		}
 		
 		int columns = COLUMNS + 2;
 		List<Serializable[]> data = null;
-		String query = getQuery(
-		    "select ",
-		    STANDARD_COLUMNS,
-		    ", ",
-		    getSubstring("var.STRINGVALUE_"),
-		    " as sv, var.PROCESSINSTANCE_ ",
-		    FROM,
-		    " where ",
-		    getQueryParameters("var.PROCESSINSTANCE_", processInstanceIds),
-		    " and ",
-		    NAME_CONDITION + " and ",
-		    getQueryParameters("var.CLASS_",
-		        VariableInstanceType.STRING.getTypeKeys()));
+		String query = getQuery("select ", STANDARD_COLUMNS, ", ", getSubstring("var.STRINGVALUE_"), " as sv, var.PROCESSINSTANCE_ ", FROM, " where ",
+		    getQueryParameters("var.PROCESSINSTANCE_", processInstanceIds), " and ", NAME_CONDITION + " and ",
+		    getQueryParameters("var.CLASS_", VariableInstanceType.STRING.getTypeKeys()));
 		if (!ListUtil.isEmpty(existingVars)) {
-			query = query.concat(" and ").concat(
-			    getQueryParameters("var.ID_", existingVars, true));
+			query = query.concat(" and ").concat(getQueryParameters("var.ID_", existingVars, true));
 		}
 		try {
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING,
-			    "Error getting variables by process instance IDs. Query: "
-			            + query, e);
+			LOGGER.log(Level.WARNING, "Error getting variables by process instance IDs. Query: " + query, e);
 		}
 		
 		return getConverted(data, columns);
 	}
 	
-	public void loadVariable(String variableName) {
-		if (StringUtil.isEmpty(variableName)) {
-			LOGGER.warning("Variable name is not provided!");
+	public void loadVariables(List<String> variablesNames) {
+		if (ListUtil.isEmpty(variablesNames)) {
+			LOGGER.warning("No variables provided!");
 			return;
 		}
 		
-		Collection<VariableInstanceInfo> vars = getVariablesByNames(Arrays
-		        .asList(variableName));
+		for (String name: variablesNames) {
+			if (!cachedVariablesNames.contains(name)) {
+				cachedVariablesNames.add(name);
+			}
+		}
+		
+		Collection<VariableInstanceInfo> vars = getVariablesByNames(variablesNames);
 		if (vars == null) {
 			return;
 		}
 		
 		Map<String, List<VariableInstanceInfo>> cache = getVariablesCache();
-		List<VariableInstanceInfo> variables = cache.get(variableName);
-		if (variables == null) {
-			variables = new ArrayList<VariableInstanceInfo>();
-			cache.put(variableName, variables);
-		}
 		for (VariableInstanceInfo info : vars) {
+			String variableName = info.getName();
+			if (StringUtil.isEmpty(variableName)) {
+				continue;
+			}
 			Serializable value = info.getValue();
 			if (value == null) {
 				continue;
 			}
 			
+			List<VariableInstanceInfo> variables = cache.get(variableName);
+			if (variables == null) {
+				variables = new ArrayList<VariableInstanceInfo>();
+				cache.put(variableName, variables);
+			}
 			variables.add(info);
 		}
 	}
 	
-	private VariableInstanceInfo getCachedVariable(String name,
-	        Serializable value) {
+	private VariableInstanceInfo getCachedVariable(String name, Serializable value) {
 		if (StringUtil.isEmpty(name) || value == null) {
 			return null;
 		}
@@ -852,12 +884,17 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 		}
 		
 		VariableInstanceInfo variable = null;
-		for (Iterator<VariableInstanceInfo> varsIterator = vars.iterator(); (variable == null && varsIterator
-		        .hasNext());) {
+		for (Iterator<VariableInstanceInfo> varsIterator = vars.iterator(); (variable == null && varsIterator.hasNext());) {
 			VariableInstanceInfo var = varsIterator.next();
 			
-			if (var.getValue() != null && var instanceof VariableStringInstance
-			        && value.toString().equals(var.getValue())) {
+			Serializable varValue = var.getValue();
+			if (varValue == null) {
+				continue;
+			}
+			
+			if (var instanceof VariableStringInstance && value.toString().equals(varValue)) {
+				variable = var;
+			} else if (var instanceof VariableDateInstance && ((Date) varValue).equals(value)) {
 				variable = var;
 			}
 		}
@@ -866,11 +903,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 	}
 	
 	private Map<String, List<VariableInstanceInfo>> getVariablesCache() {
-		IWMainApplication iwma = IWMainApplication
-		        .getDefaultIWMainApplication();
-		Map<String, List<VariableInstanceInfo>> cache = IWCacheManager2
-		        .getInstance(iwma).getCache("bpmVariablesInfoCache", 1000,
-		            true, false, 1209600); // 14 days
+		IWMainApplication iwma = IWMainApplication.getDefaultIWMainApplication();
+		Map<String, List<VariableInstanceInfo>> cache = IWCacheManager2.getInstance(iwma).getCache("bpmVariablesInfoCache", 100000, true, false, 8640000, 8640000,
+				false); // 100 days
 		return cache;
 	}
 	
@@ -888,10 +923,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 					Long processInstanceId = varCreated.getProcessInstanceId();
 					Map<String, List<VariableInstanceInfo>> cache = getVariablesCache();
 					for (String name : vars.keySet()) {
-						List<VariableInstanceInfo> cachedValues = cache
-						        .get(name);
-						if (cachedValues == null) {
+						if (!cachedVariablesNames.contains(name)) {
 							continue;
+						}
+						
+						List<VariableInstanceInfo> cachedValues = cache.get(name);
+						if (cachedValues == null) {
+							cachedValues = new ArrayList<VariableInstanceInfo>();
+							cache.put(name, cachedValues);
 						}
 						
 						VariableInstanceInfo info = getEmptyVariable(name);
@@ -910,5 +949,75 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements
 			});
 			importer.start();
 		}
+	}
+
+	@Override
+	public Map<Long, List<VariableInstanceInfo>> getVariablesByNamesAndValues(Map<String, List<Serializable>> variables) {
+		List<String> variablesToQuery = new ArrayList<String>();
+		
+		Map<String, List<VariableInstanceInfo>> cachedVariables = new HashMap<String, List<VariableInstanceInfo>>();
+		for (String name: variables.keySet()) {
+			for (Serializable value: variables.get(name)) {
+				VariableInstanceInfo info = getCachedVariable(name, value);
+				if (info == null) {
+					continue;
+				}
+				
+				List<VariableInstanceInfo> cached = cachedVariables.get(name);
+				if (cached == null) {
+					cached = new ArrayList<VariableInstanceInfo>();
+					cachedVariables.put(name, cached);
+				}
+				cached.add(info);
+			}
+			
+			List<VariableInstanceInfo> cached = cachedVariables.get(name);
+			if (cached == null || cached.size() < variables.get(name).size()) {
+				if (!variablesToQuery.contains(name)) {
+					variablesToQuery.add(name);
+				}
+				cachedVariables.remove(name);
+			}
+		}
+		
+		Map<Long, List<VariableInstanceInfo>> results = new HashMap<Long, List<VariableInstanceInfo>>();
+		if (!cachedVariables.isEmpty()) {
+			for (Entry<String, List<VariableInstanceInfo>> entry: cachedVariables.entrySet()) {
+				for (VariableInstanceInfo varInfo: entry.getValue()) {
+					Long piId = varInfo.getProcessInstanceId();
+					List<VariableInstanceInfo> processVariables = results.get(piId);
+					if (processVariables == null) {
+						processVariables = new ArrayList<VariableInstanceInfo>();
+						results.put(piId, processVariables);
+					}
+					processVariables.add(varInfo);
+				}
+			}
+		}
+		
+		if (ListUtil.isEmpty(variablesToQuery)) {
+			return results;
+		}
+		
+		Map<String, List<Serializable>> variablesAndValuesToQuery = new HashMap<String, List<Serializable>>();
+		for (String variableToQuery: variablesToQuery) {
+			variablesAndValuesToQuery.put(variableToQuery, variables.get(variableToQuery));
+		}
+		Collection<VariableInstanceInfo> info = getProcessVariablesByNamesAndValues(variablesAndValuesToQuery, true);
+		if (ListUtil.isEmpty(info)) {
+			return results;
+		}
+		
+		for (VariableInstanceInfo varInfo: info) {
+			Long piId = varInfo.getProcessInstanceId();
+			List<VariableInstanceInfo> processVariables = results.get(piId);
+			if (processVariables == null) {
+				processVariables = new ArrayList<VariableInstanceInfo>();
+				results.put(piId, processVariables);
+			}
+			processVariables.add(varInfo);
+		}
+		
+		return results;
 	}
 }
