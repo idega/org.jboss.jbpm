@@ -5,7 +5,6 @@ import java.security.Permission;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
@@ -28,8 +27,6 @@ import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.jbpm.identity.permission.PermissionHandleResult;
 import com.idega.jbpm.identity.permission.PermissionHandleResult.PermissionHandleResultStatus;
 import com.idega.user.business.UserBusiness;
-import com.idega.util.CoreConstants;
-import com.idega.util.CoreUtil;
 import com.idega.util.StringUtil;
 
 /**
@@ -42,83 +39,63 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	
 	private static final long serialVersionUID = -7496842155073961922L;
 	
+	private static final Logger LOGGER = Logger.getLogger(IdentityAuthorizationService.class.getName());
+	
 	private AuthenticationService authenticationService;
 	private BPMDAO bpmBindsDAO;
 	private Map<String, BPMTypedHandler> handlers;
 	
 	@Autowired(required = false)
 	public void setHandlers(List<BPMTypedHandler> handlers) {
-		
-		if (handlers != null) {
+		if (handlers == null) {
+			LOGGER.warning("No handlers provided");
+			return;
+		}
 			
-			// double size here, as some handlers might support more than one permission type
-			this.handlers = new HashMap<String, BPMTypedHandler>(handlers
-			        .size() * 2);
-			
-			for (BPMTypedHandler handler : handlers) {
-				
-				String[] handledTypes = handler.getHandledTypes();
-				
-				if (handledTypes != null) {
-					
-					for (String handledType : handledTypes) {
-						
-						if (handledType != null
-						        && !CoreConstants.EMPTY.equals(handledType))
-							this.handlers.put(handledType, handler);
+		this.handlers = new HashMap<String, BPMTypedHandler>();
+		for (BPMTypedHandler handler : handlers) {
+			String[] handledTypes = handler.getHandledTypes();
+			if (handledTypes != null) {
+				for (String handledType : handledTypes) {
+					if (!StringUtil.isEmpty(handledType)) {
+						this.handlers.put(handledType, handler);
 					}
-					
-				} else
-					Logger
-					        .getLogger(getClass().getName())
-					        .log(
-					            Level.WARNING,
-					            "Typed permissions handler registered, but no supported permissions types returned. Handler class="
-					                    + handler.getClass().getName());
-			}
+				}
+			} else
+				LOGGER.warning("Typed permissions handler registered, but no supported permissions types returned. Handler class=" + handler.getClass().getName());
 		}
 	}
 	
 	@Transactional(readOnly = true, noRollbackFor = { AccessControlException.class })
 	public void checkPermission(Permission perm) throws AccessControlException {
+		if (!(perm instanceof BPMTypedPermission)) {
+			throw new IllegalArgumentException("Expected permission type: " + BPMTypedPermission.class + ", received: " + perm);
+		}
 		
-		if ((perm instanceof BPMTypedPermission)) {
-
-			FacesContext fctx = FacesContext.getCurrentInstance();
-			// faces context == null when permission is called by the system (i.e. not the result of user navigation)
-			if (fctx == null){
-				//if there is no httprequest and no credentials either in the permission object this must be the system doing stuff so allow it.
-				//(eiki) I added this small change so not to bust up something that was working before.
-				//But this should be taken under review. I didn't have time to test more with the fctx==null check totally removed but it seemed to work.
-				//Vytautas suggested that async operations might fail if this wasn't here.
-				 if(((BPMTypedPermission) perm).getUserId()==null){
-					 return;
-				 }
-			}
-			
-			BPMTypedHandler handler = getHandlers().get(
-			    ((BPMTypedPermission) perm).getType());
-			
-			if (handler != null) {
+		FacesContext fctx = FacesContext.getCurrentInstance();
+		// faces context == null when permission is called by the system (i.e. not the result of user navigation)
+		if (fctx == null){
+			//if there is no httprequest and no credentials either in the permission object this must be the system doing stuff so allow it.
+			//(eiki) I added this small change so not to bust up something that was working before.
+			//But this should be taken under review. I didn't have time to test more with the fctx==null check totally removed but it seemed to work.
+			//Vytautas suggested that async operations might fail if this wasn't here.
+			 if(((BPMTypedPermission) perm).getUserId()==null){
+				 return;
+			 }
+		}
+		
+		BPMTypedPermission bpmPerm = (BPMTypedPermission) perm;
+		BPMTypedHandler handler = getHandlers().get(bpmPerm.getType());
+		if (handler == null) {
+			throw new AccessControlException("No handler resolved for the permission type=" + bpmPerm.getType());
+		}
 				
-				PermissionHandleResult result = handler.handle(perm);
-				
-				if (result.getStatus() == PermissionHandleResultStatus.noAccess) {
-					
-					throw new AccessControlException(!StringUtil.isEmpty(result
-					        .getMessage()) ? result.getMessage()
-					        : "No access resolved by handler=" + handler);
-				}
-				
-			} else {
-				throw new AccessControlException(
-				        "No handler resolved for the permission type="
-				                + ((BPMTypedPermission) perm).getType());
-			}
-			
-		} else
-			throw new IllegalArgumentException(
-			        "Only permissions implementing cool interfaces are supported");
+		PermissionHandleResult result = handler.handle(perm);
+		if (result.getStatus() == PermissionHandleResultStatus.noAccess) {
+			String message = "Access is denied! Permission for user: " + bpmPerm.getUserId() + ", type: "+ bpmPerm.getType() + ". Handler: " + handler.getClass();
+			message = message + ". " + (StringUtil.isEmpty(result.getMessage()) ? ("No access resolved by handler=" + handler) : result.getMessage());
+			throw new AccessControlException(message);
+		}				
 	}
 	
 	public AuthenticationService getAuthenticationService() {
@@ -126,8 +103,7 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	}
 	
 	@Autowired
-	public void setAuthenticationService(
-	        AuthenticationService authenticationService) {
+	public void setAuthenticationService(AuthenticationService authenticationService) {
 		this.authenticationService = authenticationService;
 	}
 	
@@ -142,29 +118,19 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	
 	protected UserBusiness getUserBusiness() {
 		try {
-			return (UserBusiness) IBOLookup.getServiceInstance(CoreUtil
-			        .getIWContext(), UserBusiness.class);
+			return IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), UserBusiness.class);
 		} catch (IBOLookupException ile) {
 			throw new IBORuntimeException(ile);
 		}
 	}
 	
 	protected AccessController getAccessController() {
-		
 		return getIWMA().getAccessController();
 	}
 	
 	protected IWMainApplication getIWMA() {
-		
-		IWMainApplication iwma;
 		FacesContext fctx = FacesContext.getCurrentInstance();
-		
-		if (fctx == null)
-			iwma = IWMainApplication.getDefaultIWMainApplication();
-		else
-			iwma = IWMainApplication.getIWMainApplication(fctx);
-		
-		return iwma;
+		return fctx == null ? IWMainApplication.getDefaultIWMainApplication() : IWMainApplication.getIWMainApplication(fctx);
 	}
 	
 	public void close() {
