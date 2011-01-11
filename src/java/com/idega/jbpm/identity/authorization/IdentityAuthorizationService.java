@@ -5,6 +5,7 @@ import java.security.Permission;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
@@ -27,6 +28,7 @@ import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.jbpm.identity.permission.PermissionHandleResult;
 import com.idega.jbpm.identity.permission.PermissionHandleResult.PermissionHandleResultStatus;
 import com.idega.user.business.UserBusiness;
+import com.idega.user.data.User;
 import com.idega.util.StringUtil;
 
 /**
@@ -72,6 +74,8 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			throw new IllegalArgumentException("Expected permission type: " + BPMTypedPermission.class + ", received: " + perm);
 		}
 		
+		BPMTypedPermission bpmPerm = (BPMTypedPermission) perm;
+		
 		FacesContext fctx = FacesContext.getCurrentInstance();
 		// faces context == null when permission is called by the system (i.e. not the result of user navigation)
 		if (fctx == null){
@@ -79,12 +83,12 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			//(eiki) I added this small change so not to bust up something that was working before.
 			//But this should be taken under review. I didn't have time to test more with the fctx==null check totally removed but it seemed to work.
 			//Vytautas suggested that async operations might fail if this wasn't here.
-			 if(((BPMTypedPermission) perm).getUserId()==null){
+			 if (bpmPerm.getUserId() == null) {
 				 return;
 			 }
 		}
 		
-		BPMTypedPermission bpmPerm = (BPMTypedPermission) perm;
+		
 		BPMTypedHandler handler = getHandlers().get(bpmPerm.getType());
 		if (handler == null) {
 			throw new AccessControlException("No handler resolved for the permission type=" + bpmPerm.getType());
@@ -92,10 +96,28 @@ public class IdentityAuthorizationService implements AuthorizationService {
 				
 		PermissionHandleResult result = handler.handle(perm);
 		if (result.getStatus() == PermissionHandleResultStatus.noAccess) {
-			String message = "Access is denied! Permission for user: " + bpmPerm.getUserId() + ", type: "+ bpmPerm.getType() + ". Handler: " + handler.getClass();
-			message = message + ". " + (StringUtil.isEmpty(result.getMessage()) ? ("No access resolved by handler=" + handler) : result.getMessage());
+			String message = getErrorMessage(bpmPerm, handler, result);
 			throw new AccessControlException(message);
 		}				
+	}
+	
+	private String getErrorMessage(BPMTypedPermission bpmPerm, BPMTypedHandler handler, PermissionHandleResult result) {
+		User user = null;
+		Set<String> userRoles = null;
+		Integer userId = bpmPerm.getUserId();
+		if (userId != null) {
+			try {
+				user = getUserBusiness().getUser(userId);
+				userRoles = getAccessController().getAllRolesForUser(user);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		String message = "Access is denied! Permission for user: " + user + " (ID: " + userId + ", user roles: " + (userRoles == null ? "unknown" : userRoles) +
+			"), BPM permission: " + bpmPerm + ". Handler: " + handler.getClass();
+		message = message + ". " + (StringUtil.isEmpty(result.getMessage()) ? ("No access resolved by handler=" + handler) : result.getMessage());
+		return message;
 	}
 	
 	public AuthenticationService getAuthenticationService() {

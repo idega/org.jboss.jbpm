@@ -51,4 +51,9 @@ public class BPMTypedPermissionImpl extends BasicPermission implements BPMTypedP
 	public Integer getUserId() {
 		return getAttribute(GenericAccessPermissionsHandler.userAtt);
 	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ": type: " + getType() + ", attributes: " + attributes;
+	}
 }
