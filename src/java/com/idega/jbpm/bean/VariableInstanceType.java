@@ -1,6 +1,8 @@
 package com.idega.jbpm.bean;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public enum VariableInstanceType implements Serializable {
@@ -61,7 +63,7 @@ public enum VariableInstanceType implements Serializable {
 		
 		@Override
 		public String getPrefix() {
-			return "null_";
+			return "long_";
 		}
 	},
 	
@@ -91,4 +93,23 @@ public enum VariableInstanceType implements Serializable {
 	
 	public abstract List<String> getTypeKeys();
 	public abstract String getPrefix();
+	
+	public static final List<VariableInstanceType> ALL_TYPES = Collections.unmodifiableList(Arrays.asList(
+			VariableInstanceType.STRING,
+			VariableInstanceType.BYTE_ARRAY,
+			VariableInstanceType.DATE,
+			VariableInstanceType.DOUBLE,
+			VariableInstanceType.LONG,
+			VariableInstanceType.NULL,
+			VariableInstanceType.JCR_NODE
+	));
+	
+	public static final List<String> getVariableTypeKeys(String variableName) {
+		for (VariableInstanceType type: ALL_TYPES) {
+			if (variableName.startsWith(type.getPrefix())) {
+				return type.getTypeKeys();
+			}
+		}
+		return null;
+	}
 }
