@@ -182,7 +182,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		
 		List<String> notStringVariables = new ArrayList<String>();
 		for (String name : names) {
-			if (!name.startsWith("string_")) {
+			if (!name.startsWith(VariableInstanceType.STRING.getPrefix())) {
 				notStringVariables.add(name);
 			}
 		}
