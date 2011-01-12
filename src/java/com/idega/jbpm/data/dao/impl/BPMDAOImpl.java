@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,6 +31,7 @@ import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.bean.VariableInstanceInfo;
+import com.idega.jbpm.bean.VariableInstanceType;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.AutoloadedProcessDefinition;
@@ -404,6 +406,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return null;
 	}
 	
+	//	TODO: very likely this method should be removed: the variables are bound dynamically as a process instance is in action
 	public void bindProcessVariables() {
 		try {
 			List<AutoloadedProcessDefinition> procDefs = getAllLoadedProcessDefinitions();
@@ -414,54 +417,76 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			List<ProcessDefinitionVariablesBind> currentBinds = getAllProcDefVariableBinds();
 			
 			for (AutoloadedProcessDefinition apd: procDefs) {
-				bindProcessVariables(apd.getProcessDefinitionName(), currentBinds);
+				String processDefinitionName = apd.getProcessDefinitionName();
+				@SuppressWarnings("deprecation")
+				Collection<VariableInstanceInfo> currentVariables = getVariablesQuerier().getVariablesByProcessDefinitionNaiveWay(processDefinitionName);
+				bindProcessVariables(processDefinitionName, currentBinds, currentVariables, null);
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error binding process variables", e);
 		}
 	}
 	
-	private void bindProcessVariables(String processDefinitionName) {
-		bindProcessVariables(processDefinitionName, getAllProcDefVariableBinds());
+	private void bindProcessVariables(String processDefinitionName, Long processInstanceId, Set<String> createdVariables) {
+		bindProcessVariables(processDefinitionName, getAllProcDefVariableBinds(), getVariablesQuerier().getVariablesByProcessInstanceId(processInstanceId),
+				createdVariables);
 	}
 	
 	@Transactional(readOnly = false)
-	private void bindProcessVariables(String processDefinitionName, List<ProcessDefinitionVariablesBind> currentBinds) {
+	private void bindProcessVariables(String processDefinitionName, List<ProcessDefinitionVariablesBind> currentBinds,
+			Collection<VariableInstanceInfo> currentVariables, Set<String> createdVariables) {
 		if (StringUtil.isEmpty(processDefinitionName)) {
 			return;
 		}
 		
-		Collection<VariableInstanceInfo> vars = getVariablesQuerier().getVariablesByProcessDefinitionNaiveWay(processDefinitionName);
-		if (ListUtil.isEmpty(vars)) {
-			return;
+		currentBinds = currentBinds == null ? new ArrayList<ProcessDefinitionVariablesBind>() : currentBinds;
+		
+		if (ListUtil.isEmpty(currentVariables)) {
+			if (ListUtil.isEmpty(createdVariables)) {
+				return;
+			}
+			for (String variableName: createdVariables) {
+				List<String> types = VariableInstanceType.getVariableTypeKeys(variableName);
+				if (ListUtil.isEmpty(types)) {
+					continue;
+				}
+				createProcessDefinitionVariablesBind(currentBinds, processDefinitionName, variableName, types.get(0));
+			}
+		} else {
+			for (VariableInstanceInfo var: currentVariables) {
+				String variableName = var.getName();
+				if (StringUtil.isEmpty(variableName)) {
+					continue;
+				}
+				
+				createProcessDefinitionVariablesBind(currentBinds, processDefinitionName, variableName, var.getType().getTypeKeys().get(0));
+			}
 		}
-		
-		currentBinds = currentBinds == null ? new ArrayList<ProcessDefinitionVariablesBind>(0) : currentBinds;
-		
-		for (VariableInstanceInfo var: vars) {
-			String variableName = var.getName();
-			if (StringUtil.isEmpty(variableName)) {
-				continue;
+	}
+	
+	private ProcessDefinitionVariablesBind createProcessDefinitionVariablesBind(List<ProcessDefinitionVariablesBind> currentBinds, String processDefinitionName,
+			String variableName, String variableType) {
+		try {
+			if (bindExists(currentBinds, variableName, processDefinitionName)) {
+				return null;
+			}
+			ProcessDefinitionVariablesBind bind = new ProcessDefinitionVariablesBind();
+			if (bind.hashCode() < 0) {
+				return null;
 			}
 			
-			try {
-				if (!bindExists(currentBinds, variableName, processDefinitionName)) {
-					ProcessDefinitionVariablesBind bind = new ProcessDefinitionVariablesBind();
-					if (bind.hashCode() < 0) {
-						continue;
-					}
-					
-					bind.setProcessDefinition(processDefinitionName);
-					bind.setVariableName(variableName);
-					bind.setVariableType(var.getType().getTypeKeys().get(0));
-					persist(bind);
-					currentBinds.add(bind);
-					LOGGER.info("Added new bind: " + bind);
-				}
-			} catch (Exception e) {
-				LOGGER.log(Level.WARNING, "Error adding new bind: " + var + " for process: " + processDefinitionName, e);
-			}
+			bind.setProcessDefinition(processDefinitionName);
+			bind.setVariableName(variableName);
+			bind.setVariableType(variableType);
+			persist(bind);
+			
+			currentBinds.add(bind);
+			LOGGER.info("Added new bind: " + bind);
+			return bind;
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error adding new bind: " + variableName + " for process: " + processDefinitionName, e);
 		}
+		return null;
 	}
 	
 	private boolean bindExists(List<ProcessDefinitionVariablesBind> currentBinds, String variableName, String processDefinitionName) {
@@ -487,7 +512,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			Thread binder = new Thread(new Runnable() {
 				public void run() {
 					VariableCreatedEvent variableCreated = (VariableCreatedEvent) event;
-					bindProcessVariables(variableCreated.getProcessDefinitionName());
+					Map<String, Object> createdVariables = variableCreated.getVariables();
+					bindProcessVariables(variableCreated.getProcessDefinitionName(), variableCreated.getProcessInstanceId(),
+							createdVariables == null ? null : createdVariables.keySet());
 				}
 			});
 			binder.start();
