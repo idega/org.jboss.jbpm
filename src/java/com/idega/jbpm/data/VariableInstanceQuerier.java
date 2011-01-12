@@ -11,15 +11,11 @@ import com.idega.jbpm.bean.VariableInstanceInfo;
 public interface VariableInstanceQuerier extends GenericDao {
 
 	/**
-	 * Use a method to get variables by process instance id: getVariablesByProcessInstanceId
+	 * Use a method to get variables by process instance id: getVariablesByProcessInstanceId or getVariablesByProcessDefinition
 	 */
 	@Deprecated
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(String processDefinitionName);
 	
-	/**
-	 * Use a method to get variables by process instance id: getVariablesByProcessInstanceId
-	 */
-	@Deprecated
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName);
 	
 	/**
