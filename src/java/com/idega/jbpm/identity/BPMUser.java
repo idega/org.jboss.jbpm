@@ -48,4 +48,6 @@ public interface BPMUser {
 	 *         logged in user)
 	 */
 	public abstract List<URIParam> getParamsForBPMUserLink();
+	
+	public void setProcessInstanceId(Long processInstanceId);
 }
