@@ -8,12 +8,15 @@ import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.faces.component.UIComponent;
+import javax.mail.MessagingException;
+
 import org.jboss.jbpm.IWBundleStarter;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +42,8 @@ import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.BPMContext;
+import com.idega.jbpm.bean.VariableInstanceInfo;
+import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.exe.BPMDocument;
 import com.idega.jbpm.exe.BPMEmailDocument;
 import com.idega.jbpm.exe.BPMFactory;
@@ -46,6 +51,7 @@ import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.ProcessWatch;
 import com.idega.jbpm.exe.TaskInstanceW;
+import com.idega.jbpm.identity.BPMUser;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.Access;
@@ -80,6 +86,8 @@ import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
+import com.idega.util.SendMail;
+import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
 
@@ -109,6 +117,8 @@ public class ProcessArtifacts {
 	private BuilderLogicWrapper builderLogicWrapper;
 	@Autowired(required = false)
 	private SigningHandler signingHandler;
+	@Autowired(required = false)
+	private VariableInstanceQuerier variablesQuerier;
 	
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
@@ -1403,84 +1413,128 @@ public class ProcessArtifacts {
 	}
 	
 	public String assignCase(String handlerIdStr, Long processInstanceId) {
-		
 		ProcessInstanceW piw = getBpmFactory()
 		        .getProcessManagerByProcessInstanceId(processInstanceId)
 		        .getProcessInstance(processInstanceId);
 		
 		if (piw.hasRight(Right.processHandler)) {
-			
-			Integer handlerId = handlerIdStr == null
-			        || handlerIdStr.length() == 0 ? null : new Integer(
-			        handlerIdStr);
-			
+			Integer handlerId = handlerIdStr == null || handlerIdStr.length() == 0 ? null : Integer.valueOf(handlerIdStr);
 			piw.assignHandler(handlerId);
-			
+
+			notifyHandlerAboutAssignment(handlerId, processInstanceId);
 			return "great success";
 		}
 		
 		return "no rights to take case";
 	}
 	
-	public List<AdvancedProperty> getAllHandlerUsers(Long processInstanceId) {
-		
-		if (processInstanceId != null) {
-			
-			ProcessInstanceW piw = getBpmFactory()
-			        .getProcessManagerByProcessInstanceId(processInstanceId)
-			        .getProcessInstance(processInstanceId);
-			
-			if (piw.hasRight(Right.processHandler)
-			        && piw.hasHandlerAssignmentSupport()) {
-				
-				RolesManager rolesManager = getBpmFactory().getRolesManager();
-				
-				List<String> caseHandlersRolesNames = rolesManager
-				        .getRolesForAccess(processInstanceId,
-				            Access.caseHandler);
-				Collection<User> users = rolesManager.getAllUsersForRoles(
-				    caseHandlersRolesNames, processInstanceId);
-				
-				Integer assignedCaseHandlerId = piw.getHandlerId();
-				
-				String assignedCaseHandlerIdStr = assignedCaseHandlerId == null ? null
-				        : String.valueOf(assignedCaseHandlerId);
-				
-				ArrayList<AdvancedProperty> allHandlers = new ArrayList<AdvancedProperty>(
-				        1);
-				
-				IWContext iwc = getIWContext(true);
-				if (iwc == null) {
-					return null;
-				}
-				IWBundle bundle = iwc.getIWMainApplication().getBundle(
-				    IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-				IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-				
-				AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY,
-				        iwrb.getLocalizedString("bpm.caseHandler",
-				            "Case handler"));
-				allHandlers.add(ap);
-				
-				for (User user : users) {
-					
-					String pk = String.valueOf(user.getPrimaryKey());
-					
-					ap = new AdvancedProperty(pk, user.getName());
-					
-					if (pk.equals(assignedCaseHandlerIdStr)) {
-						
-						ap.setSelected(true);
-					}
-					
-					allHandlers.add(ap);
-				}
-				
-				return allHandlers;
-			}
+	private void notifyHandlerAboutAssignment(Integer handlerId, Long processInstanceId) {
+		if (handlerId == null || processInstanceId == null) {
+			LOGGER.warning("Unable to notify hanlder (ID: " + handlerId + ") about assigned case (process instance ID: " + processInstanceId + ")");
+			return;
 		}
 		
-		return null;
+		UserBusiness userBusiness = getUserBusiness();
+		Email email = null;
+		try {
+			email = userBusiness.getUserMail(handlerId);
+		} catch (RemoteException e) {
+			LOGGER.log(Level.WARNING, "Unable to get email for user: " + handlerId, e);
+		}
+		if (email == null) {
+			return;
+		}
+		final String emailAddress = email.getEmailAddress();
+		if (StringUtil.isEmpty(emailAddress)) {
+			return;
+		}
+		
+		IWApplicationContext iwac = IWMainApplication.getDefaultIWApplicationContext();
+		final String from = iwac.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, CoreConstants.EMAIL_DEFAULT_FROM);
+		final String host = iwac.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER, CoreConstants.EMAIL_DEFAULT_HOST);
+		
+		IWContext iwc = getIWContext(false);
+		IWResourceBundle iwrb = iwc == null ? null : iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER).getResourceBundle(iwc);
+		String subject = "Case assigned";
+		subject = iwrb == null ? subject : iwrb.getLocalizedString("case_assigned", subject);
+		
+		String text = "A case \"case_identifier\" was assigned to you. Link to the case: ";
+		String link = "unknown";
+		text = iwrb == null ? text : iwrb.getLocalizedString("assigned_case_text", text);
+		try {
+			Collection<VariableInstanceInfo> info =
+				getVariablesQuerier().getVariablesByProcessInstanceIdAndVariablesNames(
+						Arrays.asList("string_caseIdentifier"),
+						Arrays.asList(processInstanceId),
+						false,
+						false,
+						false
+			);
+			String replace = ListUtil.isEmpty(info) ? iwrb == null ? "unknown" : iwrb.getLocalizedString("unknown", "unknown") :
+													info.iterator().next().getValue().toString();
+			text = StringHandler.replace(text, "case_identifier", replace);
+			BPMUser bpmUser = getBpmFactory().getBpmUserFactory().getBPMUser(handlerId);
+			bpmUser.setProcessInstanceId(processInstanceId);
+			link = bpmUser.getUrlToTheProcess();
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error resolving assets for case assigned notification message", e);
+		}
+		text = text.concat(link);
+		
+		final String emailSubject = subject;
+		final String emailText = text;
+		Thread sender = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					SendMail.send(from, emailAddress, null, null, null, host, emailSubject, emailText);
+				} catch (MessagingException e) {
+					LOGGER.log(Level.WARNING, "Error sending case assignment notification to " + emailAddress, e);
+				}
+			}
+		});
+		sender.start();
+	}
+	
+	public List<AdvancedProperty> getAllHandlerUsers(Long processInstanceId) {
+		if (processInstanceId == null) {
+			return Collections.emptyList();
+		}
+			
+		ProcessInstanceW piw = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
+		if (!piw.hasRight(Right.processHandler) || !piw.hasHandlerAssignmentSupport()) {
+			return Collections.emptyList();
+		}
+				
+		RolesManager rolesManager = getBpmFactory().getRolesManager();		
+		List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.caseHandler);
+		Collection<User> users = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
+				
+		Integer assignedCaseHandlerId = piw.getHandlerId();
+		String assignedCaseHandlerIdStr = assignedCaseHandlerId == null ? null : String.valueOf(assignedCaseHandlerId);
+				
+		List<AdvancedProperty> allHandlers = new ArrayList<AdvancedProperty>(1);
+		IWContext iwc = getIWContext(true);
+		if (iwc == null) {
+			return null;
+		}
+		
+		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
+		AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, iwrb.getLocalizedString("bpm.caseHandler", "Case handler"));
+		allHandlers.add(ap);
+				
+		for (User user : users) {
+			String pk = String.valueOf(user.getPrimaryKey());
+			ap = new AdvancedProperty(pk, user.getName());
+			if (pk.equals(assignedCaseHandlerIdStr)) {
+				ap.setSelected(true);
+			}
+			
+			allHandlers.add(ap);
+		}
+				
+		return allHandlers;
 	}
 	
 	private String getAssignedToYouLocalizedString(IWResourceBundle iwrb) {
@@ -1543,5 +1597,13 @@ public class ProcessArtifacts {
 	
 	public PermissionsFactory getPermissionsFactory() {
 		return permissionsFactory;
+	}
+
+	VariableInstanceQuerier getVariablesQuerier() {
+		return variablesQuerier;
+	}
+
+	void setVariablesQuerier(VariableInstanceQuerier variablesQuerier) {
+		this.variablesQuerier = variablesQuerier;
 	}
 }
