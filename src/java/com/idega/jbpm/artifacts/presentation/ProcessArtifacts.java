@@ -1521,7 +1521,7 @@ public class ProcessArtifacts {
 		
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-		AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, iwrb.getLocalizedString("bpm.caseHandler", "Case handler"));
+		AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, iwrb.getLocalizedString("bpm.selectCaseHandler", "Select handler"));
 		allHandlers.add(ap);
 				
 		for (User user : users) {

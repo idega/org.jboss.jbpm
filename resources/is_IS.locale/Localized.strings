@@ -14,6 +14,7 @@ _cases_bpm.process_resource_name_submitnewcase=Bei\u00F0ni um \u00E1litsger\u00F
 _cases_bpm.process_resource_name_submitprocessruling=Senda \u00E1lit nefndarinnar
 allow_disallow_to_read=Lesr\u00E9ttindi
 bpm.caseHandler=Umsj\u00F3narma\u00F0ur
+bpm.selectCaseHandler=Veldu umsj\u00F3narmann
 bpm.resetToDefault=Endursetja \u00E1 upphafsstillingu
 bpm_committee_caseHandler=Umsj\u00F3narma\u00F0ur
 bpm_committee_handler=Umsj\u00F3narh\u00F3pur
