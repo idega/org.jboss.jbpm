@@ -1412,20 +1412,21 @@ public class ProcessArtifacts {
 		return errorMessage;
 	}
 	
-	public String assignCase(String handlerIdStr, Long processInstanceId) {
+	public boolean assignCase(String handlerIdStr, Long processInstanceId) {
 		ProcessInstanceW piw = getBpmFactory()
 		        .getProcessManagerByProcessInstanceId(processInstanceId)
 		        .getProcessInstance(processInstanceId);
 		
 		if (piw.hasRight(Right.processHandler)) {
-			Integer handlerId = handlerIdStr == null || handlerIdStr.length() == 0 ? null : Integer.valueOf(handlerIdStr);
+			Integer handlerId = StringUtil.isEmpty(handlerIdStr) ? null : Integer.valueOf(handlerIdStr);
 			piw.assignHandler(handlerId);
 
 			notifyHandlerAboutAssignment(handlerId, processInstanceId);
-			return "great success";
+			return Boolean.TRUE;
 		}
 		
-		return "no rights to take case";
+		LOGGER.warning("No rights to take case");
+		return Boolean.FALSE;
 	}
 	
 	private void notifyHandlerAboutAssignment(Integer handlerId, Long processInstanceId) {
