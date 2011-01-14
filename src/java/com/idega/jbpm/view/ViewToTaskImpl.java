@@ -17,60 +17,47 @@ public class ViewToTaskImpl implements ViewToTask {
 	private BPMDAO BPMDAO;
 
 	public void bind(View view, Task task) {
-
-		bind(view.getViewId(), view.getViewType(), task);
+		bind(task.getId(), null, view.getViewId(), view.getViewType(), null);
 	}
 
-	public void bind(String viewId, String viewType, Task task) {
-		// TODO: catch when duplicate view type and task id pair is tried to be
-		// entered, and override
-		// views could be versioned
-
-		ViewTaskBind vtb = getBPMDAO().getViewTaskBind(task.getId(), viewType);
+	public void bind(String viewId, String viewType, Task task, int order) {
+		bind(task.getId(), null, viewId, viewType, order);
+	}
+	
+	public void bind(View view, TaskInstance taskInstance) {
+		bind(null, taskInstance.getId(), view.getViewId(), view.getViewType(), null);
+	}
+	
+	private void bind(Long taskId, Long taskInstanceId, String viewId, String viewType, Integer order) {
+		ViewTaskBind vtb = null;
+		try {
+			vtb = taskInstanceId == null ?	getBPMDAO().getViewTaskBind(taskId, viewType) :
+											getBPMDAO().getViewTaskBindByTaskInstance(taskInstanceId, viewType);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		boolean newVtb = false;
-
 		if (vtb == null) {
 			vtb = new ViewTaskBind();
 			newVtb = true;
 		}
 
-		vtb.setTaskId(task.getId());
-		vtb.setTaskInstanceId(null);
+		vtb.setTaskId(taskId);
+		vtb.setTaskInstanceId(taskInstanceId);
 		vtb.setViewIdentifier(viewId);
 		vtb.setViewType(viewType);
+		vtb.setViewOrder(order);
 
 		if (newVtb)
 			getBPMDAO().persist(vtb);
+		else
+			getBPMDAO().merge(vtb);
 	}
 	
 	public boolean containsBind(String viewType, Long taskInstanceId) {
-		
-		ViewTaskBind vtb = getBPMDAO().getViewTaskBindByTaskInstance(
-				taskInstanceId, viewType);
-		
+		ViewTaskBind vtb = getBPMDAO().getViewTaskBindByTaskInstance(taskInstanceId, viewType);
 		return vtb != null;
-	}
-
-	public void bind(View view, TaskInstance taskInstance) {
-
-		ViewTaskBind vtb = getBPMDAO().getViewTaskBindByTaskInstance(
-				taskInstance.getId(), view.getViewType());
-
-		boolean newVtb = false;
-
-		if (vtb == null) {
-			vtb = new ViewTaskBind();
-			newVtb = true;
-		}
-
-		vtb.setTaskInstanceId(taskInstance.getId());
-		vtb.setTaskId(null);
-		vtb.setViewIdentifier(view.getViewId());
-		vtb.setViewType(view.getViewType());
-
-		if (newVtb)
-			getBPMDAO().persist(vtb);
 	}
 
 	public BPMDAO getBPMDAO() {

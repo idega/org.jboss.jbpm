@@ -21,6 +21,7 @@ public class BPMDocumentImpl implements BPMDocument {
 	private Date endDate;
 	private boolean signable;
 	private boolean hasViewUI = true;
+	private Integer order;
 	
 	public String getSubmittedByName() {
 		return submittedByName;
@@ -85,4 +86,14 @@ public class BPMDocumentImpl implements BPMDocument {
 	public void setHasViewUI(boolean hasViewUI) {
     	this.hasViewUI = hasViewUI;
     }
+
+	@Override
+	public void setOrder(Integer order) {
+		this.order = order;
+	}
+
+	@Override
+	public Integer getOrder() {
+		return order;
+	}
 }

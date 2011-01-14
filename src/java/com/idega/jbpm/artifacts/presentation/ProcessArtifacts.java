@@ -465,6 +465,7 @@ public class ProcessArtifacts {
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 			
+			row.setOrder(taskDocument.getOrder());
 			row.setId(taskInstanceId.toString());
 			
 			row.addCell(taskDocument.getDocumentName());

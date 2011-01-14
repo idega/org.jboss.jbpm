@@ -54,27 +54,18 @@ public class ProcessBundleManager {
 	 * @return process definition id, of the created bundle
 	 * @throws IOException
 	 */
-	public long createBundle(final ProcessBundle processBundle,
-	        final IWMainApplication iwma) throws IOException {
-		
+	public long createBundle(final ProcessBundle processBundle, final IWMainApplication iwma) throws IOException {
 		final String processManagerType = processBundle.getProcessManagerType();
 		
 		if (StringUtil.isEmpty(processManagerType))
-			throw new IllegalArgumentException(
-			        "No process mmanager type in process bundle provided: "
-			                + processBundle.getClass().getName());
+			throw new IllegalArgumentException("No process mmanager type in process bundle provided: " + processBundle.getClass().getName());
 		
 		Long processDefinitionId = getBPMContext().execute(new JbpmCallback() {
-			
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
-				
 				ProcessDefinition pd = null;
-				
 				try {
 					pd = processBundle.getProcessDefinition();
-					
 					context.getGraphSession().deployProcessDefinition(pd);
-					
 					TaskMgmtDefinition taskMgmtDef = pd.getTaskMgmtDefinition();
 					
 					@SuppressWarnings("unchecked")
@@ -82,37 +73,25 @@ public class ProcessBundleManager {
 					final String processName = pd.getName();
 					
 					if (tasksMap != null) {
-						
 						@SuppressWarnings("unchecked")
-						Collection<Task> tasks = pd.getTaskMgmtDefinition()
-						        .getTasks().values();
+						Collection<Task> tasks = pd.getTaskMgmtDefinition().getTasks().values();
 						
 						for (Task task : tasks) {
-							
-							List<ViewResource> viewResources = processBundle
-							        .getViewResources(task.getName());
+							List<ViewResource> viewResources = processBundle.getViewResources(task.getName());
 							
 							if (viewResources != null) {
-								
 								for (ViewResource viewResource : viewResources) {
-									
 									viewResource.setProcessName(processName);
 									viewResource.store(iwma);
-									getViewToTask().bind(
-									    viewResource.getViewId(),
-									    viewResource.getViewType(), task);
+									getViewToTask().bind(viewResource.getViewId(), viewResource.getViewType(), task, viewResource.getOrder());
 								}
 							} else {
-								Logger.getLogger(getClass().getName()).log(
-								    Level.WARNING,
-								    "No view resources resolved for task: "
-								            + task.getId());
+								Logger.getLogger(getClass().getName()).log(Level.WARNING, "No view resources resolved for task: " + task.getId());
 							}
 						}
 					}
 					
 					if (getBPMDAO().getProcessManagerBind(processName) == null) {
-						
 						ProcessManagerBind pmb = new ProcessManagerBind();
 						pmb.setManagersType(processManagerType);
 						pmb.setProcessName(processName);
@@ -122,13 +101,10 @@ public class ProcessBundleManager {
 					processBundle.configure(pd);
 					
 					return pd.getId();
-					
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				} catch (Exception e) {
-					
-					Logger.getLogger(getClass().getName()).log(Level.SEVERE,
-					    "Exception while storing views and binding with tasks");
+					Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while storing views and binding with tasks", e);
 					// TODO: rollback here if hibernate doesn't do it?
 					
 					throw new RuntimeException(e);

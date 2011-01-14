@@ -5,7 +5,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
-import com.idega.util.CoreConstants;
+import com.idega.util.StringUtil;
 
 public class ProcessArtifactsListRowComparator implements Comparator<ProcessArtifactsListRow> {
 
@@ -21,24 +21,28 @@ public class ProcessArtifactsListRowComparator implements Comparator<ProcessArti
 	}
 	
 	public int compare(ProcessArtifactsListRow row1, ProcessArtifactsListRow row2) {
+		Integer order1 = row1.getOrder();
+		Integer order2 = row2.getOrder();
+		if (order1 != null && order2 != null) {
+			return order1.compareTo(order2);
+		}
+		
 		if (dateStyle < 0 || timeStyle < 0 || locale == null) {
 			return 0;
 		}
-		
 		if (row1.getDateCellIndex() < 0 || row2.getDateCellIndex() < 0) {
 			return 0;
 		}
 		
 		String timestampCellValue1 = null;
 		String timestampCellValue2 = null;
-		
 		try {
 			timestampCellValue1 = row1.getCells().get(row1.getDateCellIndex());
 			timestampCellValue2 = row2.getCells().get(row2.getDateCellIndex());
 		} catch(IndexOutOfBoundsException e) {
 			e.printStackTrace();
 		}
-		if (timestampCellValue1 == null || timestampCellValue2 == null || CoreConstants.EMPTY.equals(timestampCellValue1) || CoreConstants.EMPTY.equals(timestampCellValue2)) {
+		if (StringUtil.isEmpty(timestampCellValue1) || StringUtil.isEmpty(timestampCellValue2)) {
 			return 0;
 		}
 		

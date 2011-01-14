@@ -13,6 +13,8 @@ import com.idega.util.CoreConstants;
  */
 public class ProcessArtifactsListRow {
 
+	private Integer order;
+	
 	static final String alias = "row";
 	
 	static final String attributeId = "id";
@@ -67,6 +69,12 @@ public class ProcessArtifactsListRow {
 	}
 	public void setDateCellIndex(int dateCellIndex) {
 		this.dateCellIndex = dateCellIndex;
+	}
+	public Integer getOrder() {
+		return order;
+	}
+	public void setOrder(Integer order) {
+		this.order = order;
 	}
 	
 }

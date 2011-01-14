@@ -72,6 +72,10 @@ public class ViewTaskBind implements Serializable {
 	public static final String viewTypeProp = "viewType";
 	@Column(name="view_type", nullable=false)
 	private String viewType;
+	
+	public static final String viewOrderProp = "viewOrder";
+	@Column(name="viewOrder")
+	private Integer viewOrder;
 
 	public ViewTaskBind() { }
 
@@ -115,4 +119,13 @@ public class ViewTaskBind implements Serializable {
 	public void setTaskInstanceId(Long taskInstanceId) {
 		this.taskInstanceId = taskInstanceId;
 	}
+
+	public Integer getViewOrder() {
+		return viewOrder;
+	}
+
+	public void setViewOrder(Integer viewOrder) {
+		this.viewOrder = viewOrder;
+	}
+	
 }

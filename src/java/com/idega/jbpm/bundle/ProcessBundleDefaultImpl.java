@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.idega.jbpm.view.ViewResource;
@@ -36,40 +37,41 @@ public class ProcessBundleDefaultImpl extends
 	private ViewResourceFactoryImpl viewResourceFactory;
 
 	@Override
-	public List<ViewResource> getViewResources(String taskName)
-			throws IOException {
-
+	public List<ViewResource> getViewResources(String taskName) throws IOException {
 		ProcessBundleResources resources = getBundleResources();
 		Document cfg = resources.getConfiguration();
 
-		XPathUtil xut = new XPathUtil("//tasks/task[@name='" + taskName
-				+ "']/viewResource");
+		XPathUtil xut = new XPathUtil("//tasks/task[@name='" + taskName + "']/viewResource");
 
 		NodeList viewResourcesCfg = xut.getNodeset(cfg);
-
-		ArrayList<ViewResource> viewResources = new ArrayList<ViewResource>(
-				viewResourcesCfg.getLength());
+		List<ViewResource> viewResources = new ArrayList<ViewResource>(viewResourcesCfg.getLength());
 
 		for (int i = 0; i < viewResourcesCfg.getLength(); i++) {
-
 			Element viewResourceElement = (Element) viewResourcesCfg.item(i);
 
-			String viewResourceIdentifier = viewResourceElement
-					.getAttribute("resourceIdentifier");
+			Integer order = null;
+			Node parent = viewResourceElement.getParentNode();
+			if (parent instanceof Element) {
+				String orderValue = ((Element) parent).getAttribute("order");
+				if (!StringUtil.isEmpty(orderValue)) {
+					order = Integer.valueOf(orderValue);
+				}
+			}
+			
+			String viewResourceIdentifier = viewResourceElement.getAttribute("resourceIdentifier");
 			String viewType = viewResourceElement.getAttribute("viewType");
-			String viewResourceType = viewResourceElement
-					.getAttribute("viewResourceType");
+			String viewResourceType = viewResourceElement.getAttribute("viewResourceType");
 
-			ViewResource viewResource = getViewResourceFactory()
-					.getViewResource(viewResourceType, viewResourceIdentifier,
-							taskName, resources);
+			ViewResource viewResource = getViewResourceFactory().getViewResource(viewResourceType, viewResourceIdentifier, taskName, resources);
 			viewResource.setViewType(viewType);
+			viewResource.setOrder(order);
 			viewResources.add(viewResource);
 		}
 
 		return viewResources;
 	}
 
+	@Override
 	public void configure(ProcessDefinition pd) {
 
 		super.configure(pd);

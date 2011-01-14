@@ -33,4 +33,7 @@ public interface BPMDocument {
 	public abstract void setEndDate(Date endDate);
 	
 	public abstract boolean isHasViewUI();
+	
+	public Integer getOrder();
+	public void setOrder(Integer order);
 }

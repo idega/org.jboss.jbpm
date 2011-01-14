@@ -15,6 +15,7 @@ public class ViewResourceByViewIdentifierDefaultImpl implements ViewResource {
 	private String taskName;
 	private String viewResourceIdentifier;
 	private String viewType;
+	private Integer order;
 
 	public void store(IWMainApplication iwma) throws IOException {
 
@@ -52,5 +53,15 @@ public class ViewResourceByViewIdentifierDefaultImpl implements ViewResource {
 
 	public String getTaskName() {
 		return taskName;
+	}
+
+	@Override
+	public void setOrder(Integer order) {
+		this.order = order;
+	}
+
+	@Override
+	public int getOrder() {
+		return order;
 	}
 }

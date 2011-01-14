@@ -18,7 +18,7 @@ public interface ViewToTask {
 	 * @param viewType
 	 * @param task
 	 */
-	public abstract void bind(String viewId, String viewType, Task task);
+	public abstract void bind(String viewId, String viewType, Task task, int order);
 
 	/**
 	 * the same as bind(String viewId, String viewType, Task task), but viewId
