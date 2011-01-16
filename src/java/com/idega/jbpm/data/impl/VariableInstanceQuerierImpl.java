@@ -385,153 +385,132 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 	
 	private Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(String name, Serializable value, boolean selectProcessInstanceId) {
-		if (StringUtil.isEmpty(name) || value == null) {
-			LOGGER.warning("Variable name and/or value is not provided");
-			return null;
-		}
-		
-		Map<String, List<Serializable>> namesAndValues = new HashMap<String, List<Serializable>>();
-		namesAndValues.put(name, Arrays.asList(value));
-		return getProcessVariablesByNamesAndValues(namesAndValues, selectProcessInstanceId);
+		return getProcessVariablesByNameAndValue(name, Arrays.asList(value), null, null, selectProcessInstanceId);
 	}
 	
-	private Collection<VariableInstanceInfo> getProcessVariablesByNamesAndValues(Map<String, List<Serializable>> namesAndValues, boolean selectProcessInstanceId) {
-		if (namesAndValues == null || namesAndValues.isEmpty()) {
-			LOGGER.warning("Variables names and values are not provided");
-			return null;
+	private Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(String name, List<Serializable> values, List<String> procDefNames, List<Long> procInstIds,
+			boolean selectProcessInstanceId) {
+		if (StringUtil.isEmpty(name) || ListUtil.isEmpty(values)) {
+			LOGGER.warning("Variable name and/or value is not provided");
+			return Collections.emptyList();
 		}
 		
 		boolean anyStringColumn = false;
-		List<String> columnsNames = new ArrayList<String>();
-		List<VariableInstanceType> types = new ArrayList<VariableInstanceType>();
-		Map<String, List<Serializable>> valuesForColumns = new HashMap<String, List<Serializable>>();
-		for (String variable: namesAndValues.keySet()) {
-			List<Serializable> values = namesAndValues.get(variable);
-			if (ListUtil.isEmpty(values)) {
-				continue;
-			}
-			Serializable value = values.get(0);
-			if (value == null) {
-				continue;
-			}
-			
-			VariableInstanceType type = null;
-			String columnName = "var.";
-			if (value instanceof String) {
-				anyStringColumn = true;
-				columnName = columnName.concat(getStringValueColumn());
-				columnName = getStringValueColumn();
-				columnName = isDataMirrowed() ? columnName : getSubstring(columnName);
-				type = VariableInstanceType.STRING;
-			} else if (value instanceof Long) {
-				columnName = columnName.concat("LONGVALUE_");
-				type = VariableInstanceType.LONG;
-			} else if (value instanceof Double) {
-				columnName = columnName.concat("DOUBLEVALUE_");
-				type = VariableInstanceType.DOUBLE;
-			} else if (value instanceof Timestamp) {
-				columnName = columnName.concat("DATEVALUE_");
-				type = VariableInstanceType.DATE;
-			} else {
-				LOGGER.warning("Unsupported type of value: " + value + ", " + value.getClass());
-				continue;
-			}
-			
-			if (!columnsNames.contains(columnName)) {
-				columnsNames.add(columnName);
-				types.add(type);
-			}
-			
-			List<Serializable> valuesForColumn = valuesForColumns.get(columnName);
-			if (valuesForColumn == null) {
-				valuesForColumn = new ArrayList<Serializable>();
-				valuesForColumns.put(columnName, valuesForColumn);
-			}
-			valuesForColumn.addAll(values);
+		Serializable value = values.get(0);
+		if (value == null) {
+			LOGGER.warning("Value for variable must be specified!");
+			return Collections.emptyList();
 		}
 		
-		StringBuffer columnsToSelect = new StringBuffer();
-		for (Iterator<String> columnsIter = columnsNames.iterator(); columnsIter.hasNext();) {
-			columnsToSelect.append(columnsIter.next());
-			if (columnsIter.hasNext()) {
-				columnsToSelect.append(CoreConstants.COMMA).append(CoreConstants.SPACE);
-			}
-		}
-		
-		List<String> typesKeys = new ArrayList<String>();
-		for (VariableInstanceType type: types) {
-			typesKeys.addAll(type.getTypeKeys());
+		VariableInstanceType type = null;
+		String columnName = "var.";
+		if (value instanceof String) {
+			anyStringColumn = true;
+			columnName = columnName.concat(getStringValueColumn());
+			columnName = getStringValueColumn();
+			columnName = isDataMirrowed() ? columnName : getSubstring(columnName);
+			type = VariableInstanceType.STRING;
+		} else if (value instanceof Long) {
+			columnName = columnName.concat("LONGVALUE_");
+			type = VariableInstanceType.LONG;
+		} else if (value instanceof Double) {
+			columnName = columnName.concat("DOUBLEVALUE_");
+			type = VariableInstanceType.DOUBLE;
+		} else if (value instanceof Timestamp) {
+			columnName = columnName.concat("DATEVALUE_");
+			type = VariableInstanceType.DATE;
+		} else if (value instanceof Collection<?>) {
+			columnName = columnName.concat("BYTEARRAYVALUE_");
+			type = VariableInstanceType.LIST;
+		} else {
+			LOGGER.warning("Unsupported type of value: " + value + ", " + value.getClass());
+			return Collections.emptyList();
 		}
 		
 		StringBuffer valuesToSelect = new StringBuffer();
-		for (Iterator<String> columnNamesIter = valuesForColumns.keySet().iterator(); columnNamesIter.hasNext();) {
-			String columnName = columnNamesIter.next();
-			List<Serializable> valuesForColumn = valuesForColumns.get(columnName);
-			if (ListUtil.isEmpty(valuesForColumn)) {
-				continue;
-			}
-			
-			boolean stringColumn = columnName.indexOf("string") != -1;
-			if (valuesForColumn.size() > 1) {
-				//	List of values
-				if (stringColumn) {
-					valuesToSelect.append("(");
-					for (Iterator<Serializable> valuesIter = valuesForColumn.iterator(); valuesIter.hasNext();) {
-						valuesToSelect.append(columnName).append(" like '").append(valuesIter.next()).append("'");
-						if (valuesIter.hasNext()) {
-							valuesToSelect.append(" or ");
-						}
+		boolean stringColumn = columnName.indexOf("string") != -1;
+		if (values.size() > 1) {
+			//	Multiple values
+			if (stringColumn) {
+				valuesToSelect.append("(");
+				for (Iterator<Serializable> valuesIter = values.iterator(); valuesIter.hasNext();) {
+					valuesToSelect.append(columnName).append(" like '").append(valuesIter.next()).append("'");
+					if (valuesIter.hasNext()) {
+						valuesToSelect.append(" or ");
 					}
-					valuesToSelect.append(")");
-				} else {
-					valuesToSelect.append(columnName).append(" in (");
-					for (Iterator<Serializable> valuesIter = valuesForColumn.iterator(); valuesIter.hasNext();) {
-						valuesToSelect.append(valuesIter.next());
-						if (valuesIter.hasNext()) {
-							valuesToSelect.append(", ");
-						}
-					}
-					valuesToSelect.append(") ");
 				}
+				valuesToSelect.append(")");
 			} else {
-				//	Single value
-				valuesToSelect.append(columnName).append(stringColumn ? " like '" : " = ").append(valuesForColumn.get(0))
-					.append(stringColumn ? "'" : CoreConstants.EMPTY);
+				valuesToSelect.append(columnName).append(" in (");
+				for (Iterator<Serializable> valuesIter = values.iterator(); valuesIter.hasNext();) {
+					valuesToSelect.append(valuesIter.next());
+					if (valuesIter.hasNext()) {
+						valuesToSelect.append(", ");
+					}
+				}
+				valuesToSelect.append(") ");
 			}
-			
-			if (columnNamesIter.hasNext()) {
-				valuesToSelect.append(" and ");
-			}
+		} else {
+			//	Single value
+			valuesToSelect.append(columnName).append(stringColumn ? " like '" : " = ").append(values.get(0)).append(stringColumn ? "'" : CoreConstants.EMPTY);
 		}
+			
 		String valuesClause = valuesToSelect.toString();
 		if (!StringUtil.isEmpty(valuesClause)) {
 			valuesClause = " and ".concat(valuesClause);
 		}
 		
-		String additionalColumns = columnsToSelect.toString();
-		if (!StringUtil.isEmpty(additionalColumns)) {
-			additionalColumns = ", ".concat(additionalColumns);
-		}
+		boolean byProcessDefinitions = !ListUtil.isEmpty(procDefNames);
+		boolean byProcessInstances = !ListUtil.isEmpty(procInstIds);
 		
 		String query = null;
-		int columns = COLUMNS + (selectProcessInstanceId ? 1 : 0) + columnsNames.size();
+		int columns = COLUMNS + (selectProcessInstanceId ? 2 : 1);
 		List<Serializable[]> data = null;
 		try {
 			List<String> parts = new ArrayList<String>();
-			parts.addAll(Arrays.asList(getSelectPart(STANDARD_COLUMNS, false), additionalColumns, selectProcessInstanceId ?
-					", var.PROCESSINSTANCE_ as piid" : CoreConstants.EMPTY, getFromClause(anyStringColumn), " where ",
-					getQueryParameters("var.NAME_", namesAndValues.keySet()), valuesClause));
-			if (!ListUtil.isEmpty(typesKeys)) {
-				parts.addAll(Arrays.asList(" and", getQueryParameters("var.CLASS_", typesKeys)));
+			parts.addAll(Arrays.asList(
+					getSelectPart(STANDARD_COLUMNS, false), ", ", columnName,
+						selectProcessInstanceId || byProcessDefinitions || byProcessInstances ? ", var.PROCESSINSTANCE_ as piid" : CoreConstants.EMPTY,
+					getFromClause(anyStringColumn),
+						byProcessDefinitions ? ", jbpm_processinstance pi, jbpm_processdefinition pd " : CoreConstants.EMPTY,
+					" where var.NAME_ = '", name, "' ", valuesClause,
+						byProcessDefinitions ? " and ".concat(getQueryParameters("pd.name_", procDefNames))
+								.concat(" and pi.processdefinition_ = pd.id_ and var.PROCESSINSTANCE_ = pi.id_") : CoreConstants.EMPTY,
+						byProcessInstances ? " and ".concat(getQueryParameters("var.PROCESSINSTANCE_", procInstIds)) : CoreConstants.EMPTY
+			));
+			if (type != null) {
+				parts.addAll(Arrays.asList(" and ", getQueryParameters("var.CLASS_", type.getTypeKeys())));
 			}
 			parts.add(anyStringColumn ? getMirrowTableCondition() : CoreConstants.EMPTY);
 			query = getQuery(ArrayUtil.convertListToArray(parts));
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names and values: " + namesAndValues, e);
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by name='" + name + "' and value='" + value + "'", e);
 		}
 		
 		return getConverted(data, columns);
+	}
+	
+	private Collection<VariableInstanceInfo> getProcessVariablesByNamesAndValues(Map<String, List<Serializable>> namesAndValues, List<String> procDefNames, List<Long> procInstIds,
+			boolean selectProcessInstanceId) {
+		if (namesAndValues == null || namesAndValues.isEmpty()) {
+			LOGGER.warning("Variables names and values are not provided");
+			return null;
+		}
+		
+		List<VariableInstanceInfo> allVars = new ArrayList<VariableInstanceInfo>();
+		for (Map.Entry<String, List<Serializable>> entry: namesAndValues.entrySet()) {
+			Collection<VariableInstanceInfo> vars = getProcessVariablesByNameAndValue(entry.getKey(), entry.getValue(), procDefNames, procInstIds, selectProcessInstanceId);
+			if (vars != null) {
+				for (VariableInstanceInfo var: vars) {
+					if (!allVars.contains(var)) {
+						allVars.add(var);
+					}
+				}
+			}
+		}
+		
+		return allVars;
 	}
 	
 	private Number getRandomId(Set<Number> existingIds) {
@@ -952,7 +931,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public Map<Long, List<VariableInstanceInfo>> getVariablesByNamesAndValues(Map<String, List<Serializable>> variables) {
+	public Map<Long, List<VariableInstanceInfo>> getVariablesByNamesAndValuesByProcesses(Map<String, List<Serializable>> variables, List<Long> procInstIds) {
 		List<String> variablesToQuery = new ArrayList<String>();
 		
 		Map<String, List<VariableInstanceInfo>> cachedVariables = new HashMap<String, List<VariableInstanceInfo>>();
@@ -1003,7 +982,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		for (String variableToQuery: variablesToQuery) {
 			variablesAndValuesToQuery.put(variableToQuery, variables.get(variableToQuery));
 		}
-		Collection<VariableInstanceInfo> info = getProcessVariablesByNamesAndValues(variablesAndValuesToQuery, true);
+		Collection<VariableInstanceInfo> info = getProcessVariablesByNamesAndValues(variablesAndValuesToQuery, null, procInstIds, true);
 		if (ListUtil.isEmpty(info)) {
 			return results;
 		}
