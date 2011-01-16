@@ -1,6 +1,7 @@
 package com.idega.jbpm.bean;
 
 import java.io.Serializable;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import com.idega.util.StringUtil;
@@ -10,6 +11,8 @@ public abstract class VariableInstanceInfo implements Serializable {
 	private static final long serialVersionUID = 7094674925493141143L;
 	private static final Logger LOGGER = Logger.getLogger(VariableInstanceInfo.class.getName());
 	
+	private int hash;
+	
 	private String name;
 	private VariableInstanceType type;
 	
@@ -18,6 +21,8 @@ public abstract class VariableInstanceInfo implements Serializable {
 	
 	public VariableInstanceInfo() {
 		super();
+		
+		hash = new Random().nextInt(Integer.MAX_VALUE);
 	}
 	
 	public VariableInstanceInfo(Serializable value) {
@@ -101,6 +106,20 @@ public abstract class VariableInstanceInfo implements Serializable {
 		this.id = id;
 	}
 
+	@Override
+	public int hashCode() {
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (object instanceof VariableInstanceInfo) {
+			VariableInstanceInfo var = (VariableInstanceInfo) object;
+			return getId().longValue() == var.getId().longValue() && getName().equals(var.getName()) && getValue().toString().equals(var.getValue().toString());
+		}
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		return "Variable " + getName() + ", type " + getType() + ", value: " + getValue() + ", process instance ID: " + getProcessInstanceId();
