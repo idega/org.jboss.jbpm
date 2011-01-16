@@ -89,6 +89,19 @@ public enum VariableInstanceType implements Serializable {
 		public String getPrefix() {
 			return "node_";
 		}
+	},
+	
+	LIST {
+		@Override
+		public List<String> getTypeKeys() {
+			return BPMProcessVariable.BYTE_ARRAY_TYPES;
+		}
+
+		@Override
+		public String getPrefix() {
+			return "list_";
+		}
+			
 	};
 	
 	public abstract List<String> getTypeKeys();
