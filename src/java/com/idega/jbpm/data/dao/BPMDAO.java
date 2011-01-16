@@ -12,9 +12,9 @@ import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.NativeIdentityBind;
+import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
-import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.identity.Role;
 
 /**
@@ -71,4 +71,6 @@ public interface BPMDAO extends GenericDao {
 	public abstract void bindProcessVariables();
 	
 	public abstract void importVariablesData();
+	
+	public List<Long> getProcessInstanceIdsByProcessDefinitionNames(List<String> processDefinitionNames);
 }

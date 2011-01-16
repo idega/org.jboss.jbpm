@@ -2,6 +2,7 @@ package com.idega.jbpm.data.dao.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -624,5 +625,15 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error creating trigger: " + triggerSQL, e);
 		}
+	}
+
+	@Override
+	public List<Long> getProcessInstanceIdsByProcessDefinitionNames(List<String> processDefinitionNames) {
+		if (ListUtil.isEmpty(processDefinitionNames)) {
+			return Collections.emptyList();
+		}
+		
+		return getResultListByInlineQuery("select pi.id from " + ProcessInstance.class.getName() + " pi, " + ProcessDefinition.class.getName() +
+				" pd where pi.processDefinition = pd.id and pd.name = :processDefinitionNames", Long.class, new Param("processDefinitionNames", processDefinitionNames));
 	}
 }
