@@ -74,7 +74,7 @@ public class ViewTaskBind implements Serializable {
 	private String viewType;
 	
 	public static final String viewOrderProp = "viewOrder";
-	@Column(name="viewOrder")
+	@Column(name="viewOrder", nullable=true)
 	private Integer viewOrder;
 
 	public ViewTaskBind() { }
