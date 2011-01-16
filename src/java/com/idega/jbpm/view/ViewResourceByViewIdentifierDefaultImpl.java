@@ -61,7 +61,7 @@ public class ViewResourceByViewIdentifierDefaultImpl implements ViewResource {
 	}
 
 	@Override
-	public int getOrder() {
+	public Integer getOrder() {
 		return order;
 	}
 }

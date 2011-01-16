@@ -47,5 +47,5 @@ public interface ViewResource {
 	public abstract String getViewId();
 	
 	public void setOrder(Integer order);
-	public int getOrder();
+	public Integer getOrder();
 }

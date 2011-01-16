@@ -20,7 +20,7 @@ public class ViewToTaskImpl implements ViewToTask {
 		bind(task.getId(), null, view.getViewId(), view.getViewType(), null);
 	}
 
-	public void bind(String viewId, String viewType, Task task, int order) {
+	public void bind(String viewId, String viewType, Task task, Integer order) {
 		bind(task.getId(), null, viewId, viewType, order);
 	}
 	
