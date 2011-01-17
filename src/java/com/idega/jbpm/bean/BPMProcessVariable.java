@@ -14,13 +14,13 @@ import com.idega.util.StringUtil;
 
 public class BPMProcessVariable {
 	
-	public static final List<String> DATE_TYPES = Collections.unmodifiableList(Arrays.asList("D"));
-	public static final List<String> DOUBLE_TYPES = Collections.unmodifiableList(Arrays.asList("O"));
-	public static final List<String> LONG_TYPES = Collections.unmodifiableList(Arrays.asList("L", "H"));
-	public static final List<String> STRING_TYPES = Collections.unmodifiableList(Arrays.asList("S", "I"));
-	public static final List<String> NULL_TYPES = Collections.unmodifiableList(Arrays.asList("N"));
-	public static final List<String> JCR_NODE_TYPES = Collections.unmodifiableList(Arrays.asList("J"));
-	public static final List<String> BYTE_ARRAY_TYPES = Collections.unmodifiableList(Arrays.asList("B"));
+	public static final List<String>	DATE_TYPES = Collections.unmodifiableList(Arrays.asList("D")),
+										DOUBLE_TYPES = Collections.unmodifiableList(Arrays.asList("O")),
+										LONG_TYPES = Collections.unmodifiableList(Arrays.asList("L", "H")),
+										STRING_TYPES = Collections.unmodifiableList(Arrays.asList("S", "I")),
+										NULL_TYPES = Collections.unmodifiableList(Arrays.asList("N")),
+										JCR_NODE_TYPES = Collections.unmodifiableList(Arrays.asList("J")),
+										BYTE_ARRAY_TYPES = Collections.unmodifiableList(Arrays.asList("B"));
 	
 	private String name;
 	private String value;
@@ -66,6 +66,10 @@ public class BPMProcessVariable {
 		return isTypeOf(STRING_TYPES);
 	}
 	
+	public boolean isListType() {
+		return isTypeOf(BYTE_ARRAY_TYPES);
+	}
+	
 	@Override
 	public String toString() {
 		return new StringBuilder("Name: " ).append(getName()).append(", type: ").append(getType()).append(", value: ").append(getValue()).toString();
@@ -98,9 +102,12 @@ public class BPMProcessVariable {
 			} catch (Exception e) {
 				Logger.getLogger(BPMProcessVariable.class.getName()).log(Level.WARNING, "Error converting string to long: " + getValue(), e);
 			}
+		} else if (isListType()) {
+			List<? extends Serializable> listValue = Arrays.asList(getValue());
+			return (T) listValue;
+		} else {
+			Logger.getLogger(BPMProcessVariable.class.getName()).warning("Unsuported type of variable: " + getType() + ", value: " + getValue());
 		}
-		
-		//	TODO: add more converters?
 		
 		return (T) realValue;
 	}
