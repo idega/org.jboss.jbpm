@@ -3,6 +3,7 @@ package com.idega.jbpm.bean;
 import java.io.Serializable;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.Collection;
 
 import com.idega.util.IOUtil;
 
@@ -10,7 +11,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 
 	private static final long serialVersionUID = -4612911188630523581L;
 
-	private Byte[] value;
+	private Serializable value;
 	
 	public VariableByteArrayInstance(String name, Object value) {
 		super(name, VariableInstanceType.BYTE_ARRAY);
@@ -33,9 +34,11 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 					variableValue[i] = bytes[i];
 				}
 			}
+		} else if (value instanceof Collection<?>) {
+			this.value = (Serializable) value;
 		}
 		
-		this.value = variableValue;
+		this.value = variableValue == null ? this.value : variableValue;
 	}
 	
 	public VariableByteArrayInstance(String name, Byte[] value) {
@@ -43,7 +46,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 	}
 	
 	@Override
-	public Byte[] getValue() {
+	public Serializable getValue() {
 		return value;
 	}
 
