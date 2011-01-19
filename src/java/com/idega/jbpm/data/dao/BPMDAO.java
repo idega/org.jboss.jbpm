@@ -1,5 +1,6 @@
 package com.idega.jbpm.data.dao;
 
+import java.sql.Date;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -73,4 +74,6 @@ public interface BPMDAO extends GenericDao {
 	public abstract void importVariablesData();
 	
 	public List<Long> getProcessInstanceIdsByProcessDefinitionNames(List<String> processDefinitionNames);
+	
+	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(Date from, Date to, List<String> processDefinitionNames, List<Long> procInsIds);
 }

@@ -1,5 +1,6 @@
 package com.idega.jbpm.data.dao.impl;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +47,7 @@ import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.events.VariableCreatedEvent;
 import com.idega.jbpm.identity.Role;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
@@ -635,5 +637,42 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		
 		return getResultListByInlineQuery("select pi.id from " + ProcessInstance.class.getName() + " pi, " + ProcessDefinition.class.getName() +
 				" pd where pi.processDefinition = pd.id and pd.name = :processDefinitionNames", Long.class, new Param("processDefinitionNames", processDefinitionNames));
+	}
+
+	@Override
+	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(Date from, Date to, List<String> processDefinitionNames, List<Long> procInsIds) {
+		if (from == null && to == null) {
+			return null;
+		}
+		
+		boolean byProcInst = !ListUtil.isEmpty(procInsIds);
+		
+		List<Param> params = new ArrayList<Param>();
+		if (from != null) {
+			params.add(new Param("piFrom", from));
+		}
+		if (to != null) {
+			params.add(new Param("piTo", to));
+		}
+		if (byProcInst) {
+			params.add(new Param("procInstIds", procInsIds));
+		} else {
+			params.add(new Param("procDefNames", processDefinitionNames));
+		}
+		
+		List<Long> ids = null;
+		try {
+			ids = getResultListByInlineQuery("select pi.id from " + ProcessInstance.class.getName() + " pi" +
+					(byProcInst ? " where pi.id in (:procInstIds)" :
+						", " + ProcessDefinition.class.getName() + " pd where pi.processDefinition = pd.id and pd.name in (:procDefNames)") +
+					(from == null ? CoreConstants.EMPTY : " and pi.start >= :piFrom") +
+					(to == null ? CoreConstants.EMPTY : " and pi.end <= :piTo"),
+				Long.class, ArrayUtil.convertListToArray(params)
+			);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting process instance IDs by dates: from=" + from + ", to=" + to + ", proc. def. names=" + processDefinitionNames +
+					", proc. inst. IDs=" + procInsIds, e);
+		}
+		return ids;
 	}
 }
