@@ -47,5 +47,5 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(String name, List<Serializable> values, List<String> procDefNames);
 	
 	public Map<Long, List<VariableInstanceInfo>> getVariablesByNamesAndValuesByProcesses(Map<String, List<Serializable>> variables, List<String> procDefNames,
-			List<Long> procInstIds);
+			List<Long> procInstIds, Map<String, Boolean> flexibleVariables);
 }
