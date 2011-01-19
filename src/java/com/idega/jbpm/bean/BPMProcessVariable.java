@@ -22,9 +22,8 @@ public class BPMProcessVariable {
 										JCR_NODE_TYPES = Collections.unmodifiableList(Arrays.asList("J")),
 										BYTE_ARRAY_TYPES = Collections.unmodifiableList(Arrays.asList("B"));
 	
-	private String name;
-	private String value;
-	private String type;
+	private String name, value, type;
+	private boolean flexible;
 	
 	public String getName() {
 		return name;
@@ -68,6 +67,14 @@ public class BPMProcessVariable {
 	
 	public boolean isListType() {
 		return isTypeOf(BYTE_ARRAY_TYPES);
+	}
+	
+	public boolean isFlexible() {
+		return flexible;
+	}
+	
+	public void setFlexible(boolean flexible) {
+		this.flexible = flexible;
 	}
 	
 	@Override
