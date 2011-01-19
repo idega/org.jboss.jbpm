@@ -1,11 +1,19 @@
 package com.idega.jbpm.bean;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import com.idega.data.SimpleQuerier;
 import com.idega.util.IOUtil;
+import com.idega.util.ListUtil;
 
 public class VariableByteArrayInstance extends VariableInstanceInfo {
 
@@ -16,9 +24,56 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 	public VariableByteArrayInstance(String name, Object value) {
 		super(name, VariableInstanceType.BYTE_ARRAY);
 		
-		Byte[] variableValue = null;
-		if (value instanceof Byte[]) {
-			variableValue = (Byte[]) value;
+		if (value instanceof Collection<?>) {
+			this.value = (Serializable) value;
+		} else if (value instanceof Number) {
+			this.value = (Number) value;
+		} else if (value instanceof Serializable) {
+			this.value = (Serializable) value;
+		}		
+	}
+	
+	private Serializable getConvertedValue(byte[] bytes) {
+		try {
+			Object realValue = null;
+			InputStream memoryStream = new ByteArrayInputStream(bytes);
+			ObjectInputStream objectStream = new ObjectInputStream(memoryStream);
+			try {
+				realValue = objectStream.readObject();
+			} finally {
+				IOUtil.close(objectStream);
+				IOUtil.close(memoryStream);
+			}
+			if (realValue instanceof Serializable) {
+				return (Serializable) realValue;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public VariableByteArrayInstance(String name, Byte[] value) {
+		super(name, value, VariableInstanceType.BYTE_ARRAY);
+	}
+	
+	@Override
+	public Serializable getValue() {
+		if (value instanceof Number) {
+			String query = "select b.BYTES_ from JBPM_BYTEBLOCK b where b.PROCESSFILE_ = " + value;
+			try {
+				List<Serializable[]> values = SimpleQuerier.executeQuery(query, 1);
+				if (ListUtil.isEmpty(values)) {
+					value = null;
+					return value;
+				}
+				Object bytes = values.iterator().next()[0];
+				value = bytes instanceof byte[] ? getConvertedValue((byte[]) bytes) : null;
+			} catch (Exception e) {
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error executing query: " + query, e);
+			}
+		} else if (value instanceof byte[]) {
+			value = getConvertedValue((byte[]) value);
 		} else if (value instanceof Blob) {
 			Blob blob = (Blob) value;
 			
@@ -29,30 +84,16 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 				e.printStackTrace();
 			}
 			if (bytes != null) {
-				variableValue = new Byte[bytes.length];
-				for (int i = 0; i < bytes.length; i++) {
-					variableValue[i] = bytes[i];
-				}
+				value = getConvertedValue(bytes);
 			}
-		} else if (value instanceof Collection<?>) {
-			this.value = (Serializable) value;
 		}
 		
-		this.value = variableValue == null ? this.value : variableValue;
-	}
-	
-	public VariableByteArrayInstance(String name, Byte[] value) {
-		super(name, value, VariableInstanceType.BYTE_ARRAY);
-	}
-	
-	@Override
-	public Serializable getValue() {
 		return value;
 	}
 
 	@Override
 	public void setValue(Serializable value) {
-		this.value = value instanceof Byte[] ? (Byte[]) value : null;
+		this.value = value instanceof Serializable ? value : null;
 	}
 
 }
