@@ -542,6 +542,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 		
 		boolean byProcessInstances = !ListUtil.isEmpty(procInstIds);
+		boolean byProcDefs = !ListUtil.isEmpty(procDefNames);
 		
 		String query = null;
 		int columns = COLUMNS + (selectProcessInstanceId ? 2 : 1);
@@ -554,9 +555,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				" JBPM_VARIABLEINSTANCE var ",
 					byProcessInstances ?
 							CoreConstants.EMPTY :
-							" inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ ",
+							byProcDefs ?
+									" inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ " :
+									CoreConstants.EMPTY,
 				" where var.NAME_ = '", name, "' ", valuesClause,
-					byProcessInstances ? " and ".concat(PROC_INST_IDS_EXPRESSION) : " and ".concat(getQueryParameters("pd.name_", procDefNames))
+					byProcessInstances ? " and ".concat(PROC_INST_IDS_EXPRESSION) : byProcDefs ?
+							" and ".concat(getQueryParameters("pd.name_", procDefNames)) :
+							CoreConstants.EMPTY
 		));
 		if (type != null) {
 			parts.addAll(Arrays.asList(" and ", getQueryParameters("var.CLASS_", type.getTypeKeys())));
