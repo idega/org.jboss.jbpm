@@ -2208,6 +2208,33 @@ public class RolesManagerImpl implements RolesManager {
 		
 		return false;
 	}
+	
+	public boolean canWriteComments(Long processInstanceId, User user) {
+		if (user == null) {
+			return false;
+		}
+		
+		List<ActorPermissions> perms = null;
+		try {
+			perms = getBpmDAO().getResultList(ActorPermissions.getSetByProcessInstanceIdAndCanWriteComments, ActorPermissions.class,
+					new Param(Actor.processInstanceIdProperty, processInstanceId)
+			);
+		} catch(Exception e) {
+			logger.log(Level.WARNING, "Error getting permissions", e);
+		}
+		if (ListUtil.isEmpty(perms)) {
+			return false;
+		}
+		
+		for (ActorPermissions permission: perms) {
+			Boolean canWriteComments = permission.getCanWriteComments();
+			if (canWriteComments != null && canWriteComments) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 
 	@Transactional(readOnly = false)
 	public boolean disableAttachmentForAllRoles(Integer fileHash, Long processInstanceId, Long taskInstanceId) {
