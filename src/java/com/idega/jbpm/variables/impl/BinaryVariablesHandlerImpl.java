@@ -13,7 +13,6 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.webdav.lib.WebdavResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -34,7 +33,6 @@ import com.idega.jbpm.utils.JSONUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.slide.business.IWSlideService;
-import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
@@ -138,23 +136,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		try {
 			IWSlideService slideService = getIWSlideService();
 			
-			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();
-			WebdavExtendedResource res = slideService.getWebdavExtendedResource(concPF(path, fileName), credentials);
-			
-			if (res.exists()) {
-				//	File by the same name already exists! Renaming this file not to overwrite existing file
-				boolean success = false;
-				int i = 0;
-				
-				while (!success) {
-					String p = path + (i++);
-					res = slideService.getWebdavExtendedResource(concPF(p, fileName), credentials);
-					if (!res.exists()) {
-						path = p;
-						success = true;
-					}
-				}
+			int index = 0;
+			String tmpUri = path;
+			while (slideService.getExistence(concPF(tmpUri, fileName))) {	//	File by the same name already exists! Renaming this file not to overwrite existing file
+				tmpUri = path.concat(String.valueOf((index++)));
 			}
+			path = tmpUri;
 			
 			// This should be changed, temporal fix. user will not be able submit a form if exception will be thrown here
 			InputStream stream = null;
@@ -219,18 +206,13 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
 		
 		for (Entry<String, Object> entry : variables.entrySet()) {
-			
 			Object val = entry.getValue();
 			
 			if (val == null)
 				continue;
 			
-			Variable variable = Variable.parseDefaultStringRepresentation(entry
-			        .getKey());
-			
-			if (variable.getDataType() == VariableDataType.FILE
-			        || variable.getDataType() == VariableDataType.FILES) {
-				
+			Variable variable = Variable.parseDefaultStringRepresentation(entry.getKey());
+			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
 				JSONUtil json = getBinVarJSONConverter();
 				
 				Collection<String> binVarsInJSON;
@@ -243,11 +225,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				}
 				
 				for (String binVarJSON : binVarsInJSON) {
-					
 					try {
-						
-						BinaryVariable binaryVariable = (BinaryVariable) json
-						        .convertToObject(binVarJSON);
+						BinaryVariable binaryVariable = (BinaryVariable) json.convertToObject(binVarJSON);
 						
 						if (binaryVariable != null)
 							binaryVars.add(binaryVariable);
@@ -285,28 +264,23 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		
 		try {
 			IWSlideService slideService = getIWSlideService();
-			UsernamePasswordCredentials credentials = slideService.getRootUserCredentials();
 			
 			String fileUri = variable.getIdentifier();
-			String decodedFileUri = null;
-			WebdavExtendedResource res = slideService.getWebdavExtendedResource(fileUri, credentials);
-			InputStream stream = slideService.getInputStream(res);
+			InputStream stream = slideService.getInputStream(fileUri);
 			if (stream == null) {
-				decodedFileUri = getDecodedUri(fileUri);
-				res = slideService.getWebdavExtendedResource(decodedFileUri, credentials);
-				if (res == null || !res.exists()) {
-					LOGGER.warning("No WebdavResource found for path provided: " + fileUri + " nor for decoded path: " + decodedFileUri);
+				String decodedFileUri = getDecodedUri(fileUri);
+				stream = slideService.getInputStream(decodedFileUri);
+				if (stream == null) {
+					LOGGER.warning("Input stream can not be opened to: " + fileUri + " nor to decoded path: " + decodedFileUri +
+							". Will try to retrieve WebdavResource");
 					
-					res = slideService.getWebdavExtendedResource(fileUri, credentials, false);
+					WebdavResource res = slideService.getWebdavExtendedResource(fileUri, slideService.getRootUserCredentials(), false);
 					if (res == null || !res.exists()) {
 						LOGGER.warning("Unable to load WebdavResource '" + fileUri + "' using Slide via HTTP");
 						return null;
+					} else {
+						return slideService.getInputStream(res);
 					}
-				}
-				
-				stream = slideService.getInputStream(res);
-				if (stream == null) {
-					stream = slideService.getInputStream(fileUri);
 				}
 			}
 			
@@ -341,9 +315,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	
 	protected IWSlideService getIWSlideService() {
 		try {
-			return (IWSlideService) IBOLookup.getServiceInstance(
-			    IWMainApplication.getDefaultIWApplicationContext(),
-			    IWSlideService.class);
+			return IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), IWSlideService.class);
 		} catch (IBOLookupException e) {
 			throw new IBORuntimeException(e);
 		}
