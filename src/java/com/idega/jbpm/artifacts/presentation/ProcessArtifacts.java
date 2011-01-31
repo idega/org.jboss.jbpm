@@ -1460,7 +1460,7 @@ public class ProcessArtifacts {
 		String subject = "Case assigned";
 		subject = iwrb == null ? subject : iwrb.getLocalizedString("case_assigned", subject);
 		
-		String text = "A case \"case_identifier\" was assigned to you. Link to the case: ";
+		String text = "A case \"case_identifier\", with name \"case_subject\" was assigned to you. Link to the case: case_link";
 		String link = "unknown";
 		text = iwrb == null ? text : iwrb.getLocalizedString("assigned_case_text", text);
 		try {
@@ -1475,13 +1475,28 @@ public class ProcessArtifacts {
 			String replace = ListUtil.isEmpty(info) ? iwrb == null ? "unknown" : iwrb.getLocalizedString("unknown", "unknown") :
 													info.iterator().next().getValue().toString();
 			text = StringHandler.replace(text, "case_identifier", replace);
+			
+			info = getVariablesQuerier().getVariablesByProcessInstanceIdAndVariablesNames(
+						Arrays.asList("string_caseDescription"),
+						Arrays.asList(processInstanceId),
+						false,
+						false,
+						false
+			);
+			replace = ListUtil.isEmpty(info) ? iwrb == null ? "unknown" : iwrb.getLocalizedString("unknown", "unknown") :
+													info.iterator().next().getValue().toString();
+			text = StringHandler.replace(text, "case_subject", replace);
+			
 			BPMUser bpmUser = getBpmFactory().getBpmUserFactory().getBPMUser(handlerId);
 			bpmUser.setProcessInstanceId(processInstanceId);
 			link = bpmUser.getUrlToTheProcess();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error resolving assets for case assigned notification message", e);
 		}
-		text = text.concat(link);
+		
+		if (text.indexOf("case_link") != -1) {
+			text = StringHandler.replace(text, "case_link", link);
+		}
 		
 		final String emailSubject = subject;
 		final String emailText = text;
