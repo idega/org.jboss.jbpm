@@ -12,7 +12,9 @@ import com.idega.presentation.ui.handlers.IWDatePickerHandler;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
-public class BPMProcessVariable {
+public class BPMProcessVariable implements Serializable {
+	
+	private static final long serialVersionUID = -8899276268497865624L;
 	
 	public static final List<String>	DATE_TYPES = Collections.unmodifiableList(Arrays.asList("D")),
 										DOUBLE_TYPES = Collections.unmodifiableList(Arrays.asList("O")),
@@ -21,6 +23,18 @@ public class BPMProcessVariable {
 										NULL_TYPES = Collections.unmodifiableList(Arrays.asList("N")),
 										JCR_NODE_TYPES = Collections.unmodifiableList(Arrays.asList("J")),
 										BYTE_ARRAY_TYPES = Collections.unmodifiableList(Arrays.asList("B"));
+	
+	public BPMProcessVariable() {
+		super();
+	}
+	
+	public BPMProcessVariable(String name, String value, String type) {
+		this();
+		
+		this.name = name;
+		this.value = value;
+		this.type = type;
+	}
 	
 	private String name, value, type;
 	private boolean flexible;
@@ -80,6 +94,11 @@ public class BPMProcessVariable {
 	@Override
 	public String toString() {
 		return new StringBuilder("Name: " ).append(getName()).append(", type: ").append(getType()).append(", value: ").append(getValue()).toString();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends Serializable> T getRealValue() {
+		return (T) getRealValue(null);	//	Casting is needed to avoid compilation error in Maven 2
 	}
 	
 	@SuppressWarnings("unchecked")
