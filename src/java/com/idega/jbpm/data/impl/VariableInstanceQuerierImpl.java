@@ -26,6 +26,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.idega.builder.bean.AdvancedProperty;
 import com.idega.core.cache.IWCacheManager2;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
@@ -45,6 +46,7 @@ import com.idega.jbpm.data.BPMVariableData;
 import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.events.VariableCreatedEvent;
+import com.idega.jbpm.variables.MultipleSelectionVariablesResolver;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -449,6 +451,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return Collections.emptyList();
 		}
 		
+		if (name.startsWith(VariableInstanceType.OBJ_LIST.getPrefix())) {
+			return getResolvedVariables(vars, name, values);
+		}
+		
 		List<String> addedVars = new ArrayList<String>();
 		Collection<VariableInstanceInfo> uniqueVars = new ArrayList<VariableInstanceInfo>();
 		for (VariableInstanceInfo var: vars) {
@@ -471,6 +477,40 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return uniqueVars;
 	}
 	
+	private Collection<VariableInstanceInfo> getResolvedVariables(Collection<VariableInstanceInfo> vars, String varName, Collection<?> values) {
+		MultipleSelectionVariablesResolver resolver = null;
+		try {
+			resolver = ELUtil.getInstance().getBean(MultipleSelectionVariablesResolver.BEAN_NAME_PREFIX + varName);
+		} catch (Exception e) {}
+		Collection<AdvancedProperty> resolvedValues = resolver == null ? null : resolver.getBinaryVariablesValues(vars);
+		if (ListUtil.isEmpty(resolvedValues))
+			return null;
+		
+		List<String> resolvedIds = new ArrayList<String>();
+		for (AdvancedProperty resolved: resolvedValues) {
+			for (Object value: values) {
+				if (value instanceof Serializable && resolved.getId().equals(value.toString()) && !resolvedIds.contains(value.toString())) {
+					resolvedIds.add(value.toString());
+				}
+			}
+		}
+		
+		List<String> addedVars = new ArrayList<String>();
+		Collection<VariableInstanceInfo> resolvedVars = new ArrayList<VariableInstanceInfo>();
+		for (String resolvedId: resolvedIds) {
+			for (VariableInstanceInfo var: vars) {
+				if (var.getValue().toString().indexOf(resolvedId) != -1) {
+					String key = getKeyForVariable(var, true).concat(String.valueOf(var.getProcessInstanceId()));
+					if (!addedVars.contains(key)) {
+						resolvedVars.add(var);
+						addedVars.add(key);
+					}
+				}
+			}
+		}
+		return resolvedVars;
+	}
+	
 	public Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(String name, List<Serializable> values, List<String> procDefNames) {
 		return getProcessVariablesByNameAndValue(name, values, procDefNames, null, true, true);
 	}
@@ -490,7 +530,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 		VariableInstanceType type = null;
 		String columnName = "var.";
-		if (values instanceof Collection<?> && name.startsWith(VariableInstanceType.LIST.getPrefix())) {
+		if (values instanceof Collection<?> && (name.startsWith(VariableInstanceType.LIST.getPrefix()) || name.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix()) ||
+				name.startsWith(VariableInstanceType.OBJ_LIST.getPrefix()))) {
 			return getVariablesByNameAndValuesAndProcessDefinitions(name, procDefNames, values, procInstIds);
 		} else if (value instanceof String) {
 			anyStringColumn = true;
@@ -809,12 +850,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					index++;
 				}
 				
-				int piIdIndex = -1;
-				if (numberOfColumns == FULL_COLUMNS) {
-					piIdIndex = numberOfColumns - 1;
-				} else {
-					piIdIndex = index;
-				}
+				int piIdIndex = numberOfColumns == FULL_COLUMNS ? numberOfColumns - 1 : dataSet.length - 1;
 				if (piIdIndex >= index && piIdIndex < dataSet.length) {
 					Serializable temp = dataSet[piIdIndex];
 					if (temp instanceof Number) {
