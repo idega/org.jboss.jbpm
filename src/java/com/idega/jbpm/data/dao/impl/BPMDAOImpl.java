@@ -675,4 +675,21 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		return ids;
 	}
+	
+	public List<Date> getProcessDateRanges(Collection<Long> processInstanceIds) {
+		if (ListUtil.isEmpty(processInstanceIds))
+			return null;
+		
+		return getResultListByInlineQuery("select p.start, p.end from " + ProcessInstance.class.getName() + " p where p.id in :(processInstanceIds)", Date.class,
+				new Param("processInstanceIds", processInstanceIds));
+	}
+
+	@Override
+	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId) {
+		if (processDefinitionId == null)
+			return null;
+		
+		return getSingleResultByInlineQuery("select pd.name from " + ProcessDefinition.class.getName() + " pd where pd.id = :processDefinitionId", String.class,
+				new Param("processDefinitionId", processDefinitionId));
+	}
 }
