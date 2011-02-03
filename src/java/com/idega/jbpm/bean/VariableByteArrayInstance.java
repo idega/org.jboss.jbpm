@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.idega.data.SimpleQuerier;
+import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
 import com.idega.util.ListUtil;
 
@@ -34,23 +35,23 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 	}
 	
 	private Serializable getConvertedValue(byte[] bytes) {
+		InputStream input = null;
+		ObjectInputStream objectInput = null;
 		try {
 			Object realValue = null;
-			InputStream memoryStream = new ByteArrayInputStream(bytes);
-			ObjectInputStream objectStream = new ObjectInputStream(memoryStream);
-			try {
-				realValue = objectStream.readObject();
-			} finally {
-				IOUtil.close(objectStream);
-				IOUtil.close(memoryStream);
-			}
+			input = new ByteArrayInputStream(bytes);
+			objectInput = new ObjectInputStream(input);
+			realValue = objectInput.readObject();	
 			if (realValue instanceof Serializable) {
 				return (Serializable) realValue;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			IOUtil.close(objectInput);
+			IOUtil.close(input);
 		}
-		return null;
+		return CoreConstants.EMPTY;
 	}
 	
 	public VariableByteArrayInstance(String name, Byte[] value) {
