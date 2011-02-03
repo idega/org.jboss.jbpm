@@ -100,8 +100,19 @@ public enum VariableInstanceType implements Serializable {
 		@Override
 		public String getPrefix() {
 			return "list_";
+		}	
+	},
+	
+	OBJ_LIST {
+		@Override
+		public List<String> getTypeKeys() {
+			return BPMProcessVariable.BYTE_ARRAY_TYPES;
 		}
-			
+
+		@Override
+		public String getPrefix() {
+			return "objlist_";
+		}
 	};
 	
 	public abstract List<String> getTypeKeys();
@@ -114,7 +125,9 @@ public enum VariableInstanceType implements Serializable {
 			VariableInstanceType.DOUBLE,
 			VariableInstanceType.LONG,
 			VariableInstanceType.NULL,
-			VariableInstanceType.JCR_NODE
+			VariableInstanceType.JCR_NODE,
+			VariableInstanceType.LIST,
+			VariableInstanceType.OBJ_LIST
 	));
 	
 	public static final List<String> getVariableTypeKeys(String variableName) {
