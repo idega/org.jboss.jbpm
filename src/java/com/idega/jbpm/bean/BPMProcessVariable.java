@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.idega.presentation.ui.handlers.IWDatePickerHandler;
+import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
@@ -129,7 +130,8 @@ public class BPMProcessVariable implements Serializable {
 				Logger.getLogger(BPMProcessVariable.class.getName()).log(Level.WARNING, "Error converting string to long: " + getValue(), e);
 			}
 		} else if (isListType()) {
-			List<? extends Serializable> listValue = Arrays.asList(getValue());
+			List<? extends Serializable> listValue = getValue().indexOf(CoreConstants.SEMICOLON) == -1 ?
+					Arrays.asList(getValue()) : Arrays.asList(getValue().split(CoreConstants.SEMICOLON));
 			return (T) listValue;
 		} else {
 			Logger.getLogger(BPMProcessVariable.class.getName()).warning("Unsuported type of variable: " + getType() + ", value: " + getValue());
