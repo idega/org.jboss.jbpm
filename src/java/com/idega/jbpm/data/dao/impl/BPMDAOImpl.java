@@ -1,5 +1,6 @@
 package com.idega.jbpm.data.dao.impl;
 
+import java.io.Serializable;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -676,11 +677,11 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return ids;
 	}
 	
-	public List<Date> getProcessDateRanges(Collection<Long> processInstanceIds) {
+	public List<Serializable[]> getProcessDateRanges(Collection<Long> processInstanceIds) {
 		if (ListUtil.isEmpty(processInstanceIds))
 			return null;
 		
-		return getResultListByInlineQuery("select p.start, p.end from " + ProcessInstance.class.getName() + " p where p.id in :(processInstanceIds)", Date.class,
+		return getResultListByInlineQuery("select p.id, p.start, p.end from " + ProcessInstance.class.getName() + " p where p.id in (:processInstanceIds)", Serializable[].class,
 				new Param("processInstanceIds", processInstanceIds));
 	}
 
