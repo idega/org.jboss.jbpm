@@ -173,10 +173,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			
 			if (binaryVariable.getDescription() == null)
 				binaryVariable.setDescription(fileName);
-			
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Exception while storing binary variable. Path: " + path, e);
-			throw new RuntimeException(e);
+			String message = "Exception while storing binary variable. Path: " + path;
+			LOGGER.log(Level.SEVERE, message, e);
+			throw new RuntimeException(message, e);
 		}
 	}
 	
