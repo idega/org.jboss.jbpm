@@ -337,12 +337,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 	
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value) {
+		return getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(name, value, null);
+	}
+	
+	public Collection<Long> getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(String name, Serializable value, List<Long> procInstIds) {
 		VariableInstanceInfo cachedVariable = getCachedVariable(name, value);
 		if (cachedVariable != null && cachedVariable.getProcessInstanceId() != null) {
 			return Arrays.asList(cachedVariable.getProcessInstanceId());
 		}
 		
-		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, true);
+		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, Arrays.asList(value), null, procInstIds, true, false, isDataMirrowed());
 		if (ListUtil.isEmpty(variables)) {
 			return null;
 		}
