@@ -290,7 +290,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean mirrow,
 			boolean checkTaskInstance) {
 		
-		if (ListUtil.isEmpty(names)) {
+		if (ListUtil.isEmpty(procIds) || ListUtil.isEmpty(names)) {
 			return null;
 		}
 		
@@ -299,23 +299,22 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			anyStringColumn = namesIter.next().contains(VariableInstanceType.STRING.getPrefix());
 		}
 		
+		Collection<VariableInstanceInfo> vars = null;
+		
 		String query = null;
-		List<Serializable[]> data = null;
 		int columns = anyStringColumn ? FULL_COLUMNS : FULL_COLUMNS - 1;
 		try {
-			String procIdsIn = getQueryParameters("var.PROCESSINSTANCE_", procIds, false);
 			String varNamesIn = getQueryParameters("var.NAME_", names, true);
 			query = getQuery(getSelectPart(anyStringColumn ? getFullColumns(mirrow, false) : getAllButStringColumn(), false), getFromClause(true, mirrow),
-					checkTaskInstance ? ", jbpm_taskinstance task " : CoreConstants.EMPTY, " where ", procIdsIn, " and ", varNamesIn,
+					checkTaskInstance ? ", jbpm_taskinstance task " : CoreConstants.EMPTY, " where ", PROC_INST_IDS_EXPRESSION, " and ", varNamesIn,
 					checkTaskInstance ? " and var.TASKINSTANCE_ = task.ID_ and task.END_ is not null " : CoreConstants.EMPTY, " and ", CLASS_CONDITION,
 					mirrow ? getMirrowTableCondition(true) : CoreConstants.EMPTY, " order by var.TASKINSTANCE_");
-			data = SimpleQuerier.executeQuery(query, columns);
+			vars = getVariablesByProcessInstanceIds(null, query, columns, new ArrayList<Long>(procIds));
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procIds + " and name(s): "
 					+ names, e);
 		}
-		
-		return getConverted(data, columns);
+		return vars;
 	}
 	
 	public boolean isVariableStored(String name, Serializable value) {
