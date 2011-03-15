@@ -340,10 +340,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 	
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(String name, Serializable value, List<Long> procInstIds) {
-		return getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(name, value, procInstIds, true);
-	}
-	
-	private Collection<Long> getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(String name, Serializable value, List<Long> procInstIds, boolean reTry) {
 		VariableInstanceInfo cachedVariable = getCachedVariable(name, value);
 		if (cachedVariable != null && cachedVariable.getProcessInstanceId() != null) {
 			return Arrays.asList(cachedVariable.getProcessInstanceId());
@@ -357,8 +353,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			LOGGER.log(Level.WARNING, message, e);
 			CoreUtil.sendExceptionNotification(message, e);
 		}
-		if (variables == null && reTry)
-			return getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(name, value, null, false);
 		if (ListUtil.isEmpty(variables)) {
 			return null;
 		}
@@ -865,7 +859,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				if (value == null) {
 					variable = new VariableDefaultInstance(name, type);
 				} else if (value instanceof String || VariableInstanceType.STRING.getTypeKeys().contains(type)) {
-					variable = new VariableStringInstance(name, value);
+					variable = id instanceof Long ? new VariableStringInstance((Long) id, name, value) : new VariableStringInstance(name, value);
 				} else if (value instanceof Long && VariableInstanceType.LONG.getTypeKeys().contains(type)) {
 					variable = new VariableLongInstance(name, (Long) value);
 				} else if (value instanceof Double && VariableInstanceType.DOUBLE.getTypeKeys().contains(type)) {
