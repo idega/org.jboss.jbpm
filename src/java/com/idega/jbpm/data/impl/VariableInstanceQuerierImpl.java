@@ -354,7 +354,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		try {
 			variables = getProcessVariablesByNameAndValue(name, Arrays.asList(value), null, procInstIds, true, false, isDataMirrowed());
 		} catch (Exception e) {
-			String message = "Error gettinh variable '" + name + "', by value '" + value + "' and proc. inst. IDs: " + procInstIds;
+			String message = "Error getting variable '" + name + "', by value '" + value + "' and proc. inst. IDs: " + procInstIds;
 			LOGGER.log(Level.WARNING, message, e);
 			CoreUtil.sendExceptionNotification(message, e);
 		}
