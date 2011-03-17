@@ -861,7 +861,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				if (value == null) {
 					variable = new VariableDefaultInstance(name, type);
 				} else if (value instanceof String || VariableInstanceType.STRING.getTypeKeys().contains(type)) {
-					variable = id instanceof Long ? new VariableStringInstance((Long) id, name, value) : new VariableStringInstance(name, value);
+					variable = id instanceof Number ? new VariableStringInstance(id.longValue(), name, value) : new VariableStringInstance(name, value);
 				} else if (value instanceof Long && VariableInstanceType.LONG.getTypeKeys().contains(type)) {
 					variable = new VariableLongInstance(name, (Long) value);
 				} else if (value instanceof Double && VariableInstanceType.DOUBLE.getTypeKeys().contains(type)) {
