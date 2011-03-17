@@ -700,9 +700,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return Collections.emptyList();
 		}
 		
-		//	Selecting the rest of the variables for which values were not provided
-		Collection<VariableInstanceInfo> varsByName = getVariablesByProcessInstanceIdAndVariablesNames(variables, procInstIds, false, false, false);
-		allVars = doFilter(allVars, varsByName, cachedVariables);
+		if (!ListUtil.isEmpty(variables)) {
+			//	Selecting the rest of the variables for which values were not provided
+			Collection<VariableInstanceInfo> varsByName = getVariablesByProcessInstanceIdAndVariablesNames(variables, procInstIds, false, false, false);
+			allVars = doFilter(allVars, varsByName, cachedVariables);
+		}
 		
 		return allVars;
 	}
