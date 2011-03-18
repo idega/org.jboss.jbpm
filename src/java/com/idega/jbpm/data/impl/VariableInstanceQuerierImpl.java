@@ -892,10 +892,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					variable = new VariableDefaultInstance(name, type);
 				} else if (value instanceof String || VariableInstanceType.STRING.getTypeKeys().contains(type)) {
 					variable = id instanceof Number ? new VariableStringInstance(id.longValue(), name, value) : new VariableStringInstance(name, value);
-				} else if (value instanceof Long && VariableInstanceType.LONG.getTypeKeys().contains(type)) {
-					variable = new VariableLongInstance(name, (Long) value);
-				} else if (value instanceof Double && VariableInstanceType.DOUBLE.getTypeKeys().contains(type)) {
-					variable = new VariableDoubleInstance(name, (Double) value);
+				} else if ((value instanceof Long || value instanceof Number) && VariableInstanceType.LONG.getTypeKeys().contains(type)) {
+					variable = new VariableLongInstance(name, ((Number) value).longValue());
+				} else if ((value instanceof Double || value instanceof Number) && VariableInstanceType.DOUBLE.getTypeKeys().contains(type)) {
+					variable = new VariableDoubleInstance(name, ((Number) value).doubleValue());
 				} else if (value instanceof Timestamp && VariableInstanceType.DATE.getTypeKeys().contains(type)) {
 					variable = new VariableDateInstance(name, (Timestamp) value);
 				} else if (value instanceof Date && VariableInstanceType.DATE.getTypeKeys().contains(type)) {
@@ -933,9 +933,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	@SuppressWarnings("unchecked")
 	private <T> T getValueFromCustomMethod(Object target, String method) {
 		try {
+			if (target == null)
+				return null;
+			
 			return (T) MethodInvoker.getInstance().invokeMethodWithNoParameters(target, method);
 		} catch (Exception e) {
-			String message = "Error invoking method " + method + " on object: " + target;
+			String message = "Error invoking method " + method + " on object: " + target + " class: " + target.getClass();
 			LOGGER.log(Level.WARNING, message, e);
 			CoreUtil.sendExceptionNotification(message, e);
 		}
