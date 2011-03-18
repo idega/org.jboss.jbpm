@@ -33,9 +33,7 @@ public class VariableStringInstance extends VariableInstanceInfo {
 			
 			try {
 				variableValue = clob.getSubString(1, (int) clob.length());
-			} catch (Exception e) {
-				Logger.getLogger(VariableStringInstance.class.getName()).warning("Unable to get String value from clob: " + clob);
-			}
+			} catch (Exception e) {}
 			
 			if (variableValue == null && id != null) {
 				Connection conn = null;
