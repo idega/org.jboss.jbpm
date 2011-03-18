@@ -293,7 +293,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		
 		List<Serializable[]> data = null;
 		String query = "select distinct m." + BPMVariableData.COLUMN_VALUE + " from " + BPMVariableData.TABLE_NAME + " m, JBPM_VARIABLEINSTANCE v where v.NAME_ = '" + name +
-			"' and v.ID_ = m." + BPMVariableData.COLUMN_VARIABLE_ID;
+			"' and v.ID_ = m." + BPMVariableData.COLUMN_VARIABLE_ID + " order by m." + BPMVariableData.COLUMN_VALUE;
 		try {
 			data = SimpleQuerier.executeQuery(query, 1);
 		} catch (Exception e) {
