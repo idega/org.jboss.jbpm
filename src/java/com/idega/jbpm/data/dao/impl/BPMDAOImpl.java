@@ -677,11 +677,31 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 	
 	public List<Object[]> getProcessDateRanges(Collection<Long> processInstanceIds) {
+		return getProcessDateRanges(ListUtil.isEmpty(processInstanceIds) ? null : new ArrayList<Long>(processInstanceIds), null);
+	}
+	
+	private List<Object[]> getProcessDateRanges(List<Long> processInstanceIds, List<Object[]> results) {
 		if (ListUtil.isEmpty(processInstanceIds))
-			return null;
+			return results;
 		
-		return getResultListByInlineQuery("select p.id, p.start, p.end from " + ProcessInstance.class.getName() + " p where p.id in (:processInstanceIds)", Object[].class,
-				new Param("processInstanceIds", processInstanceIds));
+		List<Long> usedIds = null;
+		if (processInstanceIds.size() > 1000) {
+			usedIds = new ArrayList<Long>(processInstanceIds.subList(0, 1000));
+			processInstanceIds = new ArrayList<Long>(processInstanceIds.subList(1000, processInstanceIds.size()));
+		} else {
+			usedIds = new ArrayList<Long>(processInstanceIds);
+			processInstanceIds = null;
+		}
+		
+		List<Object[]> temp = getResultListByInlineQuery("select p.id, p.start, p.end from " + ProcessInstance.class.getName() + " p where p.id in (:processInstanceIds)", Object[].class,
+				new Param("processInstanceIds", usedIds));
+		
+		if (results == null)
+			results = new ArrayList<Object[]>();
+		if (!ListUtil.isEmpty(temp))
+			results.addAll(temp);
+		
+		return getProcessDateRanges(processInstanceIds, results);
 	}
 
 	@Override
