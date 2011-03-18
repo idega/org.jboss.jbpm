@@ -287,6 +287,31 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return piId == null ? index : index * 100000000 + piId.intValue();
 	}
 	
+	public List<String> getValuesByVariableFromMirrowedTable(String name) {
+		if (StringUtil.isEmpty(name))
+			return null;
+		
+		List<Serializable[]> data = null;
+		String query = "select distinct m." + BPMVariableData.COLUMN_VALUE + " from " + BPMVariableData.TABLE_NAME + " m, JBPM_VARIABLEINSTANCE v where v.NAME_ = '" + name +
+			"' and v.ID_ = m." + BPMVariableData.COLUMN_VARIABLE_ID;
+		try {
+			data = SimpleQuerier.executeQuery(query, 1);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
+		}
+		if (ListUtil.isEmpty(data))
+			return null;
+		
+		List<String> results = new ArrayList<String>();
+		for (Serializable[] value: data) {
+			if (ArrayUtil.isEmpty(value))
+				continue;
+			
+			results.add(value[0].toString());
+		}
+		return results;
+	}
+	
 	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean mirrow,
 			boolean checkTaskInstance) {
 		
