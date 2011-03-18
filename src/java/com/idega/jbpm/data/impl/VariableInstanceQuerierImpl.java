@@ -294,6 +294,32 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return null;
 		}
 		
+		names = new ArrayList<String>(names);
+		List<String> cachedVars = new ArrayList<String>();
+		List<VariableInstanceInfo> allVariables = new ArrayList<VariableInstanceInfo>();
+		for (String name: names) {
+			List<VariableInstanceInfo> vars = getCachedVariables(name);
+			if (ListUtil.isEmpty(vars))
+				continue;
+			
+			cachedVars.add(name);
+			for (VariableInstanceInfo var: vars) {
+				if (var == null)
+					continue;
+				
+				Long procInstId = var.getProcessInstanceId();
+				if (procInstId == null)
+					continue;
+				
+				if (procIds.contains(procInstId))
+					allVariables.add(var);
+			}
+		}
+		
+		names.removeAll(cachedVars);
+		if (ListUtil.isEmpty(names))
+			return allVariables;
+		
 		boolean anyStringColumn = false;
 		for (Iterator<String> namesIter = names.iterator(); (!anyStringColumn && namesIter.hasNext());) {
 			anyStringColumn = namesIter.next().contains(VariableInstanceType.STRING.getPrefix());
@@ -314,7 +340,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procIds + " and name(s): "
 					+ names, e);
 		}
-		return vars;
+		
+		if (!ListUtil.isEmpty(vars))
+			allVariables.addAll(vars);
+		
+		return allVariables;
 	}
 	
 	public boolean isVariableStored(String name, Serializable value) {
@@ -1094,16 +1124,19 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 	
+	private List<VariableInstanceInfo> getCachedVariables(String name) {
+		return getCachedVariables(name, null, false, true);
+	}
+	
 	private List<VariableInstanceInfo> getCachedVariables(String name, Serializable value, boolean approximate, boolean allVariables) {
-		if (StringUtil.isEmpty(name) || value == null) {
+		if (StringUtil.isEmpty(name)) {
 			return null;
 		}
 		
 		Map<String, List<VariableInstanceInfo>> cache = getVariablesCache();
 		List<VariableInstanceInfo> vars = cache.get(name);
-		if (ListUtil.isEmpty(vars)) {
-			return null;
-		}
+		if (ListUtil.isEmpty(vars) || value == null)
+			return vars;
 		
 		List<VariableInstanceInfo> allVars = new ArrayList<VariableInstanceInfo>();
 		
