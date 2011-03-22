@@ -115,7 +115,19 @@ public abstract class VariableInstanceInfo implements Serializable {
 	public boolean equals(Object object) {
 		if (object instanceof VariableInstanceInfo) {
 			VariableInstanceInfo var = (VariableInstanceInfo) object;
-			return getId().longValue() == var.getId().longValue() && getName().equals(var.getName()) && getValue().toString().equals(var.getValue().toString());
+			Long varId = var.getId();
+			if (getId() == null || varId == null)
+				return false;
+			
+			String varName = var.getName();
+			if (getName() == null || varName == null)
+				return false;
+			
+			Serializable varValue = var.getValue();
+			if (getValue() == null || varValue == null)
+				return false;
+			
+			return getId().longValue() == varId.longValue() && getName().equals(varName) && getValue().toString().equals(varValue.toString());
 		}
 		return false;
 	}
