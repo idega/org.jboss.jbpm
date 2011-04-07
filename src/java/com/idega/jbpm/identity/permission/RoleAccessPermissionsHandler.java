@@ -52,6 +52,7 @@ public class RoleAccessPermissionsHandler implements BPMTypedHandler {
 	}
 	
 	// TODO: refactor this monster method
+	@SuppressWarnings("unused")
 	public PermissionHandleResult handle(Permission perm) {
 		
 		if (!(perm instanceof BPMTypedPermission)) {

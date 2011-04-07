@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
 //@Service("testHandlerForSpringIntegration")
 public class HandlerForSpringIntegration implements ActionHandler {

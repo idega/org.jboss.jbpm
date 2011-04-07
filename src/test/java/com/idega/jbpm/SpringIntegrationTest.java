@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jbpm.JbpmContext;
-import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
-import org.jbpm.graph.exe.ProcessInstance;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +79,7 @@ public class SpringIntegrationTest extends IdegaBaseTransactionalTest {
 		// -----------------------------------------------
 		// !!!!!!!!!!!!!!!IF (FALSE HERE) !!!!!!!!!!!!!!!!!!!
 		// -----------------------------------------------
-		if (false) {
+		/*if (false) {
 			System.out.println("Starting the test");
 			deployProcessDefinitions();
 
@@ -96,6 +94,6 @@ public class SpringIntegrationTest extends IdegaBaseTransactionalTest {
 				}
 
 			});
-		}
+		}*/
 	}
 }

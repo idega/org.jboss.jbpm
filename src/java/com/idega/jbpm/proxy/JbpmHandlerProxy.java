@@ -29,7 +29,6 @@ import com.idega.jbpm.handler.ParamActionHandler;
 import com.idega.jbpm.handler.ParamAssignmentHandler;
 import com.idega.jbpm.handler.ParamDecisionHandler;
 import com.idega.jbpm.handler.ParamTaskControllerHandler;
-import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
@@ -375,10 +374,10 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	
 	public boolean isAsync(ExecutionContext ectx) {
 		
-		if(true)
+		//if(true)
 			return false;
 		
-		if (StringUtil.isEmpty(getAsync()))
+		/*if (StringUtil.isEmpty(getAsync()))
 			return false;
 		else {
 			if ("true".equals(getAsync())) {
@@ -390,7 +389,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 				Object propVal = getPropertyValue(ectx, getAsync());
 				return Boolean.TRUE.equals(propVal);
 			}
-		}
+		}*/
 	}
 	
 	public void setAsync(String async) {

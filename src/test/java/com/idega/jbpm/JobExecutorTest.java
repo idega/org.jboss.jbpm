@@ -81,11 +81,11 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 		if(true)
 			return;
 
-		deployProcessDefinitions();
+		/*deployProcessDefinitions();
 
 		createProcessInstance();
 
-		processJobs(maxWaitTime);
+		processJobs(maxWaitTime);*/
 	}
 
 	private void processAllJobs(final long maxWait) {

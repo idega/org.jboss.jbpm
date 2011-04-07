@@ -14,7 +14,6 @@ import org.jbpm.graph.def.Action;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ExecutionContext;
-import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.job.executor.JobExecutor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -158,7 +157,7 @@ public final class AsyncTest extends IdegaBaseTransactionalTest {
 		if(true)
 			return;
 
-		deployProcessDefinitions();
+		/*deployProcessDefinitions();
 		
 		JbpmContext jbpmContext = bpmContext.createJbpmContext();
 
@@ -174,7 +173,7 @@ public final class AsyncTest extends IdegaBaseTransactionalTest {
 			bpmContext.closeAndCommit(jbpmContext);
 		}
 		
-		processJobs(maxWaitTime);
+		processJobs(maxWaitTime);*/
 	}
 	
 	/*

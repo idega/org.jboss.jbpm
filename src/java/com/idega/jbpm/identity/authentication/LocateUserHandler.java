@@ -91,9 +91,9 @@ public class LocateUserHandler implements ActionHandler {
 
 			if (usrFound != null) {
 
-				if (false)
+				//if (false)
 					// TODO: finish update user info, and test
-					updateAddress(userBusiness, usrFound, upd);
+					//updateAddress(userBusiness, usrFound, upd);
 
 				// s_upd.setUserAddress(userAddress);
 				// s_upd.setUserPostalCode(userPostalCode);
