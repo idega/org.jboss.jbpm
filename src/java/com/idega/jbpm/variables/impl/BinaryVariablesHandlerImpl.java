@@ -7,6 +7,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,6 +37,8 @@ import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
+import com.idega.util.ListUtil;
+import com.idega.util.StringHandler;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
@@ -277,10 +280,15 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					WebdavResource res = slideService.getWebdavExtendedResource(fileUri, slideService.getRootUserCredentials(), false);
 					if (res == null || !res.exists()) {
 						LOGGER.warning("Unable to load WebdavResource '" + fileUri + "' using Slide via HTTP");
-						return null;
 					} else {
 						return slideService.getInputStream(res);
 					}
+				}
+			}
+			if (stream == null) {
+				Object persistentObject = getBinaryVariablePersistentResource(variable);
+				if (persistentObject instanceof WebdavResource) {
+					stream = slideService.getInputStream(((WebdavResource) persistentObject).getPath());
 				}
 			}
 			
@@ -299,10 +307,25 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			IWSlideService slideService = getIWSlideService();
 			
 			WebdavResource res = slideService.getWebdavResourceAuthenticatedAsRoot(variable.getIdentifier());
+			if (res != null && res.exists())
+				return res;
 			
-			if (!res.exists()) {
-				LOGGER.log(Level.WARNING, "No webdav resource found for path provided: " + variable.getIdentifier());
-				return null;
+			LOGGER.log(Level.WARNING, "No webdav resource found for path provided: " + variable.getIdentifier() + ". Will try to remove non-Latin letters to resolve the resource");
+			
+			char[] exceptions = new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '/'};
+			String fileNameInEnglish = StringHandler.stripNonRomanCharacters(variable.getFileName(), exceptions);
+			String folder = variable.getIdentifier().substring(0, variable.getIdentifier().lastIndexOf(CoreConstants.SLASH));
+			List<String> childPaths = slideService.getChildPaths(folder);
+			if (!ListUtil.isEmpty(childPaths)) {
+				boolean resourceFound = false;
+				for (Iterator<String> pathsIter = childPaths.iterator(); (pathsIter.hasNext() && !resourceFound);) {
+					String originalPath = pathsIter.next();
+					String childPath = StringHandler.stripNonRomanCharacters(originalPath, exceptions);
+					if (childPath.endsWith(fileNameInEnglish)) {
+						res = slideService.getWebdavResourceAuthenticatedAsRoot(originalPath);
+						resourceFound = res != null && res.exists();
+					}
+				}
 			}
 			
 			return res;
