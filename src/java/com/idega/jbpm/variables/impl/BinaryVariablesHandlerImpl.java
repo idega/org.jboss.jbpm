@@ -281,14 +281,17 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					if (res == null || !res.exists()) {
 						LOGGER.warning("Unable to load WebdavResource '" + fileUri + "' using Slide via HTTP");
 					} else {
-						return slideService.getInputStream(res);
+						stream = slideService.getInputStream(res);
 					}
 				}
 			}
 			if (stream == null) {
 				Object persistentObject = getBinaryVariablePersistentResource(variable);
 				if (persistentObject instanceof WebdavResource) {
-					stream = slideService.getInputStream(((WebdavResource) persistentObject).getPath());
+					WebdavResource attachment = (WebdavResource) persistentObject;
+					stream = slideService.getInputStream(attachment.getPath());
+					if (stream == null)
+						stream = attachment.getMethodData();
 				}
 			}
 			
