@@ -6,6 +6,8 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.webdav.lib.WebdavResource;
+import org.apache.webdav.lib.WebdavResources;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -34,10 +37,10 @@ import com.idega.jbpm.utils.JSONUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.slide.business.IWSlideService;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
-import com.idega.util.ListUtil;
 import com.idega.util.StringHandler;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
@@ -289,9 +292,18 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				Object persistentObject = getBinaryVariablePersistentResource(variable);
 				if (persistentObject instanceof WebdavResource) {
 					WebdavResource attachment = (WebdavResource) persistentObject;
-					stream = slideService.getInputStream(attachment.getPath());
-					if (stream == null)
+					try {
 						stream = attachment.getMethodData();
+					} catch (Exception e) {
+						LOGGER.log(Level.WARNING, "Error getting input stream for: " + attachment.getPath(), e);
+					}
+					if (stream == null) {
+						try {
+							stream = slideService.getInputStream(attachment.getPath());
+						} catch (Exception e) {
+							LOGGER.log(Level.WARNING, "Error getting input stream for: " + attachment.getPath(), e);
+						}
+					}
 				}
 			}
 			
@@ -318,17 +330,50 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			char[] exceptions = new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '/'};
 			String fileNameInEnglish = StringHandler.stripNonRomanCharacters(variable.getFileName(), exceptions);
 			String folder = variable.getIdentifier().substring(0, variable.getIdentifier().lastIndexOf(CoreConstants.SLASH));
-			List<String> childPaths = slideService.getChildPaths(folder);
-			if (!ListUtil.isEmpty(childPaths)) {
-				boolean resourceFound = false;
-				for (Iterator<String> pathsIter = childPaths.iterator(); (pathsIter.hasNext() && !resourceFound);) {
-					String originalPath = pathsIter.next();
-					String childPath = StringHandler.stripNonRomanCharacters(originalPath, exceptions);
-					if (childPath.endsWith(fileNameInEnglish)) {
-						res = slideService.getWebdavResourceAuthenticatedAsRoot(originalPath);
-						resourceFound = res != null && res.exists();
+			WebdavResource attachmentFolder = slideService.getWebdavResourceAuthenticatedAsRoot(folder);
+			if (attachmentFolder == null || !attachmentFolder.exists()) {
+				LOGGER.warning("Folder '" + folder + "' does not exist!");
+				return null;
+			}
+			WebdavResources files = attachmentFolder.getChildResources();
+			if (files == null) {
+				LOGGER.warning("No files found in the folder: " + folder);
+				return null;
+			}
+			Enumeration<?> attachments = files.getResources();
+			if (attachments == null || !attachments.hasMoreElements()) {
+				LOGGER.warning("No files found in the folder: " + folder);
+				return null;
+			}
+			
+			boolean resourceFound = false;
+			List<?> attachmentsInFolder = Collections.list(attachments);
+			for (Iterator<?> attachmentsIter = attachmentsInFolder.iterator(); (attachmentsIter.hasNext() && !resourceFound);) {
+				Object tmp = attachmentsIter.next();
+				if (!(tmp instanceof WebdavResource))
+					continue;
+				
+				res = (WebdavResource) tmp;
+				String attachmentPath = StringHandler.stripNonRomanCharacters(res.getPath(), exceptions);
+				resourceFound = attachmentPath.endsWith(fileNameInEnglish) || attachmentsInFolder.size() == 1;
+				if (!resourceFound) {
+					String[] fileParts = fileNameInEnglish.split(CoreConstants.MINUS);
+					attachmentPath = attachmentPath.substring(attachmentPath.lastIndexOf(CoreConstants.SLASH) + 1);
+					String[] pathParts = attachmentPath.split(CoreConstants.MINUS);
+					if (ArrayUtil.isEmpty(fileParts) || ArrayUtil.isEmpty(pathParts) || fileParts.length != pathParts.length)
+						continue;
+					
+					int sameParts = 0;
+					for (int i = 0; i < fileParts.length; i++) {
+						if (fileParts[i].contains(pathParts[i]) || pathParts[i].contains(fileParts[i]))
+							sameParts++;
 					}
+					resourceFound = sameParts == fileParts.length;
 				}
+			}
+			if (!resourceFound) {
+				LOGGER.warning("Unable to find resource '" + variable.getIdentifier() + "' in the folder: " + attachmentsInFolder);
+				res = null;
 			}
 			
 			return res;
