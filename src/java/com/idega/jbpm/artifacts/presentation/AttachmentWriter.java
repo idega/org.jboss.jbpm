@@ -39,31 +39,23 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 	@Autowired
 	private VariablesHandler variablesHandler;
 
-	public AttachmentWriter() {
-	}
-
 	@Override
 	public void init(HttpServletRequest req, IWContext iwc) {
+		binaryVariable = iwc.isLoggedOn() ? resolveBinaryVariable(iwc) : null;
 		
-		binaryVariable = resolveBinaryVariable(iwc);
-		
-		if(binaryVariable == null) {
-			
+		if (binaryVariable == null) {
 			LOGGER.log(Level.SEVERE, "Failed to resolve binary variable");
 			return;
 		}
 		
-		setAsDownload(iwc, binaryVariable.getFileName(), binaryVariable.getContentLength() == null ? 0 : binaryVariable.getContentLength().intValue(),
-				binaryVariable.getHash());
+		setAsDownload(iwc, binaryVariable.getFileName(), binaryVariable.getContentLength() == null ? 0 : binaryVariable.getContentLength().intValue(), binaryVariable.getHash());
 	}
 	
 	protected BinaryVariable resolveBinaryVariable(IWContext iwc) {
-		
 		String taskInstanceIdSR = iwc.getParameter(PARAMETER_TASK_INSTANCE_ID);
 		String variableHashSR = iwc.getParameter(PARAMETER_VARIABLE_HASH);
 		
-		if(taskInstanceIdSR == null || variableHashSR == null) {
-			
+		if (taskInstanceIdSR == null || variableHashSR == null) {
 			LOGGER.log(Level.SEVERE, "Tried to download, but params not provided.\nTaskInstanceId: "+taskInstanceIdSR+", variableHash: "+variableHashSR);
 			return null;
 		}
@@ -117,8 +109,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 	}
 	
 	public VariablesHandler getVariablesHandler() {
-		
-		if(variablesHandler == null)
+		if (variablesHandler == null)
 			ELUtil.getInstance().autowire(this);
 		
 		return variablesHandler;
