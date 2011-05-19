@@ -280,7 +280,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					LOGGER.warning("Input stream can not be opened to: " + fileUri + " nor to decoded path: " + decodedFileUri +
 							". Will try to retrieve WebdavResource");
 					
-					WebdavResource res = slideService.getWebdavExtendedResource(fileUri, slideService.getRootUserCredentials(), false);
+					WebdavResource res = null;
+					try {
+						res = slideService.getWebdavExtendedResource(fileUri, slideService.getRootUserCredentials(), false);
+					} catch (Exception e) {
+						LOGGER.log(Level.WARNING, "Error getting resource via HTTP: " + fileUri, e);
+					}
 					if (res == null || !res.exists()) {
 						LOGGER.warning("Unable to load WebdavResource '" + fileUri + "' using Slide via HTTP");
 					} else {
@@ -289,9 +294,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				}
 			}
 			if (stream == null) {
-				Object persistentObject = getBinaryVariablePersistentResource(variable);
-				if (persistentObject instanceof WebdavResource) {
-					WebdavResource attachment = (WebdavResource) persistentObject;
+				WebdavResource attachment = getResource(variable, slideService);
+				if (attachment == null) {
+					LOGGER.warning("Unable to get persistent object for " + fileUri);
+				} else {
+					LOGGER.info("Resolved persistent object for resource: " + fileUri);
 					try {
 						stream = attachment.getMethodData();
 					} catch (Exception e) {
@@ -307,6 +314,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				}
 			}
 			
+			if (stream == null)
+				LOGGER.severe("Unable to get input stream for resource: " + fileUri);
 			return stream;
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
@@ -314,19 +323,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		}
 	}
 	
-	public Object getBinaryVariablePersistentResource(BinaryVariable variable) {
-		if (!STORAGE_TYPE.equals(variable.getStorageType()))
-			throw new IllegalArgumentException("Unsupported binary variable storage type: "+ variable.getStorageType());
+	private WebdavResource getResource(BinaryVariable variable, IWSlideService slideService) {
+		LOGGER.warning("No webdav resource found for path provided: " + variable.getIdentifier() + ". Will try to remove non-Latin letters to resolve the resource");
 		
+		WebdavResource res = null;
 		try {
-			IWSlideService slideService = getIWSlideService();
-			
-			WebdavResource res = slideService.getWebdavResourceAuthenticatedAsRoot(variable.getIdentifier());
-			if (res != null && res.exists())
-				return res;
-			
-			LOGGER.log(Level.WARNING, "No webdav resource found for path provided: " + variable.getIdentifier() + ". Will try to remove non-Latin letters to resolve the resource");
-			
 			char[] exceptions = new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '/'};
 			String fileNameInEnglish = StringHandler.stripNonRomanCharacters(variable.getFileName(), exceptions);
 			String folder = variable.getIdentifier().substring(0, variable.getIdentifier().lastIndexOf(CoreConstants.SLASH));
@@ -375,6 +376,30 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				LOGGER.warning("Unable to find resource '" + variable.getIdentifier() + "' in the folder: " + attachmentsInFolder);
 				res = null;
 			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Unable to resolve resource for: " + variable.getIdentifier(), e);
+		}
+		
+		return res;
+	}
+	
+	public Object getBinaryVariablePersistentResource(BinaryVariable variable) {
+		if (!STORAGE_TYPE.equals(variable.getStorageType()))
+			throw new IllegalArgumentException("Unsupported binary variable storage type: "+ variable.getStorageType());
+		
+		try {
+			IWSlideService slideService = getIWSlideService();
+			
+			WebdavResource res = null;
+			try {
+				res = slideService.getWebdavResourceAuthenticatedAsRoot(variable.getIdentifier());
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Unable to get persistent object for resource: " + variable.getIdentifier(), e);
+			}
+			if (res != null && res.exists())
+				return res;
+			
+			res = getResource(variable, slideService);
 			
 			return res;
 		} catch (Exception e) {
