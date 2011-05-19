@@ -3,6 +3,7 @@ package com.idega.jbpm.variables.impl;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +17,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.httpclient.HttpURL;
 import org.apache.webdav.lib.WebdavResource;
 import org.apache.webdav.lib.WebdavResources;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ import com.idega.block.process.variables.VariableDataType;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
+import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.file.util.FileInfo;
 import com.idega.core.file.util.FileURIHandler;
 import com.idega.core.file.util.FileURIHandlerFactory;
@@ -37,6 +40,7 @@ import com.idega.jbpm.utils.JSONUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.slide.business.IWSlideService;
+import com.idega.user.data.User;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
@@ -313,6 +317,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					}
 				}
 			}
+			if (stream == null)
+				stream = getFromURL(slideService, fileUri);
 			
 			if (stream == null)
 				LOGGER.severe("Unable to get input stream for resource: " + fileUri);
@@ -321,6 +327,26 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			LOGGER.log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
 			return null;
 		}
+	}
+	
+	private InputStream getFromURL(IWSlideService slideService, String fileUri) {
+		String link = null;
+		try {
+			HttpURL serverInfo = slideService.getWebdavServerURL();
+			String scheme = serverInfo.getScheme();
+			String host = serverInfo.getHost();
+			int port = serverInfo.getPort();
+			User admin = IWMainApplication.getDefaultIWMainApplication().getAccessController().getAdministratorUser();
+			String query = LoginBusinessBean.PARAM_LOGIN_BY_UNIQUE_ID.concat("=").concat(admin.getUniqueId());
+			query = query.concat("&").concat(LoginBusinessBean.LoginStateParameter).concat("=").concat(LoginBusinessBean.LOGIN_EVENT_LOGIN);
+			URI uri = new URI(scheme, null, host, port, CoreConstants.WEBDAV_SERVLET_URI.concat(fileUri), query, null);
+			link = uri.toASCIIString();
+			URL url = new URL(link);
+			return url.openStream();
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error getting input stream via URL: " + link, e);
+		}
+		return null;
 	}
 	
 	private WebdavResource getResource(BinaryVariable variable, IWSlideService slideService) {
