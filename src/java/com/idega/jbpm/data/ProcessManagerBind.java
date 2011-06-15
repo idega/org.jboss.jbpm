@@ -41,6 +41,7 @@ public class ProcessManagerBind implements Serializable {
 	public static final String getSubprocessesOneLevel = "ProcessManagerBind.getSubprocessesOneLevel";
 	
 	public static final String processInstanceIdParam = "piId";
+	public static final String caseIdParam = "caseId";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
