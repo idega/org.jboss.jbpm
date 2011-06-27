@@ -755,7 +755,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		
 		List<VariableInstanceInfo> allVars = null;
 		for (Map.Entry<String, List<Serializable>> entry: namesAndValues.entrySet()) {
-			Boolean searchExpression = flexibleVariables.get(entry.getKey());
+			Boolean searchExpression = flexibleVariables == null ? Boolean.FALSE : flexibleVariables.get(entry.getKey());
 			Collection<VariableInstanceInfo> vars = getProcessVariablesByNameAndValue(entry.getKey(), entry.getValue(), procDefNames, procInstIds, selectProcessInstanceId,
 					searchExpression == null ? false : searchExpression, false);
 			if (ListUtil.isEmpty(vars)) {
@@ -1294,7 +1294,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		if (activeVariables != null && !activeVariables.isEmpty()) {
 			for (String name: activeVariables.keySet()) {
 				for (Serializable value: activeVariables.get(name)) {
-					List<VariableInstanceInfo> info = getCachedVariables(name, value, flexibleVariables.get(name) == null ? false : flexibleVariables.get(name), true);
+					List<VariableInstanceInfo> info = getCachedVariables(name, value, flexibleVariables == null ? false : flexibleVariables.get(name) == null ? false : flexibleVariables.get(name), true);
 					if (info == null) {
 						continue;
 					}
