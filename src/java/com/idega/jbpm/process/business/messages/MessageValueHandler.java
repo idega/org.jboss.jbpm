@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.jbpm.graph.exe.Token;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
  *
  * Last modified: $Date: 2008/08/08 16:16:55 $ by $Author: civilis $
  */
-@Scope("singleton")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service
 public class MessageValueHandler {
 
@@ -59,16 +60,11 @@ public class MessageValueHandler {
 	}
 	
 	public String getFormattedMessage(String unformattedMessage, String messageValuesExp, Token tkn) {
-		
-		return getFormattedMessage(unformattedMessage, messageValuesExp, tkn, null);
+		return getFormattedMessage(unformattedMessage, messageValuesExp, tkn, new MessageValueContext());
 	}
 	
-	
-	
 	protected MessageValueContext updateContext(Token tkn, MessageValueContext mvCtx) {
-		
 		if(!mvCtx.contains(MessageValueContext.tokenBean)) {
-
 			mvCtx.setValue(MessageValueContext.tokenBean, tkn);
 		}
 		
@@ -76,30 +72,25 @@ public class MessageValueHandler {
 	}
 	
 	public String getFormattedMessage(String unformattedMessage, String messageValuesExp, Token tkn, MessageValueContext providedMVCtx) {
-		
 		MessageValueContext mvCtx = updateContext(tkn, providedMVCtx);
 		
-		ArrayList<String> msgVals;
-		
-		if(messageValuesExp != null) {
+		List<String> msgVals = null;
+		if (messageValuesExp != null) {
 			
 			XStream xstream = new XStream(new JettisonMappedXmlDriver());
 			xstream.alias(messageValueObj, MessageValue.class);
 			
 			@SuppressWarnings("unchecked")
-			List<MessageValue> mvals = (List<MessageValue>)xstream.fromXML(messageValuesExp.trim());
+			List<MessageValue> mvals = (List<MessageValue>) xstream.fromXML(messageValuesExp.trim());
 			msgVals = new ArrayList<String>(mvals.size());
 			
-			for (MessageValue messageValue : mvals) {
-				
+			for (MessageValue messageValue: mvals) {
 				String val = getMessageValue(messageValue.getType(), messageValue.getValue(), mvCtx);
 				msgVals.add(val == null ? CoreConstants.EMPTY : val);
 			}
-		} else
-			msgVals = null;
+		}
 
 		if(msgVals != null) {
-		
 			String formattedMessage = MessageFormat.format(unformattedMessage, msgVals.toArray());
 			return formattedMessage;
 		} else
