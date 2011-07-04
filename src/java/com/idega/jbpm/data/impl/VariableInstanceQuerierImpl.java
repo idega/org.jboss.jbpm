@@ -1363,4 +1363,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		
 		return results;
 	}
+	
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIds(Collection<Long> procInstIds) {
+		if (ListUtil.isEmpty(procInstIds))
+			return null;
+		
+		String query = getQuery(getSelectPart(STANDARD_COLUMNS), getFromClause(false, false), " where ", PROC_INST_IDS_EXPRESSION, " group by var.name_");
+		return getVariablesByProcessInstanceIds(null, query, COLUMNS, new ArrayList<Long>(procInstIds));
+	}
 }
