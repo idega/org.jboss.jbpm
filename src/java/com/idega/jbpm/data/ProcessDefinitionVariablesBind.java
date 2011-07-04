@@ -34,7 +34,7 @@ public class ProcessDefinitionVariablesBind implements Serializable {
 	
 	public ProcessDefinitionVariablesBind() {
 		Random random = new Random();
-		while (hashCode == null)
+		while (hashCode == null || hashCode < 0)
 			hashCode = random.nextInt();
 	}
 	
