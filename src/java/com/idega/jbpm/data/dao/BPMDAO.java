@@ -80,4 +80,6 @@ public interface BPMDAO extends GenericDao {
 	public List<Object[]> getProcessDateRanges(Collection<Long> processInstanceIds);
 	
 	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId);
+	
+	public List<Long> getProcessDefinitionIdsByName(String procDefName);
 }

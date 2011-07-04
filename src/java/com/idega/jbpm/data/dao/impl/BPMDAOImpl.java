@@ -712,4 +712,13 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return getSingleResultByInlineQuery("select pd.name from " + ProcessDefinition.class.getName() + " pd where pd.id = :processDefinitionId", String.class,
 				new Param("processDefinitionId", processDefinitionId));
 	}
+
+	@Override
+	public List<Long> getProcessDefinitionIdsByName(String procDefName) {
+		if (StringUtil.isEmpty(procDefName))
+			return null;
+		
+		return getResultListByInlineQuery("select pd.id from " + ProcessDefinition.class.getName() + " pd where pd.name = :procDefName", Long.class,
+				new Param("procDefName", procDefName));
+	}
 }
