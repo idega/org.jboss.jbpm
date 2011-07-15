@@ -730,8 +730,9 @@ public class ProcessArtifacts {
 		
 		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
 		
-		Collection<BPMEmailDocument> processEmails = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId)
-			.getProcessInstance(processInstanceId).getAttachedEmails(loggedInUser);
+		Collection<BPMEmailDocument> processEmails = null;
+		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("load_bpm_emails", Boolean.TRUE))
+			processEmails = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getAttachedEmails(loggedInUser);
 		
 		if (ListUtil.isEmpty(processEmails)) {
 			try {
