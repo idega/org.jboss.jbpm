@@ -1,5 +1,6 @@
 package com.idega.jbpm.identity;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +22,7 @@ import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.contact.data.Email;
 import com.idega.core.contact.data.EmailHome;
+import com.idega.data.SimpleQuerier;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.Actor;
@@ -31,7 +33,9 @@ import com.idega.jbpm.exe.BPMFactory;
 import com.idega.presentation.IWContext;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.User;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
+import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
 
@@ -456,5 +460,34 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	@Autowired
 	public void setBPMFactory(BPMFactory factory) {
 		BPMFactory = factory;
+	}
+	
+	@Override
+	public List<Integer> getAllHandlersForProcess(String processDefinitionName) {
+		if (StringUtil.isEmpty(processDefinitionName))
+			return null;
+		
+		List<Serializable[]> results = null;
+		String query = "select distinct c.handler from comm_case c inner join BPM_CASES_PROCESSINSTANCES b on b.case_id = c.COMM_CASE_ID inner join jbpm_processinstance p on"
+			.concat(" p.id_ = b.process_instance_id inner join jbpm_processdefinition d on d.id_ = p.processdefinition_ where c.handler is not null and d.name_ = '")
+			.concat(processDefinitionName).concat("'");
+		try {
+			results = SimpleQuerier.executeQuery(query, 1);
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Error executing query: " + query, e);
+		}
+		if (ListUtil.isEmpty(results))
+			return null;
+		
+		List<Integer> ids = new ArrayList<Integer>();
+		for (Serializable[] result: results) {
+			if (ArrayUtil.isEmpty(result))
+				continue;
+			
+			Serializable id = result[0];
+			if (id instanceof Number)
+				ids.add(((Number) id).intValue());
+		}
+		return ids;
 	}
 }

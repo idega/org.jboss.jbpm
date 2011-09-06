@@ -1,5 +1,7 @@
 package com.idega.jbpm.identity;
 
+import java.util.List;
+
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 
@@ -52,4 +54,6 @@ public interface BPMUserFactory {
 	 */
 	public abstract boolean isAssociated(User realUsr, User bpmUsr,
 	        boolean autoAssociate);
+	
+	public abstract List<Integer> getAllHandlersForProcess(String processDefinitionName);
 }
