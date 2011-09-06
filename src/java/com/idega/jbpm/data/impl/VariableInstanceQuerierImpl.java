@@ -948,7 +948,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					variable = new VariableDateInstance(name, (Timestamp) value);
 				} else if (value instanceof Date && VariableInstanceType.DATE.getTypeKeys().contains(type)) {
 					variable = new VariableDateInstance(name, new Timestamp(((Date) value).getTime()));
-				} else if (value instanceof Byte[] || VariableInstanceType.BYTE_ARRAY.getTypeKeys().contains(type)) {
+				} else if (value instanceof Byte[] || VariableInstanceType.BYTE_ARRAY.getTypeKeys().contains(type) || VariableInstanceType.OBJ_LIST.getTypeKeys().contains(type)) {
 					variable = new VariableByteArrayInstance(name, value);
 				} else {
 					// Try to execute custom methods
