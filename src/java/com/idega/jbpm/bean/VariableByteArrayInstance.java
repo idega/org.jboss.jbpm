@@ -22,6 +22,9 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 
 	private Serializable value;
 	
+	private static final Logger LOGGER = Logger
+			.getLogger(VariableByteArrayInstance.class.getName());
+	
 	public VariableByteArrayInstance(String name, Object value) {
 		super(name, VariableInstanceType.BYTE_ARRAY);
 		
@@ -46,7 +49,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 				return (Serializable) realValue;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.warning("Couldn't deserialize stream. Returning empty String");
 		} finally {
 			IOUtil.close(objectInput);
 			IOUtil.close(input);
