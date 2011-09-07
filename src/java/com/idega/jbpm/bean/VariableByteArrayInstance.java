@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,7 +72,23 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 					value = null;
 					return value;
 				}
-				Object bytes = values.iterator().next()[0];
+				Object bytes = null;
+				
+				if (values.size() > 1) {
+					bytes = new byte[values.size() * 1024];
+					//ByteArr
+					//int counter = 0;
+					Iterator<Serializable[]> it = values.iterator();
+					int pos = 0;
+					while (it.hasNext()) {
+						byte[] tmp = (byte[]) it.next()[0];
+						System.arraycopy(tmp, 0, bytes, pos, tmp.length);
+						pos += tmp.length;
+					}
+				} else {
+					bytes = values.iterator().next()[0];
+				}
+				
 				value = bytes instanceof byte[] ? getConvertedValue((byte[]) bytes) : null;
 			} catch (Exception e) {
 				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error executing query: " + query, e);
