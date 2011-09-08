@@ -1371,4 +1371,26 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		String query = getQuery(getSelectPart(STANDARD_COLUMNS), getFromClause(false, false), " where ", PROC_INST_IDS_EXPRESSION, " group by var.name_");
 		return getVariablesByProcessInstanceIds(null, query, COLUMNS, new ArrayList<Long>(procInstIds));
 	}
+
+	@Override
+	public List<VariableInstanceInfo> getVariablesByNameAndTaskInstance(Collection<String> names, Long tiId) {
+		if (ListUtil.isEmpty(names) || tiId == null)
+			return null;
+		
+		String query = getQuery(getSelectPart(STANDARD_COLUMNS), CoreConstants.COMMA, OTHER_VALUES, getFromClause(true, false), " where var.taskinstance_ = ",
+				String.valueOf(tiId), " and ", getQueryParameters("var.name_", names, Boolean.TRUE));
+		List<Serializable[]> results = null;
+		try {
+			results = SimpleQuerier.executeQuery(query, 8);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
+		}
+		if (ListUtil.isEmpty(results))
+			return null;
+		
+		Collection<VariableInstanceInfo> vars = getConverted(results, 8);
+		if (ListUtil.isEmpty(vars))
+			return null;
+		return new ArrayList<VariableInstanceInfo>(vars);
+	}
 }
