@@ -71,8 +71,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 	@Override
 	public String getMimeType() {
-		
-		if(binaryVariable != null && binaryVariable.getMimeType() != null)
+		if (binaryVariable != null && binaryVariable.getMimeType() != null)
 			return binaryVariable.getMimeType();
 		
 		return super.getMimeType();
@@ -80,8 +79,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
-		
-		if(binaryVariable == null)
+		if (binaryVariable == null)
 			return;
 		
 		InputStream is = getVariablesHandler().getBinaryVariablesHandler().getBinaryVariableContent(binaryVariable);
@@ -94,13 +92,9 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 	}
 	
 	protected BinaryVariable getBinVar(VariablesHandler variablesHandler, long taskInstanceId, int binaryVariableHash) {
-		
 		List<BinaryVariable> variables = variablesHandler.resolveBinaryVariables(taskInstanceId);
-		
 		for (BinaryVariable binaryVariable : variables) {
-
-			if(binaryVariable.getHash().equals(binaryVariableHash)) {
-				
+			if (binaryVariable.getHash().equals(binaryVariableHash)) {
 				return binaryVariable;
 			}
 		}

@@ -105,7 +105,6 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	}
 	
 	protected void checkGenHash() {
-		
 		if (hash == null && identifier != null && storageType != null) {
 			hash = identifier.hashCode() + storageType.hashCode();
 		}
@@ -159,12 +158,8 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	}
 	
 	public Variable getVariable() {
-		
-		if (variable == null && getVariableName() != null) {
-			
-			variable = Variable
-			        .parseDefaultStringRepresentation(getVariableName());
-		}
+		if (variable == null && getVariableName() != null)
+			variable = Variable.parseDefaultStringRepresentation(getVariableName());
 		
 		return variable;
 	}
@@ -179,16 +174,11 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	}
 	
 	public void persist() {
-		
 		if (!isPersisted()) {
-			
 			if (getUri() != null) {
-				
-				getVariablesHandler().getBinaryVariablesHandler()
-				        .persistBinaryVariable(this, getUri());
+				getVariablesHandler().getBinaryVariablesHandler().persistBinaryVariable(this, getUri());
 			} else {
-				Logger.getLogger(getClass().getName()).log(Level.WARNING,
-				    "Tried to persist, but no uri provided");
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to persist, but no uri provided");
 			}
 		} else {
 			Logger.getLogger(getClass().getName()).log(Level.WARNING,
@@ -197,51 +187,36 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	}
 	
 	public void update() {
-		
-		List<BinaryVariable> binVars = getVariablesHandler()
-		        .resolveBinaryVariables(getTaskInstanceId(), getVariable());
-		
+		List<BinaryVariable> binVars = getVariablesHandler().resolveBinaryVariables(getTaskInstanceId(), getVariable());
 		if (binVars != null && !binVars.isEmpty()) {
-			
-			for (Iterator<BinaryVariable> iterator = binVars.iterator(); iterator
-			        .hasNext();) {
+			for (Iterator<BinaryVariable> iterator = binVars.iterator(); iterator.hasNext();) {
 				BinaryVariable binVar = iterator.next();
 				
 				if (binVar.getHash().equals(getHash())) {
 					iterator.remove();
 					binVars.add(this);
 					
-					Map<String, Object> variable = new HashMap<String, Object>(
-					        1);
-					variable
-					        .put(
-					            getVariable().getDefaultStringRepresentation(),
-					            binVars);
-					getVariablesHandler().submitVariablesExplicitly(variable,
-					    getTaskInstanceId());
+					Map<String, Object> variable = new HashMap<String, Object>(1);
+					variable.put(getVariable().getDefaultStringRepresentation(), binVars);
+					getVariablesHandler().submitVariablesExplicitly(variable, getTaskInstanceId());
 					return;
 				}
 			}
 		}
 		
-		Logger.getLogger(getClass().getName()).log(
-		    Level.WARNING,
-		    "Called update, but no matching binary variable resolved by variable hash="
+		Logger.getLogger(getClass().getName()).log(Level.WARNING, "Called update, but no matching binary variable resolved by variable hash="
 		            + getHash() + ". Variable name="
 		            + getVariable().getDefaultStringRepresentation()
 		            + " and task instanceid=" + getTaskInstanceId());
 	}
 	
 	public Object getPersistentResource() {
-		
-		return getVariablesHandler().getBinaryVariablesHandler()
-		        .getBinaryVariablePersistentResource(this);
+		return getVariablesHandler().getBinaryVariablesHandler().getBinaryVariablePersistentResource(this);
 	}
 	
 	private VariablesHandler getVariablesHandler() {
-		if (variablesHandler == null) {
+		if (variablesHandler == null)
 			ELUtil.getInstance().autowire(this);
-		}
 		
 		return variablesHandler;
 	}

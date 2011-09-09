@@ -43,6 +43,7 @@ import com.idega.slide.business.IWSlideService;
 import com.idega.user.data.User;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.StringHandler;
@@ -146,9 +147,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		try {
 			IWSlideService slideService = getIWSlideService();
 			
+			String normalizedName = StringHandler.stripNonRomanCharacters(fileName, new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.'});
+			
 			int index = 0;
 			String tmpUri = path;
-			while (slideService.getExistence(concPF(tmpUri, fileName))) {	//	File by the same name already exists! Renaming this file not to overwrite existing file
+			//	File by the same name already exists! Renaming this file not to overwrite existing file
+			while (slideService.getExistence(concPF(tmpUri, normalizedName))) {
 				tmpUri = path.concat(String.valueOf((index++)));
 			}
 			path = tmpUri;
@@ -160,14 +164,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				for (int i = 0; i < 5; i++) {
 					try {
 						stream = fileURIHandler.getFile(fileUri);
-						if (!slideService.uploadFile(uploadPath, fileName, null, stream)) {
-							throw new RuntimeException("Unable to upload file to " + uploadPath.concat(fileName));
-						}
+						if (!slideService.uploadFile(uploadPath, normalizedName, null, stream))
+							throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName));
 					} catch (Exception e) {
 						if (i < 4) {
 							Thread.sleep(500);
 							continue;
 						}
+						CoreUtil.sendExceptionNotification("Unable to upload file: " + uploadPath.concat(normalizedName), e);
 						throw e;
 					}
 					break;
@@ -177,7 +181,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			}
 			
 			binaryVariable.setFileName(fileName);
-			binaryVariable.setIdentifier(concPF(path, fileName));
+			binaryVariable.setIdentifier(concPF(path, normalizedName));
 			binaryVariable.setStorageType(STORAGE_TYPE);
 			binaryVariable.setContentLength(fileInfo.getContentLength());
 			
