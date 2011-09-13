@@ -72,12 +72,10 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 					value = null;
 					return value;
 				}
-				Object bytes = null;
+				Object bytes = null;//ByteBlockChopper.glueChopsBackTogether(values);
 				
 				if (values.size() > 1) {
 					bytes = new byte[values.size() * 1024];
-					//ByteArr
-					//int counter = 0;
 					Iterator<Serializable[]> it = values.iterator();
 					int pos = 0;
 					while (it.hasNext()) {
@@ -116,5 +114,4 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 	public void setValue(Serializable value) {
 		this.value = value instanceof Serializable ? value : null;
 	}
-
 }
