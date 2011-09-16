@@ -1,8 +1,6 @@
 package com.idega.jbpm.identity.authentication;
 
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
 
@@ -17,8 +15,10 @@ import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
+import com.idega.core.business.DefaultSpringBean;
 import com.idega.core.contact.data.Email;
 import com.idega.core.contact.data.EmailHome;
+import com.idega.event.UserCreatedEvent;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.identity.UserPersonalData;
@@ -27,6 +27,8 @@ import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Gender;
 import com.idega.user.data.User;
 import com.idega.util.IWTimestamp;
+import com.idega.util.StringUtil;
+import com.idega.util.expression.ELUtil;
 import com.idega.util.text.Name;
 
 /**
@@ -40,7 +42,7 @@ import com.idega.util.text.Name;
  */
 @Service("createUserHandler")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class CreateUserHandler implements ActionHandler {
+public class CreateUserHandler extends DefaultSpringBean implements ActionHandler {
 
 	private static final long serialVersionUID = -1181069105207752204L;
 	private UserPersonalData userData;
@@ -48,126 +50,98 @@ public class CreateUserHandler implements ActionHandler {
 	private StandardGroup standardGroup;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
-
-		if(getUserData() != null) {
-			
-			UserPersonalData upd = getUserData();
-			
-			if(upd.getUserId() == null) {
-			
-				String personalId = upd.getPersonalId();
-				
-				if(personalId != null) {
-				
-					FacesContext fctx = FacesContext.getCurrentInstance();
-					IWApplicationContext iwac;
-					
-					if(fctx == null) {
-						iwac = IWMainApplication.getDefaultIWApplicationContext();
-					} else
-						iwac = IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
-					
-					UserBusiness userBusiness = getUserBusiness(iwac);
-					
-					Gender gender = upd.getGender();
-					
-					IWTimestamp dateOfBirth = null;
-					
-					if(upd.getPersonalId() != null && upd.getPersonalId().length() != 0) {
-
-						Date dob = userBusiness.getUserDateOfBirthFromPersonalId(upd.getPersonalId());
-						
-						if(dob != null)
-							dateOfBirth = new IWTimestamp(dob);
-					}
-					
-					final User usrCreated;
-					
-					if(upd.getCreateWithLogin()) {
-						
-						String firstName;
-						String middleName;
-						String lastName;
-						String userName;
-						
-						if(upd.getFullName() != null) {
-							
-							Name name = new Name(upd.getFullName());
-							firstName = name.getFirstName();
-							middleName = name.getMiddleName();
-							lastName = name.getLastName();
-							
-						} else {
-							
-							firstName = upd.getFirstName();
-							middleName = null;
-							lastName = upd.getLastName();
-						}
-						
-						if((userName = upd.getUserName()) == null)
-							userName = upd.getPersonalId();
-						
-						String password = LoginDBHandler.getGeneratedPasswordForUser();
-						upd.setUserPassword(password);
-						
-						StandardGroup standardGroup = getStandardGroup();
-						final Integer standardGroupPK;
-						
-						if(standardGroup != null)
-							standardGroupPK = new Integer(standardGroup.getGroup().getPrimaryKey().toString());
-						else
-							standardGroupPK = null;
-						
-//						doesn't check if login already exists, therefore this check needs to be made before calling this
-						usrCreated = userBusiness.createUserWithLogin(
-								firstName, middleName, lastName, upd.getPersonalId(), null, null, 
-								gender != null ? new Integer(gender.getPrimaryKey().toString()) : null,
-										dateOfBirth, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null);
-					} else {
-					
-						if(upd.getFullName() != null) {
-						
-							usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFullName(), personalId, gender, dateOfBirth);
-						} else {
-							usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFirstName(), null, upd.getLastName(), personalId, gender, dateOfBirth);							
-						}
-					}
-					
-//					TODO: populated user with other personal data here
-					
-					if(upd.getUserEmail() != null) {
-						
-						EmailHome eHome = userBusiness.getEmailHome();
-						Email uEmail = eHome.create();
-						uEmail.setEmailAddress(upd.getUserEmail());
-						uEmail.store();
-						usrCreated.addEmail(uEmail);
-					}
-					
-					LocateUserHandler.updateAddress(userBusiness, usrCreated, upd);
-
-					if(upd.getUserPhone() != null)
-						userBusiness.updateUserHomePhone(usrCreated, upd.getUserPhone());
-					
-//					put result back to user personal data
-					
-					final Object pk = usrCreated.getPrimaryKey();
-//					crappy -no datatype pk- handling
-					final Integer usrId = pk instanceof Integer ? (Integer)pk : new Integer(pk.toString());
-					
-					upd.setUserId(usrId);
-					
-				} else {
-				
-					Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to create user, but no personalId found in UserPersonalData. Skipping.");
-				}
-				
-			} else {
-				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Tried to create user, but UserPersonalData already contained userId="+upd.getPersonalId());
-			}
-		} else {
-			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Called create user handler, but no user data provided. Process instance id="+ectx.getProcessInstance().getId());
+		if (getUserData() == null) {
+			getLogger().warning("Called create user handler, but no user data provided. Process instance id="+ectx.getProcessInstance().getId());
+			return;
 		}
+		
+		UserPersonalData upd = getUserData();
+		if (upd.getUserId() != null) {
+			getLogger().warning("Tried to create user, but UserPersonalData already contained userId="+upd.getPersonalId());
+			return;
+		}
+		
+		String personalId = upd.getPersonalId();
+		if (StringUtil.isEmpty(personalId)) {
+			getLogger().warning("Tried to create user, but no personalId found in UserPersonalData. Skipping.");
+			return;
+		}
+		
+		FacesContext fctx = FacesContext.getCurrentInstance();
+		IWApplicationContext iwac = fctx == null? IWMainApplication.getDefaultIWApplicationContext() : IWMainApplication.getIWMainApplication(fctx).getIWApplicationContext();
+		UserBusiness userBusiness = getUserBusiness(iwac);
+		
+		Gender gender = upd.getGender();
+		IWTimestamp dateOfBirth = null;
+		if (upd.getPersonalId() != null && upd.getPersonalId().length() != 0) {
+			Date dob = userBusiness.getUserDateOfBirthFromPersonalId(upd.getPersonalId());
+			if (dob != null)
+				dateOfBirth = new IWTimestamp(dob);
+		}
+		
+		final User usrCreated;
+		if (upd.getCreateWithLogin()) {
+			String firstName;
+			String middleName;
+			String lastName;
+			String userName;
+			
+			if (upd.getFullName() != null) {
+				Name name = new Name(upd.getFullName());
+				firstName = name.getFirstName();
+				middleName = name.getMiddleName();
+				lastName = name.getLastName();
+			} else {
+				firstName = upd.getFirstName();
+				middleName = null;
+				lastName = upd.getLastName();
+			}
+			
+			if ((userName = upd.getUserName()) == null)
+				userName = upd.getPersonalId();
+				
+			String password = LoginDBHandler.getGeneratedPasswordForUser();
+			upd.setUserPassword(password);
+			
+			StandardGroup standardGroup = getStandardGroup();
+			final Integer standardGroupPK;
+			if (standardGroup != null)
+				standardGroupPK = new Integer(standardGroup.getGroup().getPrimaryKey().toString());
+			else
+				standardGroupPK = null;
+			
+//			doesn't check if login already exists, therefore this check needs to be made before calling this
+			usrCreated = userBusiness.createUserWithLogin(firstName, middleName, lastName, upd.getPersonalId(), null, null, 
+						gender != null ? new Integer(gender.getPrimaryKey().toString()) : null,
+						dateOfBirth, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null);
+		} else {
+			if (upd.getFullName() != null) {
+				usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFullName(), personalId, gender, dateOfBirth);
+			} else {
+				usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFirstName(), null, upd.getLastName(), personalId, gender, dateOfBirth);							
+			}
+		}
+		
+//		TODO: populated user with other personal data here
+		if (upd.getUserEmail() != null) {
+			EmailHome eHome = userBusiness.getEmailHome();
+			Email uEmail = eHome.create();
+			uEmail.setEmailAddress(upd.getUserEmail());
+			uEmail.store();
+			usrCreated.addEmail(uEmail);
+		}
+		
+		LocateUserHandler.updateAddress(userBusiness, usrCreated, upd);
+		if (upd.getUserPhone() != null)
+			userBusiness.updateUserHomePhone(usrCreated, upd.getUserPhone());
+
+//		put result back to user personal data
+		final Object pk = usrCreated.getPrimaryKey();
+//		crappy -no datatype pk- handling
+		final Integer usrId = pk instanceof Integer ? (Integer) pk : new Integer(pk.toString());
+		upd.setUserId(usrId);
+		
+		ELUtil.getInstance().publishEvent(new UserCreatedEvent(this, usrCreated));
 	}
 	
 	protected UserBusiness getUserBusiness(IWApplicationContext iwac) {
