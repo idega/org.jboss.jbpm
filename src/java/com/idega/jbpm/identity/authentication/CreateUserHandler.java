@@ -45,9 +45,13 @@ import com.idega.util.text.Name;
 public class CreateUserHandler extends DefaultSpringBean implements ActionHandler {
 
 	private static final long serialVersionUID = -1181069105207752204L;
+	
 	private UserPersonalData userData;
+	
 	@Autowired(required=false)
 	private StandardGroup standardGroup;
+	
+	private boolean publishEvent = Boolean.TRUE;
 	
 	public void execute(ExecutionContext ectx) throws Exception {
 		if (getUserData() == null) {
@@ -141,7 +145,16 @@ public class CreateUserHandler extends DefaultSpringBean implements ActionHandle
 		final Integer usrId = pk instanceof Integer ? (Integer) pk : new Integer(pk.toString());
 		upd.setUserId(usrId);
 		
-		ELUtil.getInstance().publishEvent(new UserCreatedEvent(this, usrCreated));
+		if (isPublishEvent())
+			ELUtil.getInstance().publishEvent(new UserCreatedEvent(this, usrCreated));
+	}
+	
+	protected void setPublishEvent(boolean publishEvent) {
+		this.publishEvent = publishEvent;
+	}
+	
+	protected boolean isPublishEvent() {
+		return publishEvent;
 	}
 	
 	protected UserBusiness getUserBusiness(IWApplicationContext iwac) {
