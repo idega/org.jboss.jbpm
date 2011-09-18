@@ -793,6 +793,11 @@ public class ProcessArtifacts {
 			systemEmail = IWMainApplication.getDefaultIWApplicationContext()
 			        .getApplicationSettings().getProperty(
 			            CoreConstants.PROP_SYSTEM_ACCOUNT);
+			
+			if (systemEmail.indexOf("@") == -1) {
+				String emailHost = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_HOST);
+				systemEmail = systemEmail + "@" + emailHost.substring(emailHost.indexOf(".") + 1);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
