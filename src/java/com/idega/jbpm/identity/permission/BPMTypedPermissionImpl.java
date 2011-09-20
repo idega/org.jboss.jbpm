@@ -4,6 +4,9 @@ import java.security.BasicPermission;
 import java.security.Permission;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
+
+import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -49,7 +52,14 @@ public class BPMTypedPermissionImpl extends BasicPermission implements BPMTypedP
 	}
 
 	public Integer getUserId() {
-		return getAttribute(GenericAccessPermissionsHandler.userAtt);
+		Object object = getAttribute(GenericAccessPermissionsHandler.userAtt);
+		if (object instanceof Integer)
+			return (Integer) object;
+		if (object instanceof User)
+			return Integer.valueOf(((User) object).getId());
+		
+		Logger.getLogger(getClass().getName()).warning("Unknown object: " + object);
+		return null;
 	}
 	
 	@Override
