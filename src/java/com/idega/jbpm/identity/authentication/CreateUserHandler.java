@@ -40,10 +40,12 @@ import com.idega.util.text.Name;
  * 
  * Last modified: $Date: 2009/06/23 15:37:21 $ by $Author: valdas $
  */
-@Service("createUserHandler")
+@Service(CreateUserHandler.BEAN_NAME)
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class CreateUserHandler extends DefaultSpringBean implements ActionHandler {
 
+	public static final String BEAN_NAME = "createUserHandler";
+	
 	private static final long serialVersionUID = -1181069105207752204L;
 	
 	private UserPersonalData userData;
@@ -60,15 +62,19 @@ public class CreateUserHandler extends DefaultSpringBean implements ActionHandle
 		}
 		
 		UserPersonalData upd = getUserData();
+		createUser(upd);
+	}
+	
+	public User createUser(UserPersonalData upd) throws Exception {
 		if (upd.getUserId() != null) {
 			getLogger().warning("Tried to create user, but UserPersonalData already contained userId="+upd.getPersonalId());
-			return;
+			return null;
 		}
 		
 		String personalId = upd.getPersonalId();
 		if (StringUtil.isEmpty(personalId)) {
 			getLogger().warning("Tried to create user, but no personalId found in UserPersonalData. Skipping.");
-			return;
+			return null;
 		}
 		
 		FacesContext fctx = FacesContext.getCurrentInstance();
@@ -147,13 +153,15 @@ public class CreateUserHandler extends DefaultSpringBean implements ActionHandle
 		
 		if (isPublishEvent())
 			ELUtil.getInstance().publishEvent(new UserCreatedEvent(this, usrCreated));
+		
+		return usrCreated;
 	}
 	
-	protected void setPublishEvent(boolean publishEvent) {
+	public void setPublishEvent(boolean publishEvent) {
 		this.publishEvent = publishEvent;
 	}
 	
-	protected boolean isPublishEvent() {
+	public boolean isPublishEvent() {
 		return publishEvent;
 	}
 	
