@@ -14,11 +14,14 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.security.AuthenticationService;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.idega.core.persistence.Param;
 import com.idega.idegaweb.UnavailableIWContext;
+import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
@@ -26,15 +29,18 @@ import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.PermissionHandleResult.PermissionHandleResultStatus;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
+import com.idega.util.ArrayUtil;
+import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.13 $ Last modified: $Date: 2009/07/03 08:58:56 $ by $Author: valdas $
  */
-@Scope("singleton")
+
 @Service
 @Transactional(readOnly = true)
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 	
 	@Autowired
@@ -67,11 +73,8 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 	// identityAuthorizationService throw exceptions or so
 	@Transactional(readOnly = true)
 	public PermissionHandleResult handle(Permission perm) {
-		
 		if (!(perm instanceof BPMTypedPermission)) {
-			
-			throw new IllegalArgumentException("Unsupported permission type="
-			        + perm.getClass().getName());
+			throw new IllegalArgumentException("Unsupported permission type=" + perm.getClass().getName());
 		}
 		
 		PermissionHandleResult result = null;
@@ -86,47 +89,59 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 			
 			if (loggedInActorId == null) {
 				
-				if (PermissionsFactoryImpl.submitTaskParametersPermType
-				        .equals(permission.getType())
-				        || PermissionsFactoryImpl.viewTaskInstanceVariablePermType
-				                .equals(permission.getType()))
-					result = new PermissionHandleResult(
-					        PermissionHandleResultStatus.hasAccess);
-				else
-					result = new PermissionHandleResult(
-					        PermissionHandleResultStatus.noAccess,
-					        "Not logged in");
+				if (PermissionsFactoryImpl.submitTaskParametersPermType.equals(permission.getType()) ||
+					PermissionsFactoryImpl.viewTaskInstanceVariablePermType.equals(permission.getType()))
+					result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+				else if (PermissionsFactoryImpl.viewTaskInstancePermType.equals(permission.getType())) {
+					TaskInstance taskInstance = permission.getAttribute(taskInstanceAtt);
+					List<Object[]> permissionsForEveryone = null;
+					try {
+						permissionsForEveryone = bpmDAO.getResultList(ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdPureRoles, Object[].class,
+								new Param(Actor.processInstanceIdProperty, taskInstance.getProcessInstance().getId()),
+								new Param(ActorPermissions.roleNameProperty, "everyone")
+						);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					if (ListUtil.isEmpty(permissionsForEveryone))
+						result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
+					else {
+						for (Object[] permissions: permissionsForEveryone) {
+							if (ArrayUtil.isEmpty(permissions))
+								continue;
+							
+							for (Object object: permissions) {
+								if (object instanceof ActorPermissions) {
+									ActorPermissions actorPermissions = (ActorPermissions) object;
+									if (actorPermissions.getReadPermission() != null && actorPermissions.getReadPermission())
+										result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+								}
+							}
+						}
+					}
+					if (result == null)
+						result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
+				} else
+					result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
 			} else {
 				userId = new Integer(loggedInActorId);
 			}
 		}
 		
 		if (result == null) {
+			TaskInstance taskInstance = permission.getAttribute(taskInstanceAtt);
 			
-			TaskInstance taskInstance = permission
-			        .getAttribute(taskInstanceAtt);
+			Boolean checkOnlyInActorsPool = permission.getAttribute(checkOnlyInActorsPoolAtt);
 			
-			// if (userId.toString().equals(taskInstance.getActorId()))
-			// return;
-			
-			Boolean checkOnlyInActorsPool = permission
-			        .getAttribute(checkOnlyInActorsPoolAtt);
-			
-			if (!taskInstance.hasEnded() && taskInstance.getActorId() != null
-			        && !checkOnlyInActorsPool) {
-				
+			if (!taskInstance.hasEnded() && taskInstance.getActorId() != null && !checkOnlyInActorsPool) {
 				if (!userId.toString().equals(taskInstance.getActorId())) {
-					
-					result = new PermissionHandleResult(
-					        PermissionHandleResultStatus.noAccess,
-					        "You shall not pass. Logged in actor id doesn't match the assigned actor id. Assigned: "
+					result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess,
+							"You will not pass. Logged in actor id doesn't match the assigned actor id. Assigned: "
 					                + taskInstance.getActorId()
 					                + ", taskInstanceId: "
 					                + taskInstance.getId());
 				} else
-					result = new PermissionHandleResult(
-					        PermissionHandleResultStatus.hasAccess);
-				
+					result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
 			} else {
 				
 				// super admin always gets an access
