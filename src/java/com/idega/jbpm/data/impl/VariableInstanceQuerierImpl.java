@@ -1393,4 +1393,26 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return null;
 		return new ArrayList<VariableInstanceInfo>(vars);
 	}
+
+	@Override
+	public Map<Long, List<VariableInstanceInfo>> getGroupedVariables(Collection<VariableInstanceInfo> variables) {
+		if (ListUtil.isEmpty(variables))
+			return null;
+		
+		Map<Long, List<VariableInstanceInfo>> grouped = new HashMap<Long, List<VariableInstanceInfo>>();
+		for (VariableInstanceInfo var: variables) {
+			Long piId = var.getProcessInstanceId();
+			if (piId == null)
+				continue;
+			
+			List<VariableInstanceInfo> vars = grouped.get(piId);
+			if (vars == null) {
+				vars = new ArrayList<VariableInstanceInfo>();
+				grouped.put(piId, vars);
+			}
+			vars.add(var);
+		}
+		
+		return grouped;
+	}
 }
