@@ -360,8 +360,7 @@ public class ProcessArtifacts {
 			.append(valueToShow).append("</a>").toString();
 	}
 	
-	public GridEntriesBean getProcessDocumentsList(
-	        ProcessArtifactsParamsBean params) {
+	public GridEntriesBean getProcessDocumentsList(ProcessArtifactsParamsBean params) {
 		Long processInstanceId = params.getPiId();
 		
 		if (processInstanceId == null) {
@@ -375,8 +374,7 @@ public class ProcessArtifacts {
 				entries.setGridEntries(rows.getDocument());
 				return entries;
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE,
-				    "Exception while creating empty grid entries", e);
+				LOGGER.log(Level.SEVERE, "Exception while creating empty grid entries", e);
 			}
 		}
 		
@@ -385,17 +383,13 @@ public class ProcessArtifacts {
 			return null;
 		}
 		
-		User loggedInUser = getBpmFactory().getBpmUserFactory()
-		        .getCurrentBPMUser().getUserToUse();
+		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
 		Locale userLocale = iwc.getCurrentLocale();
 		
-		Collection<BPMDocument> processDocuments = getBpmFactory()
-		        .getProcessManagerByProcessInstanceId(processInstanceId)
-		        .getProcessInstance(processInstanceId)
-		        .getSubmittedDocumentsForUser(loggedInUser, userLocale);
+		ProcessInstanceW pi = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
+		Collection<BPMDocument> processDocuments = pi.getSubmittedDocumentsForUser(loggedInUser, userLocale);
 		
-		return getDocumentsListDocument(iwc, processDocuments,
-		    processInstanceId, params);
+		return getDocumentsListDocument(iwc, processDocuments, processInstanceId, params);
 	}
 	
 	public Document getProcessTasksList(ProcessArtifactsParamsBean params) {
@@ -417,11 +411,11 @@ public class ProcessArtifacts {
 		
 		Collection<BPMDocument> tasksDocuments = null;
 		try {
-			tasksDocuments = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId)
-								.getTaskDocumentsForUser(loggedInUser, userLocale);
+			tasksDocuments = loggedInUser == null ?
+				null : 
+				getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getTaskDocumentsForUser(loggedInUser, userLocale);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +
-					userLocale, e);
+			LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +	userLocale, e);
 		}
 		tasksDocuments = tasksDocuments == null ? new ArrayList<BPMDocument>(0) : tasksDocuments;
 		
