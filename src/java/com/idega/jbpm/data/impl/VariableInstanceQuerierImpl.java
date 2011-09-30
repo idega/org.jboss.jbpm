@@ -335,7 +335,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		
 		List<String> results = new ArrayList<String>();
 		for (Serializable[] value: data) {
-			if (ArrayUtil.isEmpty(value))
+			if (ArrayUtil.isEmpty(value) || value[0] == null)
 				continue;
 			
 			results.add(value[0].toString());
