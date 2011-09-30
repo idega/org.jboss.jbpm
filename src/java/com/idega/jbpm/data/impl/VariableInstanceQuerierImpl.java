@@ -318,6 +318,31 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return results;
 	}
 	
+	public List<String> getValuesByVariable(String name) {
+		if (StringUtil.isEmpty(name))
+			return null;
+		
+		List<Serializable[]> data = null;
+		String query = "select distinct v.stringvalue_ from JBPM_VARIABLEINSTANCE v where v.NAME_ = '" + name +
+			"' order by v.stringvalue_";
+		try {
+			data = SimpleQuerier.executeQuery(query, 1);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
+		}
+		if (ListUtil.isEmpty(data))
+			return null;
+		
+		List<String> results = new ArrayList<String>();
+		for (Serializable[] value: data) {
+			if (ArrayUtil.isEmpty(value))
+				continue;
+			
+			results.add(value[0].toString());
+		}
+		return results;
+	}
+	
 	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(Collection<Long> procInstIds, List<String> procDefNames, List<String> variablesNames,
 			boolean mirrow,	boolean checkTaskInstance) {
 		
@@ -1284,7 +1309,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
-	@Override
 	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesByProcesses(Map<String, List<Serializable>> activeVariables, List<String> variables,
 			List<String> procDefNames, List<Long> procInstIds, Map<String, Boolean> flexibleVariables) {
 		List<String> variablesToQuery = new ArrayList<String>();
@@ -1372,7 +1396,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getVariablesByProcessInstanceIds(null, query, COLUMNS, new ArrayList<Long>(procInstIds));
 	}
 
-	@Override
 	public List<VariableInstanceInfo> getVariablesByNameAndTaskInstance(Collection<String> names, Long tiId) {
 		if (ListUtil.isEmpty(names) || tiId == null)
 			return null;
@@ -1394,7 +1417,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return new ArrayList<VariableInstanceInfo>(vars);
 	}
 
-	@Override
 	public Map<Long, List<VariableInstanceInfo>> getGroupedVariables(Collection<VariableInstanceInfo> variables) {
 		if (ListUtil.isEmpty(variables))
 			return null;

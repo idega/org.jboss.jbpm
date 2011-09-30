@@ -462,7 +462,6 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		BPMFactory = factory;
 	}
 	
-	@Override
 	public List<Integer> getAllHandlersForProcess(String processDefinitionName) {
 		if (StringUtil.isEmpty(processDefinitionName))
 			return null;

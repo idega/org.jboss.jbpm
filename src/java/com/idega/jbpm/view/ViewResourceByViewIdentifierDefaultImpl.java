@@ -55,12 +55,10 @@ public class ViewResourceByViewIdentifierDefaultImpl implements ViewResource {
 		return taskName;
 	}
 
-	@Override
 	public void setOrder(Integer order) {
 		this.order = order;
 	}
 
-	@Override
 	public Integer getOrder() {
 		return order;
 	}

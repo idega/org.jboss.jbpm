@@ -4,7 +4,6 @@ import java.util.Comparator;
 
 public class VariableInstanceInfoComparator implements Comparator<VariableInstanceInfo> {
 
-	@Override
 	public int compare(VariableInstanceInfo var1, VariableInstanceInfo var2) {
 		if (var1 == null || var2 == null) {
 			return 0;

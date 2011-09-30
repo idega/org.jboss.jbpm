@@ -1501,7 +1501,6 @@ public class ProcessArtifacts {
 		final String emailSubject = subject;
 		final String emailText = text;
 		Thread sender = new Thread(new Runnable() {
-			@Override
 			public void run() {
 				try {
 					SendMail.send(from, emailAddress, null, null, null, host, emailSubject, emailText);

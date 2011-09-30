@@ -629,7 +629,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 	}
 
-	@Override
 	public List<Long> getProcessInstanceIdsByProcessDefinitionNames(List<String> processDefinitionNames) {
 		if (ListUtil.isEmpty(processDefinitionNames)) {
 			return Collections.emptyList();
@@ -639,7 +638,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				" pd where pi.processDefinition = pd.id and pd.name = :processDefinitionNames", Long.class, new Param("processDefinitionNames", processDefinitionNames));
 	}
 
-	@Override
 	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(Date from, Date to, List<String> processDefinitionNames, List<Long> procInsIds) {
 		if (from == null && to == null) {
 			return null;
@@ -704,7 +702,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return getProcessDateRanges(processInstanceIds, results);
 	}
 
-	@Override
 	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId) {
 		if (processDefinitionId == null)
 			return null;
@@ -713,7 +710,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				new Param("processDefinitionId", processDefinitionId));
 	}
 
-	@Override
 	public List<Long> getProcessDefinitionIdsByName(String procDefName) {
 		if (StringUtil.isEmpty(procDefName))
 			return null;
