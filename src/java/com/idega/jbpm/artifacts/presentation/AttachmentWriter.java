@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
 import com.idega.jbpm.exe.ProcessConstants;
@@ -19,6 +20,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
 import com.idega.util.FileUtil;
 import com.idega.util.IOUtil;
+import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
@@ -71,10 +73,17 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 	@Override
 	public String getMimeType() {
-		if (binaryVariable != null && binaryVariable.getMimeType() != null)
-			return binaryVariable.getMimeType();
+		if (binaryVariable == null) {
+			LOGGER.warning("Variable is not resolved! Can not determine MIME type");
+			return super.getMimeType();
+		}
 		
-		return super.getMimeType();
+		String mimeType = binaryVariable.getMimeType();
+		if (!StringUtil.isEmpty(mimeType))
+			return mimeType;
+		
+		mimeType = MimeTypeUtil.resolveMimeTypeFromFileName(binaryVariable.getFileName());
+		return mimeType;
 	}
 
 	@Override
