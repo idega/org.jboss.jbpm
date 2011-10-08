@@ -1,9 +1,8 @@
 package com.idega.jbpm.variables.impl;
 
-import com.idega.business.IBOLookup;
-import com.idega.idegaweb.IWMainApplication;
-import com.idega.slide.business.IWSlideService;
+import com.idega.repository.RepositoryService;
 import com.idega.util.CoreConstants;
+import com.idega.util.expression.ELUtil;
 
 public class RepositoryVariableImpl extends BinaryVariableImpl {
 
@@ -12,23 +11,24 @@ public class RepositoryVariableImpl extends BinaryVariableImpl {
 	public RepositoryVariableImpl() {
 		setStorageType(BinaryVariablesHandlerImpl.STORAGE_TYPE);
 	}
-	
+
 	public RepositoryVariableImpl(String repositoryUri) {
 		this();
-		
+
 		if (repositoryUri != null) {
 			if (!repositoryUri.startsWith(CoreConstants.WEBDAV_SERVLET_URI)) {
 				repositoryUri = CoreConstants.WEBDAV_SERVLET_URI.concat(repositoryUri);
 			}
-			
+
 			setIdentifier(repositoryUri);
 		}
 	}
-	
+
 	@Override
 	public Object getPersistentResource() {
 		try {
-			return IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), IWSlideService.class);
+			RepositoryService repository = ELUtil.getInstance().getBean(RepositoryService.BEAN_NAME);
+			return repository;
 		} catch (Exception e) {}
 		return null;
 	}
