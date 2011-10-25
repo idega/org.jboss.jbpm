@@ -128,8 +128,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		    ProcessDefinitionVariablesBind.class,
 		    new Param(ProcessDefinitionVariablesBind.PARAM_PROC_DEF_NAMES,
 		            Arrays.asList(processDefinitionName)));
+		if (!ListUtil.isEmpty(binds))
+			return getConverted(binds);
 		
-		return getConverted(binds);
+		return getVariablesByProcessDefinitionNaiveWay(processDefinitionName);
 	}
 	
 	public Collection<VariableInstanceInfo> getFullVariablesByProcessDefinition(String processDefinitionName) {
