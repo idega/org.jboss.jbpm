@@ -445,7 +445,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(String name, Serializable value, List<Long> procInstIds) {
 		VariableInstanceInfo cachedVariable = getCachedVariable(name, value);
-		if (cachedVariable != null && cachedVariable.getProcessInstanceId() != null) {
+		boolean useCaching = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getBoolean("use_cached_proc_inst_ids", true);
+		
+		if (cachedVariable != null && cachedVariable.getProcessInstanceId() != null && useCaching) {
 			return Arrays.asList(cachedVariable.getProcessInstanceId());
 		}
 		
