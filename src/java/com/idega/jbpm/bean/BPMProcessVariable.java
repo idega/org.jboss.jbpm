@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.idega.presentation.ui.handlers.IWDatePickerHandler;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
@@ -38,7 +39,7 @@ public class BPMProcessVariable implements Serializable {
 	}
 	
 	private String name, value, type;
-	private boolean flexible;
+	private boolean flexible, multiple;
 	
 	public String getName() {
 		return name;
@@ -92,6 +93,14 @@ public class BPMProcessVariable implements Serializable {
 		this.flexible = flexible;
 	}
 	
+	public boolean isMultiple() {
+		return multiple;
+	}
+
+	public void setMultiple(boolean multiple) {
+		this.multiple = multiple;
+	}
+
 	@Override
 	public String toString() {
 		return new StringBuilder("Name: " ).append(getName()).append(", type: ").append(getType()).append(", value: ").append(getValue()).toString();
@@ -110,7 +119,13 @@ public class BPMProcessVariable implements Serializable {
 			if (locale != null) {
 				value = value.toLowerCase(locale);
 			}
-			realValue = value;
+			if (isMultiple() && value.indexOf(CoreConstants.SEMICOLON) != -1) {
+				String[] values = value.split(CoreConstants.SEMICOLON);
+				if (!ArrayUtil.isEmpty(values))
+					realValue = (T) Arrays.asList(values);
+			}
+			if (realValue == null)
+				realValue = value;
 		} else if (isDateType()) {
 			try {
 				realValue = IWDatePickerHandler.getParsedTimestampByCurrentLocale(getValue());
