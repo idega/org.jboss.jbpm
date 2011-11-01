@@ -568,13 +568,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		Collection<VariableInstanceInfo> vars = byProcInst ?
 				getVariablesByProcessInstanceIds(null, query, columns, procInstIds) :
 				getVariablesByQuery(query, columns);
-		if (ListUtil.isEmpty(vars)) {
+		if (ListUtil.isEmpty(vars))
 			return Collections.emptyList();
-		}
 		
-		if (name.startsWith(VariableInstanceType.OBJ_LIST.getPrefix())) {
+		if (name.startsWith(VariableInstanceType.OBJ_LIST.getPrefix()) || name.startsWith(VariableInstanceType.LIST.getPrefix()))
 			return getResolvedVariables(vars, name, values);
-		}
 		
 		List<String> addedVars = new ArrayList<String>();
 		Collection<VariableInstanceInfo> uniqueVars = new ArrayList<VariableInstanceInfo>();
