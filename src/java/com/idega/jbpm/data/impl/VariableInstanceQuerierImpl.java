@@ -601,10 +601,27 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		try {
 			resolver = ELUtil.getInstance().getBean(MultipleSelectionVariablesResolver.BEAN_NAME_PREFIX + varName);
 		} catch (Exception e) {}
-		Collection<AdvancedProperty> resolvedValues = resolver == null ? null : resolver.getBinaryVariablesValues(vars);
+		Collection<AdvancedProperty> resolvedValues = resolver == null ? null : resolver.getBinaryVariablesValues(vars, values);
 		if (ListUtil.isEmpty(resolvedValues))
 			return null;
 		
+		List<String> addedVars = new ArrayList<String>();
+		Collection<VariableInstanceInfo> resolvedVars = new ArrayList<VariableInstanceInfo>();
+		
+		//	Checking if resolver provided final results
+		Collection<VariableInstanceInfo> finalResult = resolver == null ? null : resolver.getFinalSearchResult();
+		if (!ListUtil.isEmpty(finalResult)) {
+			for (VariableInstanceInfo var: finalResult) {
+				String key = getKeyForVariable(var, true).concat(String.valueOf(var.getProcessInstanceId()));
+				if (!addedVars.contains(key)) {
+					resolvedVars.add(var);
+					addedVars.add(key);
+				}
+			}
+			return resolvedVars;
+		}
+		
+		//	Final results were not provided - trying to find the variables satisfying user query
 		List<String> resolvedIds = new ArrayList<String>();
 		for (AdvancedProperty resolved: resolvedValues) {
 			for (Object value: values) {
@@ -613,9 +630,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 			}
 		}
-		
-		List<String> addedVars = new ArrayList<String>();
-		Collection<VariableInstanceInfo> resolvedVars = new ArrayList<VariableInstanceInfo>();
 		for (String resolvedId: resolvedIds) {
 			for (VariableInstanceInfo var: vars) {
 				if (var.getValue().toString().indexOf(resolvedId) != -1) {

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -69,6 +70,10 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 	
 	public Collection<AdvancedProperty> getBinaryVariablesValues(Collection<VariableInstanceInfo> vars) {
+		return getBinaryVariablesValues(vars, Collections.emptyList());
+	}
+	
+	public Collection<AdvancedProperty> getBinaryVariablesValues(Collection<VariableInstanceInfo> vars, Collection<?> values) {
 		if (ListUtil.isEmpty(vars))
 			return null;
 		
@@ -157,4 +162,8 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	public abstract String getPresentation(BPMProcessVariable variable);
 	public abstract String getPresentation(String value);
 	public abstract String getPresentation(VariableInstanceInfo variable);
+	
+	public Collection<VariableInstanceInfo> getFinalSearchResult() {
+		return null;
+	}
 }
