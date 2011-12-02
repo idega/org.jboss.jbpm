@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -77,6 +78,7 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		if (ListUtil.isEmpty(vars))
 			return null;
 		
+		List<String> addedValues = new ArrayList<String>();
 		Collection<AdvancedProperty> results = new ArrayList<AdvancedProperty>();
 		for (VariableInstanceInfo var: vars) {
 			Serializable value = var.getValue();
@@ -84,8 +86,14 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 				continue;
 			
 			Collection<AdvancedProperty> tmp = getValues((Collection<?>) value);
-			if (tmp != null)
-				results.addAll(tmp);
+			if (tmp != null) {
+				for (AdvancedProperty prop: tmp) {
+					if (!addedValues.contains(prop.toString())) {
+						results.add(prop);
+						addedValues.add(prop.toString());
+					}
+				}
+			}
 		}
 		return results;
 	}
