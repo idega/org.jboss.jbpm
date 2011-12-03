@@ -88,16 +88,30 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
-		if (binaryVariable == null)
+		if (binaryVariable == null) {
+			LOGGER.warning("Binary variable is undefined!");
 			return;
+		}
 		
-		InputStream is = getVariablesHandler().getBinaryVariablesHandler().getBinaryVariableContent(binaryVariable);
+		boolean success = Boolean.TRUE;
+		InputStream stream = null;
+		try {
+			stream = getVariablesHandler().getBinaryVariablesHandler().getBinaryVariableContent(binaryVariable);
+			FileUtil.streamToOutputStream(stream, out);
+		} catch (IOException e) {
+			success = Boolean.FALSE;
+			IOUtil.closeInputStream(stream);
+			LOGGER.log(Level.WARNING, "Error downloading file: " + binaryVariable.getIdentifier(), e);
+		}
 		
-		FileUtil.streamToOutputStream(is, out);
+		if (success) {
+			out.flush();
+			IOUtil.closeOutputStream(out);
+			return;
+		}
 		
-		out.flush();
-		IOUtil.closeInputStream(is);
-		IOUtil.closeOutputStream(out);
+		setFile(getFileFromRepository(binaryVariable.getIdentifier().concat("_1.0")));
+		super.writeTo(out);
 	}
 	
 	protected BinaryVariable getBinVar(VariablesHandler variablesHandler, long taskInstanceId, int binaryVariableHash) {
