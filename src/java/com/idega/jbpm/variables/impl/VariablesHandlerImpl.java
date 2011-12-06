@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.idega.block.process.variables.Variable;
 import com.idega.jbpm.BPMContext;
@@ -28,6 +30,10 @@ import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.jbpm.variables.VariablesHandler;
+import com.idega.jbpm.variables.VariablesManager;
+import com.idega.presentation.IWContext;
+import com.idega.util.CoreUtil;
+import com.idega.util.datastructures.map.MapUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -45,7 +51,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	
 	@Transactional(readOnly = false)
 	public void submitVariables(final Map<String, Object> variables, final long taskInstanceId, final boolean validate) {
-		if (variables == null || variables.isEmpty())
+		if (MapUtil.isEmpty(variables))
 			return;
 		
 		getIdegaJbpmContext().execute(new JbpmCallback() {
@@ -63,7 +69,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				@SuppressWarnings("unchecked")
 				List<VariableAccess> variableAccesses = tiController.getVariableAccesses();
 				
-				HashSet<String> undeclaredVariables = new HashSet<String>(variables.keySet());
+				Set<String> undeclaredVariables = new HashSet<String>(variables.keySet());
 				
 				for (VariableAccess variableAccess : variableAccesses) {
 					String variableName = variableAccess.getVariableName();
@@ -72,7 +78,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 							throw new TaskInstanceVariablesException("Required variable (" + variableName + ") not submitted.");
 						
 						if (!variableAccess.isWritable() && variables.containsKey(variableName)) {
-							LOGGER.log(Level.WARNING, "Tried to submit read-only variable (" + variableAccess.getVariableName() + "), ignoring.");
+							LOGGER.warning("Tried to submit read-only variable (" + variableAccess.getVariableName() + "), ignoring.");
 							variables.remove(variableName);
 						}
 					}
@@ -82,15 +88,37 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				
 				final Map<String, Object> variablesToSubmit = getBinaryVariablesHandler().storeBinaryVariables(taskInstanceId, variables);
 				
-				for (String undeclaredVariable : undeclaredVariables) {
+				for (String undeclaredVariable: undeclaredVariables) {
 					ti.setVariableLocally(undeclaredVariable, variablesToSubmit.get(undeclaredVariable));
 				}
 				
 				setVariables(ti, variablesToSubmit);
 				
+				doManageVariables(ti.getProcessInstance().getId(), ti.getId(), variables);
+				
 				return null;
 			}
 		});
+	}
+	
+	private void doManageVariables(Long piId, Long tiId, Map<String, Object> variables) {
+		try {
+			IWContext iwc = CoreUtil.getIWContext();
+			if (iwc == null) {
+				LOGGER.warning("Instance of " + IWContext.class.getName() + " is not available, unable to manage variables");
+				return;
+			}
+			
+			Map<?, ?> beans = WebApplicationContextUtils.getWebApplicationContext(iwc.getServletContext()).getBeansOfType(VariablesManager.class);
+			if (MapUtil.isEmpty(beans))
+				return;
+			
+			for (Object bean: beans.values()) {
+				((VariablesManager) bean).doManageVariables(piId, tiId, variables);
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error managing variables (" + variables + ") for process: " + piId + " and task: " + tiId, e);
+		}
 	}
 	
 	@Transactional(readOnly = false)
