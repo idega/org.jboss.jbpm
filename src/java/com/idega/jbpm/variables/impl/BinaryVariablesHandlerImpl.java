@@ -145,14 +145,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		String fileName = fileInfo.getFileName();
 		
 		try {
-			IWSlideService slideService = getIWSlideService();
+			IWSlideService repository = getIWSlideService();
 			
 			String normalizedName = StringHandler.stripNonRomanCharacters(fileName, new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.'});
 			
 			int index = 0;
 			String tmpUri = path;
 			//	File by the same name already exists! Renaming this file not to overwrite existing file
-			while (slideService.getExistence(concPF(tmpUri, normalizedName))) {
+			while (repository.getExistence(concPF(tmpUri, normalizedName))) {
 				tmpUri = path.concat(String.valueOf((index++)));
 			}
 			path = tmpUri;
@@ -164,8 +164,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				for (int i = 0; i < 5; i++) {
 					try {
 						stream = fileURIHandler.getFile(fileUri);
-						if (!slideService.uploadFile(uploadPath, normalizedName, null, stream))
-							throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName));
+						if (!repository.uploadFile(uploadPath, normalizedName, null, stream))
+							throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName) + ". Tried to upload using " +
+									repository.getClass() + " for " + i + " times");
 					} catch (Exception e) {
 						if (i < 4) {
 							Thread.sleep(500);
