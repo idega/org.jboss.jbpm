@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
 import com.idega.block.email.presentation.EmailSender;
+import com.idega.block.process.business.ProcessConstants;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.builder.business.BuilderLogic;
 import com.idega.builder.business.BuilderLogicWrapper;
@@ -1466,7 +1467,7 @@ public class ProcessArtifacts {
 		try {
 			Collection<VariableInstanceInfo> info =
 				getVariablesQuerier().getVariablesByProcessInstanceIdAndVariablesNames(
-						Arrays.asList("string_caseIdentifier"),
+						Arrays.asList(ProcessConstants.CASE_IDENTIFIER),
 						Arrays.asList(processInstanceId),
 						false,
 						false,
@@ -1477,7 +1478,7 @@ public class ProcessArtifacts {
 			text = StringHandler.replace(text, "case_identifier", replace);
 			
 			info = getVariablesQuerier().getVariablesByProcessInstanceIdAndVariablesNames(
-						Arrays.asList("string_caseDescription"),
+						Arrays.asList(ProcessConstants.CASE_DESCRIPTION),
 						Arrays.asList(processInstanceId),
 						false,
 						false,
