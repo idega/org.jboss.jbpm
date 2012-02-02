@@ -1511,6 +1511,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return null;
 		}
 
+		return getVariablesByNamesAndValuesAndExpressionsByProcesses(
+				getConvertedData(activeVariables), variables, procDefNames, procInstIds,
+				flexibleVariables);
+	}
+
+	private Map<String, VariableQuerierData> getConvertedData(Map<String, List<Serializable>> activeVariables){
+		if (MapUtil.isEmpty(activeVariables)) {
+			return null;
+		}
+
 		Map<String, VariableQuerierData> convertedVariables =
 			new HashMap<String, VariableQuerierData>();
 
@@ -1520,9 +1530,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					activeVariables.get(key)));
 		}
 
-		return getVariablesByNamesAndValuesAndExpressionsByProcesses(
-				convertedVariables, variables, procDefNames, procInstIds,
-				flexibleVariables);
+		return convertedVariables;
 	}
 
 	@Override
