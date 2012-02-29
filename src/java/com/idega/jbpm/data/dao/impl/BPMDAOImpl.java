@@ -61,29 +61,31 @@ import com.idega.util.StringUtil;
 @Transactional(readOnly = true)
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationListener {
-	
+
 	private static final Logger LOGGER = Logger.getLogger(BPMDAOImpl.class.getName());
-	
+
 	@Autowired
 	private BPMContext bpmContext;
-	
+
 	@Autowired(required=false)
 	private VariableInstanceQuerier variablesQuerier;
-	
+
+	@Override
 	public ViewTaskBind getViewTaskBind(long taskId, String viewType) {
-		
+
 		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(
 		    ViewTaskBind.GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME)
 		        .setParameter(ViewTaskBind.taskIdParam, taskId).setParameter(
 		            ViewTaskBind.viewTypeParam, viewType).getResultList();
-		
+
 		return binds.isEmpty() ? null : binds.iterator().next();
 	}
-	
+
+	@Override
 	public ViewTaskBind getViewTaskBindByTaskInstance(long taskInstanceId,
 	        String viewType) {
-		
+
 		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager()
 		        .createNamedQuery(
@@ -91,244 +93,262 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		        .setParameter(ViewTaskBind.taskInstanceIdProp, taskInstanceId)
 		        .setParameter(ViewTaskBind.viewTypeParam, viewType)
 		        .getResultList();
-		
+
 		return binds.isEmpty() ? null : binds.iterator().next();
 	}
-	
+
+	@Override
 	public List<ViewTaskBind> getViewTaskBindsByTaskId(long taskId) {
-		
+
 		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(
 		    ViewTaskBind.getViewTaskBindsByTaskId).setParameter(
 		    ViewTaskBind.taskIdParam, taskId).getResultList();
-		
+
 		return binds;
 	}
-	
+
+	@Override
 	public List<ViewTaskBind> getViewTaskBindsByTaskInstanceId(
 	        long taskInstanceId) {
-		
+
 		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(
 		    ViewTaskBind.getViewTaskBindsByTaskInstanceId).setParameter(
 		    ViewTaskBind.taskInstanceIdProp, taskInstanceId).getResultList();
-		
+
 		return binds;
 	}
-	
+
+	@Override
 	public ViewTaskBind getViewTaskBindByView(String viewId, String viewType) {
-		
+
 		return getSingleResult(
 		    ViewTaskBind.GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME,
 		    ViewTaskBind.class, new Param(ViewTaskBind.viewIdParam, viewId),
 		    new Param(ViewTaskBind.viewTypeParam, viewType));
 	}
-	
+
+	@Override
 	public List<ViewTaskBind> getViewTaskBindsByTasksIds(
 	        Collection<Long> taskIds) {
-		
+
 		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> viewTaskBinds = getEntityManager().createNamedQuery(
 		    ViewTaskBind.GET_VIEW_TASK_BINDS_BY_TASKS_IDS).setParameter(
 		    ViewTaskBind.tasksIdsParam, taskIds).getResultList();
-		
+
 		return viewTaskBinds;
 	}
-	
+
+	@Override
 	public Task getTaskFromViewTaskBind(ViewTaskBind viewTaskBind) {
-		
+
 		return (Task) getEntityManager().createNamedQuery(
 		    ViewTaskBind.GET_VIEW_TASK).setParameter(
 		    ViewTaskBind.viewTypeParam, viewTaskBind.getViewType())
 		        .setParameter(ViewTaskBind.taskIdParam,
 		            viewTaskBind.getTaskId()).getSingleResult();
 	}
-	
+
+	@Override
 	public ProcessManagerBind getProcessManagerBind(String processName) {
-		
+
 		ProcessManagerBind pmb = getSingleResult(
 		    ProcessManagerBind.getByProcessName, ProcessManagerBind.class,
 		    new Param(ProcessManagerBind.processNameProp, processName));
-		
+
 		return pmb;
 	}
-	
+
+	@Override
 	public List<Actor> getAllGeneralProcessRoles() {
-		
+
 		@SuppressWarnings("unchecked")
 		List<Actor> all = getEntityManager().createNamedQuery(
 		    Actor.getAllGeneral).getResultList();
-		
+
 		return all;
 	}
-	
+
+	@Override
 	public List<Actor> getProcessRoles(Collection<Long> actorIds) {
-		
+
 		if (actorIds == null || actorIds.isEmpty())
 			throw new IllegalArgumentException("ActorIds should contain values");
-		
+
 		@SuppressWarnings("unchecked")
 		List<Actor> all = getEntityManager().createNamedQuery(
 		    Actor.getAllByActorIds).setParameter(Actor.actorIdProperty,
 		    actorIds).getResultList();
-		
+
 		return all;
 	}
-	
+
+	@Override
 	@Transactional(readOnly = false)
 	public void updateAddGrpsToRole(Long roleActorId,
 	        Collection<String> selectedGroupsIds) {
-		
+
 		Actor roleIdentity = find(Actor.class, roleActorId);
-		
+
 		List<NativeIdentityBind> nativeIdentities = new ArrayList<NativeIdentityBind>(
 		        selectedGroupsIds.size());
-		
+
 		for (String groupId : selectedGroupsIds) {
-			
+
 			NativeIdentityBind nativeIdentity = new NativeIdentityBind();
 			nativeIdentity.setIdentityId(groupId);
 			nativeIdentity.setIdentityType(IdentityType.GROUP);
 			nativeIdentity.setActor(roleIdentity);
 			nativeIdentities.add(nativeIdentity);
 		}
-		
+
 		List<NativeIdentityBind> existingNativeIdentities = roleIdentity
 		        .getNativeIdentities();
 		List<Long> nativeIdentitiesToRemove = new ArrayList<Long>();
-		
+
 		if (existingNativeIdentities != null) {
-			
+
 			for (NativeIdentityBind existing : existingNativeIdentities) {
-				
+
 				if (nativeIdentities.contains(existing)) {
-					
+
 					nativeIdentities.remove(existing);
 					nativeIdentities.add(existing);
 				} else {
-					
+
 					nativeIdentitiesToRemove.add(existing.getId());
 				}
 			}
 		} else {
 			existingNativeIdentities = new ArrayList<NativeIdentityBind>();
 		}
-		
+
 		roleIdentity.setNativeIdentities(nativeIdentities);
 		getEntityManager().merge(roleIdentity);
-		
+
 		if (!nativeIdentitiesToRemove.isEmpty())
 			getEntityManager().createNamedQuery(NativeIdentityBind.deleteByIds)
 			        .setParameter(NativeIdentityBind.idsParam,
 			            nativeIdentitiesToRemove).executeUpdate();
 	}
-	
+
+	@Override
 	public List<NativeIdentityBind> getNativeIdentities(
 	        long processRoleIdentityId) {
-		
+
 		@SuppressWarnings("unchecked")
 		List<NativeIdentityBind> binds = getEntityManager().createNamedQuery(
 		    NativeIdentityBind.getByProcIdentity).setParameter(
 		    NativeIdentityBind.procIdentityParam, processRoleIdentityId)
 		        .getResultList();
-		
+
 		return binds;
 	}
-	
+
+	@Override
 	public List<NativeIdentityBind> getNativeIdentities(
 	        Collection<Long> actorsIds, IdentityType identityType) {
-		
+
 		@SuppressWarnings("unchecked")
 		List<NativeIdentityBind> binds = getEntityManager().createNamedQuery(
 		    NativeIdentityBind.getByTypesAndProceIdentities).setParameter(
 		    NativeIdentityBind.identityTypeProperty, identityType)
 		        .setParameter(Actor.actorIdProperty, actorsIds).getResultList();
-		
+
 		return binds;
 	}
-	
+
+	@Override
 	@Transactional(readOnly = false)
 	public void updateCreateProcessRoles(Collection<Role> rolesNames,
 	        Long processInstanceId) {
-		
+
 		for (Role role : rolesNames) {
-			
+
 			Actor prole = new Actor();
 			prole.setProcessRoleName(role.getRoleName());
 			prole.setProcessInstanceId(processInstanceId);
-			
+
 			persist(prole);
 		}
 	}
-	
+
+	@Override
 	public List<Object[]> getProcessTasksViewsInfos(
 	        Collection<Long> processDefinitionsIds, String viewType) {
-		
+
 		if (processDefinitionsIds == null || processDefinitionsIds.isEmpty()
 		        || viewType == null)
 			return new ArrayList<Object[]>(0);
-		
+
 		@SuppressWarnings("unchecked")
 		List<Object[]> viewsInfos = getEntityManager().createNamedQuery(
 		    ViewTaskBind.GET_PROCESS_TASK_VIEW_INFO).setParameter(
 		    ViewTaskBind.processDefIdsParam, processDefinitionsIds)
 		        .setParameter(ViewTaskBind.viewTypeProp, viewType)
 		        .getResultList();
-		
+
 		return viewsInfos;
 	}
-	
+
+	@Override
 	public List<Actor> getProcessRoles(Collection<String> rolesNames,
 	        Long processInstanceId) {
-		
+
 		List<Actor> proles = getResultList(Actor.getSetByRoleNamesAndPIId,
 		    Actor.class, new Param(Actor.processRoleNameProperty, rolesNames),
 		    new Param(Actor.processInstanceIdProperty, processInstanceId));
-		
+
 		return proles;
 	}
-	
+
+	@Override
 	public List<ProcessInstance> getSubprocessInstancesOneLevel(
 	        long parentProcessInstanceId) {
-		
+
 		List<ProcessInstance> subprocesses = getResultList(
 		    ProcessManagerBind.getSubprocessesOneLevel, ProcessInstance.class,
 		    new Param(ProcessManagerBind.processInstanceIdParam,
 		            parentProcessInstanceId));
-		
+
 		return subprocesses;
 	}
-	
+
+	@Override
 	public ProcessDefinition findLatestProcessDefinition(
 	        final String processName) {
-		
+
 		return getBpmContext().execute(new JbpmCallback() {
-			
+
+			@Override
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
-				
+
 				return context.getGraphSession().findLatestProcessDefinition(
 				    processName);
 			}
 		});
 	}
-	
+
 	BPMContext getBpmContext() {
 		return bpmContext;
 	}
-		
+
+	@Override
 	public List<ActorPermissions> getPermissionsForUser(Integer userId,
 	        String processName, Long processInstanceId,
 	        Set<String> userNativeRoles, Set<String> userGroupsIds) {
-		
+
 		if (userGroupsIds != null) {
 			throw new UnsupportedOperationException(
 			        "Searching by user groups not supported yet");
 		}
-		
+
 		if(processName != null) {
 			throw new UnsupportedOperationException("Searching by process name not supported yet");
 		}
-		
+
 		if(ListUtil.isEmpty(userNativeRoles)) {
 
 //			this is perhaps silly, but just because we don't want to maintain two queries just for the case, when user doesn't have any roles
@@ -336,55 +356,56 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			userNativeRoles = new HashSet<String>(1);
 			userNativeRoles.add("mock2345324659324");
 		}
-		
+
 		String identityTypeRoleParam = "identityTypeRole";
 		String identityIdsRolesParam = "identityIdsRoles";
-		
+
 		List<ActorPermissions> perms = getResultListByInlineQuery(
-			
+
 		    "select perms from com.idega.jbpm.data.Actor a inner join a."+ Actor.nativeIdentitiesProperty+ " ni inner join a."+Actor.actorPermissionsProperty+" perms "+
 		    "where a."+Actor.processInstanceIdProperty+" = :"+Actor.processInstanceIdProperty+" and " +
 		    		"((ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty+" and ni."+NativeIdentityBind.identityIdProperty+" = :"+NativeIdentityBind.identityIdProperty+") " +
 		    		"or (ni."+NativeIdentityBind.identityTypeProperty+" = :"+identityTypeRoleParam+" and ni."+NativeIdentityBind.identityIdProperty+" in (:"+identityIdsRolesParam+")))"
-		    		
-		            , ActorPermissions.class, 
+
+		            , ActorPermissions.class,
 		            new Param(Actor.processInstanceIdProperty, processInstanceId),
 		            new Param(NativeIdentityBind.identityTypeProperty, NativeIdentityBind.IdentityType.USER),
 		            new Param(NativeIdentityBind.identityIdProperty, userId.toString()),
 		            new Param(identityTypeRoleParam, NativeIdentityBind.IdentityType.ROLE),
 		            new Param(identityIdsRolesParam, userNativeRoles));
-		
+
 //		TODO: merge with roles (backward)
 		List<Actor> globalRolesActors = getResultListByInlineQuery(
-			
+
 //			a."+ Actor.nativeIdentitiesProperty+ "
-			
+
 		    "select a from com.idega.jbpm.data.Actor a "+
 		    "where a."+Actor.processInstanceIdProperty+" = :"+Actor.processInstanceIdProperty+
 		    " and a."+Actor.processRoleNameProperty+" in(:"+Actor.processRoleNameProperty+")"
-		            , Actor.class, 
+		            , Actor.class,
 		            new Param(Actor.processInstanceIdProperty, processInstanceId),
 		            new Param(Actor.processRoleNameProperty, userNativeRoles)
 		);
-		
+
 		if(globalRolesActors != null) {
-			
+
 			for (Actor actor : globalRolesActors) {
-		        
+
 				if(ListUtil.isEmpty(actor.getNativeIdentities())) {
-					
+
 //					this is in old way the pd scope actor
 
 					if(actor.getActorPermissions() != null) {
 						perms.addAll(actor.getActorPermissions());
 					}
 				}
-	        }	
+	        }
 		}
-		
+
 		return perms;
 	}
 
+	@Override
 	public int getTaskViewBindCount(String viewId, String viewType) {
 		return getResultList(ViewTaskBind.GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME,
 			    ViewTaskBind.class, new Param(ViewTaskBind.viewIdParam, viewId),
@@ -408,17 +429,18 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		return null;
 	}
-	
+
 	//	TODO: very likely this method should be removed: the variables are bound dynamically as a process instance is in action
+	@Override
 	public void bindProcessVariables() {
 		try {
 			List<AutoloadedProcessDefinition> procDefs = getAllLoadedProcessDefinitions();
 			if (ListUtil.isEmpty(procDefs)) {
 				return;
 			}
-			
+
 			List<ProcessDefinitionVariablesBind> currentBinds = getAllProcDefVariableBinds();
-			
+
 			for (AutoloadedProcessDefinition apd: procDefs) {
 				String processDefinitionName = apd.getProcessDefinitionName();
 				@SuppressWarnings("deprecation")
@@ -429,21 +451,21 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			LOGGER.log(Level.WARNING, "Error binding process variables", e);
 		}
 	}
-	
+
 	private void bindProcessVariables(String processDefinitionName, Long processInstanceId, Set<String> createdVariables) {
 		bindProcessVariables(processDefinitionName, getAllProcDefVariableBinds(), getVariablesQuerier().getVariablesByProcessInstanceId(processInstanceId),
 				createdVariables);
 	}
-	
+
 	@Transactional(readOnly = false)
 	private void bindProcessVariables(String processDefinitionName, List<ProcessDefinitionVariablesBind> currentBinds,
 			Collection<VariableInstanceInfo> currentVariables, Set<String> createdVariables) {
 		if (StringUtil.isEmpty(processDefinitionName)) {
 			return;
 		}
-		
+
 		currentBinds = currentBinds == null ? new ArrayList<ProcessDefinitionVariablesBind>() : currentBinds;
-		
+
 		if (ListUtil.isEmpty(currentVariables)) {
 			if (ListUtil.isEmpty(createdVariables)) {
 				return;
@@ -461,12 +483,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				if (StringUtil.isEmpty(variableName)) {
 					continue;
 				}
-				
+
 				createProcessDefinitionVariablesBind(currentBinds, processDefinitionName, variableName, var.getType().getTypeKeys().get(0));
 			}
 		}
 	}
-	
+
 	private ProcessDefinitionVariablesBind createProcessDefinitionVariablesBind(List<ProcessDefinitionVariablesBind> currentBinds, String processDefinitionName,
 			String variableName, String variableType) {
 		try {
@@ -477,12 +499,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			if (bind.hashCode() < 0) {
 				return null;
 			}
-			
+
 			bind.setProcessDefinition(processDefinitionName);
 			bind.setVariableName(variableName);
 			bind.setVariableType(variableType);
 			persist(bind);
-			
+
 			currentBinds.add(bind);
 			LOGGER.info("Added new bind: " + bind);
 			return bind;
@@ -491,12 +513,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		return null;
 	}
-	
+
 	private boolean bindExists(List<ProcessDefinitionVariablesBind> currentBinds, String variableName, String processDefinitionName) {
 		if (ListUtil.isEmpty(currentBinds)) {
 			return false;
 		}
-		
+
 		String expression = variableName.concat("@").concat(processDefinitionName);
 		for (ProcessDefinitionVariablesBind bind: currentBinds) {
 			if (bind.toString().equals(expression)) {
@@ -505,14 +527,16 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		return false;
 	}
-	
+
 	VariableInstanceQuerier getVariablesQuerier() {
 		return variablesQuerier;
 	}
 
+	@Override
 	public void onApplicationEvent(final ApplicationEvent event) {
 		if (event instanceof VariableCreatedEvent) {
 			Thread binder = new Thread(new Runnable() {
+				@Override
 				public void run() {
 					VariableCreatedEvent variableCreated = (VariableCreatedEvent) event;
 					Map<String, Object> createdVariables = variableCreated.getVariables();
@@ -523,7 +547,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			binder.start();
 		}
 	}
-	
+
 	protected List<Long> getAllProcessInstances() {
 		try {
 			return getResultListByInlineQuery("select pi.id from org.jbpm.graph.exe.ProcessInstance pi", Long.class);
@@ -532,7 +556,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		return null;
 	}
-	
+
 	protected List<Long> getExisitingVariables() {
 		try {
 			return getResultListByInlineQuery("select distinct var.variableId from " + BPMVariableData.class.getName() + " var", Long.class);
@@ -541,28 +565,29 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		return null;
 	}
-	
+
+	@Override
 	public void importVariablesData() {
 		IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
 		String property = "jbpm_vars_data_imported";
 		if (settings.getBoolean(property, Boolean.FALSE)) {
 			return;
 		}
-		
+
 		prepareTable();
-		
+
 		settings.setProperty(property, Boolean.TRUE.toString());
 	}
-	
+
 	private void prepareTable() {
 		boolean oracle = isOracle();
 		if (oracle) {
 			createSequence(BPMVariableData.TABLE_NAME);
 		}
-		
+
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAR", BPMVariableData.COLUMN_VARIABLE_ID);
 		createIndex(BPMVariableData.TABLE_NAME, "IDX_" + BPMVariableData.TABLE_NAME + "_VAL", BPMVariableData.COLUMN_VALUE);
-		
+
 		String refNew = getTriggerReference("NEW");
 		createTrigger("CREATE TRIGGER BPM_VARIABLE_INSERTED AFTER INSERT ON JBPM_VARIABLEINSTANCE " + (oracle ? "referencing new as new ": CoreConstants.EMPTY) +
 						"FOR EACH ROW\n" +
@@ -582,13 +607,13 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		);
 		String refOld = getTriggerReference("OLD");
 		createTrigger("CREATE TRIGGER BPM_VARIABLE_DELETED BEFORE DELETE ON JBPM_VARIABLEINSTANCE " + (oracle ? "referencing old as old ": CoreConstants.EMPTY) +
-						"FOR EACH ROW\n" + 
+						"FOR EACH ROW\n" +
 						"BEGIN\n" +
 							"delete from BPM_VARIABLE_DATA where variable_id="+refOld+".ID_;\n" +
 						"END;"
 		);
 	}
-	
+
 	private void createSequence(String tableName) {
 		try {
 			DatastoreInterface dataStore = DatastoreInterface.getInstance();
@@ -597,12 +622,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			LOGGER.log(Level.WARNING, "Error creating sequence for table: " + tableName, e);
 		}
 	}
-	
+
 	private boolean isOracle() {
 		DatastoreInterface dataStore = DatastoreInterface.getInstance();
 		return dataStore instanceof OracleDatastoreInterface;
 	}
-	
+
 	private String getTriggerReference(String reference) {
 		if (isOracle()) {
 			reference = ":".concat(reference);
@@ -610,7 +635,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		return reference;
 	}
-	
+
 	private void createIndex(String table, String name, String column) {
 		try {
 			DatastoreInterface dataInterface = DatastoreInterface.getInstance();
@@ -619,7 +644,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			LOGGER.log(Level.WARNING, "Error creating index '" + name + "' for table '" + table + "' and column: '" + column + "'", e);
 		}
 	}
-	
+
 	private void createTrigger(String triggerSQL) {
 		try {
 			DatastoreInterface dataInterface = DatastoreInterface.getInstance();
@@ -629,22 +654,33 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 	}
 
+	@Override
 	public List<Long> getProcessInstanceIdsByProcessDefinitionNames(List<String> processDefinitionNames) {
 		if (ListUtil.isEmpty(processDefinitionNames)) {
 			return Collections.emptyList();
 		}
-		
+
 		return getResultListByInlineQuery("select pi.id from " + ProcessInstance.class.getName() + " pi, " + ProcessDefinition.class.getName() +
 				" pd where pi.processDefinition = pd.id and pd.name = :processDefinitionNames", Long.class, new Param("processDefinitionNames", processDefinitionNames));
 	}
 
-	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(Date from, Date to, List<String> processDefinitionNames, List<Long> procInsIds) {
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.dao.BPMDAO#getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(java.sql.Date, java.sql.Date, java.util.List, java.util.List)
+	 */
+	@Override
+	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(
+			Date from,
+			Date to,
+			List<String> processDefinitionNames,
+			List<Long> procInsIds) {
+
 		if (from == null && to == null) {
 			return null;
 		}
-		
+
 		boolean byProcInst = !ListUtil.isEmpty(procInsIds);
-		
+
 		List<Param> params = new ArrayList<Param>();
 		if (from != null) {
 			params.add(new Param("piFrom", from));
@@ -657,31 +693,48 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		} else {
 			params.add(new Param("procDefNames", processDefinitionNames));
 		}
-		
+
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT pi.id FROM ")
+		.append(ProcessInstance.class.getName())
+		.append(" pi")
+		.append((byProcInst ?
+				" where pi.id in (:procInstIds)"
+				: ", " 	+ ProcessDefinition.class.getName()
+						+ " pd where pi.processDefinition = pd.id and "
+						+ "pd.name in (:procDefNames)")
+		)
+		.append((from == null ?
+				CoreConstants.EMPTY
+				: " and pi.start >= :piFrom")
+		)
+		.append((to == null ? CoreConstants.EMPTY : " and pi.start <= :piTo"));
+
 		List<Long> ids = null;
 		try {
-			ids = getResultListByInlineQuery("select pi.id from " + ProcessInstance.class.getName() + " pi" +
-					(byProcInst ? " where pi.id in (:procInstIds)" :
-						", " + ProcessDefinition.class.getName() + " pd where pi.processDefinition = pd.id and pd.name in (:procDefNames)") +
-					(from == null ? CoreConstants.EMPTY : " and pi.start >= :piFrom") +
-					(to == null ? CoreConstants.EMPTY : " and pi.end <= :piTo"),
-				Long.class, ArrayUtil.convertListToArray(params)
+			ids = getResultListByInlineQuery(query.toString(),
+					Long.class, ArrayUtil.convertListToArray(params)
 			);
+
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error getting process instance IDs by dates: from=" + from + ", to=" + to + ", proc. def. names=" + processDefinitionNames +
-					", proc. inst. IDs=" + procInsIds, e);
+			LOGGER.log(Level.WARNING, "Error getting process instance IDs by"
+					+ " dates: from=" + from + ", to=" + to
+					+ ", proc. def. names=" + processDefinitionNames
+					+ ", proc. inst. IDs=" + procInsIds, e);
 		}
+
 		return ids;
 	}
-	
+
+	@Override
 	public List<Object[]> getProcessDateRanges(Collection<Long> processInstanceIds) {
 		return getProcessDateRanges(ListUtil.isEmpty(processInstanceIds) ? null : new ArrayList<Long>(processInstanceIds), null);
 	}
-	
+
 	private List<Object[]> getProcessDateRanges(List<Long> processInstanceIds, List<Object[]> results) {
 		if (ListUtil.isEmpty(processInstanceIds))
 			return results;
-		
+
 		List<Long> usedIds = null;
 		if (processInstanceIds.size() > 1000) {
 			usedIds = new ArrayList<Long>(processInstanceIds.subList(0, 1000));
@@ -690,30 +743,32 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			usedIds = new ArrayList<Long>(processInstanceIds);
 			processInstanceIds = null;
 		}
-		
+
 		List<Object[]> temp = getResultListByInlineQuery("select p.id, p.start, p.end from " + ProcessInstance.class.getName() + " p where p.id in (:processInstanceIds)", Object[].class,
 				new Param("processInstanceIds", usedIds));
-		
+
 		if (results == null)
 			results = new ArrayList<Object[]>();
 		if (!ListUtil.isEmpty(temp))
 			results.addAll(temp);
-		
+
 		return getProcessDateRanges(processInstanceIds, results);
 	}
 
+	@Override
 	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId) {
 		if (processDefinitionId == null)
 			return null;
-		
+
 		return getSingleResultByInlineQuery("select pd.name from " + ProcessDefinition.class.getName() + " pd where pd.id = :processDefinitionId", String.class,
 				new Param("processDefinitionId", processDefinitionId));
 	}
 
+	@Override
 	public List<Long> getProcessDefinitionIdsByName(String procDefName) {
 		if (StringUtil.isEmpty(procDefName))
 			return null;
-		
+
 		return getResultListByInlineQuery("select pd.id from " + ProcessDefinition.class.getName() + " pd where pd.name = :procDefName", Long.class,
 				new Param("procDefName", procDefName));
 	}

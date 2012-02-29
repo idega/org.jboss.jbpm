@@ -106,6 +106,17 @@ public class VariableQuerierData {
 	 * @param searchExpression same as
 	 * {@link BPMProcessVariable#getExpression()}.
 	 */
+	public VariableQuerierData(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @param name same as {@link BPMProcessVariable#getName()}.
+	 * @param value same as {@link List} of
+	 * {@link BPMProcessVariable#getRealValue()}.
+	 * @param searchExpression same as
+	 * {@link BPMProcessVariable#getExpression()}.
+	 */
 	public VariableQuerierData(String name, List<Serializable> value,
 			String searchExpression) {
 		this(name, value);
