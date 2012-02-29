@@ -7,6 +7,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.jbpm.context.exe.VariableInstance;
+import org.jbpm.graph.def.ProcessDefinition;
+import org.jbpm.graph.exe.ProcessInstance;
+
 import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.bean.BPMProcessVariable;
 import com.idega.jbpm.bean.VariableInstanceInfo;
@@ -55,8 +59,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * @param name {@link BPMProcessVariable#getName()}.
 	 * @param values {@link List} of {@link BPMProcessVariable#getValue()}.
 	 * Could be {@link List} of {@link String}, {@link Number}, {@link Timestamp}.
-	 * @param procDefNames jBPM process names. For example:
-	 * "ParkingCard".
+	 * @param procDefNames {@link List} of {@link ProcessDefinition#getName()}.
 	 * @return jBPM variable instances from database.
 	 * {@link Collections#EMPTY_LIST} on failure.
 	 */
@@ -70,9 +73,8 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * @param name {@link BPMProcessVariable#getName()}.
 	 * @param values {@link List} of {@link BPMProcessVariable#getValue()}.
 	 * Could be {@link List} of {@link String}, {@link Number}, {@link Timestamp}.
-	 * @param procDefNames jBPM process names. For example:
-	 * "ParkingCard".
-	 * @param procInstIds jBPM process instance ID's. For example: 14314...
+	 * @param procDefNames {@link List} of {@link ProcessDefinition#getName()}.
+	 * @param procInstIds {@link List} of {@link ProcessInstance#getId()}.
 	 * @param selectProcessInstanceId
 	 * @param searchExpression does not make sense anymore.
 	 * @param mirrow There is one {@link String} long enough to be converted to
@@ -98,9 +100,8 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * <p>Gets values of jBPM variable instances from database.</p>
 	 * @param name {@link BPMProcessVariable#getName()}.
 	 * @param values {@link VariableQuerierData} instance.
-	 * @param procDefNames jBPM process names. For example:
-	 * "ParkingCard".
-	 * @param procInstIds jBPM process instance ID's. For example: 14314...
+	 * @param procDefNames {@link List} of {@link ProcessDefinition#getName()}.
+	 * @param procInstIds {@link List} of {@link ProcessInstance#getId()}.
 	 * @param selectProcessInstanceId
 	 * @param mirrow There is one {@link String} long enough to be converted to
 	 * CLOB type in ORACLE database. Property jbpm_variables_mirrowed, could be
@@ -126,13 +127,12 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * {@link BPMProcessVariable#getName()},
 	 * {@link BPMProcessVariable#getRealValue()}).
 	 * @param variables {@link List} of {@link BPMProcessVariable#getName()}.
-	 * @param procDefNames jBPM process names. For example:
-	 * "ParkingCard".
-	 * @param procInstIds jBPM process instance ID's. For example: 14314...
+	 * @param procDefNames {@link List} of {@link ProcessDefinition#getName()}.
+	 * @param procInstIds {@link List} of {@link ProcessInstance#getId()}.
 	 * @param flexibleVariables {@link Map} of (
 	 * {@link BPMProcessVariable#getName()},
 	 * {@link BPMProcessVariable#isFlexible()}).
-	 * @return {@link Map} of (Process instance id, {@link Map} of
+	 * @return {@link Map} of ({@link ProcessInstance#getId()}, {@link Map} of
 	 * ({@link BPMProcessVariable#getName()}, {@link VariableInstanceInfo})).
 	 * <code>null</code> on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
@@ -149,13 +149,12 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * @param variablesWithValues {@link Map} of
 	 * ({@link BPMProcessVariable#getName()}, {@link VariableQuerierData}).
 	 * @param variables {@link List} of {@link BPMProcessVariable#getName()}.
-	 * @param procDefNames jBPM process names. For example:
-	 * "ParkingCard".
-	 * @param procInstIds jBPM process instance ID's. For example: 14314...
+	 * @param procDefNames {@link List} of {@link ProcessDefinition#getName()}.
+	 * @param procInstIds {@link List} of {@link ProcessInstance#getId()}.
 	 * @param flexibleVariables {@link Map} of (
 	 * {@link BPMProcessVariable#getName()},
 	 * {@link BPMProcessVariable#isFlexible()}).
-	 * @return {@link Map} of (Process instance id, {@link Map} of
+	 * @return {@link Map} of ({@link ProcessInstance#getId()}, {@link Map} of
 	 * ({@link BPMProcessVariable#getName()}, {@link VariableInstanceInfo})).
 	 * <code>null</code> on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
@@ -175,4 +174,41 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public List<VariableInstanceInfo> getVariablesByNameAndTaskInstance(Collection<String> names, Long tiId);
 
 	public Map<Long, List<VariableInstanceInfo>> getGroupedVariables(Collection<VariableInstanceInfo> variables);
+
+	/**
+	 * <p>Variables can be selected by:</p>
+	 * @param from {@link ProcessInstance#getStart()} >= from,
+	 * @param to {@link ProcessInstance#getStart()} <= to,
+	 * @param processDefinitionNames by {@link List} of
+	 * {@link ProcessDefinition#getName()},
+	 * @param variableInstanceNames {@link VariableInstance#getName()},
+	 * @param processInstanceIDs {@link List} of {@link ProcessInstance#getId()}
+	 * @return {@link Collection} of {@link VariableInstanceInfo} or
+	 * {@link Collections#emptyList()}.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public Collection<VariableInstanceInfo> getVariablesFromDatabase(
+			Timestamp from,
+			Timestamp to,
+			List<String> processDefinitionNames,
+			List<String> variableInstanceNames,
+			List<Long> processInstanceIDs);
+
+	/**
+	 * <p>Variables can be selected by:</p>
+	 * @param from {@link ProcessInstance#getStart()} >= from,
+	 * @param to {@link ProcessInstance#getStart()} <= to,
+	 * @param processDefinitionNames by {@link List} of
+	 * {@link ProcessDefinition#getName()},
+	 * @param variableInstanceNames {@link VariableInstance#getName()},
+	 * @param processInstanceIDs {@link List} of {@link ProcessInstance#getId()}
+	 * @return {@link Collection} of {@link Long} or
+	 * {@link Collections#emptyList()}.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public Collection<Long> getVariablesInstanceIDsFromDatabase(
+			Timestamp from,
+			Timestamp to,
+			List<String> processDefinitionNames,
+			List<String> variableInstanceNames, List<Long> processInstanceIDs);
 }

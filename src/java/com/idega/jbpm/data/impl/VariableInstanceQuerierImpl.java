@@ -19,6 +19,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.jbpm.graph.def.ProcessDefinition;
+import org.jbpm.graph.exe.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEvent;
@@ -211,6 +213,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(List<String> variablesNames, List<String> procDefNames, Collection<Long> procIds,
 			boolean checkTaskInstance, boolean addEmptyVars, boolean mirrowData) {
+
 		if (ListUtil.isEmpty(variablesNames)) {
 			LOGGER.warning("Variable name(s) unknown");
 		}
@@ -433,6 +436,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		if (!ListUtil.isEmpty(vars))
 			allVariables.addAll(vars);
+
 		return allVariables;
 	}
 
@@ -610,6 +614,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	private Collection<VariableInstanceInfo> getVariablesByNameAndValuesAndProcessDefinitions(String name, List<String> procDefNames, Collection<?> values,
 			List<Long> procInstIds) {
+
 		if (StringUtil.isEmpty(name))
 			return Collections.emptyList();
 
@@ -711,8 +716,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	/*
 	 * (non-Javadoc)
 	 * @see com.idega.jbpm.data.VariableInstanceQuerier#
-	 * getProcessVariablesByNameAndValue(java.lang.String, java.util.List,
-	 * java.util.List)
+	 * getProcessVariablesByNameAndValue(
+	 * 		java.lang.String,
+	 * 		java.util.List,
+	 * 		java.util.List
+	 * )
 	 */
 	@Override
 	public Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(
@@ -727,9 +735,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	/*
 	 * (non-Javadoc)
 	 * @see com.idega.jbpm.data.VariableInstanceQuerier#
-	 * getProcessVariablesByNameAndValue(java.lang.String,
-	 * java.util.List, java.util.List, java.util.List, boolean, boolean,
-	 * boolean)
+	 * getProcessVariablesByNameAndValue(
+	 * 		java.lang.String,
+	 * 		java.util.List,
+	 * 		java.util.List,
+	 * 		java.util.List,
+	 * 		boolean,
+	 * 		boolean,
+	 * 		boolean
+	 * )
 	 */
 	@Override
 	public Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(
@@ -750,9 +764,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	/*
 	 * (non-Javadoc)
 	 * @see com.idega.jbpm.data.VariableInstanceQuerier#
-	 * getProcessVariablesByNameAndValue(java.lang.String,
-	 * java.lang.String, java.util.List, java.util.List, java.util.List,
-	 * boolean, boolean)
+	 * getProcessVariablesByNameAndValue(
+	 * 		java.lang.String,
+	 * 		java.lang.String,
+	 * 		java.util.List,
+	 * 		java.util.List,
+	 * 		java.util.List,
+	 * 		boolean,
+	 * 		boolean
+	 * )
 	 */
 	@Override
 	public Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(
@@ -836,6 +856,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						valuesIter.hasNext();) {
 
 					valuesToSelect.append(valuesIter.next());
+
 					if (valuesIter.hasNext()) {
 						valuesToSelect.append(", ");
 					}
@@ -861,19 +882,46 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		List<String> parts = new ArrayList<String>();
 		parts.addAll(
 			Arrays.asList(
-				getSelectPart(STANDARD_COLUMNS, false), ", ", columnName,
-					selectProcessInstanceId || byProcessInstances ? ", var.PROCESSINSTANCE_ as piid" : CoreConstants.EMPTY,
-				" from ", (mirrow ? BPMVariableData.TABLE_NAME.concat(" ").concat(MIRRROW_TABLE_ALIAS).concat(", ") : CoreConstants.EMPTY),
+				getSelectPart(STANDARD_COLUMNS, false),
+				", ",
+				columnName,
+				selectProcessInstanceId || byProcessInstances ?
+						", var.PROCESSINSTANCE_ as piid"
+						: CoreConstants.EMPTY,
+				" from ",
+				(
+					mirrow ?
+							BPMVariableData.TABLE_NAME
+									.concat(" ")
+									.concat(MIRRROW_TABLE_ALIAS)
+									.concat(", ")
+							: CoreConstants.EMPTY
+				),
 				" JBPM_VARIABLEINSTANCE var ",
-					byProcessInstances ?
-							CoreConstants.EMPTY :
-							byProcDefs ?
-									" inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ " :
-									CoreConstants.EMPTY,
-				" where var.NAME_ = '", name, "' ", valuesClause,
-					byProcessInstances ? " and ".concat(PROC_INST_IDS_EXPRESSION) : byProcDefs ?
-							" and ".concat(getQueryParameters("pd.name_", procDefNames, true)) :
-							CoreConstants.EMPTY
+				byProcessInstances ?
+						CoreConstants.EMPTY
+						: byProcDefs ?
+									" inner join JBPM_PROCESSINSTANCE pi on " +
+											"var.PROCESSINSTANCE_ = pi.ID_ " +
+											"inner join JBPM_PROCESSDEFINITION " +
+											"pd on pi.PROCESSDEFINITION_ = " +
+											"pd.ID_ "
+									: CoreConstants.EMPTY,
+				" where var.NAME_ = '",
+				name,
+				"' ",
+				valuesClause,
+				byProcessInstances ?
+						" and ".concat(PROC_INST_IDS_EXPRESSION)
+						: byProcDefs ?
+								" and ".concat(
+										getQueryParameters(
+												"pd.name_",
+												procDefNames,
+												true
+												)
+										)
+								: CoreConstants.EMPTY
 		));
 		if (type != null) {
 			parts.addAll(Arrays.asList(" and ",
@@ -885,10 +933,163 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		parts.add(" order by var.TASKINSTANCE_");
 		query = getQuery(ArrayUtil.convertListToArray(parts));
 
-		return byProcessInstances ? getVariablesByProcessInstanceIds(null, query, columns, procInstIds) : getVariablesByQuery(query, columns);
+		return byProcessInstances ?
+				getVariablesByProcessInstanceIds(null, query, columns, procInstIds)
+				: getVariablesByQuery(query, columns);
 	}
 
-	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceIds(Collection<VariableInstanceInfo> vars, String query, int columns, List<Long> procInstIds) {
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.VariableInstanceQuerier#getVariablesFromDatabase(
+	 * 		java.sql.Timestamp,
+	 * 		java.sql.Timestamp,
+	 * 		java.util.List,
+	 * 		java.lang.String
+	 * )
+	 */
+	@Override
+	public Collection<VariableInstanceInfo> getVariablesFromDatabase(
+			Timestamp from,
+			Timestamp to,
+			List<String> processDefinitionNames,
+			List<String> variableInstanceNames,
+			List<Long> processInstanceIDs){
+
+		LOGGER.info("START");
+		long startTime = System.currentTimeMillis();
+
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT var.id_ as varid, ")
+		.append("var.name_ as name, ")
+		.append("var.class_ as type, ")
+		.append("substr(var.stringvalue_, 1, 255), ")
+		.append("var.processinstance_ as piid ")
+		.append("FROM ")
+		.append("jbpm_variableinstance as var, ")
+		.append("jbpm_processinstance as pi, ")
+		.append("jbpm_processdefinition as pd ")
+		.append("WHERE ")
+		.append("pi.processdefinition_ = pd.id_ ")
+		.append("AND var.processinstance_ = pi.id_ ")
+		.append("AND lower(substr(var.stringvalue_, 1, 255)) ")
+		.append("like lower('%T%') ")
+		.append("AND var.class_ in ('S', 'I') ");
+
+		if (from != null) {
+			query.append("AND pi.start_ >= '")
+			.append(from)
+			.append("' ");
+		}
+
+		if (to != null) {
+			query.append("AND pi.start_ <= '")
+			.append(to)
+			.append("' ");
+		}
+
+		if (!ListUtil.isEmpty(variableInstanceNames)) {
+			query.append("AND var.name_ in (");
+
+			for (String variableInstanceName : variableInstanceNames) {
+				query.append("'")
+				.append(variableInstanceName)
+				.append("'")
+				.append(", ");
+			}
+
+			query.delete(query.length() - 3, query.length());
+			query.append("') ");
+		}
+
+		if (!ListUtil.isEmpty(processDefinitionNames)) {
+			query.append("AND pd.name_ in (");
+
+			for (String processDefinitionName : processDefinitionNames) {
+				query.append("'")
+				.append(processDefinitionName)
+				.append("'")
+				.append(", ");
+			}
+
+			query.delete(query.length() - 3, query.length());
+			query.append("') ");
+		}
+
+		if (!ListUtil.isEmpty(processInstanceIDs)) {
+			query.append("AND pi.id_ in (");
+
+			for (Long processInstanceID : processInstanceIDs) {
+				query.append("'")
+				.append(processInstanceID)
+				.append("'")
+				.append(", ");
+			}
+
+			query.delete(query.length() - 3, query.length());
+			query.append("') ");
+		}
+
+		query.append("order by var.taskinstance_");
+
+		Collection<VariableInstanceInfo> foundedVars = getVariablesByQuery(
+				query.toString(), 5);
+
+		LOGGER.info("EXECUTED IN: "
+				+ (System.currentTimeMillis() - startTime)
+				+ " ms");
+
+		return foundedVars;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.VariableInstanceQuerier#getVariablesInstanceIDsFromDatabase(
+	 * 		java.sql.Timestamp,
+	 * 		java.sql.Timestamp,
+	 * 		java.util.List,
+	 * 		java.lang.String
+	 * )
+	 */
+	@Override
+	public Collection<Long> getVariablesInstanceIDsFromDatabase(
+			Timestamp from,
+			Timestamp to,
+			List<String> processDefinitionNames,
+			List<String> variableInstanceNames,
+			List<Long> processInstanceIDs) {
+
+		Collection<VariableInstanceInfo> variables = getVariablesFromDatabase(
+				from, to, processDefinitionNames, variableInstanceNames,
+				processInstanceIDs);
+
+		if (ListUtil.isEmpty(variables)) {
+			return Collections.emptyList();
+		}
+
+		Collection<Long> variableInstanceIDs = new ArrayList<Long>();
+		for (VariableInstanceInfo v : variables) {
+			variableInstanceIDs.add(v.getId());
+		}
+
+		return variableInstanceIDs;
+	}
+
+	/**
+	 * <p>Appends vars with new variables founded in database.</p>
+	 * @param vars {@link Collection} of {@link VariableInstanceInfo} or
+	 * <code>null</code>.
+	 * @param query to database.
+	 * @param columns number in response of database.
+	 * @param procInstIds {@link List} of {@link ProcessInstance#getId()}.
+	 * @return {@link Collection} of {@link VariableInstanceInfo} or
+	 * {@link Collections#emptyList()}.
+	 */
+	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceIds(
+			Collection<VariableInstanceInfo> vars,
+			String query,
+			int columns,
+			List<Long> procInstIds) {
+
 		if (vars == null) {
 			vars = new ArrayList<VariableInstanceInfo>();
 		}
@@ -900,28 +1101,53 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		List<Long> usedIds = null;
 		if (procInstIds.size() > 1000) {
 			usedIds = new ArrayList<Long>(procInstIds.subList(0, 1000));
-			procInstIds = new ArrayList<Long>(procInstIds.subList(1000, procInstIds.size()));
+			procInstIds = new ArrayList<Long>(procInstIds.subList(1000,
+					procInstIds.size()));
 		} else {
 			usedIds = new ArrayList<Long>(procInstIds);
 			procInstIds = null;
 		}
 
-		Collection<VariableInstanceInfo> foundedVars = getVariablesByQuery(StringHandler.replace(query, PROC_INST_IDS_EXPRESSION,
-				getQueryParameters("var.PROCESSINSTANCE_", usedIds, false)), columns);
+		Collection<VariableInstanceInfo> foundedVars = getVariablesByQuery(
+				StringHandler.replace(
+						query,
+						PROC_INST_IDS_EXPRESSION,
+						getQueryParameters(
+								"var.PROCESSINSTANCE_",
+								usedIds,
+								false
+						)
+				),
+				columns
+		);
+
 		if (foundedVars != null) {
 			vars.addAll(foundedVars);
 		}
 
-		return getVariablesByProcessInstanceIds(vars, query, columns, procInstIds);
+		return getVariablesByProcessInstanceIds(
+				vars, query, columns, procInstIds);
 	}
 
-	private Collection<VariableInstanceInfo> getVariablesByQuery(String query, int columns) {
+	/**
+	 * <p>Queries database. Converts database data to {@link List} of
+	 * {@link VariableInstanceInfo}.</p>
+	 * @param query to database.
+	 * @param columns number selected from database in response.
+	 * @return {@link Collection} of {@link VariableInstanceInfo} or
+	 * <code>null</code> on failure;
+	 */
+	private Collection<VariableInstanceInfo> getVariablesByQuery(
+			String query, int columns) {
+
 		List<Serializable[]> data = null;
 		try {
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'", e);
+			LOGGER.log(Level.WARNING,
+					"Error executing query: '" + query + "'", e);
 		}
+
 		return getConverted(data, columns);
 	}
 
@@ -930,9 +1156,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	 * @param namesAndValues {@link Map} of ({@link BPMProcessVariable#getName()}
 	 * {@link BPMProcessVariable#getValue()}).
 	 * @param variables {@link List} of {@link BPMProcessVariable#getName()}.
-	 * @param procDefNames jBPM process names. For example:
-	 * "ParkingCard".
-	 * @param procInstIds jBPM process instance ID's. For example: 14314...
+	 * @param procDefNames {@link ProcessDefinition#getName()}.
+	 * @param procInstIds {@link ProcessInstance#getId()}.
 	 * @param selectProcessInstanceId
 	 * @param cachedVariables
 	 * @param flexibleVariables {@link Map} of (
@@ -1115,7 +1340,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			String type = (String) dataSet[startValues];
 
 			if (id == null || name == null || type == null) {
-				LOGGER.warning("Unable to create variable from initial values (" + dataSet + "): ID: " + id + ", name: " + name + ", class: " + type);
+				LOGGER.warning("Unable to create variable from initial values ("
+						+ dataSet
+						+ "): ID: " + id
+						+ ", name: " + name
+						+ ", class: " + type);
 				continue;
 			}
 
@@ -1176,8 +1405,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		if (sort) {
 			List<VariableInstanceInfo> vars = new ArrayList<VariableInstanceInfo>(variables.values());
 			Collections.sort(vars, new VariableInstanceInfoComparator());
+
 			return vars;
 		}
+
 		return variables.values();
 	}
 
@@ -1193,6 +1424,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			LOGGER.log(Level.WARNING, message, e);
 			CoreUtil.sendExceptionNotification(message, e);
 		}
+
 		return null;
 	}
 
@@ -1215,38 +1447,90 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return "substr(".concat(column).concat(", 1, 255)");
 	}
 
-	private String getQueryParameters(String columnName, Collection<? extends Serializable> values, boolean isString) {
+	/**
+	 * <p>Creates part of query with given values added as arguments for given
+	 * columnName.</p>
+	 * @param columnName of database table.
+	 * @param values {@link List} of {@link Serializable} to compare with.
+	 * @param isString tells if passed values should be interpreted as
+	 * {@link List} of {@link String}.
+	 * @return part of query for database.
+	 */
+	private String getQueryParameters(
+			String columnName,
+			Collection<? extends Serializable> values,
+			boolean isString) {
+
 		return getQueryParameters(columnName, values, Boolean.FALSE, isString);
 	}
 
-	private String getQueryParameters(String columnName, Collection<? extends Serializable> values, boolean notEquals, boolean isString) {
+	/**
+	 * <p>Creates part of query with given values added as arguments for given
+	 * columnName.</p>
+	 * @param columnName of database table.
+	 * @param values {@link List} of {@link Serializable} to compare with.
+	 * @param notEquals ? " <> " : " = ".
+	 * @param isString tells if passed values should be interpreted as
+	 * {@link List} of {@link String}.
+	 * @return part of query for database.
+	 */
+	private String getQueryParameters(
+			String columnName,
+			Collection<? extends Serializable> values,
+			boolean notEquals,
+			boolean isString) {
+
 		synchronized (values) {
 			StringBuilder params = new StringBuilder();
 			if (values.size() == 1) {
-				params.append(StringUtil.isEmpty(columnName) ? CoreConstants.SPACE : CoreConstants.SPACE.concat(columnName));
+				params.append(StringUtil.isEmpty(columnName) ?
+						CoreConstants.SPACE
+						: CoreConstants.SPACE.concat(columnName));
+
 				params.append(notEquals ? " <> " : " = ");
+
 				Serializable value = values.iterator().next();
+
 				if (isString) {
 					params.append(CoreConstants.QOUTE_SINGLE_MARK);
 				}
+
 				params.append(String.valueOf(value));
+
 				if (isString) {
 					params.append(CoreConstants.QOUTE_SINGLE_MARK);
 				}
+
 			} else {
-				params.append(StringUtil.isEmpty(columnName) ? " (" : CoreConstants.SPACE.concat(columnName).concat(notEquals ? " not " : CoreConstants.EMPTY).concat(" in ("));
-				for (Iterator<? extends Serializable> iter = values.iterator(); iter.hasNext();) {
+				params.append(StringUtil.isEmpty(columnName) ?
+						" ("
+						: CoreConstants.SPACE
+								.concat(columnName)
+								.concat(notEquals ?
+										" not "
+										: CoreConstants.EMPTY
+								)
+								.concat(" in (")
+				);
+
+				for (Iterator<? extends Serializable> iter = values.iterator();
+						iter.hasNext();) {
+
 					Serializable value = iter.next();
+
 					if (isString) {
 						params.append(CoreConstants.QOUTE_SINGLE_MARK);
 					}
+
 					params.append(value.toString());
+
 					if (isString) {
 						params.append(CoreConstants.QOUTE_SINGLE_MARK);
 					}
 
 					if (iter.hasNext()) {
-						params.append(CoreConstants.COMMA).append(CoreConstants.SPACE);
+						params.append(CoreConstants.COMMA).append(
+								CoreConstants.SPACE);
 					}
 				}
 				params.append(CoreConstants.BRACKET_RIGHT);
@@ -1276,6 +1560,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getConverted(data, FULL_COLUMNS);
 	}
 
+	/**
+	 * <p>Connects parts of query to MySQL query.</p>
+	 * @param parts of MySQL query.
+	 * @return MySQL query.
+	 */
 	private String getQuery(String... parts) {
 		StringBuffer query = new StringBuffer();
 		for (String part : parts) {
