@@ -211,4 +211,30 @@ public interface VariableInstanceQuerier extends GenericDao {
 			Timestamp to,
 			List<String> processDefinitionNames,
 			List<String> variableInstanceNames, List<Long> processInstanceIDs);
+
+	/**
+	 * Selects data about the first process instance for process definition according to variable name and values
+	 * @param variableName
+	 * @param values
+	 * @param processDefinition
+	 * @return 3 variables in the arrays: process instance ID, timestamp of the first process instance and variable value
+	 */
+	public List<Serializable[]> getFirsProcessInstanceDataByVariableNameAndValuesAndProcessDefinition(
+			String variableName,
+			List<Serializable> values,
+			String processDefinition
+	);
+
+	/**
+	 * Selects data about the last (or current) process instance for process definition according to variable name and values
+	 * @param variableName
+	 * @param values
+	 * @param processDefinition
+	 * @return
+	 */
+	public List<Serializable[]> getLastProcessInstanceDataByVariableNameAndValuesAndProcessDefinition(
+			String variableName,
+			List<Serializable> values,
+			String processDefinition
+	);
 }
