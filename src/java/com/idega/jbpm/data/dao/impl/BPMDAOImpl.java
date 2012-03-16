@@ -675,47 +675,32 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			List<String> processDefinitionNames,
 			List<Long> procInsIds) {
 
-		if (from == null && to == null) {
+		if (from == null && to == null)
 			return null;
-		}
 
 		boolean byProcInst = !ListUtil.isEmpty(procInsIds);
 
 		List<Param> params = new ArrayList<Param>();
-		if (from != null) {
+		if (from != null)
 			params.add(new Param("piFrom", from));
-		}
-		if (to != null) {
+		if (to != null)
 			params.add(new Param("piTo", to));
-		}
-		if (byProcInst) {
+		if (byProcInst)
 			params.add(new Param("procInstIds", procInsIds));
-		} else {
+		else
 			params.add(new Param("procDefNames", processDefinitionNames));
-		}
 
-		StringBuilder query = new StringBuilder();
-		query.append("SELECT pi.id FROM ")
-		.append(ProcessInstance.class.getName())
-		.append(" pi")
+		StringBuilder query = new StringBuilder("SELECT pi.id FROM ").append(ProcessInstance.class.getName()).append(" pi")
 		.append((byProcInst ?
 				" where pi.id in (:procInstIds)"
 				: ", " 	+ ProcessDefinition.class.getName()
-						+ " pd where pi.processDefinition = pd.id and "
-						+ "pd.name in (:procDefNames)")
-		)
-		.append((from == null ?
-				CoreConstants.EMPTY
-				: " and pi.start >= :piFrom")
-		)
-		.append((to == null ? CoreConstants.EMPTY : " and pi.start <= :piTo"));
+						+ " pd where pd.name in (:procDefNames) and pi.processDefinition = pd.id")
+		).append((from == null ? CoreConstants.EMPTY : " and pi.start >= :piFrom")
+		).append((to == null ? CoreConstants.EMPTY : " and pi.start <= :piTo"));
 
 		List<Long> ids = null;
 		try {
-			ids = getResultListByInlineQuery(query.toString(),
-					Long.class, ArrayUtil.convertListToArray(params)
-			);
-
+			ids = getResultListByInlineQuery(query.toString(), Long.class, ArrayUtil.convertListToArray(params));
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error getting process instance IDs by"
 					+ " dates: from=" + from + ", to=" + to

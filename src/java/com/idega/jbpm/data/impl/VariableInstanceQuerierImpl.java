@@ -418,19 +418,30 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		try {
 			String varNamesIn = getQueryParameters("var.NAME_", variablesNames, true);
 			query = getQuery(getSelectPart(anyStringColumn ? getFullColumns(mirrow, false) : getAllButStringColumn(), false),
-					mirrow ? " from ".concat(BPMVariableData.TABLE_NAME).concat(" mirrow, ").concat(VARIABLES_TABLE).concat(" var ") :
-						getFromClause(true, mirrow),
-					checkTaskInstance ? ", jbpm_taskinstance task " : CoreConstants.EMPTY,
-					byProcInstIds ? CoreConstants.EMPTY :
-									" inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ inner join JBPM_PROCESSDEFINITION pd " +
-							" on pi.PROCESSDEFINITION_ = pd.ID_ ",
-					" where ", varNamesIn, " and ", CLASS_CONDITION, " and ", byProcInstIds ? PROC_INST_IDS_EXPRESSION :
-						getQueryParameters("pd.name_", procDefNames, true),
-					mirrow ? getMirrowTableCondition(true) : CoreConstants.EMPTY, checkTaskInstance ?
-							" and var.TASKINSTANCE_ = task.ID_ and task.END_ is not null " : CoreConstants.EMPTY,
-					" order by var.TASKINSTANCE_");
-			vars = byProcInstIds ? getVariablesByProcessInstanceIds(query, columns, new ArrayList<Long>(procInstIds)) :
-				getVariablesByQuery(query, columns);
+					mirrow ?
+							" from ".concat(BPMVariableData.TABLE_NAME).concat(" mirrow, ").concat(VARIABLES_TABLE).concat(" var ") :
+							getFromClause(true, mirrow),
+					checkTaskInstance ?
+							", jbpm_taskinstance task " :
+							CoreConstants.EMPTY,
+					byProcInstIds ?
+							CoreConstants.EMPTY :
+							", JBPM_PROCESSINSTANCE pi, JBPM_PROCESSDEFINITION pd ",
+					" where ",
+					byProcInstIds ?
+							PROC_INST_IDS_EXPRESSION :
+							getQueryParameters("pd.name_", procDefNames, true) + " and pd.ID_ = pi.PROCESSDEFINITION_ and pi.ID_ = " +
+								"var.PROCESSINSTANCE_ ",
+					mirrow ?
+							getMirrowTableCondition(true) :
+							CoreConstants.EMPTY,
+					checkTaskInstance ?
+							" and var.TASKINSTANCE_ = task.ID_ and task.END_ is not null " :
+							CoreConstants.EMPTY,
+					" and " + varNamesIn, " and ", CLASS_CONDITION + " order by var.TASKINSTANCE_");
+			vars = byProcInstIds ?
+					getVariablesByProcessInstanceIds(query, columns, new ArrayList<Long>(procInstIds)) :
+					getVariablesByQuery(query, columns);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables for process instance(s) : " + procInstIds +
 					" and name(s): "
@@ -664,15 +675,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		int columns = COLUMNS + 2;
 		boolean byProcInst = !ListUtil.isEmpty(procInstIds);
 		String query = getQuery(getSelectPart(STANDARD_COLUMNS), ", b.BYTES_, var.PROCESSINSTANCE_ ", getFromClause(true, false),
-				" inner join JBPM_BYTEBLOCK b on var.BYTEARRAYVALUE_ = b.PROCESSFILE_ ",
+				", JBPM_BYTEBLOCK b",
 					byProcInst ?
 						CoreConstants.EMPTY :
-						" inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ inner join JBPM_PROCESSDEFINITION pd on "
-						+ " pi.PROCESSDEFINITION_ = pd.ID_ ",
-				" where ",
+						", JBPM_PROCESSINSTANCE pi, JBPM_PROCESSDEFINITION pd ",
+				" where b.PROCESSFILE_ = var.BYTEARRAYVALUE_ ",
 					byProcInst ?
-						PROC_INST_IDS_EXPRESSION :
-						getQueryParameters("pd.name_", procDefNames, true).concat(" and var.name_ = '").concat(name).concat("'"),
+						" and " + PROC_INST_IDS_EXPRESSION :
+						getQueryParameters(" and pd.name_", procDefNames, true).concat(" and var.name_ = '").concat(name).concat("'") +
+						" and pd.ID_ = pi.PROCESSDEFINITION_ and pi.ID_ = var.PROCESSINSTANCE_",
 				" and var.CLASS_ = 'B' order by var.TASKINSTANCE_"
 		);
 		return byProcInst ?
@@ -944,15 +955,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			byProcessInstances ?
 					CoreConstants.EMPTY
 					: byProcDefs ?
-							" inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ inner join JBPM_PROCESSDEFINITION " +
-							"pd on pi.PROCESSDEFINITION_ = pd.ID_ "
+							", JBPM_PROCESSINSTANCE pi, JBPM_PROCESSDEFINITION pd "
 							: CoreConstants.EMPTY,
-			" where var.NAME_ = '", name, "' ",
+			" where ",
 			byProcessInstances ?
-					" and " + PROC_INST_IDS_EXPRESSION
+					PROC_INST_IDS_EXPRESSION + " and "
 					: byProcDefs ?
-							" and " + getQueryParameters("pd.name_", procDefNames, true)
+							getQueryParameters("pd.name_", procDefNames, true) + " and pd.ID_ = pi.PROCESSDEFINITION_ and pi.id_ = " +
+								" var.PROCESSINSTANCE_ and "
 							: CoreConstants.EMPTY,
+			" var.NAME_ = '", name, "' ",
 			type == null ?
 					CoreConstants.EMPTY
 					: " and ", getQueryParameters("var.CLASS_", type.getTypeKeys(), true),
@@ -1973,10 +1985,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		Collection<VariableInstanceInfo> info = null;
 		//	Querying the DB for variables
-		info = getProcessVariablesByNamesAndValues(
-				variablesAndValuesToQuery,
-				variables,
-				ListUtil.isEmpty(procInstIds) ? procDefNames : null,
+		info = getProcessVariablesByNamesAndValues(variablesAndValuesToQuery, variables, ListUtil.isEmpty(procInstIds) ? procDefNames : null,
 						procInstIds, true, results.keySet(), flexibleVariables);
 
 		if (ListUtil.isEmpty(info))
