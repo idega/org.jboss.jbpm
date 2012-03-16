@@ -113,8 +113,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		List<Serializable[]> data = null;
 		try {
 			String selectColumns = full ? getFullColumns() : "var.NAME_ as name, var.CLASS_ as type";
-			query = getQuery(getSelectPart(selectColumns, !full), FROM, " inner join JBPM_PROCESSINSTANCE pi on var.PROCESSINSTANCE_ = pi.ID_ ",
-			    "inner join JBPM_PROCESSDEFINITION pd on pi.PROCESSDEFINITION_ = pd.ID_ where ", CONDITION, " and pd.NAME_ = '", processDefinitionName, "'");
+			query = getQuery(getSelectPart(selectColumns, !full), FROM, ", JBPM_PROCESSINSTANCE pi, JBPM_PROCESSDEFINITION pd where pd.NAME_ = '",
+					processDefinitionName, "' and pd.id_ = pi.PROCESSDEFINITION_ and pi.id_ = var.processinstance_ and ", CONDITION
+			);
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process definition: " + processDefinitionName, e);
