@@ -22,22 +22,22 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 	private static final long serialVersionUID = -4612911188630523581L;
 
 	private Serializable value;
-	
+
 	private static final Logger LOGGER = Logger
 			.getLogger(VariableByteArrayInstance.class.getName());
-	
+
 	public VariableByteArrayInstance(String name, Object value) {
 		super(name, VariableInstanceType.BYTE_ARRAY);
-		
+
 		if (value instanceof Collection<?>) {
 			this.value = (Serializable) value;
 		} else if (value instanceof Number) {
 			this.value = (Number) value;
 		} else if (value instanceof Serializable) {
 			this.value = (Serializable) value;
-		}		
+		}
 	}
-	
+
 	private Serializable getConvertedValue(byte[] bytes) {
 		InputStream input = null;
 		ObjectInputStream objectInput = null;
@@ -45,7 +45,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 			Object realValue = null;
 			input = new ByteArrayInputStream(bytes);
 			objectInput = new ObjectInputStream(input);
-			realValue = objectInput.readObject();	
+			realValue = objectInput.readObject();
 			if (realValue instanceof Serializable) {
 				return (Serializable) realValue;
 			}
@@ -57,11 +57,11 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 		}
 		return CoreConstants.EMPTY;
 	}
-	
+
 	public VariableByteArrayInstance(String name, Byte[] value) {
 		super(name, value, VariableInstanceType.BYTE_ARRAY);
 	}
-	
+
 	@Override
 	public Serializable getValue() {
 		if (value instanceof Number) {
@@ -72,13 +72,12 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 					value = null;
 					return value;
 				}
-				Object bytes = null;//ByteBlockChopper.glueChopsBackTogether(values);
-				
+				Object bytes = null;
+
 				if (values.size() > 1) {
 					bytes = new byte[values.size() * 1024];
-					Iterator<Serializable[]> it = values.iterator();
 					int pos = 0;
-					while (it.hasNext()) {
+					for (Iterator<Serializable[]> it = values.iterator(); it.hasNext();) {
 						byte[] tmp = (byte[]) it.next()[0];
 						System.arraycopy(tmp, 0, bytes, pos, tmp.length);
 						pos += tmp.length;
@@ -86,7 +85,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 				} else {
 					bytes = values.iterator().next()[0];
 				}
-				
+
 				value = bytes instanceof byte[] ? getConvertedValue((byte[]) bytes) : null;
 			} catch (Exception e) {
 				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error executing query: " + query, e);
@@ -95,7 +94,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 			value = getConvertedValue((byte[]) value);
 		} else if (value instanceof Blob) {
 			Blob blob = (Blob) value;
-			
+
 			byte[] bytes = null;
 			try {
 				bytes = IOUtil.getBytesFromInputStream(blob.getBinaryStream());
@@ -106,7 +105,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 				value = getConvertedValue(bytes);
 			}
 		}
-		
+
 		return value;
 	}
 
