@@ -1341,7 +1341,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return null;
 
 		boolean sort = true;
+
 		Map<Number, VariableInstanceInfo> variables = new HashMap<Number, VariableInstanceInfo>();
+		Map<Number, VariableByteArrayInstance> variablesToConvert = new HashMap<Number, VariableByteArrayInstance>();
 		for (Serializable[] dataSet : data) {
 			int startValues = 0;
 			Number id = null;
@@ -1410,7 +1412,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					variable = new VariableDateInstance(name, new Timestamp(((Date) value).getTime()));
 				} else if (value instanceof Byte[] || VariableInstanceType.BYTE_ARRAY.getTypeKeys().contains(type) ||
 						VariableInstanceType.OBJ_LIST.getTypeKeys().contains(type)) {
-					variable = new VariableByteArrayInstance(name, value);
+					VariableByteArrayInstance byteVariable = new VariableByteArrayInstance(name, value);
+					variable = byteVariable;
+
+					if (value instanceof Number)
+						variablesToConvert.put((Number) value, byteVariable);
 				} else {
 					// Try to execute custom methods
 					java.sql.Date date = getValueFromCustomMethod(value, "dateValue");
@@ -1431,6 +1437,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 		}
 
+		convertByteValues(variablesToConvert);
+		for (VariableByteArrayInstance byteVar: variablesToConvert.values()) {
+			variables.put(byteVar.getId(), byteVar);
+		}
+
 		if (sort) {
 			List<VariableInstanceInfo> vars = new ArrayList<VariableInstanceInfo>(variables.values());
 			Collections.sort(vars, new VariableInstanceInfoComparator());
@@ -1439,6 +1450,66 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		return variables.values();
+	}
+
+	private void convertByteValues(Map<Number, VariableByteArrayInstance> variables) {
+		if (MapUtil.isEmpty(variables))
+			return;
+
+		List<Number> ids = new ArrayList<Number>(variables.keySet());
+		String query = "select b.PROCESSFILE_, b.BYTES_ from JBPM_BYTEBLOCK b where ";
+		List<Serializable[]> data = getBytesByIds(null, query, 2, ids);
+		if (ListUtil.isEmpty(data))
+			return;
+
+		for (Serializable[] info: data) {
+			if (ArrayUtil.isEmpty(info) || info.length == 1)
+				continue;
+
+			Number id = null;
+			Serializable item = info[0];
+			if (item instanceof Number)
+				id = (Number) item;
+			else
+				continue;
+
+			byte[] bytes = new byte[(info.length - 1) * 1024];
+			int pos = 0;
+			for (int i = 1; i < info.length; i++) {
+				byte[] tmp = (byte[]) info[i];
+				System.arraycopy(tmp, 0, bytes, pos, tmp.length);
+				pos += tmp.length;
+			}
+
+			VariableByteArrayInstance var = variables.get(id);
+			if (var == null)
+				continue;
+
+			var.setValue(bytes);
+		}
+	}
+
+	private List<Serializable[]> getBytesByIds(List<Serializable[]> data, String query, int columns, List<Number> ids) {
+		if (data == null)
+			data = new ArrayList<Serializable[]>();
+		if (ListUtil.isEmpty(ids))
+			return data;
+
+		List<Number> usedIds = null;
+		if (ids.size() > 1000) {
+			usedIds = new ArrayList<Number>(ids.subList(0, 1000));
+			ids = new ArrayList<Number>(ids.subList(1000, ids.size()));
+		} else {
+			usedIds = new ArrayList<Number>(ids);
+			ids = null;
+		}
+
+		List<Serializable[]> queriedData = getDataByQuery(query + getQueryParameters("b.PROCESSFILE_", usedIds, false), 2);
+
+		if (queriedData != null)
+			data.addAll(queriedData);
+
+		return getBytesByIds(data, query, columns, ids);
 	}
 
 	@SuppressWarnings("unchecked")
