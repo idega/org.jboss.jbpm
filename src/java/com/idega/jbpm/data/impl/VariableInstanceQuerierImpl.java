@@ -298,7 +298,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			int key = getKey(names.indexOf(name), processInstance);
 			if (processInstance != null && addedVars.contains(name + processInstance)) {
 				VariableInstanceInfo addedVar = vars.get(key);
-				if (addedVar.getValue() != null)
+				if (addedVar != null && addedVar.getValue() != null)
 					continue;	//	Added variable has value, it's OK
 			} else {
 				addedVars.add(name + processInstance);
