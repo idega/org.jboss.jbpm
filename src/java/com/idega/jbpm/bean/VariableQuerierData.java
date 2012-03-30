@@ -95,6 +95,7 @@ import java.util.List;
  * @author martynas
  */
 public class VariableQuerierData {
+
 	private String name = null;
 	private List<Serializable> values = null;
 	private String searchExpression = null;
@@ -175,5 +176,10 @@ public class VariableQuerierData {
 	 */
 	public void setValues(List<Serializable> values) {
 		this.values = values;
+	}
+
+	@Override
+	public String toString() {
+		return getName() + " values: " + getValues() + ", search expression: " + getSearchExpression();
 	}
 }
