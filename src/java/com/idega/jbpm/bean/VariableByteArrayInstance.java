@@ -49,7 +49,8 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 				return (Serializable) realValue;
 			}
 		} catch (Exception e) {
-			LOGGER.warning("Couldn't deserialize stream. Returning empty String");
+			LOGGER.warning("Couldn't deserialize stream (made from bytes: " + (bytes == null ? "not provided" : ("length: " + bytes.length +
+					", representation: '" + new String(bytes))) + "'). Returning empty String");
 		} finally {
 			IOUtil.close(objectInput);
 			IOUtil.close(input);
