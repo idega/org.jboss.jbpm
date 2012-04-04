@@ -23,8 +23,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 
 	private Serializable value;
 
-	private static final Logger LOGGER = Logger
-			.getLogger(VariableByteArrayInstance.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(VariableByteArrayInstance.class.getName());
 
 	public VariableByteArrayInstance(String name, Object value) {
 		super(name, VariableInstanceType.BYTE_ARRAY);

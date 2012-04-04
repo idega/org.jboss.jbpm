@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.jbpm.context.exe.VariableInstance;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 
@@ -166,6 +165,14 @@ public interface VariableInstanceQuerier extends GenericDao {
 			List<Long> procInstIds,
 			Map<String, Boolean> flexibleVariables);
 
+	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+			Map<String, VariableQuerierData> activeVariables,
+			List<String> variables,
+			List<String> procDefNames,
+			List<Long> procInstIds,
+			Map<String, Boolean> flexibleVariables,
+			boolean useCachedVariables);
+
 	public List<String> getValuesByVariableFromMirrowedTable(String name);
 	public List<String> getValuesByVariable(String name);
 
@@ -174,43 +181,6 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public List<VariableInstanceInfo> getVariablesByNameAndTaskInstance(Collection<String> names, Long tiId);
 
 	public Map<Long, List<VariableInstanceInfo>> getGroupedVariables(Collection<VariableInstanceInfo> variables);
-
-	/**
-	 * <p>Variables can be selected by:</p>
-	 * @param from {@link ProcessInstance#getStart()} >= from,
-	 * @param to {@link ProcessInstance#getStart()} <= to,
-	 * @param processDefinitionNames by {@link List} of
-	 * {@link ProcessDefinition#getName()},
-	 * @param variableInstanceNames {@link VariableInstance#getName()},
-	 * @param processInstanceIDs {@link List} of {@link ProcessInstance#getId()}
-	 * @return {@link Collection} of {@link VariableInstanceInfo} or
-	 * {@link Collections#emptyList()}.
-	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
-	 */
-	public Collection<VariableInstanceInfo> getVariablesFromDatabase(
-			Timestamp from,
-			Timestamp to,
-			List<String> processDefinitionNames,
-			List<String> variableInstanceNames,
-			List<Long> processInstanceIDs);
-
-	/**
-	 * <p>Variables can be selected by:</p>
-	 * @param from {@link ProcessInstance#getStart()} >= from,
-	 * @param to {@link ProcessInstance#getStart()} <= to,
-	 * @param processDefinitionNames by {@link List} of
-	 * {@link ProcessDefinition#getName()},
-	 * @param variableInstanceNames {@link VariableInstance#getName()},
-	 * @param processInstanceIDs {@link List} of {@link ProcessInstance#getId()}
-	 * @return {@link Collection} of {@link Long} or
-	 * {@link Collections#emptyList()}.
-	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
-	 */
-	public Collection<Long> getVariablesInstanceIDsFromDatabase(
-			Timestamp from,
-			Timestamp to,
-			List<String> processDefinitionNames,
-			List<String> variableInstanceNames, List<Long> processInstanceIDs);
 
 	/**
 	 * Selects data about the first process instance for process definition according to variable name and values
@@ -237,4 +207,5 @@ public interface VariableInstanceQuerier extends GenericDao {
 			List<Serializable> values,
 			String processDefinition
 	);
+
 }

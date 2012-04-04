@@ -58,97 +58,99 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
-	
+
 	private static final Logger LOGGER = Logger.getLogger(BinaryVariablesHandlerImpl.class.getName());
-	
+
 	public static final String BPM_UPLOADED_FILES_PATH = JBPMConstants.BPM_PATH + "/attachments/";
 	public static final String STORAGE_TYPE = "slide";
 	public static final String BINARY_VARIABLE = "binaryVariable";
 	public static final String VARIABLE = "variable";
-	
+
 	@Autowired
 	private FileURIHandlerFactory fileURIHandlerFactory;
-	
+
 	/**
 	 * stores binary file if needed, converts to binary variable json format, and puts to variables
 	 * return variables ready map to be stored to process variables map
 	 */
+	@Override
 	public Map<String, Object> storeBinaryVariables(long taskInstanceId, Map<String, Object> variables) {
 		Map<String, Object> newVars = new HashMap<String, Object>(variables);
-		
+
 		for (Entry<String, Object> entry : newVars.entrySet()) {
 			Object val = entry.getValue();
 			if (val == null)
 				continue;
-			
+
 			String key = entry.getKey();
-			
+
 			Variable variable = Variable.parseDefaultStringRepresentation(key);
-			
+
 			JSONUtil json = getBinVarJSONConverter();
-			
+
 			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
-				
+
 				@SuppressWarnings("unchecked")
 				Collection<BinaryVariable> binVars = (Collection<BinaryVariable>) val;
 				List<String> binaryVariables = new ArrayList<String>(binVars.size());
-				
+
 				for (BinaryVariable binVar : binVars) {
-					
+
 					binVar.setTaskInstanceId(taskInstanceId);
 					binVar.setVariable(variable);
-					
+
 					if (!binVar.isPersisted()) {
-						
+
 						binVar.persist();
 					}
-					
+
 					binaryVariables.add(json.convertToJSON(binVar));
 				}
-				
+
 				String binVarArrayJSON = json.convertToJSON(binaryVariables);
 				entry.setValue(binVarArrayJSON);
 			}
 		}
-		
+
 		return newVars;
 	}
-	
+
 	public static void main(String[] args) {
 		Variable var = new Variable("testVar", VariableDataType.FILES);
 		BinaryVariable binVar = new BinaryVariableImpl();
 		binVar.setVariable(var);
-		
+
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
 		xstream.alias(BINARY_VARIABLE, BinaryVariableImpl.class);
 		xstream.alias(VARIABLE, Variable.class);
 		String jsonStr = xstream.toXML(binVar);
 		System.out.println(jsonStr);
 	}
-	
+
 	protected String getDataName(String mapping) {
 		String strRepr = mapping.contains(CoreConstants.UNDER) ? mapping.substring(mapping.indexOf(CoreConstants.UNDER) + 1) : CoreConstants.EMPTY;
 		return strRepr;
 	}
-	
+
 	private String concPF(String path, String fileName) {
 		return path.concat(CoreConstants.SLASH).concat(fileName);
 	}
-	
+
+	@Override
 	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
 		String date = IWTimestamp.RightNow().getDateString(IWTimestamp.DATE_PATTERN);
 		String path = BPM_UPLOADED_FILES_PATH.concat(date).concat(CoreConstants.SLASH).concat(String.valueOf(binaryVariable.getTaskInstanceId())).concat("/files");
-		
+
 		final FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
-		
+
 		final FileInfo fileInfo = fileURIHandler.getFileInfo(fileUri);
 		String fileName = fileInfo.getFileName();
-		
+
 		try {
 			IWSlideService repository = getIWSlideService();
-			
+
 			String normalizedName = StringHandler.stripNonRomanCharacters(fileName, new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.'});
-			
+
 			int index = 0;
 			String tmpUri = path;
 			//	File by the same name already exists! Renaming this file not to overwrite existing file
@@ -156,7 +158,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				tmpUri = path.concat(String.valueOf((index++)));
 			}
 			path = tmpUri;
-			
+
 			// This should be changed, temporal fix. user will not be able submit a form if exception will be thrown here
 			InputStream stream = null;
 			try {
@@ -180,12 +182,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			} finally {
 				IOUtil.close(stream);
 			}
-			
+
 			binaryVariable.setFileName(fileName);
 			binaryVariable.setIdentifier(concPF(path, normalizedName));
 			binaryVariable.setStorageType(STORAGE_TYPE);
 			binaryVariable.setContentLength(fileInfo.getContentLength());
-			
+
 			if (binaryVariable.getDescription() == null)
 				binaryVariable.setDescription(fileName);
 		} catch (Exception e) {
@@ -194,7 +196,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			throw new RuntimeException(message, e);
 		}
 	}
-	
+
 	protected String convertToJSON(BinaryVariable binVar) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
 		xstream.alias(BINARY_VARIABLE, BinaryVariableImpl.class);
@@ -202,34 +204,38 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		String jsonStr = xstream.toXML(binVar);
 		return jsonStr;
 	}
-	
+
+	@Override
 	public List<String> convertToBinaryVariablesRepresentation(String jsonStr) {
 		return getBinVarJSONConverter().convertToObject(jsonStr);
 	}
-	
+
+	@Override
 	public BinaryVariable convertToBinaryVariable(String jsonStr) {
 		return getBinVarJSONConverter().convertToObject(jsonStr);
 	}
-	
+
+	@Override
 	public Map<String, Object> resolveBinaryVariables(Map<String, Object> variables) {
-		
+
 		// TODO: shouldn't even be needed
 		return null;
 	}
-	
+
+	@Override
 	public List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables) {
 		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
-		
+
 		for (Entry<String, Object> entry : variables.entrySet()) {
 			Object val = entry.getValue();
-			
+
 			if (val == null)
 				continue;
-			
+
 			Variable variable = Variable.parseDefaultStringRepresentation(entry.getKey());
 			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
 				JSONUtil json = getBinVarJSONConverter();
-				
+
 				Collection<String> binVarsInJSON;
 				if (val instanceof String) {
 					binVarsInJSON = json.convertToObject(String.valueOf(val));
@@ -238,48 +244,49 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					Collection<String> f = (Collection<String>) val;
 					binVarsInJSON = f;
 				}
-				
+
 				for (String binVarJSON : binVarsInJSON) {
 					try {
 						BinaryVariable binaryVariable = (BinaryVariable) json.convertToObject(binVarJSON);
-						
+
 						if (binaryVariable != null)
 							binaryVars.add(binaryVariable);
 						else {
 							LOGGER.log(Level.WARNING, "Null returned from json.convertToObject by json="+ binVarJSON+ ". All json expression = "+ binVarsInJSON);
 						}
-						
+
 					} catch (StreamException e) {
 						LOGGER.log(Level.WARNING, "Exception while parsing binary variable json=" + binVarJSON);
 					}
 				}
 			}
 		}
-		
+
 		return binaryVars;
 	}
-	
+
 	private String getDecodedUri(String uri) {
 		if (uri == null) {
 			return null;
 		}
-		
+
 		try {
 			return URLDecoder.decode(uri, CoreConstants.ENCODING_UTF8);
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.log(Level.WARNING, "Error while decoding: " + uri, e);
 		}
-		
+
 		return null;
 	}
-	
+
+	@Override
 	public InputStream getBinaryVariableContent(BinaryVariable variable) {
 		if (!STORAGE_TYPE.equals(variable.getStorageType()))
 			throw new IllegalArgumentException("Unsupported binary variable storage type: " + variable.getStorageType());
-		
+
 		try {
 			IWSlideService slideService = getIWSlideService();
-			
+
 			String fileUri = variable.getIdentifier();
 			InputStream stream = slideService.getInputStream(fileUri);
 			if (stream == null) {
@@ -288,7 +295,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				if (stream == null) {
 					LOGGER.warning("Input stream can not be opened to: " + fileUri + " nor to decoded path: " + decodedFileUri +
 							". Will try to retrieve WebdavResource");
-					
+
 					WebdavResource res = null;
 					try {
 						res = slideService.getWebdavExtendedResource(fileUri, slideService.getRootUserCredentials(), false);
@@ -324,7 +331,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			}
 			if (stream == null)
 				stream = getFromURL(slideService, fileUri);
-			
+
 			if (stream == null)
 				LOGGER.severe("Unable to get input stream for resource: " + fileUri);
 			return stream;
@@ -333,7 +340,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			return null;
 		}
 	}
-	
+
 	private InputStream getFromURL(IWSlideService slideService, String fileUri) {
 		String link = null;
 		try {
@@ -353,10 +360,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		}
 		return null;
 	}
-	
+
 	private WebdavResource getResource(BinaryVariable variable, IWSlideService slideService) {
 		LOGGER.warning("No webdav resource found for path provided: " + variable.getIdentifier() + ". Will try to remove non-Latin letters to resolve the resource");
-		
+
 		WebdavResource res = null;
 		try {
 			char[] exceptions = new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '/'};
@@ -377,14 +384,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				LOGGER.warning("No files found in the folder: " + folder);
 				return null;
 			}
-			
+
 			boolean resourceFound = false;
 			List<?> attachmentsInFolder = Collections.list(attachments);
 			for (Iterator<?> attachmentsIter = attachmentsInFolder.iterator(); (attachmentsIter.hasNext() && !resourceFound);) {
 				Object tmp = attachmentsIter.next();
 				if (!(tmp instanceof WebdavResource))
 					continue;
-				
+
 				res = (WebdavResource) tmp;
 				String attachmentPath = StringHandler.stripNonRomanCharacters(res.getPath(), exceptions);
 				resourceFound = attachmentPath.endsWith(fileNameInEnglish) || attachmentsInFolder.size() == 1;
@@ -394,7 +401,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					String[] pathParts = attachmentPath.split(CoreConstants.MINUS);
 					if (ArrayUtil.isEmpty(fileParts) || ArrayUtil.isEmpty(pathParts) || fileParts.length != pathParts.length)
 						continue;
-					
+
 					int sameParts = 0;
 					for (int i = 0; i < fileParts.length; i++) {
 						if (fileParts[i].contains(pathParts[i]) || pathParts[i].contains(fileParts[i]))
@@ -410,17 +417,18 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Unable to resolve resource for: " + variable.getIdentifier(), e);
 		}
-		
+
 		return res;
 	}
-	
+
+	@Override
 	public Object getBinaryVariablePersistentResource(BinaryVariable variable) {
 		if (!STORAGE_TYPE.equals(variable.getStorageType()))
 			throw new IllegalArgumentException("Unsupported binary variable storage type: "+ variable.getStorageType());
-		
+
 		try {
 			IWSlideService slideService = getIWSlideService();
-			
+
 			WebdavResource res = null;
 			try {
 				res = slideService.getWebdavResourceAuthenticatedAsRoot(variable.getIdentifier());
@@ -429,17 +437,17 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			}
 			if (res != null && res.exists())
 				return res;
-			
+
 			res = getResource(variable, slideService);
-			
+
 			return res;
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
 		}
-		
+
 		return null;
 	}
-	
+
 	protected IWSlideService getIWSlideService() {
 		try {
 			return IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), IWSlideService.class);
@@ -447,21 +455,20 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			throw new IBORuntimeException(e);
 		}
 	}
-	
+
 	public FileURIHandlerFactory getFileURIHandlerFactory() {
 		return fileURIHandlerFactory;
 	}
-	
-	public void setFileURIHandlerFactory(
-	        FileURIHandlerFactory fileURIHandlerFactory) {
+
+	public void setFileURIHandlerFactory(FileURIHandlerFactory fileURIHandlerFactory) {
 		this.fileURIHandlerFactory = fileURIHandlerFactory;
 	}
-	
+
 	private JSONUtil getBinVarJSONConverter() {
 		Map<String, Class<?>> binVarAliasMap = new HashMap<String, Class<?>>(2);
 		binVarAliasMap.put(BINARY_VARIABLE, BinaryVariableImpl.class);
 		binVarAliasMap.put(VARIABLE, Variable.class);
-		
+
 		JSONUtil json = new JSONUtil(binVarAliasMap);
 		return json;
 	}

@@ -94,11 +94,13 @@ import java.util.List;
  * @version 1.0.0 2012.01.31
  * @author martynas
  */
-public class VariableQuerierData {
+public class VariableQuerierData implements Serializable {
 
-	private String name = null;
+	private static final long serialVersionUID = 954452096066080568L;
+
+	private String name = null, searchExpression = null;
 	private List<Serializable> values = null;
-	private String searchExpression = null;
+	private boolean flexible = Boolean.TRUE;
 
 	/**
 	 * @param name same as {@link BPMProcessVariable#getName()}.
@@ -118,8 +120,7 @@ public class VariableQuerierData {
 	 * @param searchExpression same as
 	 * {@link BPMProcessVariable#getExpression()}.
 	 */
-	public VariableQuerierData(String name, List<Serializable> value,
-			String searchExpression) {
+	public VariableQuerierData(String name, List<Serializable> value, String searchExpression) {
 		this(name, value);
 		this.searchExpression = searchExpression;
 	}
@@ -178,8 +179,16 @@ public class VariableQuerierData {
 		this.values = values;
 	}
 
+	public boolean isFlexible() {
+		return flexible;
+	}
+
+	public void setFlexible(boolean flexible) {
+		this.flexible = flexible;
+	}
+
 	@Override
 	public String toString() {
-		return getName() + " values: " + getValues() + ", search expression: " + getSearchExpression();
+		return getName() + " values: " + getValues() + ", search expression: " + getSearchExpression() + ", flexible: " + isFlexible();
 	}
 }
