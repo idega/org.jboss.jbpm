@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import com.idega.data.SimpleQuerier;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.ListUtil;
 
@@ -45,12 +46,14 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 			input = new ByteArrayInputStream(bytes);
 			objectInput = new ObjectInputStream(input);
 			realValue = objectInput.readObject();
-			if (realValue instanceof Serializable) {
+			if (realValue instanceof Serializable)
 				return (Serializable) realValue;
-			}
 		} catch (Exception e) {
-			LOGGER.warning("Couldn't deserialize stream (made from bytes: " + (bytes == null ? "not provided" : ("length: " + bytes.length +
-					", representation: '" + new String(bytes))) + "'). Returning empty String");
+			String message = "Couldn't deserialize stream (made from bytes: " + (bytes == null ? "not provided" : ("length: " +
+					bytes.length +	", representation: '" + new String(bytes))) + "'). Returning empty String. Variable ID: " + getId() +
+					", process instance ID: " + getProcessInstanceId();
+			LOGGER.log(Level.WARNING, message, e);
+			CoreUtil.sendExceptionNotification(message, e);
 		} finally {
 			IOUtil.close(objectInput);
 			IOUtil.close(input);

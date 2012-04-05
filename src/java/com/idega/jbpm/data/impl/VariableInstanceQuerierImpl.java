@@ -1369,6 +1369,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		if (ListUtil.isEmpty(data))
 			return;
 
+		Map<Number, List<byte[]>> bytesForVariables = new HashMap<Number, List<byte[]>>();
 		for (Serializable[] info: data) {
 			if (ArrayUtil.isEmpty(info) || info.length == 1)
 				continue;
@@ -1380,6 +1381,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			else
 				continue;
 
+			List<byte[]> existingBytes = bytesForVariables.get(id);
+			if (existingBytes == null) {
+				existingBytes = new ArrayList<byte[]>();
+				bytesForVariables.put(id, existingBytes);
+			}
+
 			byte[] bytes = new byte[(info.length - 1) * 1024];
 			int pos = 0;
 			for (int i = 1; i < info.length; i++) {
@@ -1387,10 +1394,29 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				System.arraycopy(tmp, 0, bytes, pos, tmp.length);
 				pos += tmp.length;
 			}
+			existingBytes.add(bytes);
+		}
 
+		for (Number id: bytesForVariables.keySet()) {
 			VariableByteArrayInstance var = variables.get(id);
 			if (var == null)
 				continue;
+
+			List<byte[]> values = bytesForVariables.get(id);
+			if (ListUtil.isEmpty(values))
+				continue;
+
+			byte[] bytes = null;
+			if (values.size() > 1) {
+				int pos = 0;
+				bytes = new byte[values.size() * 1024];
+				for (Iterator<byte[]> it = values.iterator(); it.hasNext();) {
+					byte[] tmp = it.next();
+					System.arraycopy(tmp, 0, bytes, pos, tmp.length);
+					pos += tmp.length;
+				}
+			} else
+				bytes = values.get(0);
 
 			var.setValue(bytes);
 		}
@@ -1835,18 +1861,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private Map<String, VariableQuerierData> getConvertedData(Map<String, List<Serializable>> activeVariables){
-		if (MapUtil.isEmpty(activeVariables)) {
+		if (MapUtil.isEmpty(activeVariables))
 			return null;
-		}
 
-		Map<String, VariableQuerierData> convertedVariables =
-			new HashMap<String, VariableQuerierData>();
+		Map<String, VariableQuerierData> convertedVariables = new HashMap<String, VariableQuerierData>();
 
-		for (String key: activeVariables.keySet()) {
-
-			convertedVariables.put(key, new VariableQuerierData(key,
-					activeVariables.get(key)));
-		}
+		for (String key: activeVariables.keySet())
+			convertedVariables.put(key, new VariableQuerierData(key, activeVariables.get(key)));
 
 		return convertedVariables;
 	}
