@@ -872,11 +872,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			boolean selectProcessInstanceId,
 			boolean mirrow) {
 
-		if (ListUtil.isEmpty(data)) {
-			LOGGER.warning("Query data are not provided");
-			return Collections.emptyList();
-		}
-
 		boolean anyStringColumn = false;
 		boolean useBinding = true;
 		String columnPrefix = "var";
@@ -888,110 +883,112 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		Map<String, VariableInstanceType> types = new HashMap<String, VariableInstanceType>();
 		Map<String, String> fromParts = new HashMap<String, String>();
 
-		for (Iterator<VariableQuerierData> queryPartIter = data.iterator(); queryPartIter.hasNext();) {
-			VariableQuerierData queryPart = queryPartIter.next();
+		if (!ListUtil.isEmpty(data)) {
+			for (Iterator<VariableQuerierData> queryPartIter = data.iterator(); queryPartIter.hasNext();) {
+				VariableQuerierData queryPart = queryPartIter.next();
 
-			String variableName = queryPart.getName();
-			List<Serializable> values = queryPart.getValues();
-			if (ListUtil.isEmpty(values)) {
-				LOGGER.warning("Values for variable '" + variableName + "' are not provided, skipping querying");
-				return Collections.emptyList();
-			}
-
-			Serializable value = values.iterator().next();
-			if (value == null) {
-				LOGGER.warning("Value for variable '" + variableName + "' must be specified!");
-				return Collections.emptyList();
-			}
-
-			if (currentColumnPrefix == null)
-				if (data.size() == 1 && ListUtil.isEmpty(variablesWithoutValues)) {
-					useBinding = false;
-					currentColumnPrefix = columnPrefix;
-				} else
-					currentColumnPrefix = "v".concat(currentColumnPrefix == null ? columnPrefix : currentColumnPrefix);
-			else
-				currentColumnPrefix = "v".concat(currentColumnPrefix);
-
-			String currentColumnName = currentColumnPrefix.concat(CoreConstants.DOT);
-
-			if (values instanceof Collection<?>	&& (
-					variableName.startsWith(VariableInstanceType.LIST.getPrefix()) ||
-					variableName.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix()) ||
-					variableName.startsWith(VariableInstanceType.OBJ_LIST.getPrefix()))) {
-
-				//	Binary data, need specific handling
-				List<Serializable[]> tmpResults = getDataByVariablesByNameAndValuesAndProcessDefinitions(variableName, procDefNames,
-						queryPart.getValues(), procInstIds);
-
-				if (binaryResults == null)
-					binaryResults = new ArrayList<Serializable[]>();
-
-				if (!ListUtil.isEmpty(tmpResults))
-					binaryResults.addAll(tmpResults);
-
-				continue;
-
-			//	Determining variable type
-			} else if (value instanceof String) {
-				anyStringColumn = true;
-				currentColumnName = getStringValueColumn(currentColumnPrefix, mirrow);
-				currentColumnName = mirrow ? currentColumnName : getSubstring(currentColumnName);
-				types.put(currentColumnPrefix, VariableInstanceType.STRING);
-			} else if (value instanceof Long) {
-				currentColumnName = currentColumnName.concat("LONGVALUE_");
-				types.put(currentColumnPrefix, VariableInstanceType.LONG);
-			} else if (value instanceof Double) {
-				currentColumnName = currentColumnName.concat("DOUBLEVALUE_");
-				types.put(currentColumnPrefix, VariableInstanceType.DOUBLE);
-			} else if (value instanceof Timestamp) {
-				currentColumnName = currentColumnName.concat("DATEVALUE_");
-				types.put(currentColumnPrefix, VariableInstanceType.DATE);
-			} else {
-				LOGGER.warning("Unsupported type of value: " + value + ", "	+ value.getClass());
-				return Collections.emptyList();
-			}
-
-			if (values.size() > 1) {
-				//	Multiple values
-				if (currentColumnName.indexOf("string") == -1) {
-					//	Not string values
-					valuesToSelect.append(currentColumnName).append(" in (");
-					for (Iterator<Serializable> valuesIter = values.iterator();	valuesIter.hasNext();) {
-						valuesToSelect.append(valuesIter.next());
-
-						if (valuesIter.hasNext())
-							valuesToSelect.append(", ");
-					}
-					valuesToSelect.append(") ");
-				} else {
-					//	String values
-					valuesToSelect.append("(");
-					for (Iterator<Serializable> valuesIter = values.iterator(); valuesIter.hasNext();) {
-						valuesToSelect.append(getColumnAndValueExpression(currentColumnName, valuesIter.next(), queryPart.getSearchExpression(),
-								queryPart.isFlexible()));
-
-						if (valuesIter.hasNext())
-							valuesToSelect.append(" or ");
-					}
-					valuesToSelect.append(")");
+				String variableName = queryPart.getName();
+				List<Serializable> values = queryPart.getValues();
+				if (ListUtil.isEmpty(values)) {
+					LOGGER.warning("Values for variable '" + variableName + "' are not provided, skipping querying");
+					return Collections.emptyList();
 				}
-			} else {
-				//	Single value
-				valuesToSelect.append(getColumnAndValueExpression(currentColumnName, values.get(0), queryPart.getSearchExpression(),
-						queryPart.isFlexible()));
+
+				Serializable value = values.iterator().next();
+				if (value == null) {
+					LOGGER.warning("Value for variable '" + variableName + "' must be specified!");
+					return Collections.emptyList();
+				}
+
+				if (currentColumnPrefix == null)
+					if (data.size() == 1 && ListUtil.isEmpty(variablesWithoutValues)) {
+						useBinding = false;
+						currentColumnPrefix = columnPrefix;
+					} else
+						currentColumnPrefix = "v".concat(currentColumnPrefix == null ? columnPrefix : currentColumnPrefix);
+				else
+					currentColumnPrefix = "v".concat(currentColumnPrefix);
+
+				String currentColumnName = currentColumnPrefix.concat(CoreConstants.DOT);
+
+				if (values instanceof Collection<?>	&& (
+						variableName.startsWith(VariableInstanceType.LIST.getPrefix()) ||
+						variableName.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix()) ||
+						variableName.startsWith(VariableInstanceType.OBJ_LIST.getPrefix()))) {
+
+					//	Binary data, need specific handling
+					List<Serializable[]> tmpResults = getDataByVariablesByNameAndValuesAndProcessDefinitions(variableName, procDefNames,
+							queryPart.getValues(), procInstIds);
+
+					if (binaryResults == null)
+						binaryResults = new ArrayList<Serializable[]>();
+
+					if (!ListUtil.isEmpty(tmpResults))
+						binaryResults.addAll(tmpResults);
+
+					continue;
+
+				//	Determining variable type
+				} else if (value instanceof String) {
+					anyStringColumn = true;
+					currentColumnName = getStringValueColumn(currentColumnPrefix, mirrow);
+					currentColumnName = mirrow ? currentColumnName : getSubstring(currentColumnName);
+					types.put(currentColumnPrefix, VariableInstanceType.STRING);
+				} else if (value instanceof Long) {
+					currentColumnName = currentColumnName.concat("LONGVALUE_");
+					types.put(currentColumnPrefix, VariableInstanceType.LONG);
+				} else if (value instanceof Double) {
+					currentColumnName = currentColumnName.concat("DOUBLEVALUE_");
+					types.put(currentColumnPrefix, VariableInstanceType.DOUBLE);
+				} else if (value instanceof Timestamp) {
+					currentColumnName = currentColumnName.concat("DATEVALUE_");
+					types.put(currentColumnPrefix, VariableInstanceType.DATE);
+				} else {
+					LOGGER.warning("Unsupported type of value: " + value + ", "	+ value.getClass());
+					return Collections.emptyList();
+				}
+
+				if (values.size() > 1) {
+					//	Multiple values
+					if (currentColumnName.indexOf("string") == -1) {
+						//	Not string values
+						valuesToSelect.append(currentColumnName).append(" in (");
+						for (Iterator<Serializable> valuesIter = values.iterator();	valuesIter.hasNext();) {
+							valuesToSelect.append(valuesIter.next());
+
+							if (valuesIter.hasNext())
+								valuesToSelect.append(", ");
+						}
+						valuesToSelect.append(") ");
+					} else {
+						//	String values
+						valuesToSelect.append("(");
+						for (Iterator<Serializable> valuesIter = values.iterator(); valuesIter.hasNext();) {
+							valuesToSelect.append(getColumnAndValueExpression(currentColumnName, valuesIter.next(), queryPart.getSearchExpression(),
+									queryPart.isFlexible()));
+
+							if (valuesIter.hasNext())
+								valuesToSelect.append(" or ");
+						}
+						valuesToSelect.append(")");
+					}
+				} else {
+					//	Single value
+					valuesToSelect.append(getColumnAndValueExpression(currentColumnName, values.get(0), queryPart.getSearchExpression(),
+							queryPart.isFlexible()));
+				}
+
+				valuesToSelect.append(" and ").append(currentColumnPrefix).append(".name_ = '").append(variableName).append("' ");
+				if (variablesWithoutValues == null)
+					variablesWithoutValues = new ArrayList<String>();
+				if (!variablesWithoutValues.contains(variableName))
+					variablesWithoutValues.add(variableName);
+
+				fromParts.put(currentColumnPrefix, currentColumnName);
+
+				if (queryPartIter.hasNext())
+					valuesToSelect.append(" and ");
 			}
-
-			valuesToSelect.append(" and ").append(currentColumnPrefix).append(".name_ = '").append(variableName).append("' ");
-			if (variablesWithoutValues == null)
-				variablesWithoutValues = new ArrayList<String>();
-			if (!variablesWithoutValues.contains(variableName))
-				variablesWithoutValues.add(variableName);
-
-			fromParts.put(currentColumnPrefix, currentColumnName);
-
-			if (queryPartIter.hasNext())
-				valuesToSelect.append(" and ");
 		}
 		allValuesClause = valuesToSelect.toString();
 		if (!StringUtil.isEmpty(allValuesClause))
