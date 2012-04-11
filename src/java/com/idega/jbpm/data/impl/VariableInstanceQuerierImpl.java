@@ -1978,9 +1978,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						cachedVariables.remove(name);
 					}
 				}
-			} else {
+			} else
 				variablesToQuery.addAll(activeVariables.keySet());
-			}
 		}
 
 		Map<Long, Map<String, VariableInstanceInfo>> results = new HashMap<Long, Map<String, VariableInstanceInfo>>();
@@ -2009,13 +2008,20 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			//	Everything was found in cache or nothing else needed to query
 			return results;
 		else if (!MapUtil.isEmpty(activeVariables)) {
-			variablesToQuery.addAll(activeVariables.keySet());
+			for (String variableName: activeVariables.keySet()) {
+				if (variablesToQuery.contains(variableName))
+					continue;
+
+				if (useCachedVariables && cachedVariables.containsKey(variableName))
+					continue;
+
+				variablesToQuery.add(variableName);
+			}
 		}
 
 		Map<String, VariableQuerierData> variablesAndValuesToQuery = new HashMap<String, VariableQuerierData>();
-		for (String variableToQuery: variablesToQuery) {
+		for (String variableToQuery: variablesToQuery)
 			variablesAndValuesToQuery.put(variableToQuery, activeVariables.get(variableToQuery));
-		}
 
 		Collection<VariableInstanceInfo> info = null;
 		//	Querying the DB for variables
