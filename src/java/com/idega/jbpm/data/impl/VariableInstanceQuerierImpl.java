@@ -2000,8 +2000,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 			}
 
-			//	Must query by process instance IDs that were found by cached variables
-			procInstIds = new ArrayList<Long>(results.keySet());
+			if (ListUtil.isEmpty(procInstIds))
+				//	Must query by process instance IDs that were found by cached variables
+				procInstIds = new ArrayList<Long>(results.keySet());
+			else {
+				//	Restricting a set of process instance IDs
+				procInstIds.retainAll(results.keySet());
+				if (ListUtil.isEmpty(procInstIds))
+					return Collections.emptyMap();
+			}
 		}
 
 		if (useCachedVariables && ListUtil.isEmpty(variablesToQuery) && ListUtil.isEmpty(variables))
