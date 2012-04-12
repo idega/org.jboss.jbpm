@@ -1848,13 +1848,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			List<Long> procInstIds,
 			Map<String, Boolean> flexibleVariables) {
 
-		if (MapUtil.isEmpty(activeVariables)) {
+		if (MapUtil.isEmpty(activeVariables))
 			return null;
-		}
 
-		return getVariablesByNamesAndValuesAndExpressionsByProcesses(
-				getConvertedData(activeVariables), variables, procDefNames, procInstIds,
-				flexibleVariables);
+		Map<String, VariableQuerierData> queryParams = getConvertedData(activeVariables);
+		return getVariablesByNamesAndValuesAndExpressionsByProcesses(queryParams, variables, procDefNames, procInstIds, flexibleVariables);
 	}
 
 	private Map<String, VariableQuerierData> getConvertedData(Map<String, List<Serializable>> activeVariables){
