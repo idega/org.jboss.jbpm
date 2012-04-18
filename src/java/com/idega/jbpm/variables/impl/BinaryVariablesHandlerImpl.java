@@ -73,7 +73,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	 * stores binary file if needed, converts to binary variable json format, and puts to variables
 	 * return variables ready map to be stored to process variables map
 	 */
-	@Override
 	public Map<String, Object> storeBinaryVariables(long taskInstanceId, Map<String, Object> variables) {
 		Map<String, Object> newVars = new HashMap<String, Object>(variables);
 
@@ -136,7 +135,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return path.concat(CoreConstants.SLASH).concat(fileName);
 	}
 
-	@Override
 	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
 		String date = IWTimestamp.RightNow().getDateString(IWTimestamp.DATE_PATTERN);
 		String path = BPM_UPLOADED_FILES_PATH.concat(date).concat(CoreConstants.SLASH).concat(String.valueOf(binaryVariable.getTaskInstanceId())).concat("/files");
@@ -205,24 +203,20 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return jsonStr;
 	}
 
-	@Override
 	public List<String> convertToBinaryVariablesRepresentation(String jsonStr) {
 		return getBinVarJSONConverter().convertToObject(jsonStr);
 	}
 
-	@Override
 	public BinaryVariable convertToBinaryVariable(String jsonStr) {
 		return getBinVarJSONConverter().convertToObject(jsonStr);
 	}
 
-	@Override
 	public Map<String, Object> resolveBinaryVariables(Map<String, Object> variables) {
 
 		// TODO: shouldn't even be needed
 		return null;
 	}
 
-	@Override
 	public List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables) {
 		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
 
@@ -279,7 +273,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return null;
 	}
 
-	@Override
 	public InputStream getBinaryVariableContent(BinaryVariable variable) {
 		if (!STORAGE_TYPE.equals(variable.getStorageType()))
 			throw new IllegalArgumentException("Unsupported binary variable storage type: " + variable.getStorageType());
@@ -421,7 +414,6 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return res;
 	}
 
-	@Override
 	public Object getBinaryVariablePersistentResource(BinaryVariable variable) {
 		if (!STORAGE_TYPE.equals(variable.getStorageType()))
 			throw new IllegalArgumentException("Unsupported binary variable storage type: "+ variable.getStorageType());
