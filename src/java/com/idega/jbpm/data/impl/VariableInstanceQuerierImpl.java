@@ -985,6 +985,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				valuesToSelect.append(" and ").append(currentColumnPrefix).append(".name_ = '").append(variableName).append("' ");
 				if (variablesWithoutValues == null)
 					variablesWithoutValues = new ArrayList<String>();
+				else
+					variablesWithoutValues = new ArrayList<String>(variablesWithoutValues);
 				if (!variablesWithoutValues.contains(variableName))
 					variablesWithoutValues.add(variableName);
 
