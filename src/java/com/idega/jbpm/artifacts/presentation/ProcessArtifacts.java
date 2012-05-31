@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -744,6 +746,15 @@ public class ProcessArtifacts {
 			return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger(), loggedInUser);
 	}
 	
+	public Collection<User> getUsersConnectedToProces(ProcessInstanceW piw ){
+		List<User> usersConnectedToProcess = piw.getUsersConnectedToProcess();
+		if(ListUtil.isEmpty(usersConnectedToProcess)){
+			return Collections.emptyList();
+		}
+		Set<User> users = new HashSet<User>(usersConnectedToProcess);
+		return users;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public Document getProcessContactsList(ProcessArtifactsParamsBean params) {
 		if (params == null) {
@@ -759,24 +770,16 @@ public class ProcessArtifacts {
 		        .getProcessManagerByProcessInstanceId(processInstanceId)
 		        .getProcessInstance(processInstanceId);
 		
-		Collection<User> peopleConnectedToProcess = null;
+		Collection<User> uniqueUsers = Collections.emptyList();
 		if (params.isShowOnlyCreatorInContacts()) {
 			User owner = piw.getOwner();
 			if (owner == null) {
 				LOGGER.warning("Owner was not found for process instance: " + piw.getProcessInstanceId());
 			} else {
-				peopleConnectedToProcess = Arrays.asList(owner);
+				uniqueUsers = Arrays.asList(owner);
 			}
 		} else {
-			peopleConnectedToProcess = piw.getUsersConnectedToProcess();
-		}
-		List<User> uniqueUsers = new ArrayList<User>();
-		if (peopleConnectedToProcess != null) {
-			for (User user : peopleConnectedToProcess) {
-				if (!uniqueUsers.contains(user)) {
-					uniqueUsers.add(user);
-				}
-			}
+			uniqueUsers = getUsersConnectedToProces(piw);//piw.getUsersConnectedToProcess();
 		}
 		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
