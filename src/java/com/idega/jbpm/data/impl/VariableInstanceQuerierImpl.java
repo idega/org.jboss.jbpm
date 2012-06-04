@@ -1490,7 +1490,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private String getSubstring(String column) {
-		return "substr(".concat(column).concat(", 1, 255)");
+		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("substring_jbpm_vars", Boolean.FALSE))
+			return "substr(".concat(column).concat(", 1, 255)");
+		return column;
 	}
 
 	/**
