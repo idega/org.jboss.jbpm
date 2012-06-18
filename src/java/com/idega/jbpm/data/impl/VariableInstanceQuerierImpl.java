@@ -1705,8 +1705,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		Collection<VariableInstanceInfo> vars = getVariablesByNames(variablesNames);
-		if (vars == null)
+		if (vars == null) {
+			LOGGER.warning("No data was found for variables: " + variablesNames);
 			return;
+		}
 
 		Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
 		for (VariableInstanceInfo info : vars) {
@@ -1871,8 +1873,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			List<Long> procInstIds,
 			Map<String, Boolean> flexibleVariables) {
 
-		if (MapUtil.isEmpty(activeVariables))
+		if (MapUtil.isEmpty(activeVariables)) {
+			LOGGER.warning("There are no criterias provided for the variables, terminating data mining");
 			return null;
+		}
 
 		Map<String, VariableQuerierData> queryParams = getConvertedData(activeVariables);
 		return getVariablesByNamesAndValuesAndExpressionsByProcesses(queryParams, variables, procDefNames, procInstIds, flexibleVariables);
@@ -2002,6 +2006,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			} else
 				variablesToQuery.addAll(activeVariables.keySet());
 		}
+		int numberOfCachedVariables = cachedVariables.size();
 
 		Map<Long, Map<String, VariableInstanceInfo>> results = new HashMap<Long, Map<String, VariableInstanceInfo>>();
 
@@ -2021,21 +2026,39 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 			}
 
-			if (ListUtil.isEmpty(procInstIds))
+			List<Long> idsToRemove = new ArrayList<Long>();
+			for (Long id: results.keySet()) {
+				Map<String, VariableInstanceInfo> cachedData = results.get(id);
+				if (MapUtil.isEmpty(cachedData) || cachedData.keySet().size() != numberOfCachedVariables)
+					idsToRemove.add(id);
+			}
+			for (Long id: idsToRemove)
+				results.remove(id);
+
+			if (numberOfCachedVariables == activeVariables.size() && MapUtil.isEmpty(results))
+				return null;
+
+			if (ListUtil.isEmpty(procInstIds)) {
+				if (MapUtil.isEmpty(results))
+					return null;	//	Nothing was found in the cache
+
 				//	Must query by process instance IDs that were found by cached variables
 				procInstIds = new ArrayList<Long>(results.keySet());
-			else {
+			} else {
 				//	Restricting a set of process instance IDs
 				procInstIds.retainAll(results.keySet());
-				if (ListUtil.isEmpty(procInstIds))
+				if (ListUtil.isEmpty(procInstIds)) {
+					LOGGER.info("There are no results after initial data set (" + procInstIds + ") was restricted by the cached data " +
+							results.keySet());
 					return Collections.emptyMap();
+				}
 			}
 		}
 
-		if (useCachedVariables && ListUtil.isEmpty(variablesToQuery) && ListUtil.isEmpty(variables))
+		if (useCachedVariables && ListUtil.isEmpty(variablesToQuery) && ListUtil.isEmpty(variables)) {
 			//	Everything was found in cache or nothing else needed to query
 			return results;
-		else if (!MapUtil.isEmpty(activeVariables)) {
+		} else if (!MapUtil.isEmpty(activeVariables)) {
 			for (String variableName: activeVariables.keySet()) {
 				if (variablesToQuery.contains(variableName))
 					continue;
