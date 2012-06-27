@@ -1992,7 +1992,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						if (info == null)
 							continue;
 
-						cachedVariables.put(name, info);
+						List<VariableInstanceInfo> existingInfo = cachedVariables.get(name);
+						if (existingInfo != null) {
+							existingInfo.addAll(info);
+							cachedVariables.put(name, existingInfo);
+						} else
+							cachedVariables.put(name, info);
 					}
 
 					List<VariableInstanceInfo> cached = cachedVariables.get(name);
