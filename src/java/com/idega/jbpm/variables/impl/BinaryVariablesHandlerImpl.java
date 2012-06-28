@@ -46,6 +46,7 @@ import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
+import com.idega.util.ListUtil;
 import com.idega.util.StringHandler;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
@@ -237,14 +238,23 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
 				JSONUtil json = getBinVarJSONConverter();
 
-				Collection<String> binVarsInJSON;
+				Collection<String> binVarsInJSON = null;
 				if (val instanceof String) {
-					binVarsInJSON = json.convertToObject(String.valueOf(val));
+					try {
+						binVarsInJSON = json.convertToObject(String.valueOf(val));
+					} catch (Exception e) {
+						String message = "Error converting '" + val + "' with " + json.getClass().getName() + " into the object (Collection.class)";
+						LOGGER.log(Level.WARNING, message, e);
+						CoreUtil.sendExceptionNotification(message, e);
+					}
 				} else {
 					@SuppressWarnings("unchecked")
 					Collection<String> f = (Collection<String>) val;
 					binVarsInJSON = f;
 				}
+
+				if (ListUtil.isEmpty(binVarsInJSON))
+					return binaryVars;
 
 				for (String binVarJSON : binVarsInJSON) {
 					try {
