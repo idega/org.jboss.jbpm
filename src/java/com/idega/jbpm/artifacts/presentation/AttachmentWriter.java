@@ -15,6 +15,8 @@ import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
 import com.idega.jbpm.exe.ProcessConstants;
+import com.idega.jbpm.identity.BPMUser;
+import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
@@ -41,12 +43,29 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 	@Autowired
 	private VariablesHandler variablesHandler;
 
+	@Autowired
+	private BPMUserFactory bpmUserFactory;
+
+	private BPMUserFactory getBPMUserFactory() {
+		if (bpmUserFactory == null)
+			ELUtil.getInstance().autowire(this);
+		return bpmUserFactory;
+	}
+
 	@Override
 	public void init(HttpServletRequest req, IWContext iwc) {
-		binaryVariable = iwc.isLoggedOn() ? resolveBinaryVariable(iwc) : null;
+		if (iwc.isLoggedOn())
+			resolveBinaryVariable(iwc);
+		else {
+			BPMUser bpmUser = getBPMUserFactory().getCurrentBPMUser();
+			if (bpmUser == null)
+				LOGGER.warning("User is not logged in! Also, BPM user can not be determined");
+			else
+				resolveBinaryVariable(iwc);
+		}
 
 		if (binaryVariable == null) {
-			LOGGER.log(Level.SEVERE, "Failed to resolve binary variable");
+			LOGGER.log(Level.SEVERE, "Failed to resolve binary variable. Probably user can not be identified");
 			return;
 		}
 
