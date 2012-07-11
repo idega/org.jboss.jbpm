@@ -1349,9 +1349,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					variables.put(id, variable);
 				}
 			} else if (value != null) {
-				Serializable tmp = variable.getValue();
 				variable.setValue(value);
-				LOGGER.info("Set new value (" + value + ") for variable " + variable + ". Previous value: " + tmp);	//	TODO
 			}
 		}
 
@@ -2075,19 +2073,25 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		for (String variableToQuery: variablesToQuery)
 			variablesAndValuesToQuery.put(variableToQuery, activeVariables.get(variableToQuery));
 
-		Collection<VariableInstanceInfo> info = null;
 		//	Querying the DB for variables
-		info = getProcessVariablesByNamesAndValues(variablesAndValuesToQuery, variables, ListUtil.isEmpty(procInstIds) ? procDefNames : null,
-						procInstIds, true, results.keySet(), flexibleVariables);
-
-		LOGGER.info("Results from DB:\n" + info);	//	TODO
+		 Collection<VariableInstanceInfo> info = getProcessVariablesByNamesAndValues(variablesAndValuesToQuery, variables,
+				 ListUtil.isEmpty(procInstIds) ? procDefNames : null, procInstIds, true, results.keySet(), flexibleVariables);
 
 		if (ListUtil.isEmpty(info))
 			return null;
 
-		//	Combining the cached results and the queried results
+		//	Making copy of cached process instance IDs
+		List<Long> cachedProcInstIds = MapUtil.isEmpty(results) ? null : new ArrayList<Long>(results.keySet());
+		//	Marking process instance IDs of queried data
+		Map<Long, Boolean> queriedIds = new HashMap<Long, Boolean>();
+
+		//	Combining cached results and queried results
 		for (VariableInstanceInfo varInfo: info) {
 			Long piId = varInfo.getProcessInstanceId();
+
+			queriedIds.put(piId, Boolean.TRUE);
+
+			//	Getting variables of a process
 			Map<String, VariableInstanceInfo> processVariables = results.get(piId);
 			if (processVariables == null) {
 				processVariables = new HashMap<String, VariableInstanceInfo>();
@@ -2097,10 +2101,24 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			if (varInfo.getValue() == null)
 				LOGGER.warning("There is no value for " + varInfo);
 			else
+				//	Adding variable info
 				processVariables.put(varInfo.getName(), varInfo);
 		}
 
-		LOGGER.info("Combined results:\n" + info);	//	TODO
+		if (!MapUtil.isEmpty(variablesAndValuesToQuery) && !MapUtil.isEmpty(queriedIds) && !ListUtil.isEmpty(cachedProcInstIds)) {
+			List<Long> idsToRemove = new ArrayList<Long>();
+
+			//	Checking if anything was found by criteria(s) in DB that was found in cache by other criteria(s)
+			for (Long piId: cachedProcInstIds) {
+				if (!queriedIds.containsKey(piId))
+					idsToRemove.add(piId);
+			}
+
+			if (!ListUtil.isEmpty(idsToRemove)) {
+				results.keySet().removeAll(idsToRemove);
+			}
+		}
+
 		return results;
 	}
 
