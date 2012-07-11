@@ -1289,11 +1289,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			String type = (String) dataSet[startValues];
 
 			if (id == null || name == null || type == null) {
-				LOGGER.warning("Unable to create variable from initial values ("
-						+ dataSet
-						+ "): ID: " + id
-						+ ", name: " + name
-						+ ", class: " + type);
+				LOGGER.warning("Unable to create variable from initial values (" + dataSet + "): ID: " + id	+ ", name: " + name	+ ", class: " + type);
 				continue;
 			}
 
@@ -1346,26 +1342,26 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 
 				if (variable == null) {
-					LOGGER.warning("Unkown variable instance with id: " + id + ", name: '" + name + "', type: '" + type + "' and value: " + value);
+					LOGGER.warning("Unkown variable with id: " + id + ", name: '" + name + "', type: '" + type + "' and value: " + value);
 				} else {
 					variable.setId(id.longValue());
 					variable.setProcessInstanceId(piId);
 					variables.put(id, variable);
 				}
 			} else if (value != null) {
+				Serializable tmp = variable.getValue();
 				variable.setValue(value);
+				LOGGER.info("Set new value (" + value + ") for variable " + variable + ". Previous value: " + tmp);	//	TODO
 			}
 		}
 
 		convertByteValues(variablesToConvert);
-		for (VariableByteArrayInstance byteVar: variablesToConvert.values()) {
+		for (VariableByteArrayInstance byteVar: variablesToConvert.values())
 			variables.put(byteVar.getId(), byteVar);
-		}
 
 		if (sort) {
 			List<VariableInstanceInfo> vars = new ArrayList<VariableInstanceInfo>(variables.values());
 			Collections.sort(vars, new VariableInstanceInfoComparator());
-
 			return vars;
 		}
 
@@ -2084,6 +2080,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		info = getProcessVariablesByNamesAndValues(variablesAndValuesToQuery, variables, ListUtil.isEmpty(procInstIds) ? procDefNames : null,
 						procInstIds, true, results.keySet(), flexibleVariables);
 
+		LOGGER.info("Results from DB:\n" + info);	//	TODO
+
 		if (ListUtil.isEmpty(info))
 			return null;
 
@@ -2095,9 +2093,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				processVariables = new HashMap<String, VariableInstanceInfo>();
 				results.put(piId, processVariables);
 			}
-			processVariables.put(varInfo.getName(), varInfo);
+
+			if (varInfo.getValue() == null)
+				LOGGER.warning("There is no value for " + varInfo);
+			else
+				processVariables.put(varInfo.getName(), varInfo);
 		}
 
+		LOGGER.info("Combined results:\n" + info);	//	TODO
 		return results;
 	}
 
