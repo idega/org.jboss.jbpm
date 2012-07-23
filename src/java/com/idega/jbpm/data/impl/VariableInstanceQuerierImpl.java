@@ -1022,7 +1022,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 							: CoreConstants.EMPTY
 		));
 
-		if (mirrow && useBinding && mirrows.size() > 0) {
+		if (mirrow && mirrows.size() > 0) {
 			parts.add(CoreConstants.COMMA);
 			for (Iterator<String> keysIter = mirrows.keySet().iterator(); keysIter.hasNext();) {
 				parts.add(CoreConstants.SPACE.concat(BPMVariableData.TABLE_NAME.concat(CoreConstants.SPACE)
