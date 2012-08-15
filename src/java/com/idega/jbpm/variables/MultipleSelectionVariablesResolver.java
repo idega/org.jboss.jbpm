@@ -21,6 +21,7 @@ import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.utils.JSONUtil;
 import com.idega.presentation.ui.DropdownMenu;
+import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
@@ -134,8 +135,20 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		return null;
 	}
 
-	public abstract String getIdKey();
-	public abstract String getValueKey();
+	public String getIdKey() {
+		return null;
+	}
+
+	public String getValueKey() {
+		return null;
+	}
+
+	public String getPresentation(BPMProcessVariable variable) {
+		if (variable == null || variable.getValue() == null)
+			return CoreConstants.MINUS;
+
+		return getPresentation(variable.getValue().toString());
+	}
 
 	protected VariableInstanceQuerier getVariablesQuerier() {
 		if (variablesQuerier == null)
@@ -170,9 +183,14 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	protected abstract String getNoValuesLocalizationKey();
 	protected abstract String getNoValuesDefaultString();
 
-	public abstract String getPresentation(BPMProcessVariable variable);
 	public abstract String getPresentation(String value);
-	public abstract String getPresentation(VariableInstanceInfo variable);
+
+	public String getPresentation(VariableInstanceInfo variable) {
+		if (variable == null || variable.getValue() == null)
+			return CoreConstants.MINUS;
+
+		return getPresentation(variable.getValue().toString());
+	}
 
 	public Collection<VariableInstanceInfo> getFinalSearchResult() {
 		return null;
