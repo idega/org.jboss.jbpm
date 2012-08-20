@@ -1,10 +1,11 @@
 package com.idega.jbpm.data.dao.impl;
 
-import java.sql.Date;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,10 +25,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.idega.block.process.data.CaseBMPBean;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.data.DatastoreInterface;
 import com.idega.data.OracleDatastoreInterface;
+import com.idega.data.SimpleQuerier;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.BPMContext;
@@ -49,6 +52,7 @@ import com.idega.jbpm.events.VariableCreatedEvent;
 import com.idega.jbpm.identity.Role;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
+import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
@@ -70,6 +74,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	@Autowired(required=false)
 	private VariableInstanceQuerier variablesQuerier;
 
+	@Override
 	public ViewTaskBind getViewTaskBind(long taskId, String viewType) {
 
 		@SuppressWarnings("unchecked")
@@ -81,6 +86,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return binds.isEmpty() ? null : binds.iterator().next();
 	}
 
+	@Override
 	public ViewTaskBind getViewTaskBindByTaskInstance(long taskInstanceId,
 	        String viewType) {
 
@@ -95,6 +101,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return binds.isEmpty() ? null : binds.iterator().next();
 	}
 
+	@Override
 	public List<ViewTaskBind> getViewTaskBindsByTaskId(long taskId) {
 
 		@SuppressWarnings("unchecked")
@@ -105,6 +112,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return binds;
 	}
 
+	@Override
 	public List<ViewTaskBind> getViewTaskBindsByTaskInstanceId(
 	        long taskInstanceId) {
 
@@ -116,6 +124,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return binds;
 	}
 
+	@Override
 	public ViewTaskBind getViewTaskBindByView(String viewId, String viewType) {
 
 		return getSingleResult(
@@ -124,6 +133,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		    new Param(ViewTaskBind.viewTypeParam, viewType));
 	}
 
+	@Override
 	public List<ViewTaskBind> getViewTaskBindsByTasksIds(
 	        Collection<Long> taskIds) {
 
@@ -135,6 +145,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return viewTaskBinds;
 	}
 
+	@Override
 	public Task getTaskFromViewTaskBind(ViewTaskBind viewTaskBind) {
 
 		return (Task) getEntityManager().createNamedQuery(
@@ -144,6 +155,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		            viewTaskBind.getTaskId()).getSingleResult();
 	}
 
+	@Override
 	public ProcessManagerBind getProcessManagerBind(String processName) {
 
 		ProcessManagerBind pmb = getSingleResult(
@@ -153,6 +165,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return pmb;
 	}
 
+	@Override
 	public List<Actor> getAllGeneralProcessRoles() {
 
 		@SuppressWarnings("unchecked")
@@ -162,6 +175,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return all;
 	}
 
+	@Override
 	public List<Actor> getProcessRoles(Collection<Long> actorIds) {
 
 		if (actorIds == null || actorIds.isEmpty())
@@ -175,6 +189,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return all;
 	}
 
+	@Override
 	@Transactional(readOnly = false)
 	public void updateAddGrpsToRole(Long roleActorId,
 	        Collection<String> selectedGroupsIds) {
@@ -223,6 +238,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			            nativeIdentitiesToRemove).executeUpdate();
 	}
 
+	@Override
 	public List<NativeIdentityBind> getNativeIdentities(
 	        long processRoleIdentityId) {
 
@@ -235,6 +251,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return binds;
 	}
 
+	@Override
 	public List<NativeIdentityBind> getNativeIdentities(
 	        Collection<Long> actorsIds, IdentityType identityType) {
 
@@ -247,6 +264,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return binds;
 	}
 
+	@Override
 	@Transactional(readOnly = false)
 	public void updateCreateProcessRoles(Collection<Role> rolesNames,
 	        Long processInstanceId) {
@@ -261,6 +279,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 	}
 
+	@Override
 	public List<Object[]> getProcessTasksViewsInfos(
 	        Collection<Long> processDefinitionsIds, String viewType) {
 
@@ -278,6 +297,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return viewsInfos;
 	}
 
+	@Override
 	public List<Actor> getProcessRoles(Collection<String> rolesNames,
 	        Long processInstanceId) {
 
@@ -288,6 +308,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return proles;
 	}
 
+	@Override
 	public List<ProcessInstance> getSubprocessInstancesOneLevel(
 	        long parentProcessInstanceId) {
 
@@ -299,11 +320,13 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return subprocesses;
 	}
 
+	@Override
 	public ProcessDefinition findLatestProcessDefinition(
 	        final String processName) {
 
 		return getBpmContext().execute(new JbpmCallback() {
 
+			@Override
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
 
 				return context.getGraphSession().findLatestProcessDefinition(
@@ -316,6 +339,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return bpmContext;
 	}
 
+	@Override
 	public List<ActorPermissions> getPermissionsForUser(Integer userId,
 	        String processName, Long processInstanceId,
 	        Set<String> userNativeRoles, Set<String> userGroupsIds) {
@@ -385,6 +409,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return perms;
 	}
 
+	@Override
 	public int getTaskViewBindCount(String viewId, String viewType) {
 		return getResultList(ViewTaskBind.GET_VIEW_TASK_BIND_BY_VIEW_QUERY_NAME,
 			    ViewTaskBind.class, new Param(ViewTaskBind.viewIdParam, viewId),
@@ -410,6 +435,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 
 	//	TODO: very likely this method should be removed: the variables are bound dynamically as a process instance is in action
+	@Override
 	public void bindProcessVariables() {
 		try {
 			List<AutoloadedProcessDefinition> procDefs = getAllLoadedProcessDefinitions();
@@ -510,9 +536,11 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return variablesQuerier;
 	}
 
+	@Override
 	public void onApplicationEvent(final ApplicationEvent event) {
 		if (event instanceof VariableCreatedEvent) {
 			Thread binder = new Thread(new Runnable() {
+				@Override
 				public void run() {
 					VariableCreatedEvent variableCreated = (VariableCreatedEvent) event;
 					Map<String, Object> createdVariables = variableCreated.getVariables();
@@ -542,6 +570,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return null;
 	}
 
+	@Override
 	public void importVariablesData() {
 		IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
 		String property = "jbpm_vars_data_imported";
@@ -629,6 +658,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 	}
 
+	@Override
 	public List<Long> getProcessInstanceIdsByProcessDefinitionNames(List<String> processDefinitionNames) {
 		if (ListUtil.isEmpty(processDefinitionNames)) {
 			return Collections.emptyList();
@@ -638,26 +668,91 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				" pd where pi.processDefinition = pd.id and pd.name = :processDefinitionNames", Long.class, new Param("processDefinitionNames", processDefinitionNames));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.idega.jbpm.data.dao.BPMDAO#getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(java.sql.Date, java.sql.Date, java.util.List, java.util.List)
-	 */
+	private List<Long> getProcInstIdsByDateRangeAndProcDefNamesOrProcInstIdsUsingCases(IWTimestamp from, IWTimestamp to, List<String> procDefNames,
+			List<Long> procInsIds) {
+
+		if (from == null && to == null)
+			return null;
+
+		String fromSnippet = CoreConstants.EMPTY;
+		if (from != null)
+			fromSnippet = " c." + CaseBMPBean.COLUMN_CREATED + " >= '" + from.getDateString("yyyy-MM-dd HH:mm:ss") + "' and ";
+		String toSnippet = CoreConstants.EMPTY;
+		if (to != null)
+			toSnippet = " c." + CaseBMPBean.COLUMN_CREATED + " <= '" + to.getDateString("yyyy-MM-dd HH:mm:ss") + "' and ";
+
+		String query = "select distinct p.process_instance_id from BPM_CASES_PROCESSINSTANCES p, " + CaseBMPBean.TABLE_NAME + " c ";
+
+		String procDefSnippet = CoreConstants.EMPTY;
+		if (!ListUtil.isEmpty(procDefNames)) {
+			query += ", jbpm_processdefinition pd, jbpm_processinstance pi ";
+			procDefSnippet = " pd.name_ in (";
+			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); procDefNamesIter.hasNext();) {
+				procDefSnippet = procDefSnippet.concat(CoreConstants.QOUTE_SINGLE_MARK).concat(procDefNamesIter.next())
+						.concat(CoreConstants.QOUTE_SINGLE_MARK);
+				if (procDefNamesIter.hasNext())
+					procDefSnippet = procDefSnippet.concat(CoreConstants.COMMA).concat(CoreConstants.SPACE);
+			}
+			procDefSnippet += ") and pd.id_ = pi.PROCESSDEFINITION_ and pi.id_ = p.process_instance_id ";
+		}
+
+		query += " where " + fromSnippet + toSnippet + procDefSnippet;
+
+		if (!ListUtil.isEmpty(procInsIds)) {
+			query = query + " and p.process_instance_id in ";
+			StringBuffer procInstIdsExpression = new StringBuffer();
+			for (Iterator<Long> idsIter = procInsIds.iterator(); idsIter.hasNext();) {
+				procInstIdsExpression.append(idsIter.next());
+				if (idsIter.hasNext())
+					procInstIdsExpression.append(CoreConstants.COMMA).append(CoreConstants.SPACE);
+			}
+			query = query + procInstIdsExpression.toString();
+		}
+
+		query = query.trim();
+		if (!query.endsWith("and"))
+			query += " and";
+		query += " p.case_id = c." + CaseBMPBean.PK_COLUMN;
+		List<Serializable[]> ids = null;
+		try {
+			ids = SimpleQuerier.executeQuery(query, 1);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
+		}
+		if (ListUtil.isEmpty(ids))
+			return null;
+
+		List<Long> results = new ArrayList<Long>();
+		for (Serializable[] id: ids){
+			if (ArrayUtil.isEmpty(id))
+				continue;
+
+			Serializable value = id[0];
+			if (value instanceof Number)
+				results.add(((Number) value).longValue());
+		}
+		return results;
+	}
+
+	@Override
 	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(
-			Date from,
-			Date to,
+			IWTimestamp from,
+			IWTimestamp to,
 			List<String> processDefinitionNames,
 			List<Long> procInsIds) {
 
 		if (from == null && to == null)
 			return null;
 
-		boolean byProcInst = !ListUtil.isEmpty(procInsIds);
+		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("use_new_date_ranger_querier", Boolean.TRUE))
+			return getProcInstIdsByDateRangeAndProcDefNamesOrProcInstIdsUsingCases(from, to, processDefinitionNames, procInsIds);
 
 		List<Param> params = new ArrayList<Param>();
 		if (from != null)
 			params.add(new Param("piFrom", from));
 		if (to != null)
 			params.add(new Param("piTo", to));
+		boolean byProcInst = !ListUtil.isEmpty(procInsIds);
 		if (byProcInst)
 			params.add(new Param("procInstIds", procInsIds));
 		else
@@ -684,6 +779,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return ids;
 	}
 
+	@Override
 	public List<Object[]> getProcessDateRanges(Collection<Long> processInstanceIds) {
 		return getProcessDateRanges(ListUtil.isEmpty(processInstanceIds) ? null : new ArrayList<Long>(processInstanceIds), null);
 	}
@@ -712,6 +808,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		return getProcessDateRanges(processInstanceIds, results);
 	}
 
+	@Override
 	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId) {
 		if (processDefinitionId == null)
 			return null;
@@ -720,6 +817,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				new Param("processDefinitionId", processDefinitionId));
 	}
 
+	@Override
 	public List<Long> getProcessDefinitionIdsByName(String procDefName) {
 		if (StringUtil.isEmpty(procDefName))
 			return null;

@@ -1,6 +1,5 @@
 package com.idega.jbpm.data.dao;
 
-import java.sql.Date;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -17,6 +16,7 @@ import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.identity.Role;
+import com.idega.util.IWTimestamp;
 
 /**
  * serves as DAO, as well as PAO (process access object). In the latter case, this should be used
@@ -86,7 +86,8 @@ public interface BPMDAO extends GenericDao {
 	 * @return {@link List} of {@link ProcessInstance#getId()}.
 	 * <code>null</code> on failure.
 	 */
-	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(Date from, Date to, List<String> processDefinitionNames, List<Long> procInsIds);
+	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(IWTimestamp from, IWTimestamp to,
+			List<String> processDefinitionNames, List<Long> procInsIds);
 
 	public List<Object[]> getProcessDateRanges(Collection<Long> processInstanceIds);
 
