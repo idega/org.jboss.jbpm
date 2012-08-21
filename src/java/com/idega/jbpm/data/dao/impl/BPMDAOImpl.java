@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -668,8 +669,8 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				" pd where pi.processDefinition = pd.id and pd.name = :processDefinitionNames", Long.class, new Param("processDefinitionNames", processDefinitionNames));
 	}
 
-	private List<Long> getProcInstIdsByDateRangeAndProcDefNamesOrProcInstIdsUsingCases(IWTimestamp from, IWTimestamp to, List<String> procDefNames,
-			List<Long> procInsIds) {
+	private Map<Long, Map<String, java.util.Date>> getProcInstIdsByDateRangeAndProcDefNamesOrProcInstIdsUsingCases(IWTimestamp from, IWTimestamp to,
+			List<String> procDefNames, List<Long> procInsIds) {
 
 		if (from == null && to == null)
 			return null;
@@ -681,11 +682,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		if (to != null)
 			toSnippet = " c." + CaseBMPBean.COLUMN_CREATED + " <= '" + to.getDateString("yyyy-MM-dd HH:mm:ss") + "' and ";
 
-		String query = "select distinct p.process_instance_id from BPM_CASES_PROCESSINSTANCES p, " + CaseBMPBean.TABLE_NAME + " c ";
+		String query = "select distinct p.process_instance_id, c." + CaseBMPBean.COLUMN_CREATED + ", pi.end_ from BPM_CASES_PROCESSINSTANCES p, "
+				+ CaseBMPBean.TABLE_NAME + " c, jbpm_processinstance pi ";
 
 		String procDefSnippet = CoreConstants.EMPTY;
 		if (!ListUtil.isEmpty(procDefNames)) {
-			query += ", jbpm_processdefinition pd, jbpm_processinstance pi ";
+			query += ", jbpm_processdefinition pd ";
 			procDefSnippet = " pd.name_ in (";
 			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); procDefNamesIter.hasNext();) {
 				procDefSnippet = procDefSnippet.concat(CoreConstants.QOUTE_SINGLE_MARK).concat(procDefNamesIter.next())
@@ -693,10 +695,10 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				if (procDefNamesIter.hasNext())
 					procDefSnippet = procDefSnippet.concat(CoreConstants.COMMA).concat(CoreConstants.SPACE);
 			}
-			procDefSnippet += ") and pd.id_ = pi.PROCESSDEFINITION_ and pi.id_ = p.process_instance_id ";
+			procDefSnippet += ") and pd.id_ = pi.PROCESSDEFINITION_ ";
 		}
 
-		query += " where " + fromSnippet + toSnippet + procDefSnippet;
+		query += " where " + fromSnippet + toSnippet + procDefSnippet + " and pi.id_ = p.process_instance_id ";
 
 		if (!ListUtil.isEmpty(procInsIds)) {
 			query = query + " and p.process_instance_id in ";
@@ -713,70 +715,89 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		if (!query.endsWith("and"))
 			query += " and";
 		query += " p.case_id = c." + CaseBMPBean.PK_COLUMN;
-		List<Serializable[]> ids = null;
+		List<Serializable[]> results = null;
 		try {
-			ids = SimpleQuerier.executeQuery(query, 1);
+			results = SimpleQuerier.executeQuery(query, 3);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
 		}
-		if (ListUtil.isEmpty(ids))
+		if (ListUtil.isEmpty(results))
 			return null;
 
-		List<Long> results = new ArrayList<Long>();
-		for (Serializable[] id: ids){
-			if (ArrayUtil.isEmpty(id))
-				continue;
-
-			Serializable value = id[0];
-			if (value instanceof Number)
-				results.add(((Number) value).longValue());
-		}
-		return results;
+		return getIdsWithDates(results);
 	}
 
 	@Override
-	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(
+	public Map<Long, Map<String, java.util.Date>> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(
 			IWTimestamp from,
 			IWTimestamp to,
 			List<String> processDefinitionNames,
 			List<Long> procInsIds) {
 
-		if (from == null && to == null)
+		if (from == null && to == null) {
+			LOGGER.warning("Both from and to dates are not defined, unable to get proc. inst. IDs by date range!");
 			return null;
+		}
 
 		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("use_new_date_ranger_querier", Boolean.TRUE))
 			return getProcInstIdsByDateRangeAndProcDefNamesOrProcInstIdsUsingCases(from, to, processDefinitionNames, procInsIds);
 
 		List<Param> params = new ArrayList<Param>();
 		if (from != null)
-			params.add(new Param("piFrom", from));
+			params.add(new Param("piFrom", new java.util.Date(from.getTimestamp().getTime())));
 		if (to != null)
-			params.add(new Param("piTo", to));
+			params.add(new Param("piTo", new java.util.Date(to.getTimestamp().getTime())));
 		boolean byProcInst = !ListUtil.isEmpty(procInsIds);
 		if (byProcInst)
 			params.add(new Param("procInstIds", procInsIds));
 		else
 			params.add(new Param("procDefNames", processDefinitionNames));
 
-		StringBuilder query = new StringBuilder("SELECT pi.id FROM ").append(ProcessInstance.class.getName()).append(" pi")
-		.append((byProcInst ?
+		StringBuilder query = new StringBuilder("SELECT pi.id, pi.start, pi.end FROM ").append(ProcessInstance.class.getName())
+				.append(" pi").append((byProcInst ?
 				" where pi.id in (:procInstIds)"
 				: ", " 	+ ProcessDefinition.class.getName()
 						+ " pd where pd.name in (:procDefNames) and pi.processDefinition = pd.id")
 		).append((from == null ? CoreConstants.EMPTY : " and pi.start >= :piFrom")
 		).append((to == null ? CoreConstants.EMPTY : " and pi.start <= :piTo"));
 
-		List<Long> ids = null;
+		List<Serializable[]> results = null;
 		try {
-			ids = getResultListByInlineQuery(query.toString(), Long.class, ArrayUtil.convertListToArray(params));
+			results = getResultListByInlineQuery(query.toString(), Serializable[].class, ArrayUtil.convertListToArray(params));
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error getting process instance IDs by"
 					+ " dates: from=" + from + ", to=" + to
 					+ ", proc. def. names=" + processDefinitionNames
 					+ ", proc. inst. IDs=" + procInsIds + "\nQuery: " + query.toString(), e);
 		}
+		return getIdsWithDates(results);
+	}
 
-		return ids;
+	private Map<Long, Map<String, java.util.Date>> getIdsWithDates(List<Serializable[]> results) {
+		if (ListUtil.isEmpty(results))
+			return null;
+
+		Map<Long, Map<String, java.util.Date>> idsWithDates = new HashMap<Long, Map<String, java.util.Date>>();
+		for (Object[] result: results) {
+			if (result.length != 3) {
+				LOGGER.warning("Not enough data to construct result");
+				continue;
+			}
+
+			Long procInstId = null;
+			Map<String, java.util.Date> dates = new HashMap<String, java.util.Date>();
+			for (int i = 0; i < result.length; i++) {
+				Object value = result[i];
+				if (i == 0 && value instanceof Number) {
+					procInstId = ((Number) value).longValue();
+					idsWithDates.put(procInstId, dates);
+				} else if (value instanceof java.util.Date) {
+					dates.put(i == 1 ? "start" : "end", (java.util.Date) value);
+				}
+			}
+		}
+
+		return idsWithDates;
 	}
 
 	@Override

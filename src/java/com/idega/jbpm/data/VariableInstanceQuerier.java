@@ -208,4 +208,14 @@ public interface VariableInstanceQuerier extends GenericDao {
 			String processDefinition
 	);
 
+	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+			Map<String, VariableQuerierData> activeVariables,
+			List<String> variables,
+			List<String> procDefNames,
+			List<Long> procInstIds,
+			Map<String, Boolean> flexibleVariables,
+			boolean useCachedVariables,
+			boolean strictBinaryVariables
+	);
+
 }

@@ -2,6 +2,7 @@ package com.idega.jbpm.data.dao;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jbpm.graph.def.ProcessDefinition;
@@ -86,7 +87,7 @@ public interface BPMDAO extends GenericDao {
 	 * @return {@link List} of {@link ProcessInstance#getId()}.
 	 * <code>null</code> on failure.
 	 */
-	public List<Long> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(IWTimestamp from, IWTimestamp to,
+	public Map<Long, Map<String, java.util.Date>> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(IWTimestamp from, IWTimestamp to,
 			List<String> processDefinitionNames, List<Long> procInsIds);
 
 	public List<Object[]> getProcessDateRanges(Collection<Long> processInstanceIds);
