@@ -87,7 +87,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	private static final Random ID_GENERATOR = new Random();
 
-	private List<String> cachedVariablesNames = new ArrayList<String>();
+	private Map<String, Boolean> cachedVariablesNames = new HashMap<String, Boolean>();
 
 	private String getSelectPart(String columns) {
 		return getSelectPart(columns, Boolean.FALSE);
@@ -1151,7 +1151,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				getDataByProcessInstanceIds(null, query, columns, tmpIds) :
 				getDataByQuery(query, columns);
 
-		if (ListUtil.isEmpty(results)) {
+		if (ListUtil.isEmpty(results) && binaryResults != null) {
 			//	Returning just binary variables if any were found
 			results = new ArrayList<Serializable[]>();
 			for (List<Serializable[]> rawData: binaryResults.values())
@@ -1766,8 +1766,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		for (String name: variablesNames) {
-			if (!cachedVariablesNames.contains(name))
-				cachedVariablesNames.add(name);
+			if (!cachedVariablesNames.containsKey(name))
+				cachedVariablesNames.put(name, Boolean.TRUE);
 		}
 
 		Collection<VariableInstanceInfo> vars = getVariablesByNames(variablesNames);
@@ -1869,7 +1869,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	private Map<String, Map<String, List<VariableInstanceInfo>>> getVariablesCache() {
 		IWMainApplication iwma = IWMainApplication.getDefaultIWMainApplication();
-		Map<String, Map<String, List<VariableInstanceInfo>>> cache = IWCacheManager2.getInstance(iwma).getCache("bpmVariablesInfoCache", 100000,
+		Map<String, Map<String, List<VariableInstanceInfo>>> cache = IWCacheManager2.getInstance(iwma).getCache("bpmVariablesInfoCache", 3000,
 				true, false, 8640000, 8640000, false); // 100 days
 		return cache;
 	}
@@ -1891,8 +1891,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					Long processInstanceId = varCreated.getProcessInstanceId();
 					Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
 					for (String name : vars.keySet()) {
-						if (!cachedVariablesNames.contains(name))
-							continue;
+						if (!cachedVariablesNames.containsKey(name))
+							continue;	//	Variable is not cached
 
 						Map<String, List<VariableInstanceInfo>> cachedValues = cache.get(name);
 						if (cachedValues == null) {
