@@ -56,6 +56,7 @@ import com.idega.util.CoreConstants;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.datastructures.map.MapUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -310,13 +311,40 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 
 	@Override
-	public List<ProcessInstance> getSubprocessInstancesOneLevel(
-	        long parentProcessInstanceId) {
+	public List<ProcessInstance> getSubprocessInstancesOneLevel(long parentProcessInstanceId) {
+		List<ProcessInstance> subprocesses = getResultList(ProcessManagerBind.getSubprocessesOneLevel, ProcessInstance.class,
+				new Param(ProcessManagerBind.processInstanceIdParam, parentProcessInstanceId));
+		if (!ListUtil.isEmpty(subprocesses))
+			return subprocesses;
 
-		List<ProcessInstance> subprocesses = getResultList(
-		    ProcessManagerBind.getSubprocessesOneLevel, ProcessInstance.class,
-		    new Param(ProcessManagerBind.processInstanceIdParam,
-		            parentProcessInstanceId));
+		String query = "select p.id_ from jbpm_processinstance p, jbpm_token t where t.id_ = p.SUPERPROCESSTOKEN_ and t.PROCESSINSTANCE_ = " +
+				parentProcessInstanceId;
+		LOGGER.info("No sub-processes were found by named query " + ProcessManagerBind.getSubprocessesOneLevel + ", will try to find them by query " +
+				query);
+		List<Serializable[]> results = null;
+		try {
+			results = SimpleQuerier.executeQuery(query, 1);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
+		}
+		if (ListUtil.isEmpty(results))
+			return Collections.emptyList();
+
+		Map<Long, Boolean> piIds = new HashMap<Long, Boolean>();
+		for (Serializable[] data: results) {
+			if (ArrayUtil.isEmpty(data))
+				continue;
+
+			Serializable id = data[0];
+			if (id instanceof Number)
+				piIds.put(((Number) id).longValue(), Boolean.TRUE);
+		}
+		if (MapUtil.isEmpty(piIds))
+			return Collections.emptyList();
+
+		query = "from " + org.jbpm.graph.exe.ProcessInstance.class.getName() + " p where p.id in (:" + ProcessManagerBind.processInstanceIdParam + ")";
+		subprocesses = getResultListByInlineQuery(query, ProcessInstance.class,
+				new Param(ProcessManagerBind.processInstanceIdParam, new ArrayList<Long>(piIds.keySet())));
 
 		return subprocesses;
 	}
