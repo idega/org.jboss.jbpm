@@ -1776,6 +1776,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return;
 		}
 
+		//	Name -> Value -> Variables
 		Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
 		for (VariableInstanceInfo info : vars) {
 			String variableName = info.getName();
@@ -1809,57 +1810,78 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	private List<VariableInstanceInfo> getCachedVariables(String name, Serializable value, boolean approximate, boolean allVariables) {
 		if (StringUtil.isEmpty(name))
 			return null;
-
-		Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
-		Map<String, List<VariableInstanceInfo>> cachedVariables = cache.get(name);
-		if (MapUtil.isEmpty(cachedVariables) || value == null)
+		if (value == null)
 			return Collections.emptyList();
 
-		String valueKey = value.toString();
-		List<VariableInstanceInfo> cachedVariablesByNameAndValue = cachedVariables.get(valueKey);
-		if (ListUtil.isEmpty(cachedVariablesByNameAndValue))
-			return Collections.emptyList();
+		long start = System.currentTimeMillis();
+		Map<String, VariableInstanceInfo> results = new HashMap<String, VariableInstanceInfo>();
+		try {
+			//	Name -> Value -> Variable
+			Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
+			//	Value -> Variable
+			Map<String, List<VariableInstanceInfo>> cachedVariables = cache.get(name);
+			if (MapUtil.isEmpty(cachedVariables))
+				return Collections.emptyList();
 
-		List<VariableInstanceInfo> allVars = new ArrayList<VariableInstanceInfo>();
-
-		VariableInstanceInfo variable = null;
-		List<String> addedVars = new ArrayList<String>();
-		for (Iterator<VariableInstanceInfo> varsIterator = cachedVariablesByNameAndValue.iterator(); (varsIterator.hasNext() && (allVariables ?
-				Boolean.TRUE : variable == null));) {
-			VariableInstanceInfo var = varsIterator.next();
-
-			Serializable varValue = var.getValue();
-			if (varValue == null)
-				continue;
-
-			String key = getKeyForVariable(var, false);
-			if (addedVars.contains(key))
-				continue;
-
-			boolean equal = false;
-			if (var instanceof VariableStringInstance) {
-				String realValue = valueKey;
-				String realVarValue = (String) varValue;
-
-				if (approximate) {
-					realValue = realValue.toLowerCase();
-					realVarValue = realVarValue.toLowerCase();
-					equal = realVarValue.indexOf(realValue) != -1;
-				} else {
-					equal = valueKey.equals(varValue);
+			String valueKey = value.toString();
+			//	All variables by provided name and value
+			List<VariableInstanceInfo> cachedVariablesByNameAndValue = cachedVariables.get(valueKey);
+			if (!approximate && ListUtil.isEmpty(cachedVariablesByNameAndValue))
+				return Collections.emptyList();
+			if (approximate && ListUtil.isEmpty(cachedVariablesByNameAndValue)) {
+				Set<String> values = cachedVariables.keySet();
+				cachedVariablesByNameAndValue = new ArrayList<VariableInstanceInfo>();
+				for (String varValue: values) {
+					if (varValue.toLowerCase().indexOf(valueKey.toLowerCase()) != -1)
+						cachedVariablesByNameAndValue.addAll(cachedVariables.get(varValue));
 				}
-			} else if (var instanceof VariableDateInstance && ((Date) varValue).equals(value)) {
-				variable = var;
+			}
+			if (ListUtil.isEmpty(cachedVariablesByNameAndValue))
+				return Collections.emptyList();
+
+			VariableInstanceInfo variable = null;
+			boolean iterCondition = allVariables ? Boolean.TRUE : variable == null;
+			for (Iterator<VariableInstanceInfo> varsIterator = cachedVariablesByNameAndValue.iterator(); (varsIterator.hasNext() && iterCondition);) {
+				VariableInstanceInfo var = varsIterator.next();
+				if (var == null)
+					continue;
+
+				Serializable varValue = var.getValue();
+				if (varValue == null)
+					continue;
+
+				String key = getKeyForVariable(var, false);
+				if (results.containsKey(key))
+					continue;
+
+				boolean satisfiesCondition = false;
+				if (var instanceof VariableStringInstance) {
+					String realValue = valueKey;
+					String realVarValue = (String) varValue;
+
+					if (approximate) {
+						realValue = realValue.toLowerCase();
+						realVarValue = realVarValue.toLowerCase();
+						satisfiesCondition = realVarValue.indexOf(realValue) != -1;
+					} else {
+						satisfiesCondition = valueKey.equals(varValue);
+					}
+				} else if (var instanceof VariableDateInstance && ((Date) varValue).equals(value)) {
+					variable = var;
+					satisfiesCondition = true;
+				}
+
+				variable = satisfiesCondition ? var : null;
+				if (variable != null)
+					results.put(key, variable);
 			}
 
-			variable = equal ? var : null;
-			if (variable != null) {
-				allVars.add(variable);
-				addedVars.add(key);
-			}
+			return new ArrayList<VariableInstanceInfo>(results.values());
+		} finally {
+			long end = System.currentTimeMillis();
+			LOGGER.info("Resolved cached variables (" + results.size() + ") for name " + name + " and value " + value + " in " +
+					(end - start) + " ms");
 		}
-
-		return allVars;
 	}
 
 	private VariableInstanceInfo getCachedVariable(String name, Serializable value) {
