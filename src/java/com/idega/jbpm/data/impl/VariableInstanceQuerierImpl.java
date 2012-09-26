@@ -1766,40 +1766,45 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		for (String name: variablesNames) {
-			if (!cachedVariablesNames.containsKey(name))
+			try {
+				List<String> tmp = Arrays.asList(name);
+				Collection<VariableInstanceInfo> vars = getVariablesByNames(tmp);
+				if (vars == null) {
+					LOGGER.warning("No data was found for variable: " + tmp);
+					return;
+				}
+
 				cachedVariablesNames.put(name, Boolean.TRUE);
-		}
 
-		Collection<VariableInstanceInfo> vars = getVariablesByNames(variablesNames);
-		if (vars == null) {
-			LOGGER.warning("No data was found for variables: " + variablesNames);
-			return;
-		}
+				//	Name -> Value -> Variables
+				Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
+				for (VariableInstanceInfo var : vars) {
+					String variableName = var.getName();
+					if (StringUtil.isEmpty(variableName))
+						continue;
 
-		//	Name -> Value -> Variables
-		Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
-		for (VariableInstanceInfo info : vars) {
-			String variableName = info.getName();
-			if (StringUtil.isEmpty(variableName))
-				continue;
+					Serializable value = var.getValue();
+					if (value == null)
+						continue;
 
-			Serializable value = info.getValue();
-			if (value == null)
-				continue;
+					Map<String, List<VariableInstanceInfo>> variablesByName = cache.get(variableName);
+					if (variablesByName == null) {
+						variablesByName = new HashMap<String, List<VariableInstanceInfo>>();
+						cache.put(variableName, variablesByName);
+					}
 
-			Map<String, List<VariableInstanceInfo>> variablesByName = cache.get(variableName);
-			if (variablesByName == null) {
-				variablesByName = new HashMap<String, List<VariableInstanceInfo>>();
-				cache.put(variableName, variablesByName);
+					String key = var instanceof VariableStringInstance ? ((String) value).intern() : value.toString().intern();
+					List<VariableInstanceInfo> variablesByValues = variablesByName.get(key);
+					if (variablesByValues == null) {
+						variablesByValues = new ArrayList<VariableInstanceInfo>();
+						variablesByName.put(key, variablesByValues);
+					}
+					variablesByValues.add(var);
+				}
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Error loading variables by " + name + " into cache", e);
+				cachedVariablesNames.remove(name);
 			}
-
-			String key = value.toString();
-			List<VariableInstanceInfo> variablesByValues = variablesByName.get(key);
-			if (variablesByValues == null) {
-				variablesByValues = new ArrayList<VariableInstanceInfo>();
-				variablesByName.put(key, variablesByValues);
-			}
-			variablesByValues.add(info);
 		}
 	}
 
