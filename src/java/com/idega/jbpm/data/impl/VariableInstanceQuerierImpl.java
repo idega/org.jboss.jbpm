@@ -1831,8 +1831,26 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			String valueKey = value.toString();
 			//	All variables by provided name and value
 			List<VariableInstanceInfo> cachedVariablesByNameAndValue = cachedVariables.get(valueKey);
-			if (!approximate && ListUtil.isEmpty(cachedVariablesByNameAndValue))
-				return Collections.emptyList();
+			if (!approximate && ListUtil.isEmpty(cachedVariablesByNameAndValue)) {
+				VariableInstanceInfo tmp = cachedVariables.values().iterator().next().iterator().next();
+				if (tmp instanceof VariableStringInstance || tmp instanceof VariableDateInstance || tmp instanceof VariableLongInstance ||
+						tmp instanceof VariableDoubleInstance) {
+					LOGGER.warning("Provided value " + valueKey + " does not exist in cache. First variable in cache by name " + name + " is: " + tmp);
+					return Collections.emptyList();
+				} else if (tmp instanceof VariableByteArrayInstance) {
+					valueKey = "[".concat(valueKey).concat("]");
+					cachedVariablesByNameAndValue = cachedVariables.get(valueKey);
+					if (ListUtil.isEmpty(cachedVariablesByNameAndValue)) {
+						LOGGER.warning("Provided value " + valueKey + " does not exist in cache for byte array variables." +
+								" First variable in cache by name " + name + " is: " + tmp);
+						return Collections.emptyList();
+					}
+				} else {
+					LOGGER.warning("Do not know how to resolve if provided value " + valueKey + " is cached for variables by name " + name +
+							". First variable in cache: " + tmp);
+					return Collections.emptyList();
+				}
+			}
 			if (approximate && ListUtil.isEmpty(cachedVariablesByNameAndValue)) {
 				Set<String> values = cachedVariables.keySet();
 				cachedVariablesByNameAndValue = new ArrayList<VariableInstanceInfo>();
@@ -1860,9 +1878,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					continue;
 
 				boolean satisfiesCondition = false;
-				if (var instanceof VariableStringInstance) {
+				if (var instanceof VariableStringInstance || var instanceof VariableLongInstance || var instanceof VariableDoubleInstance) {
 					String realValue = valueKey;
-					String realVarValue = (String) varValue;
+					String realVarValue = var instanceof VariableStringInstance ? ((String) varValue).intern() : varValue.toString().intern();
 
 					if (approximate) {
 						realValue = realValue.toLowerCase();
@@ -1874,6 +1892,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				} else if (var instanceof VariableDateInstance && ((Date) varValue).equals(value)) {
 					variable = var;
 					satisfiesCondition = true;
+				} else if (var instanceof VariableByteArrayInstance) {
+					satisfiesCondition = varValue.toString().intern().indexOf(valueKey) != -1;
 				} else {
 					LOGGER.warning("Do not know how to resovle if variable " + var + " satisfies condition: " + value +
 							(approximate ? " approximately" : " strictly"));
@@ -2092,7 +2112,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		if (!MapUtil.isEmpty(activeVariables)) {
 			if (useCachedVariables) {
 				for (String name: activeVariables.keySet()) {
-					for (Serializable value: activeVariables.get(name).getValues()) {
+					List<Serializable> values = activeVariables.get(name).getValues();
+					for (Serializable value: values) {
 						List<VariableInstanceInfo> info = getCachedVariables(
 								name, value,
 								flexibleVariables == null ?
