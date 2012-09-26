@@ -1851,7 +1851,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					continue;
 
 				String key = getKeyForVariable(var, false);
-				if (results.containsKey(key))
+				if (results.get(key) != null)
 					continue;
 
 				boolean satisfiesCondition = false;
@@ -1869,6 +1869,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				} else if (var instanceof VariableDateInstance && ((Date) varValue).equals(value)) {
 					variable = var;
 					satisfiesCondition = true;
+				} else {
+					LOGGER.warning("Do not know how to resovle if variable " + var + " satisfies condition: " + value +
+							(approximate ? " approximately" : " strictly"));
 				}
 
 				variable = satisfiesCondition ? var : null;
