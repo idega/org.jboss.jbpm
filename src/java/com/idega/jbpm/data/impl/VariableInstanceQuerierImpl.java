@@ -466,6 +466,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	@Override
 	public boolean isVariableStored(String name, Serializable value) {
+		if (getVariablesCache().get(name) != null)
+			//	If variables are cached by provided name, checking if concrete variable is stored
+			return getCachedVariable(name, value) != null;
+
 		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, false);
 		if (ListUtil.isEmpty(variables))
 			return false;
@@ -1667,6 +1671,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			query = getQuery(getSelectPart(getFullColumns()), getFromClause(), " where", getQueryParameters("var.NAME_", names, true),
 					VAR_DEFAULT_CONDITION,
 					getMirrowTableCondition());
+			String maxLength = IWMainApplication.getDefaultIWMainApplication().getSettings().getProperty("max_string_var_length");
+			if (!StringUtil.isEmpty(maxLength))
+				query = StringHandler.replace(query, "var.stringvalue_ as sv", "substr(var.stringvalue_, 1, " + maxLength + ") as sv");
 			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names: " + names, e);
