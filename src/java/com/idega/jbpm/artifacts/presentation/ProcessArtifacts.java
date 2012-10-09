@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
 
 import com.idega.block.email.presentation.EmailSender;
@@ -1623,5 +1624,29 @@ public class ProcessArtifacts {
 
 	void setVariablesQuerier(VariableInstanceQuerier variablesQuerier) {
 		this.variablesQuerier = variablesQuerier;
+	}
+
+	@Transactional(readOnly = true)
+	public boolean isTaskSubmitted(Long tiId) {
+		try {
+			TaskInstanceW tiW = getBpmFactory().getTaskInstanceW(tiId);
+			if (tiW == null)
+				return false;
+
+			TaskInstance task = tiW.getTaskInstance();
+			if (task != null && task.hasEnded())
+				return true;
+
+			List<TaskInstanceW> submittedTasks = tiW.getProcessInstanceW().getSubmittedTaskInstances();
+			if (ListUtil.isEmpty(submittedTasks))
+				return false;
+
+			for (TaskInstanceW submittedTask: submittedTasks)
+				if (submittedTask.getTaskInstanceId().longValue() == tiId.longValue())
+					return true;
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error while resolving if task by ID " + tiId + " is submitted", e);
+		}
+		return false;
 	}
 }
