@@ -279,7 +279,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	private VariableInstanceInfo getEmptyVariable(String name) {
 		if (name.startsWith(VariableInstanceType.STRING.getPrefix())) {
 			return new VariableStringInstance(name, null);
-		} else if (name.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix())) {
+		} else if (name.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix()) ||
+					name.startsWith(VariableInstanceType.LIST.getPrefix()) ||
+					name.startsWith(VariableInstanceType.OBJ_LIST.getPrefix())) {
 			return new VariableByteArrayInstance(name, null);
 		} else if (name.startsWith(VariableInstanceType.DATE.getPrefix())) {
 			return new VariableDateInstance(name, null);
