@@ -141,7 +141,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	@Override
 	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
 		String date = IWTimestamp.RightNow().getDateString(IWTimestamp.DATE_PATTERN);
-		String path = BPM_UPLOADED_FILES_PATH.concat(date).concat(CoreConstants.SLASH).concat(String.valueOf(binaryVariable.getTaskInstanceId())).concat("/files");
+		String path = BPM_UPLOADED_FILES_PATH.concat(date).concat(CoreConstants.SLASH).concat(String.valueOf(binaryVariable.getTaskInstanceId()))
+				.concat("/files");
 
 		final FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
 
@@ -151,7 +152,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		try {
 			IWSlideService repository = getIWSlideService();
 
-			String normalizedName = StringHandler.stripNonRomanCharacters(fileName, new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.'});
+			String normalizedName = StringHandler.stripNonRomanCharacters(fileName,
+					new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.'});
+			normalizedName = StringHandler.removeWhiteSpace(normalizedName);
 
 			int index = 0;
 			String tmpUri = path;
