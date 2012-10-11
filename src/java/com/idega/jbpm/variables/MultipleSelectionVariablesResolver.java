@@ -199,4 +199,8 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	public Class<? extends UIComponent> getPresentationClass() {
 		return DropdownMenu.class;
 	}
+
+	public boolean isValueUsedForExport() {
+		return true;
+	}
 }
