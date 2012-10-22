@@ -185,6 +185,10 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	public abstract String getPresentation(String value);
 
+	public String getKeyPresentation(String key) {
+		return StringUtil.isEmpty(key) ? CoreConstants.MINUS : key;
+	}
+
 	public String getPresentation(VariableInstanceInfo variable) {
 		if (variable == null || variable.getValue() == null)
 			return CoreConstants.MINUS;
@@ -201,6 +205,10 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 
 	public boolean isValueUsedForExport() {
+		return true;
+	}
+
+	public boolean isValueUsedForCaseList() {
 		return true;
 	}
 }
