@@ -8,10 +8,10 @@ public class ProcessInstanceCreatedEvent extends ApplicationEvent {
 
 	private String processDefinitionName;
 	private Long processInstanceId;
-	
+
 	public ProcessInstanceCreatedEvent(String processDefinitionName, Long processInstanceId) {
 		super(processDefinitionName);
-		
+
 		this.processDefinitionName = processDefinitionName;
 		this.processInstanceId = processInstanceId;
 	}
@@ -22,6 +22,12 @@ public class ProcessInstanceCreatedEvent extends ApplicationEvent {
 
 	public Long getProcessInstanceId() {
 		return processInstanceId;
+	}
+
+	@Override
+	public String toString() {
+		return "Notification about new process instance (ID: " + getProcessInstanceId() + ") for proc. def. with name '" + getProcessDefinitionName() +
+				"'";
 	}
 
 }
