@@ -1,5 +1,7 @@
 package com.idega.jbpm.variables.impl;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -44,6 +46,7 @@ import com.idega.user.data.User;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
+import com.idega.util.FileUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
@@ -179,7 +182,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 							Thread.sleep(500);
 							continue;
 						}
-						CoreUtil.sendExceptionNotification("Unable to upload file: " + uploadPath.concat(normalizedName), e);
+
+						doSendErrorNotification(fileURIHandler.getFile(fileUri), normalizedName, uploadPath, e);
 						throw e;
 					}
 					break;
@@ -199,6 +203,18 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			String message = "Exception while storing binary variable. Path: " + path;
 			LOGGER.log(Level.SEVERE, message, e);
 			throw new RuntimeException(message, e);
+		}
+	}
+
+	private void doSendErrorNotification(InputStream stream, String name, String path, Throwable error) {
+		try {
+			File tmp = new File(name);
+			FileUtil.streamToFile(stream, tmp);
+			CoreUtil.sendExceptionNotification("Unable to upload file: " + path.concat(name), error, tmp.exists() ? new File[] {tmp} : null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error while sending notification about upload failure to " + path + " of " + name, e);
+		} finally {
+			IOUtil.close(stream);
 		}
 	}
 
@@ -345,6 +361,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			}
 			if (stream == null)
 				stream = getFromURL(slideService, fileUri);
+
+			if (stream == null) {
+				File tmp = CoreUtil.getFileFromRepository(fileUri.concat("_1.0"));
+				if (tmp != null && tmp.exists())
+					stream = new FileInputStream(tmp);
+			}
 
 			if (stream == null)
 				LOGGER.severe("Unable to get input stream for resource: " + fileUri);
