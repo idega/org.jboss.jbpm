@@ -219,4 +219,9 @@ public interface VariableInstanceQuerier extends GenericDao {
 			boolean strictBinaryVariables
 	);
 
+	public boolean isVariableCached(String name);
+	public List<VariableInstanceInfo> getCachedVariables(String name, Serializable value, boolean approximate);
+	public List<VariableInstanceInfo> getCachedVariables(String name);
+	public Map<Long, VariableInstanceInfo> getCachedVariablesGroupedByProcess(String name);
+
 }
