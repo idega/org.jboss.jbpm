@@ -158,9 +158,9 @@ public class ProcessArtifacts {
 
 			boolean hasViewUI = submittedDocument.isHasViewUI();
 			boolean renderableTask = isTaskRenderable(taskInstance);
-			if (hasViewUI && !renderableTask) {
+			boolean pdfView = hasViewUI && !renderableTask;
+			if (pdfView)
 				row.setStyleClass("pdfViewableItem");
-			}
 
 			row.addCell(submittedDocument.getDocumentName());
 			row.addCell(submittedDocument.getSubmittedByName());
@@ -169,11 +169,15 @@ public class ProcessArtifacts {
 			row.setDateCellIndex(row.getCells().size() - 1);
 
 			if (params.getDownloadDocument()) {
-				row.addCell(renderableTask ?
-						new StringBuilder("<img class=\"downloadCaseAsPdfStyle\" src=\"").append(pdfUri)
-						.append("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").append(taskInstanceId).append("');\" />").toString() :
-						"<span onclick=\"return false;\"></span>"
-				);
+				if (renderableTask) {
+					row.addCell("<img class=\"downloadCaseAsPdfStyle\" src=\"".concat(pdfUri)
+					.concat("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").concat(String.valueOf(taskInstanceId))
+					.concat("');\" />"));
+				} else if (pdfView) {
+					row.addCell("<img src=\"".concat(pdfUri).concat("\"></img>"));
+				} else {
+					row.addCell("<span onclick=\"return false;\"></span>");
+				}
 			}
 
 			if (params.getAllowPDFSigning()) {
@@ -190,21 +194,17 @@ public class ProcessArtifacts {
 				}
 			}
 
-			// FIXME: don't use client side stuff for validating security constraints, check if
-			// rights changer in this method.
-			if (params.isRightsChanger()) {
+			// FIXME: don't use client side stuff for validating security constraints, check if rights changer in this method.
+			if (params.isRightsChanger())
 				addRightsChangerCell(row, processInstanceId, taskInstanceId, null, null, true);
-			}
 
-			if (!hasViewUI) {
+			if (!hasViewUI)
 				entries.setRowHasViewUI(rowId, false);
-			}
 		}
 
 		try {
 			entries.setGridEntries(rows.getDocument());
 			return entries;
-
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
 			return null;
