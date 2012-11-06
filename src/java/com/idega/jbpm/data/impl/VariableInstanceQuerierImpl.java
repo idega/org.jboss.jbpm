@@ -1954,11 +1954,17 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return ListUtil.isEmpty(cached) ? null : cached.iterator().next();
 	}
 
+	private int lastUsedCacheSize = 5;
 	private Map<String, Map<String, List<VariableInstanceInfo>>> getVariablesCache() {
 		IWMainApplication iwma = IWMainApplication.getDefaultIWMainApplication();
-		Map<String, Map<String, List<VariableInstanceInfo>>> cache = IWCacheManager2.getInstance(iwma).getCache("bpmVariablesInfoCache", 3000,
-				true, false, 8640000, 8640000, false); // 100 days
-		return cache;
+		String cacheName = "bpmVariablesInfoCache";
+		int cacheSize = Integer.valueOf(iwma.getSettings().getProperty("bpm_variables_cache_size", String.valueOf(5)));
+		if (cacheSize == lastUsedCacheSize)
+			return IWCacheManager2.getInstance(iwma).getCache(cacheName, cacheSize, true, false, 8640000, 8640000, false); // 100 days
+
+		IWCacheManager2.getInstance(iwma).invalidate(cacheName);
+		lastUsedCacheSize = cacheSize;
+		return getVariablesCache();
 	}
 
 	@Override
@@ -2012,12 +2018,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.idega.jbpm.data.VariableInstanceQuerier#
-	 * getVariablesByNamesAndValuesByProcesses(java.util.Map,
-	 * java.util.List, java.util.List, java.util.List, java.util.Map)
-	 */
 	@Override
 	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesByProcesses(
 			Map<String, List<Serializable>> activeVariables,
@@ -2102,12 +2102,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return grouped;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.idega.jbpm.data.VariableInstanceQuerier#
-	 * getVariablesByNamesAndValuesByProcesses(java.util.List, java.util.List,
-	 * java.util.List, java.util.List, java.util.Map)
-	 */
 	@Override
 	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> activeVariables,
