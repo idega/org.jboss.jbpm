@@ -2,13 +2,9 @@ package com.idega.jbpm;
 
 import java.sql.SQLException;
 
-import javax.persistence.EntityManagerFactory;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.ejb.HibernateEntityManager;
-import org.hibernate.ejb.HibernateEntityManagerFactory;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -17,11 +13,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
-import org.springframework.orm.hibernate3.SessionHolder;
-import org.springframework.orm.jpa.EntityManagerHolder;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import org.springframework.transaction.annotation.Transactional;
+
+
+import com.idega.hibernate.SessionFactoryUtil;
 import com.idega.idegaweb.IWMainApplication;
 
 /**
@@ -30,17 +26,16 @@ import com.idega.idegaweb.IWMainApplication;
  */
 public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	
-	public static final String beanIdentifier = "idegaJbpmContext";
-	private EntityManagerFactory entityManagerFactory;
-	
+	public static final String beanIdentifier = "idegaJbpmContext";	
 	private HibernateTemplate hibernateTemplate;
 	
 	public JbpmConfiguration getJbpmConfiguration() {
+//		return null;
 		return JbpmConfiguration.getInstance();
 	}
 	
 	public JbpmContext createJbpmContext() {
-		
+//		return null;
 		return JbpmConfiguration.getInstance().createJbpmContext();
 	}
 	
@@ -49,17 +44,8 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 		ctx.close();
 	}
 	
-	public EntityManagerFactory getEntityManagerFactory() {
-		return entityManagerFactory;
-	}
-	
-	public void setEntityManagerFactory(
-	        EntityManagerFactory entityManagerFactory) {
-		this.entityManagerFactory = entityManagerFactory;
-	}
-	
 	public void saveProcessEntity(Object entity) {
-		
+//		return;
 		JbpmContext current = getJbpmConfiguration().getCurrentJbpmContext();
 		
 		if (current != null) {
@@ -71,7 +57,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	}
 	
 	public <T> T mergeProcessEntity(T entity) {
-		
+//		return null;
 		JbpmContext ctx = getJbpmConfiguration().getCurrentJbpmContext();
 		
 		if (ctx != null) {
@@ -95,7 +81,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	@Transactional
 	// temporal let's hope. need to understand and merge jbpm + jpa transactions behavior
 	public <T> T execute(final JbpmCallback callback) {
-		
+//		return null;
 		final JbpmContext context = JbpmConfiguration.getInstance()
 		        .createJbpmContext();
 		
@@ -103,31 +89,14 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			
 			Boolean useNewTransactionHandling = isUseNewTransactionHandling();
 			
-			HibernateTemplate hibernateTemplate;
+			HibernateTemplate hibernateTemplate = null;
+			if (SessionFactoryUtil.getSessionFactory() != null) {
+				this.hibernateTemplate = new HibernateTemplate(SessionFactoryUtil.getSessionFactory());
+			}
 			
 			if (useNewTransactionHandling) {
-				
-				EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager
-				        .getResource(getEntityManagerFactory());
-				if (holder != null) {
-					Session session = ((HibernateEntityManager) (holder
-					        .getEntityManager())).getSession();
-					SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory())
-					        .getSessionFactory();
-					if (!SessionFactoryUtils.isSessionTransactional(session,
-					    sessionFactory)) {
-						TransactionSynchronizationManager
-						        .unbindResourceIfPossible(sessionFactory);
-						SessionHolder holderToUse = new SessionHolder(session);
-						TransactionSynchronizationManager.bindResource(
-						    sessionFactory, holderToUse);
-					}
-					hibernateTemplate = new HibernateTemplate(sessionFactory);
-				} else {
-					hibernateTemplate = this.hibernateTemplate;
-				}
+				hibernateTemplate = new HibernateTemplate(SessionFactoryUtil.getSessionFactory());
 			} else {
-				
 				hibernateTemplate = this.hibernateTemplate;
 			}
 			
@@ -178,18 +147,6 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	}
 	
 	/**
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
-	public void afterPropertiesSet() throws Exception {
-		
-		Session hibernateSession = (Session) getEntityManagerFactory()
-		        .createEntityManager().getDelegate();
-		
-		hibernateTemplate = new HibernateTemplate(hibernateSession
-		        .getSessionFactory());
-	}
-	
-	/**
 	 * Copied from jbpm springmodules Converts Jbpm RuntimeExceptions into Spring specific ones (if
 	 * possible).
 	 * 
@@ -197,6 +154,8 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	 * @return
 	 */
 	public RuntimeException convertJbpmException(JbpmException ex) {
+//		return null;
+		
 		// decode nested exceptions
 		if (ex.getCause() instanceof HibernateException) {
 			DataAccessException rootCause = SessionFactoryUtils
@@ -208,4 +167,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 		// cannot convert the exception in any meaningful way
 		return ex;
 	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {}
 }

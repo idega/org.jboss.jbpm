@@ -3,15 +3,12 @@ package org.jbpm;
 import java.io.InputStream;
 import java.util.Stack;
 
-import javax.persistence.EntityManagerFactory;
-
 import org.jbpm.configuration.ObjectFactory;
 import org.jbpm.configuration.ObjectFactoryImpl;
 import org.jbpm.configuration.ObjectInfo;
 import org.jbpm.configuration.ValueInfo;
 import org.jbpm.persistence.db.StaleObjectLogConfigurer;
 import org.jbpm.util.ClassLoaderUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * When initialized (through constructor method createJbpmConfiguration), this
@@ -32,8 +29,6 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	public static final String mainJbpmContext = "idegaMain";
 
 	private ThreadLocal<Stack<Boolean>> doCommitStackLocal = new ThreadLocal<Stack<Boolean>>();
-	@Autowired
-	private EntityManagerFactory entityManagerFactory;
 
 	public JbpmConfigurationW(ObjectFactory objectFactory) {
 		super(objectFactory);
@@ -43,6 +38,8 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	public static JbpmConfiguration createJbpmConfiguration(
 			String pathToConfiguration) {
 
+//		return null;
+		
 		InputStream jbpmCfgXmlStream = ClassLoaderUtil
 				.getStream(pathToConfiguration);
 
@@ -64,11 +61,12 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	protected static JbpmConfiguration createJbpmConfiguration(
 			ObjectFactory objectFactory) {
 
+//		return null;
 		// here instantiating JbpmConfigurationW
 		JbpmConfigurationW jbpmConfiguration = new JbpmConfigurationW(
 				objectFactory);
 
-		// now we make the bean jbpm.configuration always availble
+		// now we make the bean jbpm.configuration always available
 		if (objectFactory instanceof ObjectFactoryImpl) {
 			ObjectFactoryImpl objectFactoryImpl = (ObjectFactoryImpl) objectFactory;
 			ObjectInfo jbpmConfigurationInfo = new ValueInfo(
@@ -102,7 +100,7 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 
 	@Override
 	void jbpmContextCreated(JbpmContext jbpmContext) {
-
+//		return;
 		JbpmContext currentContext = getCurrentJbpmContext();
 
 		if (currentContext != null) {
@@ -114,7 +112,7 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	}
 
 	public Stack<Boolean> getDoCommitStack() {
-
+//		return null;
 		Stack<Boolean> stack = doCommitStackLocal.get();
 
 		if (stack == null) {
@@ -128,28 +126,19 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 
 	@Override
 	public JbpmContext createJbpmContext() {
-
+//		return null;
 		return createJbpmContext(mainJbpmContext);
 	}
 
 	@Override
 	public JbpmContext createJbpmContext(String name) {
-
+//		return null;
 		return super.createJbpmContext(name);
 	}
 
 	@Override
 	void jbpmContextClosed(JbpmContext jbpmContext) {
-
+//		return;
 		super.jbpmContextClosed(jbpmContext);
-	}
-
-	public EntityManagerFactory getEntityManagerFactory() {
-		return entityManagerFactory;
-	}
-
-	public void setEntityManagerFactory(
-			EntityManagerFactory entityManagerFactory) {
-		this.entityManagerFactory = entityManagerFactory;
 	}
 }

@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<beans xmlns="http://www.springframework.org/schema/beans"
+<beans 	xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+        xsi:schemaLocation="http://www.springframework.org/schema/beans 
+        					http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
         
-	<bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext">
-        <property name="entityManagerFactory" ref="entityManagerFactory" />
-    </bean>
+	<bean id="idegaJbpmContext" class="com.idega.jbpm.IdegaJbpmContext"/>
 	
-	<bean id="jbpmConfigurationWrapper" class="org.jbpm.JbpmConfigurationW" factory-method="createJbpmConfiguration" scope="singleton">
+	<bean 	
+		id="jbpmConfigurationWrapper" class="org.jbpm.JbpmConfigurationW" 
+		factory-method="createJbpmConfiguration" scope="singleton">
         <constructor-arg value="com/idega/jbpm/jbpm.cfg.xml" />
     </bean>
     
-    <bean id="bpmProcessDefinitionsAutoloader" class="com.idega.jbpm.process.business.autoloader.ProcessDefinitionsAutoloader" scope="singleton">
+    <bean 	
+    	id="bpmProcessDefinitionsAutoloader" 
+    	class="com.idega.jbpm.process.business.autoloader.ProcessDefinitionsAutoloader" 
+    	scope="singleton">
         <property name="mappings">
 	        <list>
 	            <value>classpath*:com/idega/**/pdm*.xml</value>
@@ -25,11 +29,17 @@
         <lookup-method name="createAutoDeployable" bean="BPMAutoDeployable" />
     </bean>
     
-    <bean id="bpmUserFactory" class="com.idega.jbpm.identity.BPMUserFactoryImpl" scope="singleton">
+    <bean
+     	id="bpmUserFactory" class="com.idega.jbpm.identity.BPMUserFactoryImpl" 
+    	scope="singleton">
         <lookup-method name="createBPMUser" bean="BPMUser" />
         <lookup-method name="createLoggedInBPMUser" bean="LoggedInBPMUser" />
     </bean>
     
-    <bean id="BPMUser" class="com.idega.jbpm.identity.BPMUserImpl" scope="prototype" />
-    <bean id="LoggedInBPMUser" class="com.idega.jbpm.identity.BPMUserImpl" scope="session" />
+    <bean 
+    	id="BPMUser" class="com.idega.jbpm.identity.BPMUserImpl" 
+    	scope="prototype" />
+    <bean
+     	id="LoggedInBPMUser" class="com.idega.jbpm.identity.BPMUserImpl" 
+    	scope="session" />
 </beans>
