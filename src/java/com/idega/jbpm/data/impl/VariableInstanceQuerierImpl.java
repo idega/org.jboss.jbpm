@@ -1846,8 +1846,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return Collections.emptyMap();
 
 		Map<Long, VariableInstanceInfo> allCachedVariables = new HashMap<Long, VariableInstanceInfo>();
-		for (List<VariableInstanceInfo> varsForValue: cachedVariables.values()) {
-			for (VariableInstanceInfo varForValue: varsForValue)
+		Collection<List<VariableInstanceInfo>> temp = new ArrayList<List<VariableInstanceInfo>>(cachedVariables.values());
+		for (List<VariableInstanceInfo> varsForValue: temp) {
+			List<VariableInstanceInfo> tempValues = new ArrayList<VariableInstanceInfo>(varsForValue);
+			for (VariableInstanceInfo varForValue: tempValues)
 				allCachedVariables.put(varForValue.getProcessInstanceId(), varForValue);
 		}
 		return allCachedVariables;
