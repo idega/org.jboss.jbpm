@@ -2154,9 +2154,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 										false : flexibleVariables.get(name) == null
 										? false : flexibleVariables.get(name), true);
 						if (info == null) {
-							if (isVariableCached(name))
+							if (isVariableCached(name)) {
+								LOGGER.warning("Variable " + name + " is cached, but no variables were found by value: " + value);
 								return null;
-							else
+							} else
 								continue;
 						}
 
