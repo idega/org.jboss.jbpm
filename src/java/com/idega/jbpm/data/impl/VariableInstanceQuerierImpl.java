@@ -2222,8 +2222,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				//	Restricting a set of process instance IDs
 				procInstIds.retainAll(results.keySet());
 				if (ListUtil.isEmpty(procInstIds)) {
-					LOGGER.info("There are no results after initial data set (" + procInstIds + ") was restricted by the cached data " +
-							results.keySet());
+					LOGGER.info("There are no results after initial data set was restricted by the cached data " + results.keySet());
 					return Collections.emptyMap();
 				}
 			}
