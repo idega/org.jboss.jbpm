@@ -185,6 +185,10 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	public abstract String getPresentation(String value);
 
+	public String getPresentation(String value, Long procInstId) {
+		return getPresentation(value);
+	}
+
 	public String getKeyPresentation(String key) {
 		return StringUtil.isEmpty(key) ? CoreConstants.MINUS : key;
 	}
