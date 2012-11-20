@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -2182,7 +2183,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 		int numberOfCachedVariables = cachedVariables.size();
 
-		Map<Long, Map<String, VariableInstanceInfo>> results = new HashMap<Long, Map<String, VariableInstanceInfo>>();
+		Map<Long, Map<String, VariableInstanceInfo>> results = new LinkedHashMap<Long, Map<String, VariableInstanceInfo>>();
 
 		if (!cachedVariables.isEmpty()) {
 			//	Grouping variables by processes
