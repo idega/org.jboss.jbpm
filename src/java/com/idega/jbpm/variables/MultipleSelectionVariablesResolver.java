@@ -185,7 +185,7 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	public abstract String getPresentation(String value);
 
-	public String getPresentation(String value, Long procInstId) {
+	public String getPresentation(String name, String value, Long procInstId) {
 		return getPresentation(value);
 	}
 
@@ -214,5 +214,18 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	public boolean isValueUsedForCaseList() {
 		return true;
+	}
+
+	protected String getValueFromBrackets(String value) {
+		if (StringUtil.isEmpty(value))
+			return value;
+
+		int start = value.indexOf(CoreConstants.BRACKET_LEFT);
+		int end = value.indexOf(CoreConstants.BRACKET_RIGHT);
+		if (start != -1 && end != -1)
+			return value.substring(start + 1, end);
+
+		getLogger().warning("No brackets found in provided value: " + value);
+		return value;
 	}
 }
