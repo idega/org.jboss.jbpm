@@ -191,6 +191,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names) {
 		return getVariablesByProcessInstanceIdAndVariablesNames(procIds, true, names);
 	}
+	@Override
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, boolean checkCache,
 			List<String> names) {
 		return getVariablesByProcessesAndVariablesNames(procIds, null, names, isDataMirrowed(), false, checkCache);
@@ -1354,7 +1355,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getConverted(data, 2);
 	}
 
-	private Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns) {
+	@Override
+	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns) {
 		if (ListUtil.isEmpty(data))
 			return null;
 
@@ -1393,19 +1395,35 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 			Serializable value = null;
 			Long piId = null;
+			String caseId = null;
 			if (numberOfColumns > COLUMNS) {
 				int index = COLUMNS;
+				//	Resolving variable value
 				while (value == null && (index + 1) < numberOfColumns) {
 					value = dataSet[index];
 					index++;
 				}
 
-				int piIdIndex = numberOfColumns == FULL_COLUMNS ? numberOfColumns - 1 : dataSet.length - 1;
+				//	Resolving process instance ID
+				int piIdIndex = 0;
+				if (numberOfColumns == FULL_COLUMNS)
+					piIdIndex = numberOfColumns - 1;
+				else if (numberOfColumns == FULL_COLUMNS + 1)
+					piIdIndex = numberOfColumns - 2;
+				else
+					piIdIndex = dataSet.length - 1;
 				if (piIdIndex >= index && piIdIndex < dataSet.length) {
 					Serializable temp = dataSet[piIdIndex];
 					if (temp instanceof Number) {
 						piId = Long.valueOf(((Number) temp).longValue());
 					}
+				}
+
+				//	Resolving case
+				if (numberOfColumns > FULL_COLUMNS) {
+					Serializable tmp = dataSet[dataSet.length - 1];
+					if (tmp instanceof Number)
+						caseId = String.valueOf(((Number) tmp).longValue());
 				}
 			}
 
@@ -1444,6 +1462,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				} else {
 					variable.setId(id.longValue());
 					variable.setProcessInstanceId(piId);
+					if (caseId != null)
+						variable.setCaseId(caseId);
 					variables.put(id, variable);
 				}
 			} else if (value != null) {

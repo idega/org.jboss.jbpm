@@ -13,7 +13,7 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	private int hash;
 
-	private String name;
+	private String name, caseId;
 	private VariableInstanceType type;
 
 	private Long id;
@@ -130,6 +130,14 @@ public abstract class VariableInstanceInfo implements Serializable {
 			return getId().longValue() == varId.longValue() && getName().equals(varName) && getValue().toString().equals(varValue.toString());
 		}
 		return false;
+	}
+
+	public String getCaseId() {
+		return caseId;
+	}
+
+	public void setCaseId(String caseId) {
+		this.caseId = caseId;
 	}
 
 	@Override

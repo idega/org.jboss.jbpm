@@ -227,4 +227,6 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public List<VariableInstanceInfo> getCachedVariables(String name);
 	public Map<Long, VariableInstanceInfo> getCachedVariablesGroupedByProcess(String name);
 
+	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns);
+
 }
