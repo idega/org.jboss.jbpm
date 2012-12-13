@@ -295,7 +295,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private VariableInstanceInfo getEmptyVariable(String name) {
-		if (name.startsWith(VariableInstanceType.STRING.getPrefix())) {
+		if (name.startsWith(VariableInstanceType.STRING.getPrefix()) || name.endsWith("officerIsMeterMaid")) {
 			return new VariableStringInstance(name, null);
 		} else if (name.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix()) ||
 					name.startsWith(VariableInstanceType.LIST.getPrefix()) ||
