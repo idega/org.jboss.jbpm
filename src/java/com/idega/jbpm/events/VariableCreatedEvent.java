@@ -31,4 +31,8 @@ public class VariableCreatedEvent extends ApplicationEvent {
 	public Long getProcessInstanceId() {
 		return processInstanceId;
 	}
+	
+	public String toString() {
+		return "Variables: " + getVariables() + " for process instance: " + getProcessInstanceId() + ", definition: " + getProcessDefinitionName();
+	}
 }

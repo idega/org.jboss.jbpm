@@ -305,7 +305,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return new VariableDateInstance(name, null);
 		} else if (name.startsWith(VariableInstanceType.DOUBLE.getPrefix())) {
 			return new VariableDoubleInstance(name, null);
-		} else if (name.startsWith(VariableInstanceType.LONG.getPrefix())) {
+		} else if (name.startsWith(VariableInstanceType.LONG.getPrefix()) || name.equals("officerID")) {
 			return new VariableLongInstance(name, null);
 		} else {
 			LOGGER.warning("Can not resolve variable type from name: " + name + ". Will use default one");
@@ -1851,7 +1851,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					variablesByValues.add(var);
 				}
 			} catch (Exception e) {
-				LOGGER.log(Level.WARNING, "Error loading variables by " + name + " into cache", e);
+				String message = "Error loading variables by " + name + " into cache";
+				LOGGER.log(Level.WARNING, message, e);
+				CoreUtil.sendExceptionNotification(message, e);
 				cachedVariablesNames.remove(name);
 			}
 		}
@@ -2012,13 +2014,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					VariableCreatedEvent varCreated = (VariableCreatedEvent) event;
 
 					Map<String, Object> vars = varCreated.getVariables();
-					if (vars == null) {
+					if (MapUtil.isEmpty(vars)) {
+						getLogger().warning("No variables were submitted: " + varCreated);
 						return;
 					}
 
 					Long processInstanceId = varCreated.getProcessInstanceId();
 					Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
-					for (String name : vars.keySet()) {
+					for (String name: vars.keySet()) {
 						if (!cachedVariablesNames.containsKey(name))
 							continue;	//	Variable is not cached
 
@@ -2029,12 +2032,18 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						}
 
 						VariableInstanceInfo info = getEmptyVariable(name);
-						if (info == null)
+						if (info == null) {
+							getLogger().warning("Unable to add variable " + name + " to cache!");
 							continue;	//	Invalid variable
+						}
 
 						Object value = vars.get(name);
-						if (!(value instanceof Serializable))
+						if (!(value instanceof Serializable)) {
+							if (value != null)
+								getLogger().warning("Invalid value (" + value + ", class: " + value.getClass().getName() + ") for variable " + name);
+								
 							continue;	//	Invalid value
+						}
 
 						info.setProcessInstanceId(processInstanceId);
 						info.setValue((Serializable) value);
