@@ -2050,11 +2050,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 						String key = value.toString();
 						List<VariableInstanceInfo> variablesByNameAndValue = cachedValues.get(key);
-						if (variablesByNameAndValue == null) {
+						if (variablesByNameAndValue == null)
 							variablesByNameAndValue = new ArrayList<VariableInstanceInfo>();
-							cachedValues.put(key, variablesByNameAndValue);
-						}
-						variablesByNameAndValue.add(info);
+						variablesByNameAndValue.add(0, info);
+						
+						cachedValues.put(key, variablesByNameAndValue);
+						cache.put(name, cachedValues);
 					}
 				}
 			});
