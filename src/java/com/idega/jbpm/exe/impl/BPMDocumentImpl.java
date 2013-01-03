@@ -87,12 +87,10 @@ public class BPMDocumentImpl implements BPMDocument {
     	this.hasViewUI = hasViewUI;
     }
 
-	@Override
 	public void setOrder(Integer order) {
 		this.order = order;
 	}
 
-	@Override
 	public Integer getOrder() {
 		return order;
 	}

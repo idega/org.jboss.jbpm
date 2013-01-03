@@ -11,14 +11,18 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
 import com.idega.jbpm.exe.ProcessConstants;
+import com.idega.jbpm.identity.BPMUser;
+import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
 import com.idega.util.FileUtil;
 import com.idega.util.IOUtil;
+import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
@@ -30,67 +34,107 @@ import com.idega.util.expression.ELUtil;
 public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 	private static final Logger LOGGER = Logger.getLogger(AttachmentWriter.class.getName());
-	
+
 	public static final String PARAMETER_TASK_INSTANCE_ID = ProcessConstants.TASK_INSTANCE_ID;
 	public static final String PARAMETER_VARIABLE_HASH = "varHash";
-	
+
 	protected BinaryVariable binaryVariable;
-	
+
 	@Autowired
 	private VariablesHandler variablesHandler;
 
+	@Autowired
+	private BPMUserFactory bpmUserFactory;
+
+	private BPMUserFactory getBPMUserFactory() {
+		if (bpmUserFactory == null)
+			ELUtil.getInstance().autowire(this);
+		return bpmUserFactory;
+	}
+
 	@Override
 	public void init(HttpServletRequest req, IWContext iwc) {
-		binaryVariable = iwc.isLoggedOn() ? resolveBinaryVariable(iwc) : null;
-		
+		if (iwc.isLoggedOn())
+			resolveBinaryVariable(iwc);
+		else {
+			BPMUser bpmUser = getBPMUserFactory().getCurrentBPMUser();
+			if (bpmUser == null)
+				LOGGER.warning("User is not logged in! Also, BPM user can not be determined");
+			else
+				resolveBinaryVariable(iwc);
+		}
+
 		if (binaryVariable == null) {
-			LOGGER.log(Level.SEVERE, "Failed to resolve binary variable");
+			LOGGER.log(Level.SEVERE, "Failed to resolve binary variable. Probably user can not be identified");
 			return;
 		}
-		
-		setAsDownload(iwc, binaryVariable.getFileName(), binaryVariable.getContentLength() == null ? 0 : binaryVariable.getContentLength().intValue(), binaryVariable.getHash());
+
+		Long fileSize = binaryVariable.getContentLength();
+		int size = fileSize == null ? 0 : fileSize.intValue();
+		setAsDownload(iwc, binaryVariable.getFileName(), size, binaryVariable.getHash());
 	}
-	
+
 	protected BinaryVariable resolveBinaryVariable(IWContext iwc) {
 		String taskInstanceIdSR = iwc.getParameter(PARAMETER_TASK_INSTANCE_ID);
 		String variableHashSR = iwc.getParameter(PARAMETER_VARIABLE_HASH);
-		
+
 		if (taskInstanceIdSR == null || variableHashSR == null) {
 			LOGGER.log(Level.SEVERE, "Tried to download, but params not provided.\nTaskInstanceId: "+taskInstanceIdSR+", variableHash: "+variableHashSR);
 			return null;
 		}
-		
+
 		Long taskInstanceId = new Long(taskInstanceIdSR);
 		Integer variableHash = new Integer(variableHashSR);
-		
+
 		VariablesHandler variablesHandler = getVariablesHandler();
-		
+
 		binaryVariable = getBinVar(variablesHandler, taskInstanceId, variableHash);
 		return binaryVariable;
 	}
 
 	@Override
 	public String getMimeType() {
-		if (binaryVariable != null && binaryVariable.getMimeType() != null)
-			return binaryVariable.getMimeType();
-		
-		return super.getMimeType();
+		if (binaryVariable == null) {
+			LOGGER.warning("Variable is not resolved! Can not determine MIME type");
+			return super.getMimeType();
+		}
+
+		String mimeType = binaryVariable.getMimeType();
+		if (!StringUtil.isEmpty(mimeType))
+			return mimeType;
+
+		mimeType = MimeTypeUtil.resolveMimeTypeFromFileName(binaryVariable.getFileName());
+		return mimeType;
 	}
 
 	@Override
 	public void writeTo(OutputStream out) throws IOException {
-		if (binaryVariable == null)
+		if (binaryVariable == null) {
+			LOGGER.warning("Binary variable is undefined!");
 			return;
-		
-		InputStream is = getVariablesHandler().getBinaryVariablesHandler().getBinaryVariableContent(binaryVariable);
-		
-		FileUtil.streamToOutputStream(is, out);
-		
-		out.flush();
-		IOUtil.closeInputStream(is);
-		IOUtil.closeOutputStream(out);
+		}
+
+		boolean success = Boolean.TRUE;
+		InputStream stream = null;
+		try {
+			stream = getVariablesHandler().getBinaryVariablesHandler().getBinaryVariableContent(binaryVariable);
+			FileUtil.streamToOutputStream(stream, out);
+		} catch (IOException e) {
+			success = Boolean.FALSE;
+			IOUtil.closeInputStream(stream);
+			LOGGER.log(Level.WARNING, "Error downloading file: " + binaryVariable.getIdentifier(), e);
+		}
+
+		if (success) {
+			out.flush();
+			IOUtil.closeOutputStream(out);
+			return;
+		}
+
+		setFile(getFileFromRepository(binaryVariable.getIdentifier().concat("_1.0")));
+		super.writeTo(out);
 	}
-	
+
 	protected BinaryVariable getBinVar(VariablesHandler variablesHandler, long taskInstanceId, int binaryVariableHash) {
 		List<BinaryVariable> variables = variablesHandler.resolveBinaryVariables(taskInstanceId);
 		for (BinaryVariable binaryVariable : variables) {
@@ -98,14 +142,14 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 				return binaryVariable;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	public VariablesHandler getVariablesHandler() {
 		if (variablesHandler == null)
 			ELUtil.getInstance().autowire(this);
-		
+
 		return variablesHandler;
 	}
 }

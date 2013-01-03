@@ -1,8 +1,11 @@
 package com.idega.jbpm.variables.impl;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,6 +17,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.httpclient.HttpURL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -21,18 +25,22 @@ import org.springframework.stereotype.Service;
 
 import com.idega.block.process.variables.Variable;
 import com.idega.block.process.variables.VariableDataType;
+import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.file.util.FileInfo;
 import com.idega.core.file.util.FileURIHandler;
 import com.idega.core.file.util.FileURIHandlerFactory;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.utils.JSONUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.repository.RepositoryService;
 import com.idega.repository.bean.RepositoryItem;
+import com.idega.user.data.bean.User;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
+import com.idega.util.FileUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
@@ -79,7 +87,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 			JSONUtil json = getBinVarJSONConverter();
 
-			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
+			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES
+					&& val instanceof Collection<?>) {
 
 				@SuppressWarnings("unchecked")
 				Collection<BinaryVariable> binVars = (Collection<BinaryVariable>) val;
@@ -128,9 +137,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	}
 
 	@Override
-	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
+	public String getFolderForBinaryVariable(Long taskInstanceId) {
 		String date = IWTimestamp.RightNow().getDateString(IWTimestamp.DATE_PATTERN);
-		String path = BPM_UPLOADED_FILES_PATH.concat(date).concat(CoreConstants.SLASH).concat(String.valueOf(binaryVariable.getTaskInstanceId())).concat("/files");
+		return BPM_UPLOADED_FILES_PATH.concat(date).concat(CoreConstants.SLASH).concat(String.valueOf(taskInstanceId)).concat("/files");
+	}
+
+	@Override
+	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
+		String path = getFolderForBinaryVariable(binaryVariable.getTaskInstanceId());
 
 		final FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
 
@@ -140,7 +154,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		try {
 			RepositoryService repository = getRepositoryService();
 
-			String normalizedName = StringHandler.stripNonRomanCharacters(fileName, new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.'});
+			String normalizedName = StringHandler.stripNonRomanCharacters(fileName,
+					new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_', '.'});
+			normalizedName = StringHandler.removeWhiteSpace(normalizedName);
 
 			int index = 0;
 			String tmpUri = path;
@@ -158,13 +174,15 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					try {
 						stream = fileURIHandler.getFile(fileUri);
 						if (!repository.uploadFile(uploadPath, normalizedName, null, stream))
-							throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName));
+							throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName) + ". Tried to upload using " +
+									repository.getClass() + " for " + i + " times");
 					} catch (Exception e) {
 						if (i < 4) {
 							Thread.sleep(500);
 							continue;
 						}
-						CoreUtil.sendExceptionNotification("Unable to upload file: " + uploadPath.concat(normalizedName), e);
+
+						doSendErrorNotification(fileURIHandler.getFile(fileUri), normalizedName, uploadPath, e);
 						throw e;
 					}
 					break;
@@ -184,6 +202,18 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			String message = "Exception while storing binary variable. Path: " + path;
 			LOGGER.log(Level.SEVERE, message, e);
 			throw new RuntimeException(message, e);
+		}
+	}
+
+	private void doSendErrorNotification(InputStream stream, String name, String path, Throwable error) {
+		try {
+			File tmp = new File(name);
+			FileUtil.streamToFile(stream, tmp);
+			CoreUtil.sendExceptionNotification("Unable to upload file: " + path.concat(name), error, tmp.exists() ? new File[] {tmp} : null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error while sending notification about upload failure to " + path + " of " + name, e);
+		} finally {
+			IOUtil.close(stream);
 		}
 	}
 
@@ -226,14 +256,23 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
 				JSONUtil json = getBinVarJSONConverter();
 
-				Collection<String> binVarsInJSON;
+				Collection<String> binVarsInJSON = null;
 				if (val instanceof String) {
-					binVarsInJSON = json.convertToObject(String.valueOf(val));
+					try {
+						binVarsInJSON = json.convertToObject(String.valueOf(val));
+					} catch (Exception e) {
+						String message = "Error converting '" + val + "' with " + json.getClass().getName() + " into the object (Collection.class)";
+						LOGGER.log(Level.WARNING, message, e);
+						CoreUtil.sendExceptionNotification(message, e);
+					}
 				} else {
 					@SuppressWarnings("unchecked")
 					Collection<String> f = (Collection<String>) val;
 					binVarsInJSON = f;
 				}
+
+				if (ListUtil.isEmpty(binVarsInJSON))
+					return binaryVars;
 
 				for (String binVarJSON : binVarsInJSON) {
 					try {
@@ -319,8 +358,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					}
 				}
 			}
-//			if (stream == null)
-//				stream = getFromURL(repository, fileUri);
+			if (stream == null)
+				stream = getFromURL(repository, fileUri);
+
+			if (stream == null) {
+				File tmp = CoreUtil.getFileFromRepository(fileUri.concat("_1.0"));
+				if (tmp != null && tmp.exists())
+					stream = new FileInputStream(tmp);
+			}
 
 			if (stream == null)
 				LOGGER.severe("Unable to get input stream for resource: " + fileUri);
@@ -336,10 +381,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return repository;
 	}
 
-	/*private InputStream getFromURL(RepositoryService repository, String fileUri) {
+	private InputStream getFromURL(RepositoryService repository, String fileUri) {
 		String link = null;
 		try {
-			HttpURL serverInfo = repository.getWebdavServerURL();
+			HttpURL serverInfo = new HttpURL(repository.getWebdavServerURL());
 			String scheme = serverInfo.getScheme();
 			String host = serverInfo.getHost();
 			int port = serverInfo.getPort();
@@ -354,7 +399,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			LOGGER.log(Level.SEVERE, "Error getting input stream via URL: " + link, e);
 		}
 		return null;
-	}*/
+	}
 
 	private RepositoryItem getResource(BinaryVariable variable, RepositoryService repository) {
 		LOGGER.warning("No webdav resource found for path provided: " + variable.getIdentifier() + ". Will try to remove non-Latin letters to resolve the resource");
@@ -437,8 +482,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return fileURIHandlerFactory;
 	}
 
-	public void setFileURIHandlerFactory(
-	        FileURIHandlerFactory fileURIHandlerFactory) {
+	public void setFileURIHandlerFactory(FileURIHandlerFactory fileURIHandlerFactory) {
 		this.fileURIHandlerFactory = fileURIHandlerFactory;
 	}
 

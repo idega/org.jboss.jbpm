@@ -23,7 +23,7 @@ import org.w3c.dom.NodeList;
 
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.idegaweb.IWMainSlideStartedEvent;
+import com.idega.idegaweb.RepositoryStartedEvent;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.bundle.JarModuleBundleResourcesImpl;
 import com.idega.jbpm.bundle.ProcessBundle;
@@ -99,9 +99,9 @@ public abstract class ProcessDefinitionsAutoloader implements
 
 	public void onApplicationEvent(ApplicationEvent applicationEvent) {
 
-		if (applicationEvent instanceof IWMainSlideStartedEvent) {
+		if (applicationEvent instanceof RepositoryStartedEvent) {
 
-			IWMainApplication iwma = ((IWMainSlideStartedEvent) applicationEvent)
+			IWMainApplication iwma = ((RepositoryStartedEvent) applicationEvent)
 					.getIWMA();
 			autodeploy(iwma, false);
 		}

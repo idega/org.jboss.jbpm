@@ -9,14 +9,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.idega.presentation.ui.handlers.IWDatePickerHandler;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
 public class BPMProcessVariable implements Serializable {
-	
+
 	private static final long serialVersionUID = -8899276268497865624L;
-	
+
 	public static final List<String>	DATE_TYPES = Collections.unmodifiableList(Arrays.asList("D")),
 										DOUBLE_TYPES = Collections.unmodifiableList(Arrays.asList("O")),
 										LONG_TYPES = Collections.unmodifiableList(Arrays.asList("L", "H")),
@@ -24,22 +25,45 @@ public class BPMProcessVariable implements Serializable {
 										NULL_TYPES = Collections.unmodifiableList(Arrays.asList("N")),
 										JCR_NODE_TYPES = Collections.unmodifiableList(Arrays.asList("J")),
 										BYTE_ARRAY_TYPES = Collections.unmodifiableList(Arrays.asList("B"));
-	
+
+	public static final String EXPRESSION_GREATER_THAN = ">";
+	public static final String EXPRESSION_LESS_THAN = "<";
+	public static final String EXPRESSION_GREATER_OR_EQUALS = ">=";
+	public static final String EXPRESSION_LESS_OR_EQUALS = "<=";
+	public static final String EXPRESSION_EQUALS = "=";
+
 	public BPMProcessVariable() {
 		super();
 	}
-	
+
 	public BPMProcessVariable(String name, String value, String type) {
 		this();
-		
+
 		this.name = name;
 		this.value = value;
 		this.type = type;
 	}
-	
+
+	/**
+	 *
+	 * @param name jBPM variable name.
+	 * For example: string_someString, list_someList.
+	 * @param value jBPM variable value.
+	 * @param type jBPM variable type, for example:
+	 * {@link BPMProcessVariable#DATE_TYPES}.
+	 * @param expression values could be "=",">","<","<=",">=".
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public BPMProcessVariable(String name, String value, String type,
+			String expression) {
+		this(name, value, type);
+		this.expression = expression;
+	}
+
 	private String name, value, type;
-	private boolean flexible;
-	
+	private boolean flexible, multiple;
+	private String expression = null;
+
 	public String getName() {
 		return name;
 	}
@@ -52,56 +76,76 @@ public class BPMProcessVariable implements Serializable {
 	public void setValue(String value) {
 		this.value = value;
 	}
-	
+
 	public String getType() {
 		return type;
 	}
 	public void setType(String type) {
 		this.type = type;
 	}
-	
+
+	public String getExpression() {
+		return this.expression;
+	}
+
+	/**
+	 * @param expression values could be: "=",">","<","<=",">=".
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public void setExpression(String expression) {
+		this.expression = expression;
+	}
+
 	public boolean isTypeOf(List<String> types) {
 		return (ListUtil.isEmpty(types) || StringUtil.isEmpty(getType())) ? false : types.contains(getType());
 	}
-	
+
 	public boolean isDateType() {
 		return isTypeOf(DATE_TYPES);
 	}
-	
+
 	public boolean isDoubleType() {
 		return isTypeOf(DOUBLE_TYPES);
 	}
-	
+
 	public boolean isLongType() {
 		return isTypeOf(LONG_TYPES);
 	}
-	
+
 	public boolean isStringType() {
 		return isTypeOf(STRING_TYPES);
 	}
-	
+
 	public boolean isListType() {
 		return isTypeOf(BYTE_ARRAY_TYPES);
 	}
-	
+
 	public boolean isFlexible() {
 		return flexible;
 	}
-	
+
 	public void setFlexible(boolean flexible) {
 		this.flexible = flexible;
 	}
-	
+
+	public boolean isMultiple() {
+		return multiple;
+	}
+
+	public void setMultiple(boolean multiple) {
+		this.multiple = multiple;
+	}
+
 	@Override
 	public String toString() {
 		return new StringBuilder("Name: " ).append(getName()).append(", type: ").append(getType()).append(", value: ").append(getValue()).toString();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T extends Serializable> T getRealValue() {
 		return (T) getRealValue(null);	//	Casting is needed to avoid compilation error in Maven 2
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T extends Serializable> T getRealValue(Locale locale) {
 		Serializable realValue = null;
@@ -110,7 +154,13 @@ public class BPMProcessVariable implements Serializable {
 			if (locale != null) {
 				value = value.toLowerCase(locale);
 			}
-			realValue = value;
+			if (isMultiple() && value.indexOf(CoreConstants.SEMICOLON) != -1) {
+				String[] values = value.split(CoreConstants.SEMICOLON);
+				if (!ArrayUtil.isEmpty(values))
+					realValue = (T) Arrays.asList(values);
+			}
+			if (realValue == null)
+				realValue = value;
 		} else if (isDateType()) {
 			try {
 				realValue = IWDatePickerHandler.getParsedTimestampByCurrentLocale(getValue());
@@ -136,7 +186,7 @@ public class BPMProcessVariable implements Serializable {
 		} else {
 			Logger.getLogger(BPMProcessVariable.class.getName()).warning("Unsuported type of variable: " + getType() + ", value: " + getValue());
 		}
-		
+
 		return (T) realValue;
 	}
 }

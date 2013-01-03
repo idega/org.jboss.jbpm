@@ -13,12 +13,17 @@ import com.idega.jbpm.view.ViewSubmission;
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.14 $
- * 
+ *
  *          Last modified: $Date: 2009/02/16 22:02:39 $ by $Author: donatas $
  */
 public interface ProcessDefinitionW {
 
-	public abstract void startProcess(ViewSubmission viewSubmission);
+	/**
+	 * Starts process
+	 * @param viewSubmission
+	 * @return process instance ID
+	 */
+	public abstract Long startProcess(ViewSubmission viewSubmission);
 
 	public abstract View loadInitView(Integer initiatorId);
 
@@ -36,10 +41,10 @@ public interface ProcessDefinitionW {
 	public abstract String getStartTaskName();
 
 	public abstract List<Variable> getTaskVariableList(String taskName);
-	
+
 	public abstract List<Variable> getTaskVariableWithAccessesList(String taskName);
 
 	public abstract Collection<String> getTaskNodeTransitionsNames(String taskName);
-	
+
 	public abstract String getProcessName(Locale locale);
 }

@@ -10,48 +10,48 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	private static final long serialVersionUID = 7094674925493141143L;
 	private static final Logger LOGGER = Logger.getLogger(VariableInstanceInfo.class.getName());
-	
+
 	private int hash;
-	
-	private String name;
+
+	private String name, caseId;
 	private VariableInstanceType type;
-	
+
 	private Long id;
 	private Long processInstanceId;
-	
+
 	public VariableInstanceInfo() {
 		super();
-		
+
 		hash = new Random().nextInt(Integer.MAX_VALUE);
 	}
-	
+
 	public VariableInstanceInfo(Serializable value) {
 		this(null, value);
 	}
-	
+
 	public VariableInstanceInfo(String name, Serializable value) {
 		this(name, value, null);
 	}
-	
+
 	public VariableInstanceInfo(String name, VariableInstanceType type) {
 		this(name, null, type);
 	}
-	
+
 	public VariableInstanceInfo(String name, Serializable value, VariableInstanceType type) {
 		this();
-		
+
 		this.name = name;
 		setValue(value);
 		this.type = type;
 	}
-	
+
 	public VariableInstanceInfo(String name, String type) {
 		this();
 		this.name = name;
-		
+
 		VariableInstanceType varType = null;
 		if (StringUtil.isEmpty(type)) {
-			LOGGER.warning("Type is not defined!");
+			LOGGER.warning("Type is not defined for variable: '" + name + "'!");
 		} else {
 			if (VariableInstanceType.STRING.getTypeKeys().contains(type)) {
 				varType = VariableInstanceType.STRING;
@@ -64,12 +64,12 @@ public abstract class VariableInstanceInfo implements Serializable {
 			} else if (VariableInstanceType.BYTE_ARRAY.getTypeKeys().contains(type)) {
 				varType = VariableInstanceType.BYTE_ARRAY;
 			} else {
-				LOGGER.warning("Unknown type: " + type);
+				LOGGER.warning("Unknown type: " + type + " for variable " + name);
 			}
 		}
 		this.type = varType == null ? VariableInstanceType.NULL : varType;
 	}
-	
+
 	public abstract Serializable getValue();
 
 	public abstract void setValue(Serializable value);
@@ -89,7 +89,7 @@ public abstract class VariableInstanceInfo implements Serializable {
 	public void setType(VariableInstanceType type) {
 		this.type = type;
 	}
-	
+
 	public Long getProcessInstanceId() {
 		return processInstanceId;
 	}
@@ -97,7 +97,7 @@ public abstract class VariableInstanceInfo implements Serializable {
 	public void setProcessInstanceId(Long processInstanceId) {
 		this.processInstanceId = processInstanceId;
 	}
-	
+
 	public Long getId() {
 		return id;
 	}
@@ -118,25 +118,34 @@ public abstract class VariableInstanceInfo implements Serializable {
 			Long varId = var.getId();
 			if (getId() == null || varId == null)
 				return false;
-			
+
 			String varName = var.getName();
 			if (getName() == null || varName == null)
 				return false;
-			
+
 			Serializable varValue = var.getValue();
 			if (getValue() == null || varValue == null)
 				return false;
-			
+
 			return getId().longValue() == varId.longValue() && getName().equals(varName) && getValue().toString().equals(varValue.toString());
 		}
 		return false;
 	}
-	
+
+	public String getCaseId() {
+		return caseId;
+	}
+
+	public void setCaseId(String caseId) {
+		this.caseId = caseId;
+	}
+
 	@Override
 	public String toString() {
-		return "Variable " + getName() + ", type " + getType() + ", value: " + getValue() + ", process instance ID: " + getProcessInstanceId();
+		return "Variable " + getName() + ", type " + getType() + ", value: " + getValue() + ", ID: " + getId() + ", process instance ID: " +
+				getProcessInstanceId();
 	}
-	
+
 	public static VariableInstanceInfo getDefaultVariable(String name) {
 		VariableInstanceInfo info = new VariableInstanceInfo() {
 			private static final long serialVersionUID = 1L;
