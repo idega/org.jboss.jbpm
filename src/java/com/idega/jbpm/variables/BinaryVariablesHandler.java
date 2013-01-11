@@ -10,12 +10,12 @@ import java.util.Map;
  * @version $Revision: 1.4 $ Last modified: $Date: 2009/03/30 13:14:48 $ by $Author: civilis $
  */
 public interface BinaryVariablesHandler {
-	
+
 	/**
 	 * checks variables for binary variables types (e.g. file and files data type), stores them to
 	 * some persistence (e.g. slide), puts the identifiers in the variables values, instead of File
 	 * object(s)
-	 * 
+	 *
 	 * @param identifier
 	 *            - any identifier, usually task instance id
 	 * @param variables
@@ -23,18 +23,20 @@ public interface BinaryVariablesHandler {
 	 */
 	public abstract Map<String, Object> storeBinaryVariables(
 	        long taskInstanceId, Map<String, Object> variables);
-	
+
 	public abstract InputStream getBinaryVariableContent(BinaryVariable variable);
-	
+
 	public abstract Map<String, Object> resolveBinaryVariables(
 	        Map<String, Object> variables);
-	
+
 	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(
 	        Map<String, Object> variables);
-	
+
 	public abstract void persistBinaryVariable(BinaryVariable binaryVariable,
 	        final URI fileUri);
-	
+
+	public String getFolderForBinaryVariable(Long taskInstanceId);
+
 	/**
 	 * @param variable
 	 * @return resource for binaryVariable, which reflects the actual persistence method. The one
@@ -42,8 +44,8 @@ public interface BinaryVariablesHandler {
 	 *         filesystem resource api, or create our own
 	 */
 	public abstract Object getBinaryVariablePersistentResource(BinaryVariable variable);
-	
+
 	public BinaryVariable convertToBinaryVariable(String jsonStr);
-	
+
 	public List<String> convertToBinaryVariablesRepresentation(String jsonStr);
 }

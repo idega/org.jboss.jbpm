@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -748,7 +749,8 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		query = query.trim();
 		if (!query.endsWith("and"))
 			query += " and";
-		query += " p.case_id = c." + CaseBMPBean.PK_COLUMN;
+		query += " p.case_id = c." + CaseBMPBean.PK_COLUMN + " order by c." + CaseBMPBean.COLUMN_CREATED + " desc";
+
 		List<Serializable[]> results = null;
 		try {
 			results = SimpleQuerier.executeQuery(query, 3);
@@ -811,7 +813,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		if (ListUtil.isEmpty(results))
 			return null;
 
-		Map<Long, Map<String, java.util.Date>> idsWithDates = new HashMap<Long, Map<String, java.util.Date>>();
+		Map<Long, Map<String, java.util.Date>> idsWithDates = new LinkedHashMap<Long, Map<String, java.util.Date>>();
 		for (Object[] result: results) {
 			if (result.length != 3) {
 				LOGGER.warning("Not enough data to construct result");
