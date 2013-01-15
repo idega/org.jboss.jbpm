@@ -8,14 +8,15 @@ public class VariableDateInstance extends VariableInstanceInfo {
 	private static final long serialVersionUID = -2590225930963717609L;
 
 	private Timestamp value;
-	
+
 	public VariableDateInstance(String name, Timestamp value) {
 		super(name, value, VariableInstanceType.DATE);
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	@Override
-	public Timestamp getValue() {
-		return value;
+	public <T extends Serializable> T getValue() {
+		return (T) value;
 	}
 
 	@Override

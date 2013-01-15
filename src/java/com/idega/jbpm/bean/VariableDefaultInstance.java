@@ -9,14 +9,14 @@ public class VariableDefaultInstance extends VariableInstanceInfo {
 	public VariableDefaultInstance(String name, String type) {
 		super(name, type);
 	}
-	
+
 	@Override
-	public Serializable getValue() {
+	public <T extends Serializable> T getValue() {
 		return null;
 	}
 
 	@Override
-	public void setValue(Serializable value) {
+	public <T extends Serializable> void setValue(T value) {
 	}
 
 }

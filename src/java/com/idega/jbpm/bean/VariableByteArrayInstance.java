@@ -65,15 +65,16 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 		super(name, value, VariableInstanceType.BYTE_ARRAY);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Serializable getValue() {
+	public <T extends Serializable> T getValue() {
 		if (value instanceof Number) {
 			String query = "select b.BYTES_ from JBPM_BYTEBLOCK b where b.PROCESSFILE_ = " + value;
 			try {
 				List<Serializable[]> values = SimpleQuerier.executeQuery(query, 1);
 				if (ListUtil.isEmpty(values)) {
 					value = null;
-					return value;
+					return null;
 				}
 				Object bytes = null;
 
@@ -109,11 +110,14 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 			}
 		}
 
-		return value;
+		if (value instanceof Serializable)
+			return (T) value;
+
+		return null;
 	}
 
 	@Override
-	public void setValue(Serializable value) {
+	public <T extends Serializable> void setValue(T value) {
 		this.value = value instanceof Serializable ? value : null;
 	}
 }

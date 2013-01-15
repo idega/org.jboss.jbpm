@@ -25,11 +25,11 @@ public abstract class VariableInstanceInfo implements Serializable {
 		hash = new Random().nextInt(Integer.MAX_VALUE);
 	}
 
-	public VariableInstanceInfo(Serializable value) {
+	public <T extends Serializable> VariableInstanceInfo(T value) {
 		this(null, value);
 	}
 
-	public VariableInstanceInfo(String name, Serializable value) {
+	public <T extends Serializable> VariableInstanceInfo(String name, T value) {
 		this(name, value, null);
 	}
 
@@ -37,7 +37,7 @@ public abstract class VariableInstanceInfo implements Serializable {
 		this(name, null, type);
 	}
 
-	public VariableInstanceInfo(String name, Serializable value, VariableInstanceType type) {
+	public <T extends Serializable> VariableInstanceInfo(String name, T value, VariableInstanceType type) {
 		this();
 
 		this.name = name;
@@ -70,9 +70,9 @@ public abstract class VariableInstanceInfo implements Serializable {
 		this.type = varType == null ? VariableInstanceType.NULL : varType;
 	}
 
-	public abstract Serializable getValue();
+	public abstract <T extends Serializable> T getValue();
 
-	public abstract void setValue(Serializable value);
+	public abstract <T extends Serializable> void setValue(T value);
 
 	public String getName() {
 		return name;
@@ -148,12 +148,13 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	public static VariableInstanceInfo getDefaultVariable(String name) {
 		VariableInstanceInfo info = new VariableInstanceInfo() {
-			private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = 4538526463690356958L;
+
 			@Override
-			public void setValue(Serializable value) {
+			public <T extends Serializable> void setValue(T value) {
 			}
 			@Override
-			public Serializable getValue() {
+			public <T extends Serializable> T getValue() {
 				return null;
 			}
 		};

@@ -12,13 +12,14 @@ public class VariableDoubleInstance extends VariableInstanceInfo {
 		super(name, value, VariableInstanceType.DOUBLE);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Double getValue() {
-		return value;
+	public <T extends Serializable> T getValue() {
+		return (T) value;
 	}
 
 	@Override
-	public void setValue(Serializable value) {
+	public <T extends Serializable> void setValue(T value) {
 		this.value = value instanceof Number ? ((Number) value).doubleValue() : null;
 	}
 

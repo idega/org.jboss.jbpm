@@ -89,13 +89,14 @@ public class VariableStringInstance extends VariableInstanceInfo {
 		super(name, value, VariableInstanceType.STRING);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public String getValue() {
-		return value;
+	public <T extends Serializable> T getValue() {
+		return (T) value;
 	}
 
 	@Override
-	public void setValue(Serializable value) {
+	public <T extends Serializable> void setValue(T value) {
 		String oldValue = getValue();
 
 		setValue(getId(), value);
