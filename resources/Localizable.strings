@@ -61,3 +61,4 @@ set_same_permission_for_attachements=Set same access rights to attachments
 signing=Signing...
 unable_to_sign_attachment=Sorry, unable to sign selected attachment
 download_stats.file_was_not_found=File was not downloaded yet
+go_to_home_page=Go to home page

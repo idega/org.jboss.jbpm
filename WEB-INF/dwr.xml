@@ -24,6 +24,8 @@
             <include method="getSigningAction" />
             <include method="disableAttachmentForAllRoles" />
             <include method="isTaskSubmitted" />
+            <include method="doShowSuggestionForSaving" />
+            <include method="getHomepageLinkAndLocalizedString" />
         </create>
         
         <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.GridEntriesBean">

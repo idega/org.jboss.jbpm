@@ -23,3 +23,4 @@ no_tasks_available_currently=You currently don't have any tasks awaiting
 bpm.caseHandler=Case handler
 bpm.resetToDefault=Reset to default
 download_stats.file_was_not_found=File was not downloaded yet
+go_to_home_page=Go to home page
