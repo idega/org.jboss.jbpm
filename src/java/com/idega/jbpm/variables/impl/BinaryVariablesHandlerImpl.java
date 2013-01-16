@@ -317,10 +317,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			RepositoryService repository = getRepositoryService();
 
 			String fileUri = variable.getIdentifier();
-			InputStream stream = repository.getInputStream(fileUri);
+			InputStream stream = repository.getInputStreamAsRoot(fileUri);
 			if (stream == null) {
 				String decodedFileUri = getDecodedUri(fileUri);
-				stream = repository.getInputStream(decodedFileUri);
+				stream = repository.getInputStreamAsRoot(decodedFileUri);
 				if (stream == null) {
 					LOGGER.warning("Input stream can not be opened to: " + fileUri + " nor to decoded path: " + decodedFileUri +
 							". Will try to retrieve WebdavResource");
@@ -334,7 +334,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					if (res == null || !res.exists()) {
 						LOGGER.warning("Unable to load WebdavResource '" + fileUri + "' using Slide via HTTP");
 					} else {
-						stream = repository.getInputStream(res.getPath());
+						stream = repository.getInputStreamAsRoot(res.getPath());
 					}
 				}
 			}
@@ -351,7 +351,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					}
 					if (stream == null) {
 						try {
-							stream = repository.getInputStream(attachment.getPath());
+							stream = repository.getInputStreamAsRoot(attachment.getPath());
 						} catch (Exception e) {
 							LOGGER.log(Level.WARNING, "Error getting input stream for: " + attachment.getPath(), e);
 						}
