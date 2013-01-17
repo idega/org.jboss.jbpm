@@ -156,6 +156,8 @@ public interface ProcessInstanceW {
 
 	public abstract boolean hasEnded();
 
+	public Long getIdOfStartTaskInstance();
+
 	public abstract TaskInstanceW getStartTaskInstance();
 
 	public abstract Collection<Role> getRolesContactsPermissions(Integer userId);
