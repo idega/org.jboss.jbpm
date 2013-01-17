@@ -323,7 +323,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				stream = repository.getInputStreamAsRoot(decodedFileUri);
 				if (stream == null) {
 					LOGGER.warning("Input stream can not be opened to: " + fileUri + " nor to decoded path: " + decodedFileUri +
-							". Will try to retrieve WebdavResource");
+							". Will try to retrieve resource via HTTP(S)");
 
 					RepositoryItem res = null;
 					try {
@@ -332,7 +332,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 						LOGGER.log(Level.WARNING, "Error getting resource via HTTP: " + fileUri, e);
 					}
 					if (res == null || !res.exists()) {
-						LOGGER.warning("Unable to load WebdavResource '" + fileUri + "' using Slide via HTTP");
+						LOGGER.warning("Unable to load resource '" + fileUri + "' from repository via HTTP");
 					} else {
 						stream = repository.getInputStreamAsRoot(res.getPath());
 					}
@@ -384,7 +384,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	private InputStream getFromURL(RepositoryService repository, String fileUri) {
 		String link = null;
 		try {
-			HttpURL serverInfo = new HttpURL(repository.getWebdavServerURL());
+			HttpURL serverInfo = new HttpURL(CoreUtil.getHost() + repository.getWebdavServerURL());
 			String scheme = serverInfo.getScheme();
 			String host = serverInfo.getHost();
 			int port = serverInfo.getPort();
