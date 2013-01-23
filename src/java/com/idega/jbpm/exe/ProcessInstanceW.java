@@ -182,4 +182,6 @@ public interface ProcessInstanceW {
 	public abstract User getOwner();
 
 	public boolean doSubmitSharedTask(String taskName, Map<String, Object> variables);
+
+	public boolean doSubmitTask(String taskName, Map<String, Object> variables);
 }
