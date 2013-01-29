@@ -44,6 +44,9 @@ public interface View {
 
 	public abstract void setSubmitable(boolean submitable);
 
+	public void setSubmitted(boolean submitted);
+	public boolean isSubmitted();
+
 	public abstract boolean populateVariables(Map<String, Object> variables);
 
 	public abstract void populateParameters(Map<String, String> parameters);
