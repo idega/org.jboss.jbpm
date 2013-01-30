@@ -3,6 +3,7 @@ package com.idega.jbpm.exe;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.jbpm.graph.def.ProcessDefinition;
 
@@ -17,6 +18,8 @@ import com.idega.jbpm.view.ViewSubmission;
  *          Last modified: $Date: 2009/02/16 22:02:39 $ by $Author: donatas $
  */
 public interface ProcessDefinitionW {
+
+	public abstract Object doPrepareProcess(Map<String, Object> parameters);
 
 	/**
 	 * Starts process
