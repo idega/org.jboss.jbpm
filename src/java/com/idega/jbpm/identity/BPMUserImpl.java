@@ -36,6 +36,12 @@ public class BPMUserImpl implements BPMUser {
 	private IWContext iwc;
 	private Long processInstanceId;
 	
+	public static final Logger LOGGER = Logger.getLogger(BPMUser.class.getName());
+	
+	protected Logger getLogger() {
+		return LOGGER;
+	}
+	
 	public User getBpmUser() {
 		return bpmUser;
 	}
@@ -188,7 +194,14 @@ public class BPMUserImpl implements BPMUser {
 			User usr = getBpmUser();
 			String processInstanceIdStr = usr
 			        .getMetaData(BPMUser.PROCESS_INSTANCE_ID);
-			processInstanceId = new Long(processInstanceIdStr);
+			
+			try {
+				processInstanceId = new Long(processInstanceIdStr);
+			} catch (NumberFormatException e) {
+				getLogger().log(Level.WARNING, "Unable to convert " + 
+						String.class + ": " + processInstanceIdStr + " to " +
+						Long.class.getName());
+			}
 		}
 		
 		return processInstanceId;
