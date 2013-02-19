@@ -964,7 +964,7 @@ public class ProcessArtifacts {
 		return iwrb.getLocalizedString("not_started", "Not started");
 	}
 
-	public org.jdom.Document getViewDisplay(Long taskInstanceId) {
+	public org.jdom2.Document getViewDisplay(Long taskInstanceId) {
 		try {
 			IWContext iwc = getIWContext(false);
 			if (iwc == null) {
@@ -1064,8 +1064,7 @@ public class ProcessArtifacts {
 		return errorMessage;
 	}
 
-	public org.jdom.Document setRoleDefaultContactsForUser(
-	        Long processInstanceId, Integer userId) {
+	public org.jdom2.Document setRoleDefaultContactsForUser(Long processInstanceId, Integer userId) {
 
 		getBpmFactory().getRolesManager().setContactsPermission(
 		    new Role("default"), processInstanceId, userId);
@@ -1073,7 +1072,7 @@ public class ProcessArtifacts {
 		return getContactsAccessRightsSetterBox(processInstanceId, userId);
 	}
 
-	public org.jdom.Document getAccessRightsSetterBox(Long processInstanceId,
+	public org.jdom2.Document getAccessRightsSetterBox(Long processInstanceId,
 	        Long taskInstanceId, String fileHashValue,
 	        boolean setSameRightsForAttachments) {
 
@@ -1081,14 +1080,14 @@ public class ProcessArtifacts {
 		    fileHashValue, setSameRightsForAttachments, null);
 	}
 
-	public org.jdom.Document getContactsAccessRightsSetterBox(
+	public org.jdom2.Document getContactsAccessRightsSetterBox(
 	        Long processInstanceId, Integer userId) {
 
 		return getAccessRightsSetterBox(processInstanceId, null, null, null,
 		    userId);
 	}
 
-	private org.jdom.Document getAccessRightsSetterBox(Long processInstanceId,
+	private org.jdom2.Document getAccessRightsSetterBox(Long processInstanceId,
 	        Long taskInstanceId, String fileHashValue,
 	        Boolean setSameRightsForAttachments, Integer userId) {
 
