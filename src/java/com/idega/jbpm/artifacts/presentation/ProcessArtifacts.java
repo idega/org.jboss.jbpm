@@ -1197,7 +1197,7 @@ public class ProcessArtifacts {
 				TableCell2 cell = bodyRow.createCell();
 
 				cell.add(new Text(iwc.getIWMainApplication()
-				        .getLocalisedStringMessage(roleName, roleName, null,
+				        .getLocalizedStringMessage(roleName, roleName, null,
 				            iwc.getCurrentLocale())));
 
 				GenericButton sameRigthsSetter = null;
