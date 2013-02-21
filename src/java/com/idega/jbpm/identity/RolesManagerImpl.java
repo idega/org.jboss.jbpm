@@ -279,12 +279,9 @@ public class RolesManagerImpl implements RolesManager {
 	}
 
 	@Override
-	public void checkPermission(Permission permission)
-	        throws BPMAccessControlException {
-
+	public void checkPermission(Permission permission) throws BPMAccessControlException {
 		try {
 			getAuthorizationService().checkPermission(permission);
-
 		} catch (AccessControlException e) {
 			throw new BPMAccessControlException("No access");
 		}
@@ -1825,28 +1822,21 @@ public class RolesManagerImpl implements RolesManager {
 
 	@Override
 	public Set<String> getUserNativeRoles(User user) {
-
 		return getAccessController().getAllRolesForUser(user);
 	}
 
 	@Override
 	public User getUser(int userId) {
-
 		try {
 			return getUserBusiness().getUser(userId);
-
 		} catch (RemoteException e) {
 			throw new IBORuntimeException(e);
 		}
 	}
 
 	@Override
-	public boolean checkFallsInRole(String roleName,
-	        List<NativeIdentityBind> nativeIdentities, /*
-	                                                                        													 * Collection<Group>
-	                                                                        													 * usrGrps,
-	                                                                        													 */
-	        int userId, AccessController ac, IWApplicationContext iwac) {
+	public boolean checkFallsInRole(String roleName, List<NativeIdentityBind> nativeIdentities, int userId, AccessController ac,
+			IWApplicationContext iwac) {
 
 		if (nativeIdentities != null && !nativeIdentities.isEmpty()) {
 			if (fallsInUsers(userId, nativeIdentities)
@@ -1854,14 +1844,12 @@ public class RolesManagerImpl implements RolesManager {
 			        || fallsInRoles(userId, nativeIdentities))
 				return true;
 		} else {
-
 			try {
 				User usr = getUserBusiness().getUser(userId);
 				Set<String> roles = ac.getAllRolesForUser(usr);
 
 				if (roles.contains(roleName))
 					return true;
-
 			} catch (RemoteException e) {
 				throw new IBORuntimeException(e);
 			}

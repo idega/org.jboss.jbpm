@@ -38,22 +38,22 @@ import com.idega.util.StringUtil;
 @Scope("singleton")
 @Service
 public class IdentityAuthorizationService implements AuthorizationService {
-	
+
 	private static final long serialVersionUID = -7496842155073961922L;
-	
+
 	private static final Logger LOGGER = Logger.getLogger(IdentityAuthorizationService.class.getName());
-	
+
 	private AuthenticationService authenticationService;
 	private BPMDAO bpmBindsDAO;
 	private Map<String, BPMTypedHandler> handlers;
-	
+
 	@Autowired(required = false)
 	public void setHandlers(List<BPMTypedHandler> handlers) {
 		if (handlers == null) {
 			LOGGER.warning("No handlers provided");
 			return;
 		}
-			
+
 		this.handlers = new HashMap<String, BPMTypedHandler>();
 		for (BPMTypedHandler handler : handlers) {
 			String[] handledTypes = handler.getHandledTypes();
@@ -67,15 +67,15 @@ public class IdentityAuthorizationService implements AuthorizationService {
 				LOGGER.warning("Typed permissions handler registered, but no supported permissions types returned. Handler class=" + handler.getClass().getName());
 		}
 	}
-	
+
+	@Override
 	@Transactional(readOnly = true, noRollbackFor = { AccessControlException.class })
 	public void checkPermission(Permission perm) throws AccessControlException {
-		if (!(perm instanceof BPMTypedPermission)) {
+		if (!(perm instanceof BPMTypedPermission))
 			throw new IllegalArgumentException("Expected permission type: " + BPMTypedPermission.class + ", received: " + perm);
-		}
-		
+
 		BPMTypedPermission bpmPerm = (BPMTypedPermission) perm;
-		
+
 		FacesContext fctx = FacesContext.getCurrentInstance();
 		// faces context == null when permission is called by the system (i.e. not the result of user navigation)
 		if (fctx == null){
@@ -87,20 +87,19 @@ public class IdentityAuthorizationService implements AuthorizationService {
 				 return;
 			 }
 		}
-		
-		
+
+
 		BPMTypedHandler handler = getHandlers().get(bpmPerm.getType());
-		if (handler == null) {
+		if (handler == null)
 			throw new AccessControlException("No handler resolved for the permission type=" + bpmPerm.getType());
-		}
-				
+
 		PermissionHandleResult result = handler.handle(perm);
 		if (result.getStatus() == PermissionHandleResultStatus.noAccess) {
 			String message = getErrorMessage(bpmPerm, handler, result);
 			throw new AccessControlException(message);
-		}				
+		}
 	}
-	
+
 	private String getErrorMessage(BPMTypedPermission bpmPerm, BPMTypedHandler handler, PermissionHandleResult result) {
 		User user = null;
 		Set<String> userRoles = null;
@@ -113,31 +112,31 @@ public class IdentityAuthorizationService implements AuthorizationService {
 				e.printStackTrace();
 			}
 		}
-		
+
 		String message = "Access is denied! Permission for user: " + user + " (ID: " + userId + ", user roles: " + (userRoles == null ? "unknown" : userRoles) +
 			"), BPM permission: " + bpmPerm + ". Handler: " + handler.getClass();
 		message = message + ". " + (StringUtil.isEmpty(result.getMessage()) ? ("No access resolved by handler=" + handler) : result.getMessage());
 		return message;
 	}
-	
+
 	public AuthenticationService getAuthenticationService() {
 		return authenticationService;
 	}
-	
+
 	@Autowired
 	public void setAuthenticationService(AuthenticationService authenticationService) {
 		this.authenticationService = authenticationService;
 	}
-	
+
 	public BPMDAO getBpmBindsDAO() {
 		return bpmBindsDAO;
 	}
-	
+
 	@Autowired
 	public void setBpmBindsDAO(BPMDAO bpmBindsDAO) {
 		this.bpmBindsDAO = bpmBindsDAO;
 	}
-	
+
 	protected UserBusiness getUserBusiness() {
 		try {
 			return IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), UserBusiness.class);
@@ -145,19 +144,20 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			throw new IBORuntimeException(ile);
 		}
 	}
-	
+
 	protected AccessController getAccessController() {
 		return getIWMA().getAccessController();
 	}
-	
+
 	protected IWMainApplication getIWMA() {
 		FacesContext fctx = FacesContext.getCurrentInstance();
 		return fctx == null ? IWMainApplication.getDefaultIWMainApplication() : IWMainApplication.getIWMainApplication(fctx);
 	}
-	
+
+	@Override
 	public void close() {
 	}
-	
+
 	public Map<String, BPMTypedHandler> getHandlers() {
 		return handlers;
 	}

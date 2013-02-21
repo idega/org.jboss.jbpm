@@ -415,7 +415,8 @@ public class ProcessArtifacts {
 		try {
 			tasksDocuments = loggedInUser == null ?
 				null :
-				getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getTaskDocumentsForUser(loggedInUser, userLocale);
+				getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId)
+					.getTaskDocumentsForUser(loggedInUser, userLocale);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +	userLocale, e);
 		}
