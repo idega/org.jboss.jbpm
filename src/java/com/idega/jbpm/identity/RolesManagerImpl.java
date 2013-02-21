@@ -72,8 +72,7 @@ import com.idega.util.StringUtil;
  */
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service("bpmRolesManager")
-@Transactional(readOnly = true, noRollbackFor = { AccessControlException.class,
-        BPMAccessControlException.class })
+@Transactional(readOnly = true, noRollbackFor = {AccessControlException.class, BPMAccessControlException.class})
 public class RolesManagerImpl implements RolesManager {
 
 	@Autowired
@@ -89,30 +88,22 @@ public class RolesManagerImpl implements RolesManager {
 	@Autowired
 	private PermissionsFactory permissionsFactory;
 
-	private static final Logger logger = Logger
-	        .getLogger(RolesManagerImpl.class.getName());
+	private static final Logger logger = Logger.getLogger(RolesManagerImpl.class.getName());
 
 	@Override
 	@Transactional(readOnly = false)
-	public void createIdentitiesForRolesNames(Set<String> rolesNames,
-	        Identity identity, long processInstanceId) {
-
+	public void createIdentitiesForRolesNames(Set<String> rolesNames, Identity identity, long processInstanceId) {
 		modifyIdentitiesForRoles(rolesNames, identity, processInstanceId, false);
 	}
 
 	@Override
 	@Transactional(readOnly = false)
-	public void createIdentitiesForRoles(Collection<Role> roles,
-	        Identity identity, long processInstanceId) {
-
-		if (roles.isEmpty())
+	public void createIdentitiesForRoles(Collection<Role> roles, Identity identity, long processInstanceId) {
+		if (ListUtil.isEmpty(roles))
 			return;
 
-		HashSet<String> rolesNames = new HashSet<String>(roles.size());
-
+		Set<String> rolesNames = new HashSet<String>(roles.size());
 		for (Role role : roles) {
-
-			// if (role.getScope() == RoleScope.PI)
 			rolesNames.add(role.getRoleName());
 		}
 
@@ -121,17 +112,12 @@ public class RolesManagerImpl implements RolesManager {
 
 	@Override
 	@Transactional(readOnly = false)
-	public void removeIdentitiesForRoles(Collection<Role> roles,
-	        Identity identity, long processInstanceId) {
-
-		if (roles.isEmpty())
+	public void removeIdentitiesForRoles(Collection<Role> roles, Identity identity, long processInstanceId) {
+		if (ListUtil.isEmpty(roles))
 			return;
 
-		HashSet<String> rolesNames = new HashSet<String>(roles.size());
-
+		Set<String> rolesNames = new HashSet<String>(roles.size());
 		for (Role role : roles) {
-
-			// if (role.getScope() == RoleScope.PI)
 			rolesNames.add(role.getRoleName());
 		}
 
@@ -140,21 +126,18 @@ public class RolesManagerImpl implements RolesManager {
 
 	@Override
 	@Transactional(readOnly = false)
-	public void removeIdentitiesForActors(Collection<Actor> actors,
-	        Identity identity, long processInstanceId) {
+	public void removeIdentitiesForActors(Collection<Actor> actors, Identity identity, long processInstanceId) {
 		modifyIdentitiesForActors(actors, identity, processInstanceId, true);
 	}
 
 	@Override
 	@Transactional(readOnly = false)
-	public void createIdentitiesForActors(Collection<Actor> actors,
-	        Identity identity, long processInstanceId) {
+	public void createIdentitiesForActors(Collection<Actor> actors, Identity identity, long processInstanceId) {
 		modifyIdentitiesForActors(actors, identity, processInstanceId, false);
 	}
 
 	@Transactional(readOnly = false)
-	void modifyIdentitiesForActors(Collection<Actor> actors, Identity identity,
-	        long processInstanceId, boolean remove) {
+	void modifyIdentitiesForActors(Collection<Actor> actors, Identity identity, long processInstanceId, boolean remove) {
 
 		if (identity.getIdentityType() == null
 		        || StringUtil.isEmpty(identity.getIdentityId()))
@@ -479,43 +462,26 @@ public class RolesManagerImpl implements RolesManager {
 								    user);
 
 							} else if (identity.getIdentityType() == IdentityType.GROUP) {
-
-								@SuppressWarnings("unchecked")
-								Collection<User> groupUsers = userBusiness
-								        .getUsersInGroup(new Integer(identity
-								                .getIdentityId()));
-
+								Collection<User> groupUsers = userBusiness.getUsersInGroup(new Integer(identity.getIdentityId()));
 								for (User user : groupUsers)
-									allUsers.put(user.getPrimaryKey()
-									        .toString(), user);
+									allUsers.put(user.getPrimaryKey().toString(), user);
 
 							} else if (identity.getIdentityType() == IdentityType.ROLE) {
-
-								Collection<Group> grps = getAccessController()
-								        .getAllGroupsForRoleKeyLegacy(
-								            identity.getIdentityId(), iwac);
-
+								Collection<Group> grps = getAccessController().getAllGroupsForRoleKeyLegacy(identity.getIdentityId(), iwac);
 								if (grps != null)
 									allGroups.addAll(grps);
 							}
 						}
 
 					} catch (RemoteException e) {
-						logger
-						        .log(
-						            Level.SEVERE,
-						            "Exception while loading users from nativeIdentities",
-						            e);
+						logger.log(Level.SEVERE, "Exception while loading users from nativeIdentities", e);
 					}
 				}
 			}
 
 			try {
 				for (Group group : allGroups) {
-
-					@SuppressWarnings("unchecked")
-					Collection<User> users = userBusiness
-					        .getUsersInGroup(group);
+					Collection<User> users = userBusiness.getUsersInGroup(group);
 
 					for (User user : users) {
 						allUsers.put(user.getPrimaryKey().toString(), user);
@@ -523,17 +489,11 @@ public class RolesManagerImpl implements RolesManager {
 				}
 
 			} catch (RemoteException e) {
-				Logger
-				        .getLogger(getClass().getName())
-				        .log(
-				            Level.SEVERE,
-				            "Exception while resolving users from roles assigned groups",
-				            e);
+				logger.log(Level.SEVERE, "Exception while resolving users from roles assigned groups", e);
 			}
 
 			return allUsers.values();
 		} else {
-
 			return Collections.emptyList();
 		}
 	}
@@ -2068,32 +2028,23 @@ public class RolesManagerImpl implements RolesManager {
 		});
 	}
 
-	protected boolean fallsInGroups(int userId,
-	        List<NativeIdentityBind> nativeIdentities) {
-
+	protected boolean fallsInGroups(int userId, List<NativeIdentityBind> nativeIdentities) {
 		try {
 			UserBusiness ub = getUserBusiness();
-			@SuppressWarnings("unchecked")
 			Collection<Group> userGroups = ub.getUserGroups(userId);
 
 			if (userGroups != null) {
-
 				for (Group group : userGroups) {
-
 					String groupId = group.getPrimaryKey().toString();
 
 					for (NativeIdentityBind nativeIdentity : nativeIdentities) {
-
-						if (nativeIdentity.getIdentityType() == IdentityType.GROUP
-						        && nativeIdentity.getIdentityId().equals(
-						            groupId))
+						if (nativeIdentity.getIdentityType() == IdentityType.GROUP && nativeIdentity.getIdentityId().equals(groupId))
 							return true;
 					}
 				}
 			}
 
 			return false;
-
 		} catch (RemoteException e) {
 			throw new IDORuntimeException(e);
 		}
