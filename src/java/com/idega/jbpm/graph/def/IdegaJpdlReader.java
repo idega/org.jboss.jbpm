@@ -91,8 +91,7 @@ public class IdegaJpdlReader extends JpdlXmlReader {
 
 			if (!ListUtil.isEmpty(roles)) {
 
-				Map<Locale, Map<Object, Object>> localizedRoles = new HashMap<Locale, Map<Object, Object>>(
-				        roles.size());
+				Map<Locale, Map<String, String>> localizedRoles = new HashMap<Locale, Map<String, String>>(roles.size());
 				HashSet<String> nativeRolesNames = new HashSet<String>(roles
 				        .size());
 
@@ -110,10 +109,9 @@ public class IdegaJpdlReader extends JpdlXmlReader {
 							Locale locale = LocaleUtil.getLocale(localeStr);
 							String localizedLabel = roleLabel.getTextTrim();
 
-							Map<Object, Object> roleLabels = localizedRoles
-							        .get(locale);
+							Map<String, String> roleLabels = localizedRoles.get(locale);
 							if (roleLabels == null) {
-								roleLabels = new HashMap<Object, Object>();
+								roleLabels = new HashMap<String, String>();
 								roleLabels.put(roleName, localizedLabel);
 								localizedRoles.put(locale, roleLabels);
 							} else {
@@ -130,8 +128,7 @@ public class IdegaJpdlReader extends JpdlXmlReader {
 				}
 
 				for (Locale locale : localizedRoles.keySet()) {
-					getMessageFactory().setLocalizedMessages(
-					    localizedRoles.get(locale), null, locale);
+					getMessageFactory().setLocalizedMessages(localizedRoles.get(locale), null, locale);
 				}
 
 				if (!nativeRolesNames.isEmpty()) {

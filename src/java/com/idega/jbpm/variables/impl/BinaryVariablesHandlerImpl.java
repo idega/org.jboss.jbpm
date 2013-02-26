@@ -61,7 +61,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	private static final Logger LOGGER = Logger.getLogger(BinaryVariablesHandlerImpl.class.getName());
 
 	public static final String BPM_UPLOADED_FILES_PATH = JBPMConstants.BPM_PATH + "/attachments/";
-	public static final String STORAGE_TYPE = "slide";
+	public static final String STORAGE_TYPE = CoreConstants.REPOSITORY;
 	public static final String BINARY_VARIABLE = "binaryVariable";
 	public static final String VARIABLE = "variable";
 

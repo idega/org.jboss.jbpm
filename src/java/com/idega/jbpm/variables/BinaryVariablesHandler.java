@@ -13,7 +13,7 @@ public interface BinaryVariablesHandler {
 
 	/**
 	 * checks variables for binary variables types (e.g. file and files data type), stores them to
-	 * some persistence (e.g. slide), puts the identifiers in the variables values, instead of File
+	 * some persistence (e.g. repository), puts the identifiers in the variables values, instead of File
 	 * object(s)
 	 *
 	 * @param identifier
