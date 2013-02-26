@@ -42,6 +42,7 @@ import com.idega.core.contact.data.Phone;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.bean.VariableInstanceInfo;
@@ -219,11 +220,11 @@ public class ProcessArtifacts {
 		UIComponent component = null;
 		try {
 			View view = taskInstance.getView();
+			view.setSubmitted(taskInstance.isSubmitted());
 
 			component = view.getViewForDisplay();
-			if (component instanceof PDFRenderedComponent) {
+			if (component instanceof PDFRenderedComponent)
 				return !((PDFRenderedComponent) component).isPdfViewer();
-			}
 
 			return view.hasViewForDisplay();
 		} catch(Exception e) {}
@@ -1648,5 +1649,63 @@ public class ProcessArtifacts {
 			LOGGER.log(Level.WARNING, "Error while resolving if task by ID " + tiId + " is submitted", e);
 		}
 		return false;
+	}
+
+	/**
+	 *
+	 * <p>Gets link of home page of {@link User} which is defined in
+	 * some {@link Group} by:</p>
+	 * @param personalID - {@link User#getPersonalID()}, not <code>null</code>.
+	 * @return {@link URI#getPath()}, {@link CoreConstants#EMPTY} on failure.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public AdvancedProperty getHomepageLinkAndLocalizedString() {
+		BuilderLogic bl = BuilderLogic.getInstance();
+		IWContext iwc = CoreUtil.getIWContext();
+		if (iwc == null || !iwc.isLoggedOn()) {
+			return null;
+		}
+
+		String uri = CoreConstants.PAGES_URI_PREFIX;
+		com.idega.core.builder.data.ICPage homePage = bl.getUsersHomePage(iwc.getCurrentUser());
+		if (homePage != null)
+			uri = uri + homePage.getDefaultPageURI();
+
+		IWResourceBundle iwrb = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER).getResourceBundle(iwc);
+		return new AdvancedProperty(
+				uri,
+				iwrb.getLocalizedString("go_to_home_page", "Go to homepage"));
+	}
+
+	/**
+	 *
+	 * <p>Check do_show_suggestion_for_saving property for value.</p>
+	 * @return value of do_show_suggestion_for_saving application property.
+	 * Or <code>false</code> on failure.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public boolean doShowSuggestionForSaving() {
+		IWContext iwc = getIWContext(Boolean.TRUE);
+		if (iwc == null) {
+			LOGGER.log(Level.WARNING, "Unable to get " + IWContext.class +
+					" the functions returns FALSE, which is default value.");
+			return Boolean.FALSE;
+		}
+
+		IWMainApplication iwma = iwc.getIWMainApplication();
+		if (iwma == null) {
+			LOGGER.log(Level.WARNING, "Unable to get " + IWMainApplication.class +
+					" the functions returns FALSE, which is default value.");
+			return Boolean.FALSE;
+		}
+
+		IWMainApplicationSettings setting = iwma.getSettings();
+		if (setting == null) {
+			LOGGER.log(Level.WARNING, "Unable to get " + IWMainApplicationSettings.class +
+					" the functions returns FALSE, which is default value.");
+			return Boolean.FALSE;
+		}
+
+		return setting.getBoolean("do_show_suggestion_for_saving", Boolean.FALSE);
 	}
 }

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessConstants;
+import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.view.View;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
@@ -24,7 +25,7 @@ import com.idega.util.expression.ELUtil;
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.25 $
- * 
+ *
  *          Last modified: $Date: 2009/06/08 14:27:35 $ by $Author: valdas $
  */
 public class BPMTaskViewer extends IWBaseComponent {
@@ -106,7 +107,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		final Integer initiatorId;
 
 		PresentationUtil.addJavaScriptActionToBody(iwc, "var BPMConfiguration = {}; BPMConfiguration.processName = '"+processName+"';");
-		
+
 		if (iwc.isLoggedOn())
 			initiatorId = iwc.getCurrentUserId();
 		else
@@ -117,19 +118,15 @@ public class BPMTaskViewer extends IWBaseComponent {
 		return initView.getViewForDisplay();
 	}
 
-	private UIComponent loadViewerFromTaskInstance(FacesContext context,
-			Long taskInstanceId) {
-
+	private UIComponent loadViewerFromTaskInstance(FacesContext context, Long taskInstanceId) {
 		try {
-			View initView = getBpmFactory().getProcessManagerByTaskInstanceId(
-					taskInstanceId).getTaskInstance(taskInstanceId).loadView();
+			TaskInstanceW tiW = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
+			View initView = tiW.loadView();
+			initView.setSubmitted(tiW.isSubmitted());
 
 			return initView.getViewForDisplay();
-
 		} catch (AccessControlException e) {
-
-			Logger.getLogger(getClass().getName()).log(Level.WARNING,
-					"No access");
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "No access to task " + taskInstanceId);
 			return null;
 		}
 	}

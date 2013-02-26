@@ -85,6 +85,15 @@ public interface TaskInstanceW {
 	public boolean isSignable();
 
 	/**
+	 * 
+	 * <p>Checks if current task is submitted.</p>
+	 * @return <code>true</code> if submitted, <code>false</code>
+	 * otherwise.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public boolean isSubmitted();
+	
+	/**
 	 * should be used only by process manager itself
 	 *
 	 * @param processManager
