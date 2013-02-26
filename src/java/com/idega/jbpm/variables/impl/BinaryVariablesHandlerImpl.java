@@ -310,7 +310,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 	@Override
 	public InputStream getBinaryVariableContent(BinaryVariable variable) {
-		if (!STORAGE_TYPE.equals(variable.getStorageType()))
+		String storageType = variable.getStorageType();
+		if (!STORAGE_TYPE.equals(storageType) && !"slide".equals(storageType))
 			throw new IllegalArgumentException("Unsupported binary variable storage type: " + variable.getStorageType());
 
 		try {
