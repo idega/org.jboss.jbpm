@@ -368,6 +368,10 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				File tmp = CoreUtil.getFileFromRepository(fileUri.concat("_1.0"));
 				if (tmp != null && tmp.exists() && tmp.canRead())
 					stream = new FileInputStream(tmp);
+				else
+					LOGGER.warning("Unable to get file " + fileUri + " from files system. " + tmp == null ?
+							"It (" + fileUri + ") does not exist" :
+							"It (" + tmp + ") either does not exist (" +!tmp.exists() + " or is not readable (" + !tmp.canRead() + "))");
 			}
 
 			if (stream == null)
