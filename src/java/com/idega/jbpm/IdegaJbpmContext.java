@@ -92,65 +92,75 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	 * @param callback
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	@Transactional
 	// temporal let's hope. need to understand and merge jbpm + jpa transactions behavior
 	public <T> T execute(final JbpmCallback callback) {
 		
-		final JbpmContext context = JbpmConfiguration.getInstance()
-		        .createJbpmContext();
+		final JbpmContext context = JbpmConfiguration.getInstance().createJbpmContext();
 		
+		Session session = (Session) entityManagerFactory.createEntityManager().getDelegate();
+		context.setSession(session);
 		try {
 			
-			Boolean useNewTransactionHandling = isUseNewTransactionHandling();
-			
-			HibernateTemplate hibernateTemplate;
-			
-			if (useNewTransactionHandling) {
-				
-				EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager
-				        .getResource(getEntityManagerFactory());
-				if (holder != null) {
-					Session session = ((HibernateEntityManager) (holder
-					        .getEntityManager())).getSession();
-					SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory())
-					        .getSessionFactory();
-					if (!SessionFactoryUtils.isSessionTransactional(session,
-					    sessionFactory)) {
-						TransactionSynchronizationManager
-						        .unbindResourceIfPossible(sessionFactory);
-						SessionHolder holderToUse = new SessionHolder(session);
-						TransactionSynchronizationManager.bindResource(
-						    sessionFactory, holderToUse);
-					}
-					hibernateTemplate = new HibernateTemplate(sessionFactory);
-				} else {
-					hibernateTemplate = this.hibernateTemplate;
-				}
-			} else {
-				
-				hibernateTemplate = this.hibernateTemplate;
-			}
-			
-			@SuppressWarnings("unchecked")
-			T res = (T) hibernateTemplate.execute(new HibernateCallback() {
-				/**
-				 * @see org.springframework.orm.hibernate3.HibernateCallback#doInHibernate(org.hibernate.Session)
-				 */
-				public Object doInHibernate(Session session)
-				        throws HibernateException, SQLException {
-					// inject the session in the context
-					
-					context.setSession(session);
-					return callback.doInJbpm(context);
-				}
-			});
-			
-			return res;
+			return (T) callback.doInJbpm(context);
+
 		} catch (JbpmException ex) {
 			throw convertJbpmException(ex);
+
 		} finally {
+			session.close();
 			context.close();
 		}
+		
+//		
+//		try {
+//			
+//			Boolean useNewTransactionHandling = isUseNewTransactionHandling();
+//			
+//			HibernateTemplate hibernateTemplate;
+//			
+//			if (useNewTransactionHandling) {
+//				
+//				EntityManagerHolder holder = (EntityManagerHolder) TransactionSynchronizationManager.getResource(getEntityManagerFactory());
+//			
+//				if (holder != null) {
+//					Session session = ((HibernateEntityManager) (holder.getEntityManager())).getSession();
+//					SessionFactory sessionFactory = ((HibernateEntityManagerFactory) getEntityManagerFactory()).getSessionFactory();
+//					if (!SessionFactoryUtils.isSessionTransactional(session, sessionFactory)) {
+//						TransactionSynchronizationManager.unbindResourceIfPossible(sessionFactory);
+//						SessionHolder holderToUse = new SessionHolder(session);
+//						TransactionSynchronizationManager.bindResource(sessionFactory, holderToUse);
+//					}
+//					hibernateTemplate = new HibernateTemplate(sessionFactory);
+//				} else {
+//					hibernateTemplate = this.hibernateTemplate;
+//				}
+//			} else {
+//				
+//				hibernateTemplate = this.hibernateTemplate;
+//			}
+//			
+//			@SuppressWarnings("unchecked")
+//			T res = (T) hibernateTemplate.execute(new HibernateCallback() {
+//				/**
+//				 * @see org.springframework.orm.hibernate3.HibernateCallback#doInHibernate(org.hibernate.Session)
+//				 */
+//				public Object doInHibernate(Session session)
+//				        throws HibernateException, SQLException {
+//					// inject the session in the context
+//					
+//					context.setSession(session);
+//					return callback.doInJbpm(context);
+//				}
+//			});
+//			
+//			return res;
+//		} catch (JbpmException ex) {
+//			throw convertJbpmException(ex);
+//		} finally {
+//			context.close();
+//		}
 	}
 	
 	private boolean isUseNewTransactionHandling() {
@@ -185,8 +195,8 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 		Session hibernateSession = (Session) getEntityManagerFactory()
 		        .createEntityManager().getDelegate();
 		
-		hibernateTemplate = new HibernateTemplate(hibernateSession
-		        .getSessionFactory());
+		hibernateTemplate = new HibernateTemplate(hibernateSession.getSessionFactory());
+		
 	}
 	
 	/**
