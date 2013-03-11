@@ -37,14 +37,14 @@ import com.idega.util.expression.ELUtil;
  * concrete handler should be passed as a parameter map "propertyMap": <propertyName, propertyValue>
  * where value can be string, expression( #{} ) or a beanshell script ( ${} ), which must return
  * object.
- * 
+ *
  * @author juozas
  */
 public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
         DecisionHandler, TaskControllerHandler {
-	
+
 	private static final long serialVersionUID = -5175514284127589012L;
-	
+
 	/**
 	 * Properties to be set for handler class
 	 */
@@ -53,61 +53,62 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 	private BPMContext bpmContext;
 	@Autowired
 	private ScriptEvaluator scriptEvaluator;
-	
+
 	/**
 	 * Name of a handler that should be used. Could be variable expression e.g.
 	 * #{myVarOfHandlerName}
 	 */
 	private String handlerName;
-	
+
 	/**
 	 * expression, or true and false values
 	 */
 	private String async;
-	
+
 	public String getHandlerName() {
 		return handlerName;
 	}
-	
+
 	public void setHandlerName(String actionHandlerName) {
 		this.handlerName = actionHandlerName;
 	}
-	
+
 	public Map<String, String> getPropertyMap() {
 		return propertyMap;
 	}
-	
+
 	public void setPropertyMap(Map<String, String> propertyMap) {
 		this.propertyMap = propertyMap;
 	}
-	
+
 	protected Object getHandler(ExecutionContext ectx) {
-		
+
 		String handlerName = (String) JbpmExpressionEvaluator.evaluate(
 		    getHandlerName(), ectx);
-		
+
 		if (handlerName == null) {
-			
+
 			Logger.getLogger(getClass().getName()).log(
 			    Level.SEVERE,
 			    "No handler name resolved/provided for token id = "
 			            + ectx.getToken().getId()
 			            + " by handler name or expression provided = "
 			            + getHandlerName());
-			
+
 			return null;
 		} else {
-			
+
 			return ELUtil.getInstance().getBean(handlerName);
 		}
 	}
-	
+
+	@Override
 	public void execute(final ExecutionContext ectx) throws Exception {
-		
+
 		final Object handler = getHandler(ectx);
-		
+
 		if (handler == null || !(handler instanceof ActionHandler)) {
-			
+
 			Logger.getLogger(getClass().getName()).log(
 			    Level.SEVERE,
 			    "Handler proxy called, but no handler, or wrong handler type ("
@@ -116,39 +117,41 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 			            + ". Process definition id="
 			            + ectx.getProcessDefinition().getId());
 		}
-		
+
 		final Map<String, Object> nonExistingProperties = injectProperties(
 		    handler, ectx);
-		
+
 		if (isAsync(ectx)) {
 			// async execution of action handler
-			
+
 			// TODO: change implementation - add to job executor jobs
-			
+
 			new Thread(new Runnable() {
-				
+
+				@Override
 				public void run() {
-					
-					getBpmContext().execute(new JbpmCallback() {
-						
-						public Object doInJbpm(JbpmContext context)
+
+					getBpmContext().execute(new JbpmCallback<Void>() {
+
+						@Override
+						public Void doInJbpm(JbpmContext context)
 						        throws JbpmException {
-							
+
 							// TODO: this is probably not a valid execution context - i.e. it needs
 							// to be merged in the transaction
-							
+
 							try {
 								if (nonExistingProperties == null
 								        || !(handler instanceof ParamActionHandler)) {
-									
+
 									((ActionHandler) handler).execute(ectx);
-									
+
 								} else {
-									
+
 									((ParamActionHandler) handler).execute(
 									    ectx, nonExistingProperties);
 								}
-								
+
 							} catch (Exception e) {
 								Logger
 								        .getLogger(getClass().getName())
@@ -162,27 +165,28 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 					});
 				}
 			}).start();
-			
+
 		} else {
 			if (nonExistingProperties == null
 			        || !(handler instanceof ParamActionHandler)) {
-				
+
 				((ActionHandler) handler).execute(ectx);
-				
+
 			} else {
-				
+
 				((ParamActionHandler) handler).execute(ectx,
 				    nonExistingProperties);
 			}
 		}
 	}
-	
+
+	@Override
 	public void assign(Assignable ass, ExecutionContext ectx) throws Exception {
-		
+
 		Object handler = getHandler(ectx);
-		
+
 		if (handler == null || !(handler instanceof AssignmentHandler)) {
-			
+
 			Logger.getLogger(getClass().getName()).log(
 			    Level.SEVERE,
 			    "Handler proxy called, but no handler, or wrong handler type ("
@@ -191,28 +195,29 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 			            + ". Process definition id="
 			            + ectx.getProcessDefinition().getId());
 		}
-		
+
 		Map<String, Object> nonExistingProperties = injectProperties(handler,
 		    ectx);
-		
+
 		if (nonExistingProperties == null
 		        || !(handler instanceof ParamAssignmentHandler)) {
-			
+
 			((AssignmentHandler) handler).assign(ass, ectx);
-			
+
 		} else {
-			
+
 			((ParamAssignmentHandler) handler).assign(ass, ectx,
 			    nonExistingProperties);
 		}
 	}
-	
+
+	@Override
 	public String decide(ExecutionContext ectx) throws Exception {
-		
+
 		Object handler = getHandler(ectx);
-		
+
 		if (handler == null || !(handler instanceof DecisionHandler)) {
-			
+
 			Logger.getLogger(getClass().getName()).log(
 			    Level.SEVERE,
 			    "Handler proxy called, but no handler, or wrong handler type ("
@@ -221,29 +226,30 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 			            + ". Process definition id="
 			            + ectx.getProcessDefinition().getId());
 		}
-		
+
 		Map<String, Object> nonExistingProperties = injectProperties(handler,
 		    ectx);
-		
+
 		if (nonExistingProperties == null
 		        || !(handler instanceof ParamDecisionHandler)) {
-			
+
 			return ((DecisionHandler) handler).decide(ectx);
-			
+
 		} else {
-			
+
 			return ((ParamDecisionHandler) handler).decide(ectx,
 			    nonExistingProperties);
 		}
 	}
-	
+
+	@Override
 	public void initializeTaskVariables(TaskInstance ti,
 	        ContextInstance contextInstance, Token tkn) {
-		
+
 		ExecutionContext ectx = new ExecutionContext(tkn);
 		Object handler = getHandler(ectx);
 		if (handler == null || !(handler instanceof TaskControllerHandler)) {
-			
+
 			Logger.getLogger(getClass().getName()).log(
 			    Level.SEVERE,
 			    "Handler proxy called, but no handler, or wrong handler type ("
@@ -252,30 +258,31 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 			            + ". Process definition id="
 			            + ectx.getProcessDefinition().getId());
 		}
-		
+
 		Map<String, Object> nonExistingProperties = injectProperties(handler,
 		    ectx);
-		
+
 		if (nonExistingProperties == null
 		        || !(handler instanceof ParamTaskControllerHandler)) {
-			
+
 			((TaskControllerHandler) handler).initializeTaskVariables(ti,
 			    contextInstance, tkn);
-			
+
 		} else {
-			
+
 			((ParamTaskControllerHandler) handler).initializeTaskVariables(ti,
 			    contextInstance, tkn, nonExistingProperties);
 		}
 	}
-	
+
+	@Override
 	public void submitTaskVariables(TaskInstance ti,
 	        ContextInstance contextInstance, Token tkn) {
-		
+
 		ExecutionContext ectx = new ExecutionContext(tkn);
 		Object handler = getHandler(ectx);
 		if (handler == null || !(handler instanceof TaskControllerHandler)) {
-			
+
 			Logger.getLogger(getClass().getName()).log(
 			    Level.SEVERE,
 			    "Handler proxy called, but no handler, or wrong handler type ("
@@ -284,73 +291,73 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 			            + ". Process definition id="
 			            + ectx.getProcessDefinition().getId());
 		}
-		
+
 		Map<String, Object> nonExistingProperties = injectProperties(handler,
 		    ectx);
-		
+
 		if (nonExistingProperties == null
 		        || !(handler instanceof ParamTaskControllerHandler)) {
-			
+
 			((TaskControllerHandler) handler).submitTaskVariables(ti,
 			    contextInstance, tkn);
-			
+
 		} else {
-			
+
 			((ParamTaskControllerHandler) handler).submitTaskVariables(ti,
 			    contextInstance, tkn, nonExistingProperties);
 		}
 	}
-	
+
 	private Object getPropertyValue(ExecutionContext ectx,
 	        String propertyValueExp) {
-		
+
 		final Object propertyValue;
-		
+
 		if (propertyValueExp.startsWith("#{") && propertyValueExp.endsWith("}")) {
-			
+
 			propertyValue = JbpmExpressionEvaluator.evaluate(propertyValueExp,
 			    ectx);
-			
+
 		} else if (propertyValueExp.startsWith("${")
 		        && propertyValueExp.endsWith("}")) {
-			
+
 			String script = propertyValueExp.substring(2, propertyValueExp
 			        .length() - 1);
-			
+
 			try {
 				propertyValue = getScriptEvaluator().evaluate(script, ectx);
-				
+
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-			
+
 		} else {
 			propertyValue = propertyValueExp;
 		}
-		
+
 		return propertyValue;
 	}
-	
+
 	private Map<String, Object> injectProperties(Object handler,
 	        ExecutionContext ectx) {
-		
+
 		Map<String, Object> nonExistingProperties = null;
-		
+
 		if (getPropertyMap() != null) {
-			
+
 			BeanWrapper wrapper = PropertyAccessorFactory
 			        .forBeanPropertyAccess(handler);
-			
+
 			for (Entry<String, String> property : getPropertyMap().entrySet()) {
-				
+
 				final String propertyName = property.getKey();
 				final String propertyValueExp = property.getValue();
 				final Object propertyValue = getPropertyValue(ectx,
 				    propertyValueExp);
-				
+
 				try {
 					wrapper.setPropertyValue(propertyName, propertyValue);
-					
+
 				} catch (NotWritablePropertyException e) {
 					// if property doesn't exist:
 					if (nonExistingProperties == null) {
@@ -360,23 +367,23 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 				}
 			}
 		}
-		
+
 		return nonExistingProperties;
 	}
-	
+
 	public static Object bean(String beanName) {
 		return ELUtil.getInstance().getBean(beanName);
 	}
-	
+
 	public String getAsync() {
 		return async;
 	}
-	
+
 	public boolean isAsync(ExecutionContext ectx) {
-		
+
 		//if(true)
 			return false;
-		
+
 		/*if (StringUtil.isEmpty(getAsync()))
 			return false;
 		else {
@@ -385,30 +392,30 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 			} else if ("false".equals(getAsync())) {
 				return false;
 			} else {
-				
+
 				Object propVal = getPropertyValue(ectx, getAsync());
 				return Boolean.TRUE.equals(propVal);
 			}
 		}*/
 	}
-	
+
 	public void setAsync(String async) {
 		this.async = async;
 	}
-	
+
 	BPMContext getBpmContext() {
-		
+
 		if (bpmContext == null)
 			ELUtil.getInstance().autowire(this);
-		
+
 		return bpmContext;
 	}
-	
+
 	ScriptEvaluator getScriptEvaluator() {
-		
+
 		if (scriptEvaluator == null)
 			ELUtil.getInstance().autowire(this);
-		
+
 		return scriptEvaluator;
 	}
 }

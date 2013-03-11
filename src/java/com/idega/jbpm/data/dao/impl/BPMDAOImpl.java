@@ -21,7 +21,6 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
@@ -67,7 +66,7 @@ import com.idega.util.datastructures.map.MapUtil;
 @Repository("bpmBindsDAO")
 @Transactional(readOnly = true)
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationListener {
+public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationListener<VariableCreatedEvent> {
 
 	private static final Logger LOGGER = Logger.getLogger(BPMDAOImpl.class.getName());
 
@@ -357,16 +356,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 
 	@Override
-	public ProcessDefinition findLatestProcessDefinition(
-	        final String processName) {
-
-		return getBpmContext().execute(new JbpmCallback() {
+	public ProcessDefinition findLatestProcessDefinition(final String processName) {
+		return getBpmContext().execute(new JbpmCallback<ProcessDefinition>() {
 
 			@Override
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-
-				return context.getGraphSession().findLatestProcessDefinition(
-				    processName);
+			public ProcessDefinition doInJbpm(JbpmContext context) throws JbpmException {
+				return context.getGraphSession().findLatestProcessDefinition(processName);
 			}
 		});
 	}
@@ -376,23 +371,19 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 
 	@Override
-	public List<ActorPermissions> getPermissionsForUser(Integer userId,
-	        String processName, Long processInstanceId,
-	        Set<String> userNativeRoles, Set<String> userGroupsIds) {
+	public List<ActorPermissions> getPermissionsForUser(Integer userId, String processName, Long processInstanceId, Set<String> userNativeRoles,
+			Set<String> userGroupsIds) {
 
 		if (userGroupsIds != null) {
-			throw new UnsupportedOperationException(
-			        "Searching by user groups not supported yet");
+			throw new UnsupportedOperationException("Searching by user groups not supported yet");
 		}
-
-		if(processName != null) {
+		if (processName != null) {
 			throw new UnsupportedOperationException("Searching by process name not supported yet");
 		}
 
-		if(ListUtil.isEmpty(userNativeRoles)) {
-
-//			this is perhaps silly, but just because we don't want to maintain two queries just for the case, when user doesn't have any roles
-//			this is the case only for bpmUser usually
+		if (ListUtil.isEmpty(userNativeRoles)) {
+			//	This is perhaps silly, but just because we don't want to maintain two queries just for the case, when user doesn't have any roles
+			//	this is the case only for bpmUser usually
 			userNativeRoles = new HashSet<String>(1);
 			userNativeRoles.add("mock2345324659324");
 		}
@@ -401,7 +392,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		String identityIdsRolesParam = "identityIdsRoles";
 
 		List<ActorPermissions> perms = getResultListByInlineQuery(
-
 		    "select perms from com.idega.jbpm.data.Actor a inner join a."+ Actor.nativeIdentitiesProperty+ " ni inner join a."+Actor.actorPermissionsProperty+" perms "+
 		    "where a."+Actor.processInstanceIdProperty+" = :"+Actor.processInstanceIdProperty+" and " +
 		    		"((ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty+" and ni."+NativeIdentityBind.identityIdProperty+" = :"+NativeIdentityBind.identityIdProperty+") " +
@@ -410,15 +400,11 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		            , ActorPermissions.class,
 		            new Param(Actor.processInstanceIdProperty, processInstanceId),
 		            new Param(NativeIdentityBind.identityTypeProperty, NativeIdentityBind.IdentityType.USER),
-		            new Param(NativeIdentityBind.identityIdProperty, userId.toString()),
+		            new Param(NativeIdentityBind.identityIdProperty, String.valueOf(userId)),
 		            new Param(identityTypeRoleParam, NativeIdentityBind.IdentityType.ROLE),
 		            new Param(identityIdsRolesParam, userNativeRoles));
 
-//		TODO: merge with roles (backward)
 		List<Actor> globalRolesActors = getResultListByInlineQuery(
-
-//			a."+ Actor.nativeIdentitiesProperty+ "
-
 		    "select a from com.idega.jbpm.data.Actor a "+
 		    "where a."+Actor.processInstanceIdProperty+" = :"+Actor.processInstanceIdProperty+
 		    " and a."+Actor.processRoleNameProperty+" in(:"+Actor.processRoleNameProperty+")"
@@ -427,15 +413,10 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		            new Param(Actor.processRoleNameProperty, userNativeRoles)
 		);
 
-		if(globalRolesActors != null) {
-
+		if (globalRolesActors != null) {
 			for (Actor actor : globalRolesActors) {
-
-				if(ListUtil.isEmpty(actor.getNativeIdentities())) {
-
-//					this is in old way the pd scope actor
-
-					if(actor.getActorPermissions() != null) {
+				if (ListUtil.isEmpty(actor.getNativeIdentities())) {
+					if (actor.getActorPermissions() != null) {
 						perms.addAll(actor.getActorPermissions());
 					}
 				}
@@ -573,12 +554,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 	}
 
 	@Override
-	public void onApplicationEvent(final ApplicationEvent event) {
+	public void onApplicationEvent(final VariableCreatedEvent event) {
 		if (event instanceof VariableCreatedEvent) {
 			Thread binder = new Thread(new Runnable() {
 				@Override
 				public void run() {
-					VariableCreatedEvent variableCreated = (VariableCreatedEvent) event;
+					VariableCreatedEvent variableCreated = event;
 					Map<String, Object> createdVariables = variableCreated.getVariables();
 					bindProcessVariables(variableCreated.getProcessDefinitionName(), variableCreated.getProcessInstanceId(),
 							createdVariables == null ? null : createdVariables.keySet());

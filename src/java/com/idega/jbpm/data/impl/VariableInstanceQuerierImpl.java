@@ -24,7 +24,6 @@ import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -64,7 +63,7 @@ import com.idega.util.reflect.MethodInvoker;
 
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class VariableInstanceQuerierImpl extends GenericDaoImpl implements VariableInstanceQuerier, ApplicationListener {
+public class VariableInstanceQuerierImpl extends GenericDaoImpl implements VariableInstanceQuerier, ApplicationListener<VariableCreatedEvent> {
 
 	private static final Logger LOGGER = Logger.getLogger(VariableInstanceQuerierImpl.class.getName());
 
@@ -2005,13 +2004,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public void onApplicationEvent(final ApplicationEvent event) {
-		if (event instanceof VariableCreatedEvent) {
+	public void onApplicationEvent(final VariableCreatedEvent event) {
 			Thread importer = new Thread(new Runnable() {
 
 				@Override
 				public void run() {
-					VariableCreatedEvent varCreated = (VariableCreatedEvent) event;
+					VariableCreatedEvent varCreated = event;
 
 					Map<String, Object> vars = varCreated.getVariables();
 					if (MapUtil.isEmpty(vars)) {
@@ -2041,7 +2039,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						if (!(value instanceof Serializable)) {
 							if (value != null)
 								getLogger().warning("Invalid value (" + value + ", class: " + value.getClass().getName() + ") for variable " + name);
-								
+
 							continue;	//	Invalid value
 						}
 
@@ -2053,14 +2051,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						if (variablesByNameAndValue == null)
 							variablesByNameAndValue = new ArrayList<VariableInstanceInfo>();
 						variablesByNameAndValue.add(0, info);
-						
+
 						cachedValues.put(key, variablesByNameAndValue);
 						cache.put(name, cachedValues);
 					}
 				}
 			});
 			importer.start();
-		}
 	}
 
 	@Override

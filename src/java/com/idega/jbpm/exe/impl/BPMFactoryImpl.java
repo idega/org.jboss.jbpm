@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
-import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -68,38 +67,21 @@ public class BPMFactoryImpl implements BPMFactory {
 	private PermissionsFactory permissionsFactory;
 
 	@Override
-	@Transactional(readOnly = true)
 	public ProcessManager getProcessManager(final long processDefinitionId) {
-
-		return getBpmContext().execute(new JbpmCallback() {
-
-			@Override
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-
-				ProcessDefinition pd = context.getGraphSession()
-				        .getProcessDefinition(processDefinitionId);
-				return getProcessManager(pd.getName());
-			}
-		});
+		return getProcessManager(getBPMDAO().getProcessDefinitionNameByProcessDefinitionId(processDefinitionId));
 	}
 
 	@Override
 	@Transactional(readOnly = false)
-	public View takeView(final long taskInstanceId, final boolean submitable,
-	        final List<String> preferredTypes) {
-
-		return getBpmContext().execute(new JbpmCallback() {
+	public View takeView(final long taskInstanceId, final boolean submitable, final List<String> preferredTypes) {
+		return getBpmContext().execute(new JbpmCallback<View>() {
 
 			@Override
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-
+			public View doInJbpm(JbpmContext context) throws JbpmException {
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 
-				View view = getViewByTask(ti.getTask().getId(), submitable,
-				    preferredTypes);
-
+				View view = getViewByTask(ti.getTask().getId(), submitable, preferredTypes);
 				if (view != null) {
-
 					takeView(view, ti);
 				}
 
@@ -109,9 +91,7 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	protected void takeView(View view, TaskInstance ti) {
-
 		if (!view.getViewToTask().containsBind(view.getViewType(), ti.getId())) {
-
 			view.takeView();
 			view.getViewToTask().bind(view, ti);
 		} else {
@@ -122,18 +102,13 @@ public class BPMFactoryImpl implements BPMFactory {
 	@Override
 	@Transactional(readOnly = false)
 	public void takeViews(final long taskInstanceId) {
-
-		getBpmContext().execute(new JbpmCallback() {
+		getBpmContext().execute(new JbpmCallback<Void>() {
 
 			@Override
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-
+			public Void doInJbpm(JbpmContext context) throws JbpmException {
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
-
 				List<View> views = getViewsByTask(ti.getTask().getId(), false);
-
 				for (View view : views) {
-
 					takeView(view, ti);
 				}
 
@@ -314,17 +289,13 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	@Transactional(readOnly = true)
-	public ProcessManager getProcessManagerByTaskInstanceId(
-	        final long taskInstanceId) {
-
-		return getBpmContext().execute(new JbpmCallback() {
+	public ProcessManager getProcessManagerByTaskInstanceId(final long taskInstanceId) {
+		return getBpmContext().execute(new JbpmCallback<ProcessManager>() {
 
 			@Override
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-				TaskInstance taskInstance = context
-				        .getTaskInstance(taskInstanceId);
-				long pdId = taskInstance.getProcessInstance()
-				        .getProcessDefinition().getId();
+			public ProcessManager doInJbpm(JbpmContext context) throws JbpmException {
+				TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
+				long pdId = taskInstance.getProcessInstance().getProcessDefinition().getId();
 				return getProcessManager(pdId);
 			}
 		});
@@ -332,21 +303,16 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	public TaskInstanceW getTaskInstanceW(long taskInstanceId) {
-
-		return getProcessManagerByTaskInstanceId(taskInstanceId)
-		        .getTaskInstance(taskInstanceId);
+		return getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
 	}
 
 	@Override
 	public ProcessInstanceW getProcessInstanceW(long processInstanceId) {
-
-		return getProcessManagerByProcessInstanceId(processInstanceId)
-		        .getProcessInstance(processInstanceId);
+		return getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
 	}
 
 	@Override
 	public ProcessDefinitionW getProcessDefinitionW(String processName) {
-
 		return getProcessManager(processName).getProcessDefinition(processName);
 	}
 
@@ -382,15 +348,11 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	@Transactional(readOnly = true)
-	public ProcessManager getProcessManagerByProcessInstanceId(
-	        final long processInstanceId) {
-
-		return getBpmContext().execute(new JbpmCallback() {
-
+	public ProcessManager getProcessManagerByProcessInstanceId(final long processInstanceId) {
+		return getBpmContext().execute(new JbpmCallback<ProcessManager>() {
 			@Override
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-				ProcessInstance processInstance = context
-				        .getProcessInstance(processInstanceId);
+			public ProcessManager doInJbpm(JbpmContext context) throws JbpmException {
+				ProcessInstance processInstance = context.getProcessInstance(processInstanceId);
 				long pdId = processInstance.getProcessDefinition().getId();
 				return getProcessManager(pdId);
 			}
@@ -399,13 +361,11 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	public ProcessManager getProcessManagerByType(String managerType) {
-
 		return getProcessManagers().get(managerType);
 	}
 
 	@Override
 	public ProcessManager getProcessManager(String processName) {
-
 		String managerType = resolveManagersType(processName);
 		return getProcessManagerByType(managerType);
 	}
@@ -450,62 +410,47 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	@Override
-	public ProcessInstance getMainProcessInstance(final long processInstanceId) {
+	public ProcessInstance getMainProcessInstance(JbpmContext context, final long processInstanceId) {
+		ProcessInstance pi = context.getProcessInstance(processInstanceId);
+		Long mainProcessInstanceId = (Long) pi.getContextInstance().getVariable(ProcessConstants.mainProcessInstanceIdVariableName);
 
-		return getBpmContext().execute(new JbpmCallback() {
+		ProcessInstance mainProcessInstance;
+		if (mainProcessInstanceId != null) {
+			// if mainProcessInstanceId found in variable - use that
+			mainProcessInstance = context.getProcessInstance(mainProcessInstanceId);
+		} else {
 
-			@Override
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
+			// if mainProcessInstanceId not found in variable - search
+			// super processes. If we find mainProcessInstanceId in any
+			// of the super process
+			// we use that, else, use most super processInstance (one
+			// without parent)
 
-				ProcessInstance pi = context
-				        .getProcessInstance(processInstanceId);
-				Long mainProcessInstanceId = (Long) pi.getContextInstance()
-				        .getVariable(
-				            ProcessConstants.mainProcessInstanceIdVariableName);
+			Token superToken = pi.getSuperProcessToken();
+			while (superToken != null && mainProcessInstanceId == null) {
+				pi = superToken.getProcessInstance();
+				mainProcessInstanceId = (Long) pi.getContextInstance().getVariable(ProcessConstants.mainProcessInstanceIdVariableName);
 
-				ProcessInstance mainProcessInstance;
-
-				if (mainProcessInstanceId != null) {
-
-					// if mainProcessInstanceId found in variable - use that
-
-					mainProcessInstance = context
-					        .getProcessInstance(mainProcessInstanceId);
-
-				} else {
-
-					// if mainProcessInstanceId not found in variable - search
-					// super processes. If we find mainProcessInstanceId in any
-					// of the super process
-					// we use that, else, use most super processInstance (one
-					// without parent)
-
-					Token superToken = pi.getSuperProcessToken();
-
-					while (superToken != null && mainProcessInstanceId == null) {
-
-						pi = superToken.getProcessInstance();
-
-						mainProcessInstanceId = (Long) pi
-						        .getContextInstance()
-						        .getVariable(
-						            ProcessConstants.mainProcessInstanceIdVariableName);
-
-						if (mainProcessInstanceId == null) {
-
-							superToken = pi.getSuperProcessToken();
-						}
-					}
-
-					if (mainProcessInstanceId != null) {
-
-						mainProcessInstance = context
-						        .getProcessInstance(mainProcessInstanceId);
-					} else
-						mainProcessInstance = pi;
+				if (mainProcessInstanceId == null) {
+					superToken = pi.getSuperProcessToken();
 				}
+			}
 
-				return mainProcessInstance;
+			if (mainProcessInstanceId != null) {
+				mainProcessInstance = context.getProcessInstance(mainProcessInstanceId);
+			} else
+				mainProcessInstance = pi;
+		}
+
+		return mainProcessInstance;
+	}
+
+	@Override
+	public ProcessInstance getMainProcessInstance(final long processInstanceId) {
+		return getBpmContext().execute(new JbpmCallback<ProcessInstance>() {
+			@Override
+			public ProcessInstance doInJbpm(JbpmContext context) throws JbpmException {
+				return getMainProcessInstance(context, processInstanceId);
 			}
 		});
 	}

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jbpm.JbpmContext;
+import org.jbpm.JbpmException;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.security.AuthenticationService;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -20,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.idega.core.business.DefaultSpringBean;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.UnavailableIWContext;
+import com.idega.jbpm.BPMContext;
+import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -32,6 +36,7 @@ import com.idega.util.ArrayUtil;
 import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -51,6 +56,8 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 	private RolesManager rolesManager;
 	@Autowired
 	private BPMFactory bpmFactory;
+	@Autowired
+	private BPMContext bpmContext;
 
 	public static final String taskInstanceAtt = "taskInstance";
 	public static final String checkOnlyInActorsPoolAtt = "checkOnlyInActorsPool";
@@ -62,6 +69,12 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 	private static final int TA_VAR = 2;
 	private static final int TA = 3;
 
+	private BPMContext getBPMContext() {
+		if (bpmContext == null)
+			ELUtil.getInstance().autowire(this);
+		return bpmContext;
+	}
+
 	@Override
 	public String[] getHandledTypes() {
 		return new String[] {
@@ -70,109 +83,115 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 		        PermissionsFactoryImpl.viewTaskInstanceVariablePermType };
 	}
 
-	// TODO: just return handleResult object here with status, and message, let
-	// identityAuthorizationService throw exceptions or so
 	@Override
 	@Transactional(readOnly = true)
-	public PermissionHandleResult handle(Permission perm) {
+	public PermissionHandleResult handle(final Permission perm) {
 		if (!(perm instanceof BPMTypedPermission))
 			throw new IllegalArgumentException("Unsupported permission type=" + perm.getClass().getName());
 
-		PermissionHandleResult result = null;
+		return getBPMContext().execute(new JbpmCallback<PermissionHandleResult>() {
 
-		BPMTypedPermission permission = (BPMTypedPermission) perm;
+			@Override
+			public PermissionHandleResult doInJbpm(JbpmContext context) throws JbpmException {
+				PermissionHandleResult result = null;
 
-		Integer userId = permission.getUserId();
+				BPMTypedPermission permission = (BPMTypedPermission) perm;
 
-		if (userId == null) {
-			String loggedInActorId = getAuthenticationService().getActorId();
+				Integer userId = permission.getUserId();
 
-			if (loggedInActorId == null) {
-				if (PermissionsFactoryImpl.submitTaskParametersPermType.equals(permission.getType()) ||
-					PermissionsFactoryImpl.viewTaskInstanceVariablePermType.equals(permission.getType()))
-					result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
-				else if (PermissionsFactoryImpl.viewTaskInstancePermType.equals(permission.getType())) {
-					TaskInstance taskInstance = permission.getAttribute(taskInstanceAtt);
-					List<Object[]> permissionsForEveryone = null;
-					try {
-						permissionsForEveryone = bpmDAO.getResultList(ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdPureRoles,
-								Object[].class,
-								new Param(Actor.processInstanceIdProperty, taskInstance.getProcessInstance().getId()),
-								new Param(ActorPermissions.roleNameProperty, "everyone")
-						);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					if (ListUtil.isEmpty(permissionsForEveryone))
-						result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
-					else {
-						for (Object[] permissions: permissionsForEveryone) {
-							if (ArrayUtil.isEmpty(permissions))
-								continue;
+				if (userId == null) {
+					String loggedInActorId = getAuthenticationService().getActorId();
 
-							for (Object object: permissions) {
-								if (object instanceof ActorPermissions) {
-									ActorPermissions actorPermissions = (ActorPermissions) object;
-									if (actorPermissions.getReadPermission() != null && actorPermissions.getReadPermission())
-										result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+					if (loggedInActorId == null) {
+						if (PermissionsFactoryImpl.submitTaskParametersPermType.equals(permission.getType()) ||
+							PermissionsFactoryImpl.viewTaskInstanceVariablePermType.equals(permission.getType()))
+							result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+						else if (PermissionsFactoryImpl.viewTaskInstancePermType.equals(permission.getType())) {
+							Long taskInstanceId = permission.getAttribute(taskInstanceAtt);
+							TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
+							List<Object[]> permissionsForEveryone = null;
+							try {
+								permissionsForEveryone = bpmDAO.getResultList(ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdPureRoles,
+										Object[].class,
+										new Param(Actor.processInstanceIdProperty, taskInstance.getProcessInstance().getId()),
+										new Param(ActorPermissions.roleNameProperty, "everyone")
+								);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							if (ListUtil.isEmpty(permissionsForEveryone))
+								result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
+							else {
+								for (Object[] permissions: permissionsForEveryone) {
+									if (ArrayUtil.isEmpty(permissions))
+										continue;
+
+									for (Object object: permissions) {
+										if (object instanceof ActorPermissions) {
+											ActorPermissions actorPermissions = (ActorPermissions) object;
+											if (actorPermissions.getReadPermission() != null && actorPermissions.getReadPermission())
+												result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+										}
+									}
 								}
+							}
+							if (result == null)
+								result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
+						} else
+							result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
+					} else {
+						userId = new Integer(loggedInActorId);
+					}
+				}
+
+				if (result == null) {
+					Long taskInstanceId = permission.getAttribute(taskInstanceAtt);
+					TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
+
+					Boolean checkOnlyInActorsPool = permission.getAttribute(checkOnlyInActorsPoolAtt);
+
+					if (!taskInstance.hasEnded() && taskInstance.getActorId() != null && !checkOnlyInActorsPool) {
+						if (!userId.toString().equals(taskInstance.getActorId())) {
+							result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess,
+									"You will not pass. Logged in actor id doesn't match the assigned actor id. Assigned: "
+							                + taskInstance.getActorId()
+							                + ", taskInstanceId: "
+							                + taskInstance.getId());
+						} else
+							result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+					} else {
+						// Super admin always gets an access
+						if (isCurrentUserSuperAdmin()) {
+							result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+
+						} else {
+							List<Access> accessesWanted = permission.getAttribute(accessesWantedAtt);
+
+							if (PermissionsFactoryImpl.viewTaskInstanceVariablePermType.equals(permission.getType())) {
+
+								String variableIdentifier = permission.getAttribute(variableIdentifierAtt);
+
+								if (StringUtil.isEmpty(variableIdentifier))
+									throw new IllegalArgumentException(
+									        "Illegal permission passed. Passed of type=" + PermissionsFactoryImpl.viewTaskInstanceVariablePermType
+									                + ", but not variable identifier provided");
+
+								result = checkPermissionsForTaskInstance(userId, taskInstance, accessesWanted, variableIdentifier);
+							} else {
+								result = checkPermissionsForTaskInstance(userId, taskInstance, accessesWanted, null);
 							}
 						}
 					}
-					if (result == null)
-						result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
-				} else
-					result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
-			} else {
-				userId = new Integer(loggedInActorId);
-			}
-		}
-
-		if (result == null) {
-			TaskInstance taskInstance = permission.getAttribute(taskInstanceAtt);
-
-			Boolean checkOnlyInActorsPool = permission.getAttribute(checkOnlyInActorsPoolAtt);
-
-			if (!taskInstance.hasEnded() && taskInstance.getActorId() != null && !checkOnlyInActorsPool) {
-				if (!userId.toString().equals(taskInstance.getActorId())) {
-					result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess,
-							"You will not pass. Logged in actor id doesn't match the assigned actor id. Assigned: "
-					                + taskInstance.getActorId()
-					                + ", taskInstanceId: "
-					                + taskInstance.getId());
-				} else
-					result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
-			} else {
-				// Super admin always gets an access
-				if (isCurrentUserSuperAdmin()) {
-					result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
-
-				} else {
-					List<Access> accessesWanted = permission.getAttribute(accessesWantedAtt);
-
-					if (PermissionsFactoryImpl.viewTaskInstanceVariablePermType.equals(permission.getType())) {
-
-						String variableIdentifier = permission.getAttribute(variableIdentifierAtt);
-
-						if (StringUtil.isEmpty(variableIdentifier))
-							throw new IllegalArgumentException(
-							        "Illegal permission passed. Passed of type=" + PermissionsFactoryImpl.viewTaskInstanceVariablePermType
-							                + ", but not variable identifier provided");
-
-						result = checkPermissionsForTaskInstance(userId, taskInstance, accessesWanted, variableIdentifier);
-					} else {
-						result = checkPermissionsForTaskInstance(userId, taskInstance, accessesWanted, null);
-					}
 				}
+
+				if (result == null) {
+					result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess);
+					getLogger().warning("In handling permission (" + perm + "), no result at the end retrieved. Returning no access");
+				}
+
+				return result;
 			}
-		}
-
-		if (result == null) {
-			result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess);
-			getLogger().warning("In handling permission (" + perm + "), no result at the end retrieved. Returning no access");
-		}
-
-		return result;
+		});
 	}
 
 	private boolean hasAccess(ActorPermissions perm, boolean checkReadAccess, boolean checkWriteAccess) {
@@ -194,121 +213,127 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 	}
 
 	@Transactional(readOnly = true)
-	protected PermissionHandleResult checkPermissionsForTaskInstance(int userId, TaskInstance taskInstance, Collection<Access> accesses,
-			String variableIdentifier) {
+	protected PermissionHandleResult checkPermissionsForTaskInstance(final int userId, final TaskInstance taskInstance,
+			final Collection<Access> accesses, final String variableIdentifier) {
 
-		Long taskId = taskInstance.getTask().getId();
-		Long taskInstanceId = taskInstance.getId();
+		return getBPMContext().execute(new JbpmCallback<PermissionHandleResult>() {
 
-		Long taskInstanceProcessInstanceId = taskInstance.getProcessInstance().getId();
+			@Override
+			public PermissionHandleResult doInJbpm(JbpmContext context) throws JbpmException {
+				Long taskId = taskInstance.getTask().getId();
+				Long taskInstanceId = taskInstance.getId();
 
-		ProcessInstance mainProcessInstance = getBpmFactory().getMainProcessInstance(taskInstanceProcessInstanceId);
+				Long taskInstanceProcessInstanceId = taskInstance.getProcessInstance().getId();
 
-		Long mainProcessInstanceId = mainProcessInstance.getId();
+				ProcessInstance mainProcessInstance = getBpmFactory().getMainProcessInstance(context, taskInstanceProcessInstanceId);
 
-		BPMDAO bpmDAO = getBpmDAO();
-		User user = getRolesManager().getUser(userId);
-		String processName = null;
-		Set<String> userGroupsIds = null;
+				Long mainProcessInstanceId = mainProcessInstance.getId();
 
-		Set<String> nativeRoles = getRolesManager().getUserNativeRoles(user);
+				BPMDAO bpmDAO = getBpmDAO();
+				User user = getRolesManager().getUser(userId);
+				String processName = null;
+				Set<String> userGroupsIds = null;
 
-		List<ActorPermissions> userPermissions = bpmDAO.getPermissionsForUser(userId, processName, mainProcessInstanceId, nativeRoles,
-				userGroupsIds);
+				Set<String> nativeRoles = getRolesManager().getUserNativeRoles(user);
 
-		boolean checkWriteAccess = accesses.contains(Access.write);
-		boolean checkReadAccess = accesses.contains(Access.read);
+				List<ActorPermissions> userPermissions = bpmDAO.getPermissionsForUser(userId, processName, mainProcessInstanceId, nativeRoles,
+						userGroupsIds);
 
-		Map<String, Boolean[]> accessesForRoles = new HashMap<String, Boolean[]>(10);
+				boolean checkWriteAccess = accesses.contains(Access.write);
+				boolean checkReadAccess = accesses.contains(Access.read);
 
-		for (ActorPermissions perm : userPermissions) {
-			String roleName = perm.getRoleName();
+				Map<String, Boolean[]> accessesForRoles = new HashMap<String, Boolean[]>(10);
 
-			if (taskInstanceId.equals(perm.getTaskInstanceId())) {
-				// permission for task instance
-				if (variableIdentifier != null) {
-					// checking permission for variable
-					if (perm.getCanSeeAttachments() != null && perm.getCanSeeAttachments().booleanValue() &&
-							!StringUtil.isEmpty(perm.getCanSeeAttachmentsOfRoleName())) {
-						if (variableIdentifier.equals(perm.getVariableIdentifier())) {
-							putAccess(accessesForRoles, Boolean.TRUE, TI_VAR, perm.getCanSeeAttachmentsOfRoleName());
-							break;
+				for (ActorPermissions perm : userPermissions) {
+					String roleName = perm.getRoleName();
+
+					if (taskInstanceId.equals(perm.getTaskInstanceId())) {
+						// permission for task instance
+						if (variableIdentifier != null) {
+							// checking permission for variable
+							if (perm.getCanSeeAttachments() != null && perm.getCanSeeAttachments().booleanValue() &&
+									!StringUtil.isEmpty(perm.getCanSeeAttachmentsOfRoleName())) {
+								if (variableIdentifier.equals(perm.getVariableIdentifier())) {
+									putAccess(accessesForRoles, Boolean.TRUE, TI_VAR, perm.getCanSeeAttachmentsOfRoleName());
+									break;
+								}
+							} else if (variableIdentifier.equals(perm.getVariableIdentifier())) {
+								boolean hasTaskInstanceScopeANDVarAccess = hasAccess(perm, checkReadAccess, checkWriteAccess);
+
+								putAccess(accessesForRoles, hasTaskInstanceScopeANDVarAccess, TI_VAR, roleName);
+
+								if (hasTaskInstanceScopeANDVarAccess)
+									// We have the permission for variable, so we can search no more
+									break;
+							}
 						}
-					} else if (variableIdentifier.equals(perm.getVariableIdentifier())) {
-						boolean hasTaskInstanceScopeANDVarAccess = hasAccess(perm, checkReadAccess, checkWriteAccess);
 
-						putAccess(accessesForRoles, hasTaskInstanceScopeANDVarAccess, TI_VAR, roleName);
+						if (perm.getVariableIdentifier() == null) {
+							// check if we have access for task instance
+							boolean hasTaskInstanceScopeAccess = hasAccess(perm, checkReadAccess, checkWriteAccess);
 
-						if (hasTaskInstanceScopeANDVarAccess)
-							// We have the permission for variable, so we can search no more
-							break;
+							putAccess(accessesForRoles, hasTaskInstanceScopeAccess, TI, roleName);
+
+							if (hasTaskInstanceScopeAccess && variableIdentifier == null)
+								// We have access for task instance, and don't need access for variable, so we can search no more
+								break;
+						}
+					} else if (taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null) {
+						// Permission for task
+						if (variableIdentifier != null) {
+							// Checking permission for variable in task scope
+							if (variableIdentifier.equals(perm.getVariableIdentifier())) {
+								boolean hasTaskScopeANDVarAccess = hasAccess(perm, checkReadAccess, checkWriteAccess);
+
+								putAccess(accessesForRoles, hasTaskScopeANDVarAccess, TA_VAR, roleName);
+							}
+						}
+
+						if (perm.getVariableIdentifier() == null) {
+							// check if we have access for task
+							boolean hasTaskScopeAccess = hasAccess(perm, checkReadAccess, checkWriteAccess);
+
+							putAccess(accessesForRoles, hasTaskScopeAccess, TA, roleName);
+						}
 					}
 				}
 
-				if (perm.getVariableIdentifier() == null) {
-					// check if we have access for task instance
-					boolean hasTaskInstanceScopeAccess = hasAccess(perm, checkReadAccess, checkWriteAccess);
+				PermissionHandleResult result = null;
+				for (Iterator<Boolean[]> accessesForRolesIterator = accessesForRoles.values().iterator();
+						(accessesForRolesIterator.hasNext() && result == null);) {
+					Boolean[] accMtrx = accessesForRolesIterator.next();
 
-					putAccess(accessesForRoles, hasTaskInstanceScopeAccess, TI, roleName);
+					Boolean hasTaskInstanceScopeANDVarAccess = accMtrx[TI_VAR];
+					Boolean hasTaskInstanceScopeAccess = accMtrx[TI];
+					Boolean hasTaskScopeANDVarAccess = accMtrx[TA_VAR];
+					Boolean hasTaskScopeAccess = accMtrx[TA];
 
-					if (hasTaskInstanceScopeAccess && variableIdentifier == null)
-						// We have access for task instance, and don't need access for variable, so we can search no more
-						break;
-				}
-			} else if (taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null) {
-				// Permission for task
-				if (variableIdentifier != null) {
-					// Checking permission for variable in task scope
-					if (variableIdentifier.equals(perm.getVariableIdentifier())) {
-						boolean hasTaskScopeANDVarAccess = hasAccess(perm, checkReadAccess, checkWriteAccess);
+					// WARNING: Boolean null, and false have different meanings here!
+					if (
+						// for variable
+						(variableIdentifier != null && ((hasTaskInstanceScopeANDVarAccess != null && hasTaskInstanceScopeANDVarAccess)
+					        || (hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess != null
+					        	&& hasTaskScopeANDVarAccess)
+					        || (hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess == null
+					        	&& hasTaskScopeAccess != null && hasTaskScopeAccess)))
 
-						putAccess(accessesForRoles, hasTaskScopeANDVarAccess, TA_VAR, roleName);
+					    // for taskInstance
+					    || (variableIdentifier == null && ((hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess)
+					    	|| (hasTaskInstanceScopeAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)))) {
+
+						// access granted
+						result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
 					}
 				}
 
-				if (perm.getVariableIdentifier() == null) {
-					// check if we have access for task
-					boolean hasTaskScopeAccess = hasAccess(perm, checkReadAccess, checkWriteAccess);
+				if (result == null)
+					result = new PermissionHandleResult(
+					        PermissionHandleResultStatus.noAccess,
+					        "No permission for user=" + userId + ", for taskInstance=" + taskInstance.getId() + ", variableIdentifier=" + variableIdentifier);
 
-					putAccess(accessesForRoles, hasTaskScopeAccess, TA, roleName);
-				}
+				return result;
 			}
-		}
-
-		PermissionHandleResult result = null;
-		for (Iterator<Boolean[]> accessesForRolesIterator = accessesForRoles.values().iterator();
-				(accessesForRolesIterator.hasNext() && result == null);) {
-			Boolean[] accMtrx = accessesForRolesIterator.next();
-
-			Boolean hasTaskInstanceScopeANDVarAccess = accMtrx[TI_VAR];
-			Boolean hasTaskInstanceScopeAccess = accMtrx[TI];
-			Boolean hasTaskScopeANDVarAccess = accMtrx[TA_VAR];
-			Boolean hasTaskScopeAccess = accMtrx[TA];
-
-			// WARNING: Boolean null, and false have different meanings here!
-			if (
-				// for variable
-				(variableIdentifier != null && ((hasTaskInstanceScopeANDVarAccess != null && hasTaskInstanceScopeANDVarAccess)
-			        || (hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess != null
-			        	&& hasTaskScopeANDVarAccess)
-			        || (hasTaskInstanceScopeANDVarAccess == null && hasTaskInstanceScopeAccess == null && hasTaskScopeANDVarAccess == null
-			        	&& hasTaskScopeAccess != null && hasTaskScopeAccess)))
-
-			    // for taskInstance
-			    || (variableIdentifier == null && ((hasTaskInstanceScopeAccess != null && hasTaskInstanceScopeAccess)
-			    	|| (hasTaskInstanceScopeAccess == null && hasTaskScopeAccess != null && hasTaskScopeAccess)))) {
-
-				// access granted
-				result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
-			}
-		}
-
-		if (result == null)
-			result = new PermissionHandleResult(
-			        PermissionHandleResultStatus.noAccess,
-			        "No permission for user=" + userId + ", for taskInstance=" + taskInstance.getId() + ", variableIdentifier=" + variableIdentifier);
-
-		return result;
+		});
 	}
 
 	public AuthenticationService getAuthenticationService() {

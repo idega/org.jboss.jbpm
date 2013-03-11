@@ -35,7 +35,7 @@ import com.idega.util.StringUtil;
 @Service
 @Transactional
 public class ProcessBundleManager {
-	
+
 	@Autowired
 	private BPMDAO bpmBindsDAO;
 	@Autowired
@@ -44,7 +44,7 @@ public class ProcessBundleManager {
 	private BPMFactory bpmFactory;
 	@Autowired
 	private ViewToTask viewToTask;
-	
+
 	/**
 	 * @param processBundle
 	 *            bundle to create process bundle from. i.e. all the resources, like process
@@ -56,29 +56,30 @@ public class ProcessBundleManager {
 	 */
 	public long createBundle(final ProcessBundle processBundle, final IWMainApplication iwma) throws IOException {
 		final String processManagerType = processBundle.getProcessManagerType();
-		
+
 		if (StringUtil.isEmpty(processManagerType))
 			throw new IllegalArgumentException("No process mmanager type in process bundle provided: " + processBundle.getClass().getName());
-		
-		Long processDefinitionId = getBPMContext().execute(new JbpmCallback() {
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
+
+		Long processDefinitionId = getBPMContext().execute(new JbpmCallback<Long>() {
+			@Override
+			public Long doInJbpm(JbpmContext context) throws JbpmException {
 				ProcessDefinition pd = null;
 				try {
 					pd = processBundle.getProcessDefinition();
 					context.getGraphSession().deployProcessDefinition(pd);
 					TaskMgmtDefinition taskMgmtDef = pd.getTaskMgmtDefinition();
-					
+
 					@SuppressWarnings("unchecked")
 					Map<String, Task> tasksMap = taskMgmtDef.getTasks();
 					final String processName = pd.getName();
-					
+
 					if (tasksMap != null) {
 						@SuppressWarnings("unchecked")
 						Collection<Task> tasks = pd.getTaskMgmtDefinition().getTasks().values();
-						
+
 						for (Task task : tasks) {
 							List<ViewResource> viewResources = processBundle.getViewResources(task.getName());
-							
+
 							if (viewResources != null) {
 								for (ViewResource viewResource : viewResources) {
 									viewResource.setProcessName(processName);
@@ -90,46 +91,46 @@ public class ProcessBundleManager {
 							}
 						}
 					}
-					
+
 					if (getBPMDAO().getProcessManagerBind(processName) == null) {
 						ProcessManagerBind pmb = new ProcessManagerBind();
 						pmb.setManagersType(processManagerType);
 						pmb.setProcessName(processName);
 						getBPMDAO().persist(pmb);
 					}
-					
+
 					processBundle.configure(pd);
-					
+
 					return pd.getId();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				} catch (Exception e) {
 					Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while storing views and binding with tasks", e);
 					// TODO: rollback here if hibernate doesn't do it?
-					
+
 					throw new RuntimeException(e);
 				}
 			}
 		});
-		
+
 		// TODO: catch RuntimeException with cause of IOException (perhaps make
 		// some wrapper), and throw the original IOException here
-		
+
 		return processDefinitionId;
 	}
-	
+
 	BPMContext getBPMContext() {
 		return idegaJbpmContext;
 	}
-	
+
 	BPMDAO getBPMDAO() {
 		return bpmBindsDAO;
 	}
-	
+
 	ViewToTask getViewToTask() {
 		return viewToTask;
 	}
-	
+
 	BPMFactory getBpmFactory() {
 		return bpmFactory;
 	}

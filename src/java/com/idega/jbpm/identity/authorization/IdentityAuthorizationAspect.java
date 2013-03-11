@@ -24,7 +24,7 @@ import com.idega.jbpm.identity.permission.PermissionsFactory;
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.15 $
- * 
+ *
  *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 @Scope("singleton")
@@ -45,7 +45,7 @@ public class IdentityAuthorizationAspect {
 	 * @Before(BPMPointcuts.startProcessAtProcessManager+" && args(processDefinitionId, ..)"
 	 * ) public void checkPermissionToStartProcess(JoinPoint p, long
 	 * processDefinitionId) {
-	 * 
+	 *
 	 * // FIXME: permitting everyone to start process }
 	 */
 
@@ -53,31 +53,21 @@ public class IdentityAuthorizationAspect {
 	@Before("(" + BPMPointcuts.loadViewAtTaskInstanceW + " || "
 			+ BPMPointcuts.submitAtTaskInstanceW + ")")
 	public void checkPermissionToTaskInstance(JoinPoint jp) {
-
 		Object jpThis = jp.getThis();
 
 		if (!(jpThis instanceof TaskInstanceW))
-			throw new IllegalArgumentException("Only objects of "
-					+ TaskInstanceW.class.getName() + " supported, got: "
-					+ jpThis.getClass().getName());
+			throw new IllegalArgumentException("Only objects of " + TaskInstanceW.class.getName() + " supported, got: " + jpThis.getClass().getName());
 
 		final TaskInstanceW tiw = (TaskInstanceW) jpThis;
-
-		getIdegaJbpmContext().execute(new JbpmCallback() {
-
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-
-				TaskInstance taskInstance = tiw.getTaskInstance();
+		getIdegaJbpmContext().execute(new JbpmCallback<Void>() {
+			@Override
+			public Void doInJbpm(JbpmContext context) throws JbpmException {
+				TaskInstance taskInstance = tiw.getTaskInstance(context);
 				Permission permission;
-
 				if (taskInstance.hasEnded()) {
-					permission = getPermissionsFactory().getTaskInstanceViewPermission(
-							false, taskInstance);
-
+					permission = getPermissionsFactory().getTaskInstanceViewPermission(false, taskInstance);
 				} else {
-					permission = getPermissionsFactory()
-							.getTaskInstanceSubmitPermission(false,
-									taskInstance);
+					permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstance);
 				}
 
 				getAuthorizationService().checkPermission(permission);

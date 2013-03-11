@@ -39,10 +39,10 @@ public class FireEventAspect {
 
 	private static final Logger LOGGER = Logger.getLogger(FireEventAspect.class.getName());
 	private static final String eventType = "postStartActivity";
-	
+
 	@Autowired
 	private BPMContext idegaJbpmContext;
-	
+
 	/**
 	 * fires postStartActivity event, after non start task instance submitted
 	 * @param jp
@@ -50,29 +50,33 @@ public class FireEventAspect {
 	@Transactional(readOnly=true)
 	@AfterReturning(BPMPointcuts.submitAtTaskInstanceW)
 	public void firePostStartEvent(JoinPoint jp) {
-		
 		try {
-			Object jpThis = jp.getThis();
-			
-			if(jpThis instanceof TaskInstanceW) {
-			
-				TaskInstance taskInstance = ((TaskInstanceW)jpThis).getTaskInstance();
-				Task startTask = taskInstance.getTaskMgmtInstance().getTaskMgmtDefinition().getStartTask();
-				
-				if(!taskInstance.getTask().equals(startTask)) {
-					
-//					firing event only for task submit for non start task submit
-					final Token tkn = taskInstance.getToken();
-					fireEvent(tkn);
-				}
+			final Object jpThis = jp.getThis();
+
+			if (jpThis instanceof TaskInstanceW) {
+				getIdegaJbpmContext().execute(new JbpmCallback<Void>() {
+
+					@Override
+					public Void doInJbpm(JbpmContext context) throws JbpmException {
+						TaskInstance taskInstance = ((TaskInstanceW) jpThis).getTaskInstance();
+						taskInstance = context.getTaskInstance(taskInstance.getId());
+						Task startTask = taskInstance.getTaskMgmtInstance().getTaskMgmtDefinition().getStartTask();
+
+						if (!taskInstance.getTask().equals(startTask)) {
+							//	Firing event only for task submit for non start task submit
+							final Token tkn = taskInstance.getToken();
+							fireEvent(tkn);
+						}
+						return null;
+					}
+				});
 			} else
 				throw new IllegalArgumentException("Only objects of "+TaskInstanceW.class.getName()+" supported, got: "+jpThis.getClass().getName());
-			
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Exception while firing event", e);
 		}
 	}
-	
+
 	/**
 	 * fires postStartActivity event, when any access permission is changed (e.g. for document, or for contacts)
 	 * @param jp
@@ -80,10 +84,9 @@ public class FireEventAspect {
 	@Transactional(readOnly=true)
 	@AfterReturning("("+BPMPointcuts.setContactsPermissionAtProcessInstanceW+" || "+BPMPointcuts.setTaskRolePermissionsAtTaskInstanceW+")")
 	public void firePostStartEventOnPermissionChange(JoinPoint jp) {
-		
 		try {
 			Object jpThis = jp.getThis();
-			
+
 			Token tkn = null;
 			if (jpThis instanceof TaskInstanceW) {
 				tkn = ((TaskInstanceW)jpThis).getTaskInstance().getToken();
@@ -91,35 +94,37 @@ public class FireEventAspect {
 			} else if (jpThis instanceof ProcessInstanceW) {
 				fireEvent((ProcessInstanceW) jpThis);
 			} else
-				throw new IllegalArgumentException("Only objects of "+TaskInstanceW.class.getName()+" and "+ProcessInstanceW.class.getName()+" supported, got: "
-						+jpThis.getClass().getName());
+				throw new IllegalArgumentException("Only objects of " + TaskInstanceW.class.getName() + " and " + ProcessInstanceW.class.getName() +
+						" supported, got: " + jpThis.getClass().getName());
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Exception while firing event", e);
 		}
 	}
-	
+
 	private Boolean fireEvent(final ProcessInstanceW piw) {
-		return getIdegaJbpmContext().execute(new JbpmCallback() {
+		return getIdegaJbpmContext().execute(new JbpmCallback<Boolean>() {
+			@Override
 			public Boolean doInJbpm(JbpmContext context) throws JbpmException {
-				Token tkn = piw.getProcessInstance().getRootToken();
+				Token tkn = piw.getProcessInstance(context).getRootToken();
 				ProcessDefinition pd = tkn.getProcessInstance().getProcessDefinition();
 				return fireEvent(tkn, pd);
 			}
 		});
 	}
-	
+
 	private Boolean fireEvent(final Token token) {
 		return fireEvent(token, null);
 	}
-	
+
 	private Boolean fireEvent(final Token token, final ProcessDefinition procDef) {
-		return getIdegaJbpmContext().execute(new JbpmCallback() {
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
+		return getIdegaJbpmContext().execute(new JbpmCallback<Boolean>() {
+			@Override
+			public Boolean doInJbpm(JbpmContext context) throws JbpmException {
 				ProcessDefinition pd = procDef;
 				if (pd == null) {
 					pd = token.getProcessInstance().getProcessDefinition();
 				}
-				
+
 				ExecutionContext ectx = new ExecutionContext(token);
 				pd.fireEvent(eventType, ectx);
 				return Boolean.TRUE;

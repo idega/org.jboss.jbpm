@@ -215,29 +215,22 @@ public class RolesManagerImpl implements RolesManager {
 	}
 
 	@Override
-	public void hasRightsToStartTask(final long taskInstanceId, final int userId)
-	        throws BPMAccessControlException {
-
+	@Transactional(readOnly = true)
+	public void hasRightsToStartTask(final long taskInstanceId, final int userId) throws BPMAccessControlException {
 		try {
-			getBpmContext().execute(new JbpmCallback() {
+			getBpmContext().execute(new JbpmCallback<Void>() {
 
 				@Override
-				public Object doInJbpm(JbpmContext context)
-				        throws JbpmException {
-					TaskInstance taskInstance = context
-					        .getTaskInstance(taskInstanceId);
+				public Void doInJbpm(JbpmContext context) throws JbpmException {
+					TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
 
-					if (taskInstance.getStart() != null
-					        || taskInstance.hasEnded())
-						throw new BPMAccessControlException(
+					if (taskInstance.getStart() != null || taskInstance.hasEnded()) throw new BPMAccessControlException(
 						        "Task ("
 						                + taskInstanceId
 						                + ") has already been started, or has already ended",
 						        "Task has already been started, or has already ended");
 
-					if (taskInstance.getActorId() == null
-					        || !taskInstance.getActorId().equals(
-					            String.valueOf(userId)))
+					if (taskInstance.getActorId() == null || !taskInstance.getActorId().equals(String.valueOf(userId)))
 						throw new BPMAccessControlException(
 						        "User ("
 						                + userId
@@ -245,19 +238,15 @@ public class RolesManagerImpl implements RolesManager {
 						                + taskInstance.getActorId(),
 						        "User should be taken or assigned of the task first to start working on it");
 
-					Permission permission = getPermissionsFactory()
-					        .getTaskInstanceSubmitPermission(false,
-					            taskInstance);
+					Permission permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstance);
 					getAuthorizationService().checkPermission(permission);
 					return null;
 				}
 			});
-
 		} catch (BPMAccessControlException e) {
 			throw e;
 		} catch (AccessControlException e) {
-			throw new BPMAccessControlException(
-			        "User has no access to modify this task");
+			throw new BPMAccessControlException("User has no access to modify this task");
 		}
 	}
 
@@ -271,20 +260,16 @@ public class RolesManagerImpl implements RolesManager {
 	}
 
 	@Override
-	public void hasRightsToAssignTask(final long taskInstanceId,
-	        final int userId) throws BPMAccessControlException {
-
+	@Transactional(readOnly = true)
+	public void hasRightsToAssignTask(final long taskInstanceId, final int userId) throws BPMAccessControlException {
 		try {
-			getBpmContext().execute(new JbpmCallback() {
+			getBpmContext().execute(new JbpmCallback<Void>() {
 
 				@Override
-				public Object doInJbpm(JbpmContext context)
-				        throws JbpmException {
-					TaskInstance taskInstance = context
-					        .getTaskInstance(taskInstanceId);
+				public Void doInJbpm(JbpmContext context) throws JbpmException {
+					TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
 
-					if (taskInstance.getStart() != null
-					        || taskInstance.hasEnded())
+					if (taskInstance.getStart() != null || taskInstance.hasEnded())
 						throw new BPMAccessControlException(
 						        "Task ("
 						                + taskInstanceId
@@ -297,14 +282,11 @@ public class RolesManagerImpl implements RolesManager {
 						        + taskInstance.getActorId(),
 						        "This task has been assigned already");
 
-					Permission permission = getPermissionsFactory()
-					        .getTaskInstanceSubmitPermission(false,
-					            taskInstance);
+					Permission permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstance);
 					getAuthorizationService().checkPermission(permission);
 					return null;
 				}
 			});
-
 		} catch (BPMAccessControlException e) {
 			throw e;
 		} catch (AccessControlException e) {
@@ -498,83 +480,62 @@ public class RolesManagerImpl implements RolesManager {
 		}
 	}
 
-	/*
-	public void createNativeRolesFromProcessRoles(String processName,
-	        Collection<Role> roles) {
+	@Override
+	@Transactional(readOnly = false)
+	public List<Actor> createProcessActors(JbpmContext context, Collection<Role> roles, final ProcessInstance processInstance) {
+		final Set<String> rolesNamesToCreate = new HashSet<String>(roles.size());
 
-		AccessController ac = getAccessController();
+		for (Role role : roles)
+			rolesNamesToCreate.add(role.getRoleName());
 
-		for (Role role : roles) {
+		if (ListUtil.isEmpty(rolesNamesToCreate))
+			return Collections.emptyList();
 
-			if (role.getScope() == RoleScope.PD) {
-				ac.checkIfRoleExistsInDataBaseAndCreateIfMissing(role
-				        .getRoleName());
+		List<Actor> processActors = new ArrayList<Actor>();
+
+		List<Actor> existingActors = getBpmDAO().getResultList(
+		    Actor.getSetByRoleNamesAndPIId,
+		    Actor.class,
+		    new Param(Actor.processRoleNameProperty, rolesNamesToCreate),
+		    new Param(Actor.processInstanceIdProperty, processInstance.getId())
+		);
+
+		// removing from "to create" list roles, that already have actors
+		for (Actor existingActor: existingActors) {
+			if (rolesNamesToCreate.contains(existingActor.getProcessRoleName()))
+				rolesNamesToCreate.remove(existingActor.getProcessRoleName());
+
+			processActors.add(existingActor);
+		}
+
+		if (!rolesNamesToCreate.isEmpty()) {
+			// creating actors for roles
+			String processName = processInstance.getProcessDefinition().getName();
+			Long processInstanceId = processInstance.getId();
+
+			for (String actorRole : rolesNamesToCreate) {
+				Actor actor = new Actor();
+				actor.setProcessName(processName);
+				actor.setProcessRoleName(actorRole);
+				actor.setProcessInstanceId(processInstanceId);
+
+				getBpmDAO().persist(actor);
+				processActors.add(actor);
 			}
 		}
+
+		return processActors;
 	}
-	*/
 
 	@Override
 	@Transactional(readOnly = false)
-	public List<Actor> createProcessActors(Collection<Role> roles,
-	        ProcessInstance processInstance) {
-
-		Set<String> rolesNamesToCreate = new HashSet<String>(roles.size());
-
-		for (Role role : roles) {
-
-			rolesNamesToCreate.add(role.getRoleName());
-		}
-
-		final List<Actor> processActors;
-
-		if (!rolesNamesToCreate.isEmpty()) {
-
-			processActors = new ArrayList<Actor>();
-
-			List<Actor> existingActors = getBpmDAO().getResultList(
-			    Actor.getSetByRoleNamesAndPIId,
-			    Actor.class,
-			    new Param(Actor.processRoleNameProperty, rolesNamesToCreate),
-			    new Param(Actor.processInstanceIdProperty, processInstance
-			            .getId()));
-
-			// removing from "to create" list roles, that already have actors
-			for (Actor existingActor : existingActors) {
-
-				if (rolesNamesToCreate.contains(existingActor
-				        .getProcessRoleName()))
-					rolesNamesToCreate.remove(existingActor
-					        .getProcessRoleName());
-
-				processActors.add(existingActor);
+	public List<Actor> createProcessActors(final Collection<Role> roles, final ProcessInstance processInstance) {
+		return getBpmContext().execute(new JbpmCallback<List<Actor>>() {
+			@Override
+			public List<Actor> doInJbpm(JbpmContext context) throws JbpmException {
+				return createProcessActors(context, roles, processInstance);
 			}
-
-			if (!rolesNamesToCreate.isEmpty()) {
-
-				// creating actors for roles
-
-				String processName = processInstance.getProcessDefinition()
-				        .getName();
-
-				Long processInstanceId = processInstance.getId();
-
-				for (String actorRole : rolesNamesToCreate) {
-
-					Actor actor = new Actor();
-					actor.setProcessName(processName);
-					actor.setProcessRoleName(actorRole);
-					actor.setProcessInstanceId(processInstanceId);
-
-					getBpmDAO().persist(actor);
-					processActors.add(actor);
-				}
-			}
-
-		} else
-			processActors = Collections.emptyList();
-
-		return processActors;
+		});
 	}
 
 	@Override
@@ -1119,40 +1080,30 @@ public class RolesManagerImpl implements RolesManager {
 		// TODO: check permissions if rights can be changed
 		final String roleName = role.getRoleName();
 
-		if (roleName != null && taskInstanceId != null
-		        && roleName.length() != 0) {
+		if (roleName != null && taskInstanceId != null && roleName.length() != 0) {
 
-			List<Actor> actorsToSetPermissionsTo = getBpmContext().execute(
-			    new JbpmCallback() {
+			List<Actor> actorsToSetPermissionsTo = getBpmContext().execute(new JbpmCallback<List<Actor>>() {
+				@Override
+				public List<Actor> doInJbpm(JbpmContext context) throws JbpmException {
 
-				    @Override
-					public Object doInJbpm(JbpmContext context)
-				            throws JbpmException {
+					TaskInstance ti = context.getTaskInstance(taskInstanceId);
+					long processInstanceIdFromTaskInstance = ti.getProcessInstance().getId();
 
-					    TaskInstance ti = context
-					            .getTaskInstance(taskInstanceId);
-					    long processInstanceIdFromTaskInstance = ti
-					            .getProcessInstance().getId();
+					ProcessInstance mainprocessInstance = getBpmFactory().getMainProcessInstance(context, processInstanceIdFromTaskInstance);
+					Long mainProcessInstanceId = mainprocessInstance.getId();
 
-					    ProcessInstance mainprocessInstance = getBpmFactory()
-					            .getMainProcessInstance(
-					                processInstanceIdFromTaskInstance);
-					    Long mainProcessInstanceId = mainprocessInstance
-					            .getId();
+					/*
+					 * if(mainprocessInstance != null) {
+					 * mainProcessInstanceId =
+					 * mainprocessInstance.getId(); } else { //
+					 * backwards compat mainProcessInstanceId =
+					 * processInstanceIdFromTaskInstance; }
+					 */
 
-					    /*
-					     * if(mainprocessInstance != null) {
-					     * mainProcessInstanceId =
-					     * mainprocessInstance.getId(); } else { //
-					     * backwards compat mainProcessInstanceId =
-					     * processInstanceIdFromTaskInstance; }
-					     */
-
-					    final List<Actor> actorsToSetPermissionsTo = getPermissionsByProcessInstanceId(
-					        mainProcessInstanceId, roleName);
-					    return actorsToSetPermissionsTo;
-				    }
-			    });
+					final List<Actor> actorsToSetPermissionsTo = getPermissionsByProcessInstanceId(mainProcessInstanceId, roleName);
+					return actorsToSetPermissionsTo;
+				}
+			});
 
 			/*
 			 * if(!ListUtil.isEmpty(actorsToSetPermissionsTo) &&
@@ -1166,9 +1117,7 @@ public class RolesManagerImpl implements RolesManager {
 			 * actorsToSetPermissionsTo.add(act); }
 			 */
 
-			setTaskPermissionsTIScopeForActors(actorsToSetPermissionsTo, role
-			        .getAccesses(), taskInstanceId, setSameForAttachments,
-			    variableIdentifier);
+			setTaskPermissionsTIScopeForActors(actorsToSetPermissionsTo, role.getAccesses(), taskInstanceId, setSameForAttachments, variableIdentifier);
 		} else
 			logger
 			        .log(Level.WARNING,
@@ -1207,16 +1156,11 @@ public class RolesManagerImpl implements RolesManager {
 		final Actor actor;
 
 		if ((actors == null || actors.isEmpty()) && !setDefault) {
-
 			// creating new actor for the user
-
-			String processName = getBpmContext().execute(new JbpmCallback() {
-
+			String processName = getBpmContext().execute(new JbpmCallback<String>() {
 				@Override
-				public Object doInJbpm(JbpmContext context)
-				        throws JbpmException {
-					return context.getProcessInstance(processInstanceId)
-					        .getProcessDefinition().getName();
+				public String doInJbpm(JbpmContext context) throws JbpmException {
+					return context.getProcessInstance(processInstanceId).getProcessDefinition().getName();
 				}
 			});
 
@@ -1411,10 +1355,10 @@ public class RolesManagerImpl implements RolesManager {
 		if (taskInstanceId == null)
 			throw new IllegalArgumentException("TaskInstanceId not provided");
 
-		return getBpmContext().execute(new JbpmCallback() {
+		return getBpmContext().execute(new JbpmCallback<List<Role>>() {
 
 			@Override
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
+			public List<Role> doInJbpm(JbpmContext context) throws JbpmException {
 
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 				Long processInstanceIdFromTaskInstance = ti
@@ -1424,9 +1368,7 @@ public class RolesManagerImpl implements RolesManager {
 				// in the subprocess
 				Long taskId = ti.getTask().getId();
 
-				ProcessInstance mainProcessInstance = getBpmFactory()
-				        .getMainProcessInstance(
-				            processInstanceIdFromTaskInstance);
+				ProcessInstance mainProcessInstance = getBpmFactory().getMainProcessInstance(context, processInstanceIdFromTaskInstance);
 				Long mainProcessInstanceId = mainProcessInstance.getId();
 
 				/*
@@ -1825,10 +1767,10 @@ public class RolesManagerImpl implements RolesManager {
 	        final List<Access> accesses, final Long taskInstanceId,
 	        final boolean setSameForAttachments, final String variableIdentifier) {
 
-		getBpmContext().execute(new JbpmCallback() {
+		getBpmContext().execute(new JbpmCallback<Void>() {
 
 			@Override
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
+			public Void doInJbpm(JbpmContext context) throws JbpmException {
 
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 				long taskId = ti.getTask().getId();

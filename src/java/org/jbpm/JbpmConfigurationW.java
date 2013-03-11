@@ -20,10 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
  * JbpmConfigurationW is returned. We need this, because we can manage, how (and
  * which) jbpmContext is created. Now it is used for adding existing
  * (thread-local) session to jbpm context
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.4 $
- * 
+ *
  *          Last modified: $Date: 2009/01/07 18:31:22 $ by $Author: civilis $
  */
 public class JbpmConfigurationW extends JbpmConfiguration {
@@ -32,6 +32,7 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	public static final String mainJbpmContext = "idegaMain";
 
 	private ThreadLocal<Stack<Boolean>> doCommitStackLocal = new ThreadLocal<Stack<Boolean>>();
+
 	@Autowired
 	private EntityManagerFactory entityManagerFactory;
 
@@ -40,11 +41,8 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static JbpmConfiguration createJbpmConfiguration(
-			String pathToConfiguration) {
-
-		InputStream jbpmCfgXmlStream = ClassLoaderUtil
-				.getStream(pathToConfiguration);
+	public static JbpmConfiguration createJbpmConfiguration(String pathToConfiguration) {
+		InputStream jbpmCfgXmlStream = ClassLoaderUtil.getStream(pathToConfiguration);
 
 		ObjectFactory objectFactory = parseObjectFactory(jbpmCfgXmlStream);
 		JbpmConfiguration cfg = createJbpmConfiguration(objectFactory);
@@ -57,22 +55,18 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	/**
 	 * copied from JbpmConfiguration. Creating JbpmConfigurationW instead of
 	 * JbpmConfiguration here
-	 * 
+	 *
 	 * @param objectFactory
 	 * @return
 	 */
-	protected static JbpmConfiguration createJbpmConfiguration(
-			ObjectFactory objectFactory) {
-
+	protected static JbpmConfiguration createJbpmConfiguration(ObjectFactory objectFactory) {
 		// here instantiating JbpmConfigurationW
-		JbpmConfigurationW jbpmConfiguration = new JbpmConfigurationW(
-				objectFactory);
+		JbpmConfigurationW jbpmConfiguration = new JbpmConfigurationW(objectFactory);
 
 		// now we make the bean jbpm.configuration always availble
 		if (objectFactory instanceof ObjectFactoryImpl) {
 			ObjectFactoryImpl objectFactoryImpl = (ObjectFactoryImpl) objectFactory;
-			ObjectInfo jbpmConfigurationInfo = new ValueInfo(
-					"jbpmConfiguration", jbpmConfiguration);
+			ObjectInfo jbpmConfigurationInfo = new ValueInfo("jbpmConfiguration", jbpmConfiguration);
 			objectFactoryImpl.addObjectInfo(jbpmConfigurationInfo);
 
 			if (getHideStaleObjectExceptions(objectFactory)) {
@@ -85,40 +79,30 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 
 	/**
 	 * copied from JbpmConfiguration
-	 * 
+	 *
 	 * @param objectFactory
 	 * @return
 	 */
-	private static boolean getHideStaleObjectExceptions(
-			ObjectFactory objectFactory) {
-		if (!objectFactory.hasObject("jbpm.hide.stale.object.exceptions")) {
+	private static boolean getHideStaleObjectExceptions(ObjectFactory objectFactory) {
+		if (!objectFactory.hasObject("jbpm.hide.stale.object.exceptions"))
 			return true;
-		}
-		Object object = objectFactory
-				.createObject("jbpm.hide.stale.object.exceptions");
-		return object instanceof Boolean ? ((Boolean) object).booleanValue()
-				: true;
+
+		Object object = objectFactory.createObject("jbpm.hide.stale.object.exceptions");
+		return object instanceof Boolean ? ((Boolean) object).booleanValue() : true;
 	}
 
 	@Override
 	void jbpmContextCreated(JbpmContext jbpmContext) {
-
 		JbpmContext currentContext = getCurrentJbpmContext();
-
-		if (currentContext != null) {
-
+		if (currentContext != null)
 			jbpmContext.setSession(currentContext.getSession());
-		}
 
 		super.jbpmContextCreated(jbpmContext);
 	}
 
 	public Stack<Boolean> getDoCommitStack() {
-
 		Stack<Boolean> stack = doCommitStackLocal.get();
-
 		if (stack == null) {
-
 			stack = new Stack<Boolean>();
 			doCommitStackLocal.set(stack);
 		}
@@ -128,19 +112,18 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 
 	@Override
 	public JbpmContext createJbpmContext() {
-
-		return createJbpmContext(mainJbpmContext);
+		JbpmContext context = createJbpmContext(mainJbpmContext);
+		return context;
 	}
 
 	@Override
 	public JbpmContext createJbpmContext(String name) {
-
-		return super.createJbpmContext(name);
+		JbpmContext context = super.createJbpmContext(name);
+		return context;
 	}
 
 	@Override
 	void jbpmContextClosed(JbpmContext jbpmContext) {
-
 		super.jbpmContextClosed(jbpmContext);
 	}
 
@@ -148,8 +131,7 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 		return entityManagerFactory;
 	}
 
-	public void setEntityManagerFactory(
-			EntityManagerFactory entityManagerFactory) {
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
 		this.entityManagerFactory = entityManagerFactory;
 	}
 }

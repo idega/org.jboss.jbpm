@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 
 import com.idega.block.process.variables.Variable;
@@ -35,6 +36,7 @@ public interface ProcessDefinitionW {
 	public abstract Long getProcessDefinitionId();
 
 	public abstract ProcessDefinition getProcessDefinition();
+	public abstract ProcessDefinition getProcessDefinition(JbpmContext context);
 
 	public abstract void setRolesCanStartProcess(List<String> roles,
 			Object context);

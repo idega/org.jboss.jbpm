@@ -38,7 +38,7 @@ import com.idega.util.expression.ELUtil;
  * copied from jbpm. changes: idega-like resolving of jbpmContext session
  * factory resolved from ctx.getSession, than directly from
  * ctx.getSessionFactory
- * 
+ *
  */
 public class HibernateStringIdMatcher implements JbpmTypeMatcher {
 
@@ -46,27 +46,24 @@ public class HibernateStringIdMatcher implements JbpmTypeMatcher {
 	@Autowired
 	private BPMContext bpmContext;
 
+	@Override
 	public boolean matches(final Object value) {
+		Boolean res = getBpmContext().execute(new JbpmCallback<Boolean>() {
 
-		Boolean res = getBpmContext().execute(new JbpmCallback() {
-
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-				@SuppressWarnings("unchecked")
-				Class valueClass = value.getClass();
+			@Override
+			public Boolean doInJbpm(JbpmContext context) throws JbpmException {
+				Class<?> valueClass = value.getClass();
 				if (value instanceof HibernateProxy) {
 					valueClass = valueClass.getSuperclass();
 				}
 
 				boolean matches = false;
 
-				SessionFactory sessionFactory = context.getSession()
-						.getSessionFactory();
+				SessionFactory sessionFactory = context.getSession().getSessionFactory();
 
 				if (sessionFactory != null) {
-					ClassMetadata classMetadata = sessionFactory
-							.getClassMetadata(valueClass);
-					matches = ((classMetadata != null) && (classMetadata
-							.getIdentifierType().getClass() == StringType.class));
+					ClassMetadata classMetadata = sessionFactory.getClassMetadata(valueClass);
+					matches = ((classMetadata != null) && (classMetadata.getIdentifierType().getClass() == StringType.class));
 				}
 				return matches;
 			}

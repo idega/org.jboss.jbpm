@@ -25,69 +25,63 @@ import com.idega.util.StringUtil;
 @Service("hideTaskInstances")
 @Scope("prototype")
 public class HideTaskInstancesHandler implements ActionHandler {
-	
+
 	private static final long serialVersionUID = 5805122418836206146L;
-	
+
 	private String taskName;
-	
+
 	@Autowired
 	private BPMFactory bpmFactory;
-	
+
 	@Autowired
 	private TransactionContext transactionContext;
-	
+
+	@Override
 	public void execute(final ExecutionContext ectx) throws Exception {
-		
 		getTransactionContext().executeInTransaction(
 		    new TransactionalCallback() {
-			    
-			    public <T> T execute() {
-				    
+			    @Override
+				public <T> T execute() {
 				    if (isValidParams()) {
-					    
-					    ProcessInstance mainProcessInstance = getBpmFactory()
-					            .getMainProcessInstance(
-					                ectx.getProcessInstance().getId());
-					    
-					    ProcessInstanceW mainPIW = getBpmFactory()
-					            .getProcessInstanceW(
-					                mainProcessInstance.getId());
-					    
-					    List<TaskInstanceW> tiws = mainPIW
-					            .getUnfinishedTaskInstancesForTask(getTaskName());
-					    
+					    ProcessInstance mainProcessInstance = getBpmFactory().getMainProcessInstance(ectx.getProcessInstance().getId());
+
+					    ProcessInstanceW mainPIW = getBpmFactory().getProcessInstanceW(mainProcessInstance.getId());
+
+					    List<TaskInstanceW> tiws = mainPIW.getUnfinishedTaskInstancesForTask(getTaskName());
+
 					    mainPIW.getTaskMgmtInstance().hideTaskInstances(tiws);
 				    }
 				    return null;
 			    }
-			    
-		    });
+
+		    }
+		);
 	}
-	
+
 	private boolean isValidParams() {
-		
+
 		if (StringUtil.isEmpty(getTaskName())) {
-			
+
 			Logger.getLogger(getClass().getName()).log(Level.WARNING,
 			    "Called remove task instances, but no taskName provided");
 			return false;
 		}
-		
+
 		return true;
 	}
-	
+
 	public BPMFactory getBpmFactory() {
 		return bpmFactory;
 	}
-	
+
 	public String getTaskName() {
 		return taskName;
 	}
-	
+
 	public void setTaskName(String taskName) {
 		this.taskName = taskName;
 	}
-	
+
 	TransactionContext getTransactionContext() {
 		return transactionContext;
 	}

@@ -2,6 +2,7 @@ package com.idega.jbpm.exe;
 
 import java.util.List;
 
+import org.jbpm.JbpmContext;
 import org.jbpm.graph.exe.ProcessInstance;
 
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -115,8 +116,9 @@ public interface BPMFactory {
 	 * @return the main process instance, which reflects the most parent process instance. This
 	 *         should be used for all assignments (creating actors)
 	 */
-	public abstract ProcessInstance getMainProcessInstance(
-	        final long processInstanceId);
+	public abstract ProcessInstance getMainProcessInstance(final long processInstanceId);
+
+	public abstract ProcessInstance getMainProcessInstance(JbpmContext context, final long processInstanceId);
 
 	public abstract TaskInstanceW getTaskInstanceW(long taskInstanceId);
 

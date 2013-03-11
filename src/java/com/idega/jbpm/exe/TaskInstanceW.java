@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import org.jbpm.JbpmContext;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.block.process.variables.Variable;
@@ -59,6 +60,7 @@ public interface TaskInstanceW {
 	public abstract String getName(Locale locale);
 
 	public abstract TaskInstance getTaskInstance();
+	public abstract TaskInstance getTaskInstance(JbpmContext context);
 
 	public abstract void setTaskRolePermissions(Role role,
 	        boolean setSameForAttachments, String variableIdentifier);
@@ -85,14 +87,14 @@ public interface TaskInstanceW {
 	public boolean isSignable();
 
 	/**
-	 * 
+	 *
 	 * <p>Checks if current task is submitted.</p>
 	 * @return <code>true</code> if submitted, <code>false</code>
 	 * otherwise.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
 	public boolean isSubmitted();
-	
+
 	/**
 	 * should be used only by process manager itself
 	 *

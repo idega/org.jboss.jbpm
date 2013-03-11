@@ -16,10 +16,10 @@ import com.idega.util.expression.ELUtil;
 /**
  * Jbpm JobExecutor implementation wrapper which adds transaction handling to
  * transactional method calls
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.1 $
- * 
+ *
  *          Last modified: $Date: 2009/01/07 18:31:22 $ by $Author: civilis $
  */
 public class JobExecutorThreadW extends JobExecutorThread {
@@ -27,59 +27,57 @@ public class JobExecutorThreadW extends JobExecutorThread {
 	@Autowired
 	private BPMContext bpmContext;
 
-	public JobExecutorThreadW(String name, JobExecutor jobExecutor,
-			JbpmConfiguration jbpmConfiguration, int idleInterval,
-			int maxIdleInterval, long maxLockTime, int maxHistory) {
-		super(name, jobExecutor, jbpmConfiguration, idleInterval,
-				maxIdleInterval, maxLockTime, maxHistory);
-
-		ELUtil.getInstance().autowire(this);
+	public JobExecutorThreadW(String name, JobExecutor jobExecutor, JbpmConfiguration jbpmConfiguration, int idleInterval, int maxIdleInterval,
+			long maxLockTime, int maxHistory) {
+		super(name, jobExecutor, jbpmConfiguration, idleInterval, maxIdleInterval, maxLockTime, maxHistory);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	protected Collection acquireJobs() {
-
-		return getBpmContext().execute(new JbpmCallback() {
-
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-
-				return acquireJobsSuper();
+	protected Collection<Job> acquireJobs() {
+		return getBpmContext().execute(new JbpmCallback<Collection<Job>>() {
+			@Override
+			public Collection<Job> doInJbpm(JbpmContext context) throws JbpmException {
+				return acquireJobsSuper(context);
 			}
 		});
 	}
 
-	@SuppressWarnings("unchecked")
-	protected Collection acquireJobsSuper() {
+	private Collection<Job> acquireJobsSuper(JbpmContext context) {
+		@SuppressWarnings("unchecked")
+		Collection<Job> jobs = super.acquireJobs();
+		return jobs;
+	}
 
-		return super.acquireJobs();
+	protected Collection<Job> acquireJobsSuper() {
+		return getBpmContext().execute(new JbpmCallback<Collection<Job>>() {
+
+			@Override
+			public Collection<Job> doInJbpm(JbpmContext context) throws JbpmException {
+				return acquireJobsSuper(context);
+			}
+		});
 	}
 
 	@Override
 	protected void executeJob(final Job job) {
-
-		getBpmContext().execute(new JbpmCallback() {
-
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-
-				executeJobSuper(job);
+		getBpmContext().execute(new JbpmCallback<Void>() {
+			@Override
+			public Void doInJbpm(JbpmContext context) throws JbpmException {
+				executeJobSuper(context, job);
 				return null;
 			}
 		});
 	}
 
-	public void executeJobSuper(Job job) {
-
+	private void executeJobSuper(JbpmContext context, Job job) {
 		super.executeJob(job);
 	}
 
 	@Override
 	protected Date getNextDueDate() {
-
-		return getBpmContext().execute(new JbpmCallback() {
-
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-
+		return getBpmContext().execute(new JbpmCallback<Date>() {
+			@Override
+			public Date doInJbpm(JbpmContext context) throws JbpmException {
 				return getNextDueDateSuper();
 			}
 		});
@@ -90,6 +88,8 @@ public class JobExecutorThreadW extends JobExecutorThread {
 	}
 
 	BPMContext getBpmContext() {
+		if (bpmContext == null)
+			ELUtil.getInstance().autowire(this);
 		return bpmContext;
 	}
 }

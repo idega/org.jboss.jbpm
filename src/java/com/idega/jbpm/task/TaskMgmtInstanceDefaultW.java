@@ -7,6 +7,7 @@ import org.jbpm.JbpmException;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 import org.jbpm.graph.node.TaskNode;
+import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,78 +31,72 @@ import com.idega.jbpm.exe.TaskMgmtInstanceW;
 @Service
 @Qualifier("default")
 public class TaskMgmtInstanceDefaultW implements TaskMgmtInstanceW {
-	
+
 	private ProcessInstanceW piw;
-	
+
 	@Autowired
 	private BPMContext bpmContext;
-	
+
 	@Autowired
 	private BPMFactory bpmFactory;
-	
+
+	@Override
 	public TaskMgmtInstanceW init(ProcessInstanceW piw) {
-		
+
 		if (this.piw == null)
 			this.piw = piw;
-		
+
 		return this;
 	}
-	
+
+	@Override
 	@Transactional(readOnly = false)
 	public TaskInstanceW createTask(final String taskName, final long tokenId) {
-		
-		return getBpmContext().execute(new JbpmCallback() {
-			
-			public Object doInJbpm(JbpmContext context) throws JbpmException {
-				ProcessInstance processInstance = getPiw().getProcessInstance();
-				
+		return getBpmContext().execute(new JbpmCallback<TaskInstanceW>() {
+
+			@Override
+			public TaskInstanceW doInJbpm(JbpmContext context) throws JbpmException {
+				ProcessInstance processInstance = getPiw().getProcessInstance(context);
+
 				@SuppressWarnings("unchecked")
 				List<Token> tkns = processInstance.findAllTokens();
-				
+
 				for (Token token : tkns) {
-					
 					if (token.getId() == tokenId) {
-						TaskInstance ti = processInstance.getTaskMgmtInstance()
-						        .createTaskInstance(
-						            ((TaskNode) token.getNode())
-						                    .getTask(taskName), token);
-						/*
-						 * getBpmFactory().takeView(ti.getId(), true,
-						 * preferred);
-						 */
+						Task task = ((TaskNode) token.getNode()).getTask(taskName);
+						TaskInstance ti = processInstance.getTaskMgmtInstance().createTaskInstance(task, token);
 
 						TaskInstanceW taskInstanceW = getBpmFactory()
 						        .getProcessManagerByTaskInstanceId(ti.getId())
 						        .getTaskInstance(ti.getId());
-						
+
 						taskInstanceW.loadView();
 						return taskInstanceW;
-						
 					}
 				}
-				
 				return null;
 			}
 		});
 	}
-	
+
+	@Override
 	@Transactional(readOnly = false)
 	public void hideTaskInstances(List<TaskInstanceW> tiws) {
-		
+
 		for (TaskInstanceW tiw : tiws) {
-			
+
 			tiw.hide();
 		}
 	}
-	
+
 	protected ProcessInstanceW getPiw() {
 		return piw;
 	}
-	
+
 	BPMContext getBpmContext() {
 		return bpmContext;
 	}
-	
+
 	BPMFactory getBpmFactory() {
 		return bpmFactory;
 	}

@@ -6,7 +6,7 @@ import org.jbpm.JbpmContext;
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.3 $
- * 
+ *
  *          Last modified: $Date: 2008/12/28 12:08:03 $ by $Author: civilis $
  */
 public interface BPMContext {
@@ -27,8 +27,9 @@ public interface BPMContext {
 	@Deprecated
 	public abstract void closeAndCommit(JbpmContext ctx);
 
-	public abstract void saveProcessEntity(Object entity);
-	
+	public abstract <T> void saveProcessEntity(T entity);
+	public abstract <T> void saveProcessEntity(JbpmContext context, T entity);
+
 	/**
 	 * merges entity with current session, resolved from thread bound jbpmContext
 	 * You need to have jbpmContext on the thread to call this method
@@ -41,10 +42,10 @@ public interface BPMContext {
 	/**
 	 * executes code in the callback in hibernate transaction managed by spring.
 	 * Only this method should be used to interact with jbpm.
-	 * 
+	 *
 	 * @param callback
 	 *            - code to execute in managed environment
 	 * @return anything code returns
 	 */
-	public abstract <G> G execute(final JbpmCallback callback);
+	public abstract <G> G execute(final JbpmCallback<G> callback);
 }

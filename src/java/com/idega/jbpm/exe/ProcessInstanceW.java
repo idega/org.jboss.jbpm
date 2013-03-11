@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.jbpm.JbpmContext;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 
@@ -114,6 +115,8 @@ public interface ProcessInstanceW {
 	 */
 	public abstract ProcessInstance getProcessInstance();
 
+	public ProcessInstance getProcessInstance(JbpmContext context);
+
 	/**
 	 * @return human readable identifier, used for distinguishing processes more easily, as well, as
 	 *         using in search etc
@@ -126,6 +129,8 @@ public interface ProcessInstanceW {
 	 * @return definition wrapper this process instance relates to
 	 */
 	public abstract ProcessDefinitionW getProcessDefinitionW();
+
+	public ProcessDefinitionW getProcessDefinitionW(JbpmContext context);
 
 	/**
 	 * gets process name - usually the name of the start task view

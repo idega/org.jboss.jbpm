@@ -23,7 +23,7 @@ import com.idega.jbpm.data.dao.BPMDAO;
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.6 $
- * 
+ *
  *          Last modified: $Date: 2008/12/28 12:08:04 $ by $Author: civilis $
  */
 @Scope("prototype")
@@ -112,26 +112,17 @@ public class AutoDeployable {
 									+ processDefinition.getName()
 									+ ", version: " + getAutoloadedVersion());
 
-					success = getIdegaJbpmContext().execute(new JbpmCallback() {
-
-						public Object doInJbpm(JbpmContext context)
-								throws JbpmException {
-
+					success = getIdegaJbpmContext().execute(new JbpmCallback<Boolean>() {
+						@Override
+						public Boolean doInJbpm(JbpmContext context) throws JbpmException {
 							Boolean success;
 							try {
-								context
-										.deployProcessDefinition(processDefinition);
+								context.deployProcessDefinition(processDefinition);
 								success = true;
-								logger.log(Level.INFO,
-										"Deployed process definition: "
-												+ processDefinition.getName());
-
+								logger.log(Level.INFO, "Deployed process definition: " + processDefinition.getName());
 							} catch (JbpmException ee) {
 								success = false;
-								logger.log(Level.WARNING,
-										"Failed to deploy process: "
-												+ processDefinition.getName(),
-										ee);
+								logger.log(Level.WARNING, "Failed to deploy process: " + processDefinition.getName(), ee);
 							}
 
 							return success;

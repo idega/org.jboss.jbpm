@@ -13,26 +13,27 @@ import com.idega.idegaweb.IWMainApplicationShutdownEvent;
 import com.idega.idegaweb.IWMainApplicationStartedEvent;
 
 /**
- * 
- * 
+ *
+ *
  * @author <a href="anton@idega.com">Anton Makarov</a>
  * @version $Revision: 1.7 $, $Date: 2009/01/29 16:10:33 $ by $Author: anton $
- * 
+ *
  */
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class JobExecutorStarter implements ApplicationListener {
+public class JobExecutorStarter implements ApplicationListener<ApplicationEvent> {
 
-	private static final Logger LOGGER = Logger
-			.getLogger(JobExecutorStarter.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(JobExecutorStarter.class.getName());
 
+	@Override
 	public void onApplicationEvent(ApplicationEvent applicationEvent) {
-
 		if (applicationEvent instanceof IWMainApplicationStartedEvent) {
+			JbpmConfiguration jbpmConfig = JbpmConfiguration.getInstance();
+			LOGGER.info("Obtained JBPM configuration: " + jbpmConfig);
+
 			LOGGER.info("Starting Job executor");
-			JbpmConfiguration.getInstance().getJobExecutor().setIdleInterval(
-					3000);
-			JbpmConfiguration.getInstance().startJobExecutor();
+			jbpmConfig.getJobExecutor().setIdleInterval(3000);
+			jbpmConfig.startJobExecutor();
 		} else if (applicationEvent instanceof IWMainApplicationShutdownEvent) {
 			LOGGER.info("Stopping Job executor");
 			JbpmConfiguration.getInstance().getJobExecutor().stop();

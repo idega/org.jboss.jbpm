@@ -13,7 +13,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -35,11 +34,10 @@ import com.idega.util.xml.XmlUtil;
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.14 $
- * 
+ *
  *          Last modified: $Date: 2009/02/20 14:24:52 $ by $Author: civilis $
  */
-public abstract class ProcessDefinitionsAutoloader implements
-		ApplicationListener, ApplicationContextAware {
+public abstract class ProcessDefinitionsAutoloader implements ApplicationListener<RepositoryStartedEvent>, ApplicationContextAware {
 
 	private final Logger logger;
 	private ResourcePatternResolver resourcePatternResolver;
@@ -97,14 +95,10 @@ public abstract class ProcessDefinitionsAutoloader implements
 		}
 	}
 
-	public void onApplicationEvent(ApplicationEvent applicationEvent) {
-
-		if (applicationEvent instanceof RepositoryStartedEvent) {
-
-			IWMainApplication iwma = ((RepositoryStartedEvent) applicationEvent)
-					.getIWMA();
-			autodeploy(iwma, false);
-		}
+	@Override
+	public void onApplicationEvent(RepositoryStartedEvent applicationEvent) {
+		IWMainApplication iwma = applicationEvent.getIWMA();
+		autodeploy(iwma, false);
 	}
 
 	protected List<Resource> resolveResources(List<String> mappings) {
@@ -248,6 +242,7 @@ public abstract class ProcessDefinitionsAutoloader implements
 		this.mappings = mappings;
 	}
 
+	@Override
 	public void setApplicationContext(ApplicationContext appCtx)
 			throws BeansException {
 		this.appCtx = appCtx;

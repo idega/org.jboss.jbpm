@@ -2,23 +2,28 @@ package com.idega.jbpm.identity;
 
 import java.util.List;
 
+import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.util.ListUtil;
+import com.idega.util.StringUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.8 $
- * 
+ *
  *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 @Service("rightsManagementRolesAssignmentHandler")
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class RightsManagementRolesAssignmentHandler implements ActionHandler {
 
 	private static final long serialVersionUID = -3470015014878632919L;
@@ -27,24 +32,20 @@ public class RightsManagementRolesAssignmentHandler implements ActionHandler {
 	private BPMFactory bpmFactory;
 	private String assignmentExpression;
 
+	@Override
 	public void execute(ExecutionContext ctx) throws Exception {
-		if (getAssignmentExpression() != null) {
-			TaskAssignment ta = JSONExpHandler
-					.resolveRightsRolesFromJSONExpression(getAssignmentExpression());
+		if (StringUtil.isEmpty(getAssignmentExpression()))
+			return;
 
-			List<Role> roles = ta.getRoles();
+		TaskAssignment ta = JSONExpHandler.resolveRightsRolesFromJSONExpression(getAssignmentExpression());
+		List<Role> roles = ta.getRoles();
+		if (ListUtil.isEmpty(roles))
+			return;
 
-			if (roles != null && !roles.isEmpty()) {
-
-				ProcessInstance pi = getBpmFactory().getMainProcessInstance(
-						ctx.getProcessInstance().getId());
-
-				getBpmFactory().getRolesManager()
-						.createProcessActors(roles, pi);
-				getBpmFactory().getRolesManager().assignRolesPermissions(roles,
-						pi);
-			}
-		}
+		JbpmContext context = ctx.getJbpmContext();
+		ProcessInstance pi = getBpmFactory().getMainProcessInstance(context, ctx.getProcessInstance().getId());
+		getBpmFactory().getRolesManager().createProcessActors(context, roles, pi);
+		getBpmFactory().getRolesManager().assignRolesPermissions(roles, pi);
 	}
 
 	public String getAssignmentExpression() {
@@ -56,6 +57,8 @@ public class RightsManagementRolesAssignmentHandler implements ActionHandler {
 	}
 
 	BPMFactory getBpmFactory() {
+		if (bpmFactory == null)
+			ELUtil.getInstance().autowire(this);
 		return bpmFactory;
 	}
 }

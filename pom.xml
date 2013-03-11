@@ -49,12 +49,6 @@
       <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.hibernate</artifactId>
     </dependency>
-    <!--
-    <dependency>
-        <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-commons-annotations</artifactId>
-    </dependency>
-    -->
     <dependency>
       <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.springframework</artifactId>
@@ -84,10 +78,7 @@
     <!-- dependency has some modifications, see idegaChanges.txt at jar -->
       <groupId>org.jbpm.jbpm3</groupId>
       <artifactId>jbpm-jpdl</artifactId>
-      <version>3.3.0.GA</version>
-      <!-- TODO: fall back to 3.2.x, as that is only supported for bugfixes
-      see http://www.jboss.org/index.html?module=bb&op=viewtopic&p=4219178
-       -->
+      <version>3.3.0.GA.iw</version>
       <type>jar</type>
 	  <exclusions>
         <exclusion>
