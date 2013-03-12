@@ -153,6 +153,7 @@ public interface ProcessInstanceW {
 	public abstract boolean hasRight(Right right, User user);
 
 	public abstract List<BPMEmailDocument> getAttachedEmails(User user);
+	public abstract List<BPMEmailDocument> getAttachedEmails(User user, boolean fetchMessage);
 
 	public abstract boolean hasEnded();
 
