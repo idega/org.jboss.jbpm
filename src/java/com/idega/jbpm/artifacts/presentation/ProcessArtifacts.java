@@ -390,7 +390,7 @@ public class ProcessArtifacts {
 		Locale userLocale = iwc.getCurrentLocale();
 
 		ProcessInstanceW pi = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
-		Collection<BPMDocument> processDocuments = pi.getSubmittedDocumentsForUser(loggedInUser, userLocale);
+		Collection<BPMDocument> processDocuments = pi.getSubmittedDocumentsForUser(loggedInUser, userLocale, params.isNameFromExternalEntity());
 
 		return getDocumentsListDocument(iwc, processDocuments, processInstanceId, params);
 	}
@@ -417,7 +417,7 @@ public class ProcessArtifacts {
 			tasksDocuments = loggedInUser == null ?
 				null :
 				getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId)
-					.getTaskDocumentsForUser(loggedInUser, userLocale);
+					.getTaskDocumentsForUser(loggedInUser, userLocale, params.isNameFromExternalEntity());
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +	userLocale, e);
 		}

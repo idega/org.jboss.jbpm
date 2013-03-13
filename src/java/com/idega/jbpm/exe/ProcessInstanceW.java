@@ -34,9 +34,15 @@ public interface ProcessInstanceW {
 
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
 	        Locale locale);
+	
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
+	        Locale locale, boolean doShowExternalEntity);
 
 	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
 	        Locale locale);
+	
+	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
+	        Locale locale, boolean doShowExternalEntity);
 
 	/**
 	 * @param rootToken
@@ -158,6 +164,7 @@ public interface ProcessInstanceW {
 	public abstract boolean hasRight(Right right, User user);
 
 	public abstract List<BPMEmailDocument> getAttachedEmails(User user);
+	public abstract List<BPMEmailDocument> getAttachedEmails(User user, boolean fetchMessage);
 
 	public abstract boolean hasEnded();
 
