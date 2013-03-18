@@ -26,16 +26,15 @@ import com.idega.idegaweb.IWMainApplication;
  */
 public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	
-	public static final String beanIdentifier = "idegaJbpmContext";	
+	public static final String beanIdentifier = "idegaJbpmContext";
 	private HibernateTemplate hibernateTemplate;
 	
 	public JbpmConfiguration getJbpmConfiguration() {
-//		return null;
 		return JbpmConfiguration.getInstance();
 	}
 	
 	public JbpmContext createJbpmContext() {
-//		return null;
+		
 		return JbpmConfiguration.getInstance().createJbpmContext();
 	}
 	
@@ -45,7 +44,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	}
 	
 	public void saveProcessEntity(Object entity) {
-//		return;
+		
 		JbpmContext current = getJbpmConfiguration().getCurrentJbpmContext();
 		
 		if (current != null) {
@@ -57,7 +56,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	}
 	
 	public <T> T mergeProcessEntity(T entity) {
-//		return null;
+		
 		JbpmContext ctx = getJbpmConfiguration().getCurrentJbpmContext();
 		
 		if (ctx != null) {
@@ -81,7 +80,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	@Transactional
 	// temporal let's hope. need to understand and merge jbpm + jpa transactions behavior
 	public <T> T execute(final JbpmCallback callback) {
-//		return null;
+		
 		final JbpmContext context = JbpmConfiguration.getInstance()
 		        .createJbpmContext();
 		
@@ -96,9 +95,9 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			
 			if (useNewTransactionHandling) {
 				hibernateTemplate = new HibernateTemplate(SessionFactoryUtil.getSessionFactory());
-			} else {
-				hibernateTemplate = this.hibernateTemplate;
-			}
+				} else {
+					hibernateTemplate = this.hibernateTemplate;
+				}
 			
 			@SuppressWarnings("unchecked")
 			T res = (T) hibernateTemplate.execute(new HibernateCallback() {
@@ -154,8 +153,6 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	 * @return
 	 */
 	public RuntimeException convertJbpmException(JbpmException ex) {
-//		return null;
-		
 		// decode nested exceptions
 		if (ex.getCause() instanceof HibernateException) {
 			DataAccessException rootCause = SessionFactoryUtils

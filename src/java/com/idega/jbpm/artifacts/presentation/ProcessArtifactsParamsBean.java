@@ -21,6 +21,7 @@ public class ProcessArtifactsParamsBean {
 	private boolean showAttachmentStatistics;
 	private String caseId;
 	private boolean showOnlyCreatorInContacts;
+	private boolean nameFromExternalEntity = false;
 	
 	public Integer getPage() {
 		return page;
@@ -100,5 +101,10 @@ public class ProcessArtifactsParamsBean {
 	public void setShowOnlyCreatorInContacts(boolean showOnlyCreatorInContacts) {
 		this.showOnlyCreatorInContacts = showOnlyCreatorInContacts;
 	}
-	
+	public boolean isNameFromExternalEntity() {
+		return nameFromExternalEntity;
+	}
+	public void setNameFromExternalEntity(boolean doShowExternalEntity) {
+		this.nameFromExternalEntity = doShowExternalEntity;
+	}
 }
