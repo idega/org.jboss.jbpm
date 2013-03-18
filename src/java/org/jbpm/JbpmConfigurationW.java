@@ -38,8 +38,6 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	public static JbpmConfiguration createJbpmConfiguration(
 			String pathToConfiguration) {
 
-//		return null;
-		
 		InputStream jbpmCfgXmlStream = ClassLoaderUtil
 				.getStream(pathToConfiguration);
 
@@ -61,12 +59,11 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	protected static JbpmConfiguration createJbpmConfiguration(
 			ObjectFactory objectFactory) {
 
-//		return null;
 		// here instantiating JbpmConfigurationW
 		JbpmConfigurationW jbpmConfiguration = new JbpmConfigurationW(
 				objectFactory);
 
-		// now we make the bean jbpm.configuration always available
+		// now we make the bean jbpm.configuration always availble
 		if (objectFactory instanceof ObjectFactoryImpl) {
 			ObjectFactoryImpl objectFactoryImpl = (ObjectFactoryImpl) objectFactory;
 			ObjectInfo jbpmConfigurationInfo = new ValueInfo(
@@ -100,7 +97,7 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 
 	@Override
 	void jbpmContextCreated(JbpmContext jbpmContext) {
-//		return;
+
 		JbpmContext currentContext = getCurrentJbpmContext();
 
 		if (currentContext != null) {
@@ -112,7 +109,7 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 	}
 
 	public Stack<Boolean> getDoCommitStack() {
-//		return null;
+
 		Stack<Boolean> stack = doCommitStackLocal.get();
 
 		if (stack == null) {
@@ -126,19 +123,19 @@ public class JbpmConfigurationW extends JbpmConfiguration {
 
 	@Override
 	public JbpmContext createJbpmContext() {
-//		return null;
+
 		return createJbpmContext(mainJbpmContext);
 	}
 
 	@Override
 	public JbpmContext createJbpmContext(String name) {
-//		return null;
+
 		return super.createJbpmContext(name);
 	}
 
 	@Override
 	void jbpmContextClosed(JbpmContext jbpmContext) {
-//		return;
+
 		super.jbpmContextClosed(jbpmContext);
 	}
 }
