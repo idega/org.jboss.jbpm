@@ -323,8 +323,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 
 		String query = "select p.id_ from jbpm_processinstance p, jbpm_token t where t.id_ = p.SUPERPROCESSTOKEN_ and t.PROCESSINSTANCE_ = " +
 				parentProcessInstanceId;
-		LOGGER.info("No sub-processes were found by named query " + ProcessManagerBind.getSubprocessesOneLevel + ", will try to find them by query " +
-				query);
 		List<Serializable[]> results = null;
 		try {
 			results = SimpleQuerier.executeQuery(query, 1);
@@ -345,8 +343,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 		if (MapUtil.isEmpty(piIds))
 			return Collections.emptyList();
-
-		LOGGER.info("Found sub-processes " + piIds.keySet() + " for given process " + parentProcessInstanceId);
 
 		query = "from " + org.jbpm.graph.exe.ProcessInstance.class.getName() + " p where p.id in (:" + ProcessManagerBind.processInstanceIdParam + ")";
 		subprocesses = getResultListByInlineQuery(query, ProcessInstance.class,
