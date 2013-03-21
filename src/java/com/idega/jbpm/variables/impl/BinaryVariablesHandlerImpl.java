@@ -76,17 +76,14 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	public Map<String, Object> storeBinaryVariables(long taskInstanceId, Map<String, Object> variables) {
 		Map<String, Object> newVars = new HashMap<String, Object>(variables);
 
-		for (Entry<String, Object> entry : newVars.entrySet()) {
+		JSONUtil json = getBinVarJSONConverter();
+		for (Entry<String, Object> entry: newVars.entrySet()) {
 			Object val = entry.getValue();
 			if (val == null)
 				continue;
 
 			String key = entry.getKey();
-
 			Variable variable = Variable.parseDefaultStringRepresentation(key);
-
-			JSONUtil json = getBinVarJSONConverter();
-
 			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES
 					&& val instanceof Collection<?>) {
 
@@ -94,17 +91,15 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				Collection<BinaryVariable> binVars = (Collection<BinaryVariable>) val;
 				List<String> binaryVariables = new ArrayList<String>(binVars.size());
 
-				for (BinaryVariable binVar : binVars) {
-
+				for (BinaryVariable binVar: binVars) {
 					binVar.setTaskInstanceId(taskInstanceId);
 					binVar.setVariable(variable);
 
-					if (!binVar.isPersisted()) {
-
+					if (!binVar.isPersisted())
 						binVar.persist();
-					}
 
-					binaryVariables.add(json.convertToJSON(binVar));
+					String jsonString = json.convertToJSON(binVar);
+					binaryVariables.add(jsonString);
 				}
 
 				String binVarArrayJSON = json.convertToJSON(binaryVariables);
@@ -133,7 +128,9 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	}
 
 	private String concPF(String path, String fileName) {
-		return path.concat(CoreConstants.SLASH).concat(fileName);
+		if (!path.endsWith(CoreConstants.SLASH))
+			path = path.concat(CoreConstants.SLASH);
+		return path.concat(fileName);
 	}
 
 	@Override
@@ -152,49 +149,52 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		String fileName = fileInfo.getFileName();
 
 		try {
+			persistBinaryVariable(binaryVariable, path, fileName, fileInfo.getContentLength(), fileURIHandler.getFile(fileUri), true);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void persistBinaryVariable(BinaryVariable binaryVariable, String path, String fileName, Long contentLength, InputStream stream,
+			boolean overwrite) {
+		try {
+			String normalizedName = null;
 			RepositoryService repository = getRepositoryService();
+			if (overwrite || !repository.getExistence(concPF(path, fileName))) {
+				normalizedName = StringHandler.stripNonRomanCharacters(fileName,
+						new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_', '.'});
+				normalizedName = StringHandler.removeWhiteSpace(normalizedName);
 
-			String normalizedName = StringHandler.stripNonRomanCharacters(fileName,
-					new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_', '.'});
-			normalizedName = StringHandler.removeWhiteSpace(normalizedName);
-
-			int index = 0;
-			String tmpUri = path;
-			//	File by the same name already exists! Renaming this file not to overwrite existing file
-			while (repository.getExistence(concPF(tmpUri, normalizedName))) {
-				tmpUri = path.concat(String.valueOf((index++)));
-			}
-			path = tmpUri;
-
-			// This should be changed, temporal fix. user will not be able submit a form if exception will be thrown here
-			InputStream stream = null;
-			try {
-				String uploadPath = path.concat(CoreConstants.SLASH);
-				for (int i = 0; i < 5; i++) {
-					try {
-						stream = fileURIHandler.getFile(fileUri);
-						if (!repository.uploadFile(uploadPath, normalizedName, null, stream))
-							throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName) + ". Tried to upload using " +
-									repository.getClass() + " for " + i + " times");
-					} catch (Exception e) {
-						if (i < 4) {
-							Thread.sleep(500);
-							continue;
-						}
-
-						doSendErrorNotification(fileURIHandler.getFile(fileUri), normalizedName, uploadPath, e);
-						throw e;
-					}
-					break;
+				int index = 0;
+				String tmpUri = path;
+				//	File by the same name already exists! Renaming this file not to overwrite existing file
+				while (repository.getExistence(concPF(tmpUri, normalizedName))) {
+					tmpUri = path.concat(String.valueOf((index++)));
 				}
-			} finally {
+				path = tmpUri;
+
+				String uploadPath = path;
+				if (!uploadPath.endsWith(CoreConstants.SLASH))
+					uploadPath = uploadPath.concat(CoreConstants.SLASH);
+				try {
+					if (!repository.uploadFile(uploadPath, normalizedName, null, stream))
+						throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName));
+				} catch (Exception e) {
+					doSendErrorNotification(stream, normalizedName, uploadPath, e);
+					throw e;
+				} finally {
+					IOUtil.close(stream);
+				}
+			} else {
 				IOUtil.close(stream);
+				normalizedName = fileName;
 			}
 
 			binaryVariable.setFileName(fileName);
 			binaryVariable.setIdentifier(concPF(path, normalizedName));
 			binaryVariable.setStorageType(STORAGE_TYPE);
-			binaryVariable.setContentLength(fileInfo.getContentLength());
+			binaryVariable.setContentLength(contentLength);
 
 			if (binaryVariable.getDescription() == null)
 				binaryVariable.setDescription(fileName);
@@ -281,7 +281,8 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 						if (binaryVariable != null)
 							binaryVars.add(binaryVariable);
 						else {
-							LOGGER.log(Level.WARNING, "Null returned from json.convertToObject by json="+ binVarJSON+ ". All json expression = "+ binVarsInJSON);
+							LOGGER.log(Level.WARNING, "Null returned from json.convertToObject by json="+ binVarJSON+ ". All json expression = "+
+									binVarsInJSON);
 						}
 
 					} catch (StreamException e) {

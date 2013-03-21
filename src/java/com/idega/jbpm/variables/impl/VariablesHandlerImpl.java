@@ -80,7 +80,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	@Override
 	@Transactional(readOnly = false)
 	public Map<String, Object> submitVariablesExplicitly(final Map<String, Object> originalVariables, final long taskInstanceId) {
-		if (originalVariables == null || originalVariables.isEmpty())
+		if (MapUtil.isEmpty(originalVariables))
 			return null;
 
 		return getIdegaJbpmContext().execute(new JbpmCallback<Map<String, Object>>() {
@@ -95,7 +95,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				@SuppressWarnings("unchecked")
 				Map<String, VariableInstance> varInstances = ti.getVariableInstances();
 
-				for (Entry<String, Object> entry : variables.entrySet()) {
+				for (Entry<String, Object> entry: variables.entrySet()) {
 					if (varInstances != null && !varInstances.containsKey(entry.getKey())) {
 						VariableInstance vi = VariableInstance.create(taskInstanceToken, entry.getKey(), entry.getValue());
 						ti.addVariableInstance(vi);

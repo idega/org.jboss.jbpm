@@ -21,19 +21,17 @@ public interface BinaryVariablesHandler {
 	 * @param variables
 	 * @return new map with binary variables values changed to string identifier(s)
 	 */
-	public abstract Map<String, Object> storeBinaryVariables(
-	        long taskInstanceId, Map<String, Object> variables);
+	public abstract Map<String, Object> storeBinaryVariables(long taskInstanceId, Map<String, Object> variables);
 
 	public abstract InputStream getBinaryVariableContent(BinaryVariable variable);
 
-	public abstract Map<String, Object> resolveBinaryVariables(
-	        Map<String, Object> variables);
+	public abstract Map<String, Object> resolveBinaryVariables(Map<String, Object> variables);
 
-	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(
-	        Map<String, Object> variables);
+	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables);
 
-	public abstract void persistBinaryVariable(BinaryVariable binaryVariable,
-	        final URI fileUri);
+	public abstract void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri);
+	public void persistBinaryVariable(BinaryVariable binaryVariable, String path, String fileName, Long contentLength, InputStream stream,
+			boolean overwrite);
 
 	public String getFolderForBinaryVariable(Long taskInstanceId);
 

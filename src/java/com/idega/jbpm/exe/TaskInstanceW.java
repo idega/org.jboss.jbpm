@@ -78,6 +78,11 @@ public interface TaskInstanceW {
 	 */
 	public abstract BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is);
 
+	public abstract BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is,
+			String destinationInRepository);
+	public abstract BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is,
+			String destinationInRepository, boolean overwrite);
+
 	public BinaryVariable addAttachment(Variable variable, String fileName, String description, String pathInRepository);
 
 	public abstract List<BinaryVariable> getAttachments();
