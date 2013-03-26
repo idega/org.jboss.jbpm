@@ -624,9 +624,9 @@ public class ProcessArtifacts {
 			        .valueOf(0) : fileSize));
 
 			if (params.isShowAttachmentStatistics()) {
-				row.addCell(new StringBuilder("<a class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\" href=\"")
+				row.addCell(new StringBuilder("<a href=\"javascript:void(0);\" attachment-link=\"")
 						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId)).append("\" title=\"")
-						.append(attachmentWindowLabel).append("\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
+						.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
 			}
 
 			if (params.getAllowPDFSigning() && getSigningHandler() != null
@@ -1029,8 +1029,11 @@ public class ProcessArtifacts {
 		return iwc;
 	}
 
-	public String setAccessRightsForProcessResource(String roleName, Long processInstanceId, Long taskInstanceId, String variableIdentifier,
-			boolean hasReadAccess, boolean setSameRightsForAttachments, Integer userId) {
+	public String setAccessRightsForProcessResource(String roleName, 
+			Long processInstanceId, Long taskInstanceId, 
+			String variableIdentifier,
+			boolean hasReadAccess, boolean setSameRightsForAttachments, 
+			Integer userId) {
 
 		String errorMessage = "Attachments permissions update failed!";
 
