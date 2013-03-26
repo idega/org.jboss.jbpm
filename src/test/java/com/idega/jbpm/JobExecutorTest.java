@@ -151,7 +151,7 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 	}
 
 	private int getNbrOfJobsAvailable() {
-		Integer nbrOfJobsAvailable = bpmContext.execute(new JbpmCallback() {
+		Object nbrOfJobsAvailable = bpmContext.execute(new JbpmCallback() {
 
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
 				Session session = context.getSession();
@@ -167,7 +167,11 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 			}
 		});
 
-		return nbrOfJobsAvailable;
+		if (nbrOfJobsAvailable instanceof java.lang.Integer) {
+			return (java.lang.Integer) nbrOfJobsAvailable;
+		}
+		
+		return 0;
 	}
 
 	protected void stopJobExecutor() {
