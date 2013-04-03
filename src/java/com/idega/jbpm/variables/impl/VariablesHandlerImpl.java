@@ -32,6 +32,7 @@ import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.jbpm.variables.VariablesManager;
+import com.idega.util.CoreUtil;
 import com.idega.util.datastructures.map.MapUtil;
 
 /**
@@ -97,8 +98,16 @@ public class VariablesHandlerImpl implements VariablesHandler {
 
 				for (Entry<String, Object> entry: variables.entrySet()) {
 					if (varInstances != null && !varInstances.containsKey(entry.getKey())) {
-						VariableInstance vi = VariableInstance.create(taskInstanceToken, entry.getKey(), entry.getValue());
-						ti.addVariableInstance(vi);
+						try {
+							VariableInstance vi = VariableInstance.create(taskInstanceToken, entry.getKey(), entry.getValue());
+							ti.addVariableInstance(vi);
+						} catch (Exception e) {
+							String message = "Error creating variable " + entry.getKey() + " with value " + entry.getValue() + " for token " +
+									taskInstanceToken + " and task instance: " + taskInstanceId;
+							LOGGER.log(Level.WARNING, message, e);
+							CoreUtil.sendExceptionNotification(message, e);
+							throw new RuntimeException(message, e);
+						}
 					}
 				}
 
