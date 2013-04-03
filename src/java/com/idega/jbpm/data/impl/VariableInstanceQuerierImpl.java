@@ -1281,7 +1281,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			List<String> procDefNames,
 			List<Long> procInstIds,
 			boolean selectProcessInstanceId,
-			Set<Long> cachedVariables,
 			Map<String, Boolean> flexibleVariables,
 			boolean strictBinaryVariables) {
 
@@ -2174,12 +2173,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<Long> originalProcInstIds,
 			Map<String, Boolean> flexibleVariables,
 			boolean useCachedVariables,
 			boolean strictBinaryVariables) {
 
 		List<String> variablesToQuery = new ArrayList<String>();
+		List<Long> procInstIds = originalProcInstIds == null ? null : new ArrayList<Long>(originalProcInstIds);
 
 		//	Determining cached variables
 		Map<String, List<VariableInstanceInfo>> cachedVariables = new HashMap<String, List<VariableInstanceInfo>>();
@@ -2288,8 +2288,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			variablesAndValuesToQuery.put(variableToQuery, activeVariables.get(variableToQuery));
 
 		//	Querying the DB for variables
-		 Collection<VariableInstanceInfo> info = getProcessVariablesByNamesAndValues(variablesAndValuesToQuery, variables,
-				 ListUtil.isEmpty(procInstIds) ? procDefNames : null, procInstIds, true, results.keySet(), flexibleVariables, strictBinaryVariables);
+		Collection<VariableInstanceInfo> info = getProcessVariablesByNamesAndValues(variablesAndValuesToQuery, variables,
+				 ListUtil.isEmpty(procInstIds) ? procDefNames : null, procInstIds, true, flexibleVariables, strictBinaryVariables);
 
 		if (ListUtil.isEmpty(info))
 			return null;
@@ -2302,6 +2302,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		//	Combining cached results and queried results
 		for (VariableInstanceInfo varInfo: info) {
 			Long piId = varInfo.getProcessInstanceId();
+			if (!ListUtil.isEmpty(originalProcInstIds) && !originalProcInstIds.contains(piId))
+				continue;
 
 			queriedIds.put(piId, Boolean.TRUE);
 
@@ -2326,8 +2328,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					idsToRemove.add(piId);
 			}
 
-			if (!ListUtil.isEmpty(idsToRemove)) {
+			if (!ListUtil.isEmpty(idsToRemove))
 				results.keySet().removeAll(idsToRemove);
+		} else {
+			if (!ListUtil.isEmpty(originalProcInstIds)) {
+				results.keySet().retainAll(originalProcInstIds);
 			}
 		}
 
