@@ -2314,9 +2314,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				results.put(piId, processVariables);
 			}
 
-			if (varInfo.getValue() != null)
-				//	Adding variable info
-				processVariables.put(varInfo.getName(), varInfo);
+			if (varInfo.getValue() != null) {
+				VariableInstanceInfo existingValue = processVariables.get(varInfo.getName());
+				if (existingValue == null || existingValue.getId() < varInfo.getId())
+					processVariables.put(varInfo.getName(), varInfo);
+			}
 		}
 
 		if (!MapUtil.isEmpty(variablesAndValuesToQuery) && !MapUtil.isEmpty(queriedIds) && !ListUtil.isEmpty(cachedProcInstIds)) {
