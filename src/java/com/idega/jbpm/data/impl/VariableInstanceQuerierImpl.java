@@ -2301,6 +2301,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		//	Combining cached results and queried results
 		for (VariableInstanceInfo varInfo: info) {
+			if (varInfo == null)
+				continue;
 			Long piId = varInfo.getProcessInstanceId();
 			if (!ListUtil.isEmpty(originalProcInstIds) && !originalProcInstIds.contains(piId))
 				continue;
@@ -2316,8 +2318,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 			if (varInfo.getValue() != null) {
 				VariableInstanceInfo existingValue = processVariables.get(varInfo.getName());
-				if (existingValue == null || existingValue.getId() < varInfo.getId())
+				if (existingValue == null) {
 					processVariables.put(varInfo.getName(), varInfo);
+				} else {
+					Long varId = varInfo.getId();
+					Long existingId = existingValue.getId();
+					if (varId != null && existingId != null && varId > existingId)
+						processVariables.put(varInfo.getName(), varInfo);
+				}
 			}
 		}
 
