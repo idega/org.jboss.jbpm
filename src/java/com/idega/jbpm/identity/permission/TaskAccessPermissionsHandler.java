@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jbpm.JbpmContext;
+import org.jbpm.JbpmException;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.security.AuthenticationService;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -23,6 +25,8 @@ import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.UnavailableIWContext;
+import com.idega.jbpm.BPMContext;
+import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -34,6 +38,7 @@ import com.idega.user.data.User;
 import com.idega.util.ArrayUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -53,6 +58,8 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 	private RolesManager rolesManager;
 	@Autowired
 	private BPMFactory bpmFactory;
+	@Autowired
+	private BPMContext bpmContext;
 
 	public static final String taskInstanceAtt = "taskInstance";
 	public static final String checkOnlyInActorsPoolAtt = "checkOnlyInActorsPool";
@@ -72,6 +79,12 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 		        PermissionsFactoryImpl.viewTaskInstanceVariablePermType };
 	}
 
+	private BPMContext getBpmContext() {
+		if (bpmContext == null)
+			ELUtil.getInstance().autowire(this);
+		return bpmContext;
+	}
+	
 	// TODO: just return handleResult object here with status, and message, let
 	// identityAuthorizationService throw exceptions or so
 	@Override
@@ -97,16 +110,25 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 					PermissionsFactoryImpl.viewTaskInstanceVariablePermType.equals(permission.getType()))
 					result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
 				else if (PermissionsFactoryImpl.viewTaskInstancePermType.equals(permission.getType())) {
-					TaskInstance taskInstance = permission.getAttribute(taskInstanceAtt);
-					List<Object[]> permissionsForEveryone = null;
-					try {
-						permissionsForEveryone = bpmDAO.getResultList(ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdPureRoles, Object[].class,
-								new Param(Actor.processInstanceIdProperty, taskInstance.getProcessInstance().getId()),
-								new Param(ActorPermissions.roleNameProperty, "everyone")
-						);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+					final TaskInstance taskInstance = permission.getAttribute(taskInstanceAtt);
+				
+					List<Object[]> permissionsForEveryone = getBpmContext()
+							.execute(new JbpmCallback() {
+						
+								@Override
+								public List<Object[]> doInJbpm(JbpmContext context) throws JbpmException {
+									try {
+										return bpmDAO.getResultList(ActorPermissions.getSetByProcessRoleNamesAndProcessInstanceIdPureRoles, Object[].class,
+												new Param(Actor.processInstanceIdProperty, context.getTaskInstance(taskInstance.getId()).getProcessInstance().getId()),
+												new Param(ActorPermissions.roleNameProperty, "everyone")
+										);
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+									return null;
+								}
+					});
+					
 					if (ListUtil.isEmpty(permissionsForEveryone))
 						result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
 					else {
@@ -237,8 +259,17 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 	        int userId, TaskInstance taskInstance, Collection<Access> accesses,
 	        String variableIdentifier) {
 
+		final Long taskInstanceId = taskInstance.getId();
+		
+		taskInstance = getBpmContext().execute(new JbpmCallback() {
+			@Override
+			public Object doInJbpm(JbpmContext context) throws JbpmException {
+				return context.getTaskInstance(taskInstanceId);
+			}
+		});
+		
 		Long taskId = taskInstance.getTask().getId();
-		Long taskInstanceId = taskInstance.getId();
+//		Long taskInstanceId = taskInstance.getId();
 
 		Long taskInstanceProcessInstanceId = taskInstance.getProcessInstance()
 		        .getId();
