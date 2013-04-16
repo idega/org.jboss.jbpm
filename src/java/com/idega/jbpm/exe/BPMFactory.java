@@ -73,8 +73,7 @@ public interface BPMFactory {
 	public abstract View getViewByTask(long taskId, boolean submitable,
 	        List<String> preferredTypes);
 
-	public abstract View getViewByTaskInstance(long taskInstanceId,
-	        boolean submitable, List<String> preferredTypes);
+	public abstract View getViewByTaskInstance(long taskInstanceId, boolean submitable, List<String> preferredTypes, String... forcedTypes);
 
 	public abstract View getView(String viewIdentifier, String type,
 	        boolean submitable);

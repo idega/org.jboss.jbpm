@@ -176,41 +176,29 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	@Transactional(readOnly = true)
-	public View getViewByTaskInstance(long taskInstanceId, boolean submitable,
-	        List<String> preferredTypes) {
-
-		// TODO: if not found - take from task
-
-		List<ViewTaskBind> binds = getBPMDAO()
-		        .getViewTaskBindsByTaskInstanceId(taskInstanceId);
+	public View getViewByTaskInstance(long taskInstanceId, boolean submitable, List<String> preferredTypes, String... forcedTypes) {
+		List<ViewTaskBind> binds = getBPMDAO().getViewTaskBindsByTaskInstanceId(taskInstanceId);
 
 		if (ListUtil.isEmpty(binds)) {
-
 			// no view taken - this is probably backward compatibility. In new manner, the view is
 			// taken at TaskInstanceViewBindHandler, which is launched on task-create event of the
 			// process (see configure method of ProcessBundleSingleProcessDefinitionImpl)
 
 			takeViews(taskInstanceId);
 
-			binds = getBPMDAO()
-			        .getViewTaskBindsByTaskInstanceId(taskInstanceId);
+			binds = getBPMDAO().getViewTaskBindsByTaskInstanceId(taskInstanceId);
 		}
 
-		if (binds == null || binds.isEmpty()) {
-			Logger.getLogger(BPMFactory.class.getName()).log(
-			    Level.WARNING,
-			    "No view task bindings resolved for task intance. Task intance id: "
-			            + taskInstanceId);
+		if (ListUtil.isEmpty(binds)) {
+			LOGGER.warning("No view task bindings resolved for task intance. Task intance id: " + taskInstanceId);
 			return null;
 		}
 
-		ViewTaskBind viewTaskBind = getPreferredViewTaskBind(binds,
-		    preferredTypes);
+		ViewTaskBind viewTaskBind = getPreferredViewTaskBind(binds, preferredTypes);
 		String viewType = viewTaskBind.getViewType();
 
-		ViewFactory viewFactory = getViewFactory(viewType);
-		return viewFactory
-		        .getView(viewTaskBind.getViewIdentifier(), submitable);
+		ViewFactory viewFactory = ArrayUtil.isEmpty(forcedTypes) ? getViewFactory(viewType) : getViewFactory(forcedTypes[0]);
+		return viewFactory.getView(viewTaskBind.getViewIdentifier(), submitable);
 	}
 
 	@Transactional(readOnly = true)

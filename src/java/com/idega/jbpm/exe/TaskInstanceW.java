@@ -42,6 +42,7 @@ public interface TaskInstanceW {
 	 * @return
 	 */
 	public abstract View loadView();
+	public abstract View loadView(String viewType);
 
 	/**
 	 * gets view of task instance The difference between load view, is that load view may
