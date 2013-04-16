@@ -755,7 +755,6 @@ public class ProcessArtifacts {
 		return new ArrayList<User>(usersConnectedToProcess);
 	}
 
-	@SuppressWarnings("unchecked")
 	public Document getProcessContactsList(ProcessArtifactsParamsBean params) {
 		if (params == null) {
 			return null;
@@ -1029,10 +1028,10 @@ public class ProcessArtifacts {
 		return iwc;
 	}
 
-	public String setAccessRightsForProcessResource(String roleName, 
-			Long processInstanceId, Long taskInstanceId, 
+	public String setAccessRightsForProcessResource(String roleName,
+			Long processInstanceId, Long taskInstanceId,
 			String variableIdentifier,
-			boolean hasReadAccess, boolean setSameRightsForAttachments, 
+			boolean hasReadAccess, boolean setSameRightsForAttachments,
 			Integer userId) {
 
 		String errorMessage = "Attachments permissions update failed!";
