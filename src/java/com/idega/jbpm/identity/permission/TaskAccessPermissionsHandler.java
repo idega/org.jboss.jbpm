@@ -83,6 +83,8 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 		        PermissionsFactoryImpl.viewTaskInstanceVariablePermType };
 	}
 
+	// TODO: just return handleResult object here with status, and message, let
+	// identityAuthorizationService throw exceptions or so
 	@Override
 	@Transactional(readOnly = true)
 	public PermissionHandleResult handle(final Permission perm) {
