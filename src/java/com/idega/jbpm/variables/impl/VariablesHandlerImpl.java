@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.context.def.VariableAccess;
+import org.jbpm.context.exe.ContextInstance;
 import org.jbpm.context.exe.VariableInstance;
 import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.TaskController;
@@ -145,8 +146,13 @@ public class VariablesHandlerImpl implements VariablesHandler {
 						if (!variables.containsKey(variableAccess.getVariableName())) {
 							// the situation when process definition was changed (using formbuilder for instance) but task instance was created already
 							if (variableAccess.isReadable()) {
-								// read - populating from token, TODO: test if this populates variable from the token
-								Object variable = ti.getContextInstance().getVariable(variableAccess.getVariableName());
+								// read - populating from token
+								ContextInstance ci = ti.getContextInstance();
+								if (ci == null) {
+									ci = ti.getProcessInstance().getContextInstance();
+								}
+
+								Object variable = ci.getVariable(variableAccess.getVariableName());
 								variables.put(variableAccess.getVariableName(), variable);
 							}
 						}
