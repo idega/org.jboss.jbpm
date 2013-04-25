@@ -51,6 +51,18 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 
 	private transient URI uri;
 
+	public BinaryVariableImpl() {
+		super();
+	}
+
+	public BinaryVariableImpl(String storageType, String identifier, String variableName) {
+		this();
+
+		this.storageType = storageType;
+		this.identifier = identifier;
+		this.variableName = variableName;
+	}
+
 	@Override
 	public long getTaskInstanceId() {
 		return taskInstanceId;

@@ -30,6 +30,7 @@ public interface ProcessDefinitionW {
 	public abstract Long startProcess(ViewSubmission viewSubmission);
 
 	public abstract View loadInitView(Integer initiatorId);
+	public abstract View loadInitView(Integer initiatorId, String identifier);
 
 	public abstract void setProcessDefinitionId(Long processDefinitionId);
 
