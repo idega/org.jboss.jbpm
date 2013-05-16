@@ -1,6 +1,7 @@
 package com.idega.jbpm.data.dao;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,5 +95,28 @@ public interface BPMDAO extends GenericDao {
 
 	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId);
 
+	/**
+	 * 
+	 * @param processDefinitionName is {@link ProcessDefinition#getName()},
+	 * not <code>null</code>;
+	 * @return all {@link ProcessDefinition}s by given name or 
+	 * {@link Collections#emptyList()} on failure;
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public List<ProcessDefinition> getProcessDefinitions(String processDefinitionName);
+	
 	public List<Long> getProcessDefinitionIdsByName(String procDefName);
+
+	/**
+	 * 
+	 * @param processDefinitionNames is {@link Collection} of 
+	 * {@link ProcessDefinition#getName()},
+	 * not <code>null</code>;
+	 * @return {@link List} of {@link ProcessInstance}s by 
+	 * {@link ProcessDefinition} names or {@link Collections#emptyList()}
+	 * on failure;
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public List<ProcessInstance> getProcessInstances(
+			List<String> processDefinitionNames);
 }
