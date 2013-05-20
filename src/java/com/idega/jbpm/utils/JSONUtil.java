@@ -2,13 +2,15 @@ package com.idega.jbpm.utils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  *
- * 
+ *
  * @author <a href="anton@idega.com">Anton Makarov</a>
  * @version $Revision: 1.2 $
  *
@@ -18,18 +20,18 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 public class JSONUtil {
 	private XStream xstream;
-	
+
 	private Map<String, Class<?>> aliasMap;
-	
+
 	public JSONUtil() {
 		this(new HashMap<String, Class<?>>());
 	}
-	
+
 	public JSONUtil(Map<String, Class<?>> aliases) {
 		xstream = new XStream(new JettisonMappedXmlDriver());
 		aliasMap = aliases;
 	}
-	
+
 	public String convertToJSON(Object obj, Map<String, Class<?>> aliases) {
 		aliasMap = aliases;
 		for(String alias: aliasMap.keySet()) {
@@ -39,7 +41,7 @@ public class JSONUtil {
 		String jsonStr = xstream.toXML(obj);
 		return jsonStr;
 	}
-	
+
 	public Object convertToObject(String jsonStr, Map<String, Class<?>> aliases) {
 		aliasMap = aliases;
 		for(String alias: aliasMap.keySet()) {
@@ -48,7 +50,7 @@ public class JSONUtil {
 		Object obj = xstream.fromXML(jsonStr);
 		return obj;
 	}
-	
+
 	public String convertToJSON(Object obj) {
 		for(String alias: aliasMap.keySet()) {
 			xstream.alias(alias, aliasMap.get(alias));
@@ -57,20 +59,26 @@ public class JSONUtil {
 		String jsonStr = xstream.toXML(obj);
 		return jsonStr;
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	public <T>T convertToObject(String jsonStr) {
-		for(String alias: aliasMap.keySet()) {
+		for (String alias: aliasMap.keySet()) {
 			xstream.alias(alias, aliasMap.get(alias));
 		}
-		@SuppressWarnings("unchecked")
-		T obj = (T)xstream.fromXML(jsonStr);
+
+		T obj = null;
+		try {
+			obj = (T) xstream.fromXML(jsonStr);
+		} catch (Exception e) {
+			Logger.getLogger(JSONUtil.class.getName()).log(Level.WARNING, "Error converting JSON ('" + jsonStr + "') to object", e);
+		}
 		return obj;
 	}
-	
+
 	public void setAliases(Map<String, Class<?>> aliases) {
 		this.aliasMap = aliases;
 	}
-	
+
 	public void addAlias(String key, Class<?> theClass) {
 		if (aliasMap == null) {
 			aliasMap = new HashMap<String, Class<?>>();

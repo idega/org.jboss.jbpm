@@ -12,5 +12,6 @@
     <entity class="com.idega.jbpm.data.ActorPermissions" />
     <entity class="com.idega.jbpm.data.ProcessDefinitionVariablesBind" />
     <entity class="com.idega.jbpm.data.BPMVariableData" />
+    <entity class="com.idega.jbpm.data.Variable" />
         
 </entity-mappings>

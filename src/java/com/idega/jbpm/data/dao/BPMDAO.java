@@ -15,6 +15,7 @@ import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.ProcessManagerBind;
+import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.identity.Role;
 import com.idega.util.IWTimestamp;
@@ -70,8 +71,6 @@ public interface BPMDAO extends GenericDao {
 
 	public abstract int getTaskViewBindCount(String viewId, String viewType);
 
-	public abstract void bindProcessVariables();
-
 	public abstract void importVariablesData();
 
 	public List<Long> getProcessInstanceIdsByProcessDefinitionNames(List<String> processDefinitionNames);
@@ -95,4 +94,9 @@ public interface BPMDAO extends GenericDao {
 	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId);
 
 	public List<Long> getProcessDefinitionIdsByName(String procDefName);
+
+	public List<Variable> getVariablesByNameAndProcessInstance(String name, Long piId);
+	public List<Variable> getVariablesByNameAndProcessInstance(List<String> names, Long piId);
+	public List<Variable> getVariablesByNamesAndProcessInstanceIds(List<String> names, List<Long> piIds);
+
 }

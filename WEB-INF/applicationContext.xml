@@ -32,4 +32,20 @@
     
     <bean id="BPMUser" class="com.idega.jbpm.identity.BPMUserImpl" scope="prototype" />
     <bean id="LoggedInBPMUser" class="com.idega.jbpm.identity.BPMUserImpl" scope="session" />
+    
+    <!-- Configure MBeans for exposure over JMX -->
+	<bean id="hibernateStatisticsMBean" class="org.hibernate.jmx.StatisticsService">
+	    <property name="sessionFactory" value="#{entityManagerFactory.sessionFactory}" />
+	</bean>
+
+    <bean id="searchIndex" class="com.idega.jbpm.search.BPMSearchIndex" />
+
+	<bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
+	  <property name="beans">
+	    <map>
+	      <entry key="beans:name=SearchIndex" value-ref="searchIndex" />
+	      <entry key="Hibernate:application=Statistics" value-ref="hibernateStatisticsMBean" />
+	    </map>
+	  </property>
+	</bean>
 </beans>

@@ -55,7 +55,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value);
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(String name, Serializable value, List<Long> procInstIds);
 
-	public void loadVariables(List<String> variablesNames);
+//	public void loadVariables(List<String> variablesNames);
 
 	/**
 	 * <p>Gets values of jBPM variable instances from database.</p>
@@ -177,7 +177,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 			Map<String, Boolean> flexibleVariables,
 			boolean useCachedVariables);
 
-	public List<String> getValuesByVariableFromMirrowedTable(String name);
+//	public List<String> getValuesByVariableFromMirrowedTable(String name);
 	public List<String> getValuesByVariable(String name);
 
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIds(Collection<Long> procInstIds);
@@ -185,32 +185,6 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public List<VariableInstanceInfo> getVariablesByNameAndTaskInstance(Collection<String> names, Long tiId);
 
 	public Map<Long, List<VariableInstanceInfo>> getGroupedVariables(Collection<VariableInstanceInfo> variables);
-
-	/**
-	 * Selects data about the first process instance for process definition according to variable name and values
-	 * @param variableName
-	 * @param values
-	 * @param processDefinition
-	 * @return 3 variables in the arrays: process instance ID, timestamp of the first process instance and variable value
-	 */
-	public List<Serializable[]> getFirsProcessInstanceDataByVariableNameAndValuesAndProcessDefinition(
-			String variableName,
-			List<Serializable> values,
-			String processDefinition
-	);
-
-	/**
-	 * Selects data about the last (or current) process instance for process definition according to variable name and values
-	 * @param variableName
-	 * @param values
-	 * @param processDefinition
-	 * @return
-	 */
-	public List<Serializable[]> getLastProcessInstanceDataByVariableNameAndValuesAndProcessDefinition(
-			String variableName,
-			List<Serializable> values,
-			String processDefinition
-	);
 
 	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> activeVariables,
@@ -228,5 +202,9 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Map<Long, VariableInstanceInfo> getCachedVariablesGroupedByProcess(String name);
 
 	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns);
+	public Map<Long, Map<String, VariableInstanceInfo>> getConvertedVariables(List<Variable> variables);
+	public List<VariableInstanceInfo> getConverted(Map<Long, Map<String, VariableInstanceInfo>> vars);
+
+	public void doBindProcessVariables();
 
 }

@@ -38,7 +38,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 		}
 	}
 
-	private Serializable getConvertedValue(byte[] bytes) {
+	private static Serializable getConvertedValue(byte[] bytes, Long variableId, Long procInstId) {
 		InputStream input = null;
 		ObjectInputStream objectInput = null;
 		try {
@@ -50,8 +50,8 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 				return (Serializable) realValue;
 		} catch (Exception e) {
 			String message = "Couldn't deserialize stream (made from bytes: " + (bytes == null ? "not provided" : ("length: " +
-					bytes.length +	", representation: '" + new String(bytes))) + "'). Returning empty String. Variable ID: " + getId() +
-					", process instance ID: " + getProcessInstanceId();
+					bytes.length +	", representation: '" + new String(bytes))) + "'). Returning empty String. Variable ID: " + variableId +
+					", process instance ID: " + procInstId;
 			LOGGER.log(Level.WARNING, message, e);
 			CoreUtil.sendExceptionNotification(message, e);
 		} finally {
@@ -65,9 +65,12 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 		super(name, value, VariableInstanceType.BYTE_ARRAY);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Serializable> T getValue() {
+		return getValue(value, getId(), getProcessInstanceId());
+	}
+
+	public static <T extends Serializable> T getValue(Serializable value, Long variableId, Long procInstId) {
 		if (value instanceof Number) {
 			String query = "select b.BYTES_ from JBPM_BYTEBLOCK b where b.PROCESSFILE_ = " + value;
 			try {
@@ -90,12 +93,12 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 					bytes = values.iterator().next()[0];
 				}
 
-				value = bytes instanceof byte[] ? getConvertedValue((byte[]) bytes) : null;
+				value = bytes instanceof byte[] ? getConvertedValue((byte[]) bytes, variableId, procInstId) : null;
 			} catch (Exception e) {
-				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error executing query: " + query, e);
+				Logger.getLogger(VariableByteArrayInstance.class.getName()).log(Level.WARNING, "Error executing query: " + query, e);
 			}
 		} else if (value instanceof byte[]) {
-			value = getConvertedValue((byte[]) value);
+			value = getConvertedValue((byte[]) value, variableId, procInstId);
 		} else if (value instanceof Blob) {
 			Blob blob = (Blob) value;
 
@@ -106,12 +109,15 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 				e.printStackTrace();
 			}
 			if (bytes != null) {
-				value = getConvertedValue(bytes);
+				value = getConvertedValue(bytes, variableId, procInstId);
 			}
 		}
 
-		if (value instanceof Serializable)
-			return (T) value;
+		if (value instanceof Serializable) {
+			@SuppressWarnings("unchecked")
+			T realValue = (T) value;
+			return realValue;
+		}
 
 		return null;
 	}

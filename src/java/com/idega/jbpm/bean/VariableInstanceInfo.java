@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import com.idega.jbpm.data.Variable;
 import com.idega.util.StringUtil;
 
 public abstract class VariableInstanceInfo implements Serializable {
@@ -16,13 +17,22 @@ public abstract class VariableInstanceInfo implements Serializable {
 	private String name, caseId;
 	private VariableInstanceType type;
 
-	private Long id;
-	private Long processInstanceId;
+	private Long id, processInstanceId, taskInstanceId;
 
 	public VariableInstanceInfo() {
 		super();
 
 		hash = new Random().nextInt(Integer.MAX_VALUE);
+	}
+
+	public <T extends Serializable> VariableInstanceInfo(Variable variable) {
+		this(variable.getName(), variable.getValue());
+
+		type = getType(variable.getClassType());
+
+		this.id = variable.getId();
+		this.processInstanceId = variable.getProcessInstance();
+		this.taskInstanceId = variable.getTaskInstance();
 	}
 
 	public <T extends Serializable> VariableInstanceInfo(T value) {
@@ -45,29 +55,30 @@ public abstract class VariableInstanceInfo implements Serializable {
 		this.type = type;
 	}
 
+
+
 	public VariableInstanceInfo(String name, String type) {
 		this();
 		this.name = name;
+		this.type = getType(type);
+	}
 
-		VariableInstanceType varType = null;
+	private VariableInstanceType getType(Character type) {
+		return getType(type == null ? null : String.valueOf(type));
+	}
+
+	private VariableInstanceType getType(String type) {
 		if (StringUtil.isEmpty(type)) {
 			LOGGER.warning("Type is not defined for variable: '" + name + "'!");
 		} else {
-			if (VariableInstanceType.STRING.getTypeKeys().contains(type)) {
-				varType = VariableInstanceType.STRING;
-			} else if (VariableInstanceType.LONG.getTypeKeys().contains(type)) {
-				varType = VariableInstanceType.LONG;
-			} else if (VariableInstanceType.DOUBLE.getTypeKeys().contains(type)) {
-				varType = VariableInstanceType.DOUBLE;
-			} else if (VariableInstanceType.DATE.getTypeKeys().contains(type)) {
-				varType = VariableInstanceType.DATE;
-			} else if (VariableInstanceType.BYTE_ARRAY.getTypeKeys().contains(type)) {
-				varType = VariableInstanceType.BYTE_ARRAY;
-			} else {
-				LOGGER.warning("Unknown type: " + type + " for variable " + name);
+			for (VariableInstanceType varType: VariableInstanceType.ALL_TYPES) {
+				if (varType.getTypeKeys().contains(type))
+					return varType;
 			}
 		}
-		this.type = varType == null ? VariableInstanceType.NULL : varType;
+
+		LOGGER.warning("Unknown type: " + type + " for variable " + name + ". Using NULL type");
+		return VariableInstanceType.NULL;
 	}
 
 	public abstract <T extends Serializable> T getValue();
@@ -138,6 +149,14 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	public void setCaseId(String caseId) {
 		this.caseId = caseId;
+	}
+
+	public Long getTaskInstanceId() {
+		return taskInstanceId;
+	}
+
+	public void setTaskInstanceId(Long taskInstanceId) {
+		this.taskInstanceId = taskInstanceId;
 	}
 
 	@Override

@@ -31,6 +31,7 @@ public interface ProcessInstanceW {
 	 *         documents.
 	 */
 	public abstract List<TaskInstanceW> getSubmittedTaskInstances();
+	public abstract List<TaskInstanceW> getSubmittedTaskInstances(String name);
 
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
 	        Locale locale);
@@ -196,4 +197,6 @@ public interface ProcessInstanceW {
 	public boolean doSubmitSharedTask(String taskName, Map<String, Object> variables);
 
 	public boolean doSubmitTask(String taskName, Map<String, Object> variables);
+
+	public TaskInstanceW getTaskInstance(String taskName);
 }

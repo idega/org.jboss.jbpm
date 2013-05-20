@@ -445,7 +445,7 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	@Transactional(readOnly = true)
-	public Long getIdOfStartTaskInstance(Long piId) {
+	public Long getIdOfStartTaskInstance(final Long piId) {
 		Long id = null;
 		String query = "select t.id_ from jbpm_taskinstance t, jbpm_processinstance p, jbpm_processdefinition d, JBPM_MODULEDEFINITION m " +
 				"where p.id_ = " + piId + " and t.PROCINST_ = p.id_ and p.processdefinition_ = d.id_ and " +
@@ -467,7 +467,14 @@ public class BPMFactoryImpl implements BPMFactory {
 		if (id != null)
 			return id;
 
-		return getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getProcessDefinitionW()
-				.getProcessDefinition().getTaskMgmtDefinition().getStartTask().getId();
+		return getBpmContext().execute(new JbpmCallback<Long>() {
+
+			@Override
+			public Long doInJbpm(JbpmContext context) throws JbpmException {
+				return context.getProcessInstance(piId).getProcessDefinition().getTaskMgmtDefinition().getStartTask().getId();
+			}
+		});
+//		return getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getProcessDefinitionW()
+//				.getProcessDefinition().getTaskMgmtDefinition().getStartTask().getId();
 	}
 }

@@ -15,6 +15,7 @@ import org.jbpm.JbpmException;
 import org.jbpm.context.def.VariableAccess;
 import org.jbpm.context.exe.ContextInstance;
 import org.jbpm.context.exe.VariableInstance;
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -29,12 +30,14 @@ import com.idega.block.process.variables.Variable;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
+import com.idega.jbpm.event.VariableCreatedEvent;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.jbpm.variables.VariablesManager;
 import com.idega.util.CoreUtil;
 import com.idega.util.datastructures.map.MapUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -116,6 +119,9 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				Map<String, Object> vars = ti.getVariables();
 				vars.putAll(variables);
 				setVariables(ti, vars);
+
+				ProcessInstance pi = ti.getProcessInstance();
+				ELUtil.getInstance().publishEvent(new VariableCreatedEvent(this, pi.getProcessDefinition().getName(), pi.getId(), vars));
 
 				return variables;
 			}
@@ -232,8 +238,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	}
 
 	@Autowired
-	public void setBinaryVariablesHandler(
-	        BinaryVariablesHandler binaryVariablesHandler) {
+	public void setBinaryVariablesHandler(BinaryVariablesHandler binaryVariablesHandler) {
 		this.binaryVariablesHandler = binaryVariablesHandler;
 	}
 
@@ -279,8 +284,6 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			}
 
 			setVariables(ti, variablesToSubmit);
-
-			context.getSession().flush();
 
 			doManageVariables(ti.getProcessInstance().getId(), ti.getId(), variables);
 		} catch (Exception e) {

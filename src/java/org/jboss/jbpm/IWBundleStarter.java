@@ -4,7 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWBundleStartable;
+import com.idega.idegaweb.IWMainApplicationSettings;
+import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.search.BPMSearchIndex;
 import com.idega.util.expression.ELUtil;
 
 /**
@@ -14,29 +17,64 @@ import com.idega.util.expression.ELUtil;
  * Last modified: $Date: 2008/05/16 09:47:41 $ by $Author: civilis $
  */
 public class IWBundleStarter implements IWBundleStartable {
-	
+
 	public static final String IW_BUNDLE_IDENTIFIER = "org.jboss.jbpm";
-	
+
 	@Autowired
 	private BPMDAO bpmDAO;
-	
+
+	@Autowired
+	private VariableInstanceQuerier querier;
+
+	@Autowired
+	private BPMSearchIndex searchIndex;
+
+	private BPMSearchIndex getSearchIndexForVariable() {
+		if (searchIndex == null)
+			ELUtil.getInstance().autowire(this);
+		return searchIndex;
+	}
+
+	@Override
 	public void start(IWBundle starterBundle) {
+		doBuildIndexes(starterBundle.getApplication().getSettings());
+
 		BPMViewManager vm = BPMViewManager.getInstance(starterBundle.getApplication());
 		vm.initializeStandardNodes(starterBundle);
-		
+
 		Thread variablesDataImporter = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				getBpmDAO().importVariablesData();
 			}
 		});
 		variablesDataImporter.start();
-		
+
 		Thread procVarsBinder = new Thread(new Runnable() {
+			@Override
 			public void run() {
-				getBpmDAO().bindProcessVariables();
+				getVariableInstanceQuerier().doBindProcessVariables();
 			}
 		});
 		procVarsBinder.start();
+	}
+
+	private void doBuildIndexes(IWMainApplicationSettings settings) {
+		try {
+			if (!settings.getBoolean("bpm_vars_lucene_indexed", Boolean.FALSE)) {
+				getSearchIndexForVariable().rebuild();
+				settings.setProperty("bpm_vars_lucene_indexed", Boolean.TRUE.toString());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	VariableInstanceQuerier getVariableInstanceQuerier() {
+		if (querier == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+		return querier;
 	}
 
 	BPMDAO getBpmDAO() {
@@ -45,6 +83,7 @@ public class IWBundleStarter implements IWBundleStartable {
 		}
 		return bpmDAO;
 	}
-	
+
+	@Override
 	public void stop(IWBundle starterBundle) { }
 }

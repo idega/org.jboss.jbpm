@@ -1,4 +1,4 @@
-package com.idega.jbpm.events;
+package com.idega.jbpm.event;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
