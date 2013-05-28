@@ -36,6 +36,7 @@ import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.jbpm.variables.VariablesManager;
 import com.idega.util.CoreUtil;
+import com.idega.util.ListUtil;
 import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.expression.ELUtil;
 
@@ -142,20 +143,30 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 
 				@SuppressWarnings("unchecked")
-				Map<String, Object> variables = new HashMap<String, Object>(ti.getVariablesLocally());
+				Map<String, Object> vars = ti.getVariables();
+				Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
 
 				if (!ti.hasEnded()) {
 					@SuppressWarnings("unchecked")
 					List<VariableAccess> accesses = ti.getTask().getTaskController().getVariableAccesses();
 
-					for (VariableAccess variableAccess : accesses) {
-						if (!variables.containsKey(variableAccess.getVariableName())) {
+					for (VariableAccess variableAccess: accesses) {
+						String varName = variableAccess.getVariableName();
+
+						if (!variables.containsKey(varName)) {
 							// the situation when process definition was changed (using formbuilder for instance) but task instance was created already
 							if (variableAccess.isReadable()) {
 								// read - populating from token
 								ContextInstance ci = ti.getContextInstance();
 								if (ci == null) {
-									ci = ti.getProcessInstance().getContextInstance();
+									ProcessInstance pi = ti.getProcessInstance();
+									if (pi != null)
+										ci = pi.getContextInstance();
+								}
+								if (ci == null) {
+									LOGGER.warning("Unable to get " + ContextInstance.class.getName() + " while trying to load variable '" +
+											variableAccess.getVariableName() + "' for task " + ti);
+									continue;
 								}
 
 								Object variable = ci.getVariable(variableAccess.getVariableName());
@@ -166,6 +177,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 						if (variableAccess.isWritable() && !variableAccess.isReadable()) {
 							// we don't want to show non readable variable, this is backward compatibility, for task instances, that were created
 							// with wrong process definition
+							LOGGER.info("Variable '" + varName + "' is writable but not readable for task instance ID: " + ti.getId());
 							variables.remove(variableAccess.getVariableName());
 						}
 
@@ -188,7 +200,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 		Map<String, Object> variables = populateVariables(taskInstanceId);
 		List<BinaryVariable> binVars = getBinaryVariablesHandler().resolveBinaryVariablesAsList(variables);
 
-		if (binVars == null)
+		if (ListUtil.isEmpty(binVars))
 			return binVars;
 
 		for (Iterator<BinaryVariable> iterator = binVars.iterator(); iterator.hasNext();) {
@@ -259,9 +271,15 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			@SuppressWarnings("unchecked")
 			List<VariableAccess> variableAccesses = tiController.getVariableAccesses();
 
-			Set<String> undeclaredVariables = new HashSet<String>(variables.keySet());
+			if (variables == null)
+				variables = new HashMap<String, Object>();
+			Set<String> undeclaredVariables = MapUtil.isEmpty(variables) ? new HashSet<String>() : new HashSet<String>(variables.keySet());
 
-			for (VariableAccess variableAccess : variableAccesses) {
+			for (VariableAccess variableAccess: variableAccesses) {
+				if (variableAccess == null) {
+					continue;
+				}
+
 				String variableName = variableAccess.getVariableName();
 				if (validate) {
 					if (variableAccess.getAccess().isRequired() && !variables.containsKey(variableName))
@@ -289,6 +307,5 @@ public class VariablesHandlerImpl implements VariablesHandler {
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error submitting variables " + variables + " for task instance: " + taskInstanceId, e);
 		}
-		return;
 	}
 }

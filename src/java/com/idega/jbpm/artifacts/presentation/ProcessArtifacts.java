@@ -145,10 +145,12 @@ public class ProcessArtifacts {
 		String errorMessage = iwrb.getLocalizedString("error_generating_pdf", "Sorry, unable to generate PDF file from selected document");
 
 		GridEntriesBean entries = new GridEntriesBean(processInstanceId);
+
+		ProcessManager pm = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId);
 		for (BPMDocument submittedDocument : processDocuments) {
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
 
-			TaskInstanceW taskInstance = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
+			TaskInstanceW taskInstance = pm.getTaskInstance(taskInstanceId);
 			ProcessInstanceW piw = taskInstance.getProcessInstanceW();
 
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
@@ -984,22 +986,17 @@ public class ProcessArtifacts {
 		return getViewInUIComponent(taskInstanceId, false);
 	}
 
-	public UIComponent getViewInUIComponent(Long taskInstanceId,
-	        boolean pdfViewer) throws Exception {
+	public UIComponent getViewInUIComponent(Long taskInstanceId, boolean pdfViewer) throws Exception {
 		return getBpmFactory()
-		        .getProcessManagerByTaskInstanceId(taskInstanceId)
-		        .getTaskInstance(taskInstanceId).loadView().getViewForDisplay(
-		            pdfViewer);
+				.getProcessManagerByTaskInstanceId(taskInstanceId)
+				.getTaskInstance(taskInstanceId).loadView().getViewForDisplay(pdfViewer);
 	}
 
 	protected BuilderService getBuilderService() {
-
 		try {
-			return BuilderServiceFactory.getBuilderService(IWMainApplication
-			        .getDefaultIWApplicationContext());
+			return BuilderServiceFactory.getBuilderService(IWMainApplication .getDefaultIWApplicationContext());
 		} catch (RemoteException e) {
-			throw new RuntimeException(
-			        "Error while retrieving builder service", e);
+			throw new RuntimeException("Error while retrieving builder service", e);
 		}
 	}
 

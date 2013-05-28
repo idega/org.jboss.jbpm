@@ -24,7 +24,7 @@ import com.idega.user.data.User;
 public interface TaskInstanceW {
 
 	public abstract void submit(ViewSubmission view);
-
+	public abstract void submit(JbpmContext context, ViewSubmission view);
 	public abstract void submit(ViewSubmission view, boolean proceedProcess);
 
 	public abstract void start(int userId);

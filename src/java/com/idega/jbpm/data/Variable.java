@@ -44,7 +44,8 @@ public class Variable implements Serializable {
 								PARAM_NAMES = "names",
 								PARAM_IDS = "ids",
 								PARAM_PROC_INST_ID = "procInstId",
-								PARAM_PROC_INST_IDS = "procInstIds";
+								PARAM_PROC_INST_IDS = "procInstIds",
+								PARAM_TASK_INST_IDS = "taskInstIds";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

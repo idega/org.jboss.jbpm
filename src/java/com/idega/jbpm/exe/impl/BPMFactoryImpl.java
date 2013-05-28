@@ -283,8 +283,7 @@ public class BPMFactoryImpl implements BPMFactory {
 			@Override
 			public ProcessManager doInJbpm(JbpmContext context) throws JbpmException {
 				TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
-				long pdId = taskInstance.getProcessInstance().getProcessDefinition().getId();
-				return getProcessManager(pdId);
+				return getProcessManager(taskInstance.getProcessInstance().getProcessDefinition().getName());
 			}
 		});
 	}

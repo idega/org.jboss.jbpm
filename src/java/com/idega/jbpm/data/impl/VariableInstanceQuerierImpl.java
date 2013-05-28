@@ -1779,6 +1779,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return null;
 		}
 
+		if (isLuceneQueryingTurnedOn()) {
+			return getVariablesCollectionByLucene(names, null, null);
+		}
+
 		String query = null;
 		List<Serializable[]> data = null;
 		try {
@@ -2573,10 +2577,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		boolean lucene = true;
 		try {
-			if (queryData == null && ListUtil.isEmpty(taskInstIds) && ListUtil.isEmpty(varIds) &&
-					!IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("use_lucene_always", Boolean.FALSE)) {
+			if (queryData == null && (!ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds) || !ListUtil.isEmpty(procInstIds))) {
 				lucene = false;
-				return bpmDAO.getVariablesByNamesAndProcessInstanceIds(names, procInstIds);
+				return bpmDAO.getVariablesByConditions(names, procInstIds, taskInstIds, varIds);
 			}
 
 			return getBpmContext().execute(new JbpmCallback<List<Variable>>() {
@@ -2610,9 +2613,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 //			if (CoreUtil.isSQLMeasurementOn()) {
 				long duration = System.currentTimeMillis() - start;
 				if (duration >= 1000) {
-					getLogger().info("******* " +  (lucene? "LUCENE" : "HIBERNATE") + ": it took " + duration + " ms to query for " + names +
-							" by " + queryData + ", proc. inst. IDs: " + procInstIds + ", task inst. IDs: " + taskInstIds + " and var. inst. IDs: " +
-							varIds);
+					getLogger().info("******* " +  (lucene? "LUCENE" : "HIBERNATE") + ": it took " + duration + " ms to query for variable name(s): " +
+							names + ", query: '" + queryData + "', proc. inst. IDs: " + procInstIds + ", task inst. IDs: " + taskInstIds +
+							" and var. inst. IDs: " + varIds);
 				}
 //			}
 		}

@@ -18,6 +18,7 @@ import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.repository.RepositoryService;
 import com.idega.repository.bean.RepositoryItem;
+import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.expression.ELUtil;
@@ -242,26 +243,27 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	@Override
 	public void update() {
 		List<BinaryVariable> binVars = getVariablesHandler().resolveBinaryVariables(getTaskInstanceId(), getVariable());
-		if (binVars != null && !binVars.isEmpty()) {
-			for (Iterator<BinaryVariable> iterator = binVars.iterator(); iterator.hasNext();) {
-				BinaryVariable binVar = iterator.next();
-
-				if (binVar.getHash().equals(getHash())) {
-					iterator.remove();
-					binVars.add(this);
-
-					Map<String, Object> variable = new HashMap<String, Object>(1);
-					variable.put(getVariable().getDefaultStringRepresentation(), binVars);
-					getVariablesHandler().submitVariablesExplicitly(variable, getTaskInstanceId());
-					return;
-				}
-			}
-		}
-
-		Logger.getLogger(getClass().getName()).log(Level.WARNING, "Called update, but no matching binary variable resolved by variable hash="
+		if (ListUtil.isEmpty(binVars)) {
+			Logger.getLogger(getClass().getName()).warning("Called update, but no matching binary variable resolved by variable hash="
 		            + getHash() + ". Variable name="
 		            + getVariable().getDefaultStringRepresentation()
 		            + " and task instanceid=" + getTaskInstanceId());
+			return;
+		}
+
+		for (Iterator<BinaryVariable> iterator = binVars.iterator(); iterator.hasNext();) {
+			BinaryVariable binVar = iterator.next();
+
+			if (binVar.getHash().equals(getHash())) {
+				iterator.remove();
+				binVars.add(this);
+
+				Map<String, Object> variable = new HashMap<String, Object>(1);
+				variable.put(getVariable().getDefaultStringRepresentation(), binVars);
+				getVariablesHandler().submitVariablesExplicitly(variable, getTaskInstanceId());
+				return;
+			}
+		}
 	}
 
 	@Override

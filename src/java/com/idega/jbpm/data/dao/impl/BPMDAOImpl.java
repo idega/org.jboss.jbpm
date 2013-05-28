@@ -809,4 +809,44 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 				ProcessDefinition.class,
 				new Param("procDefName", processDefinitionName));
 	}
+
+	@Override
+	public List<Variable> getVariablesByConditions(List<String> names, List<Long> piIds, List<Long> tiIds, List<Long> viIds) {
+		if (ListUtil.isEmpty(names) && ListUtil.isEmpty(piIds) && ListUtil.isEmpty(tiIds) && ListUtil.isEmpty(viIds)) {
+			getLogger().warning("Parameters are not provided");
+			return null;
+		}
+
+		String query = "from Variable v where";
+		List<Param> params = new ArrayList<Param>();
+		if (!ListUtil.isEmpty(viIds)) {
+			query += " v.id in (:" + Variable.PARAM_IDS + ")";
+			params.add(new Param(Variable.PARAM_IDS, viIds));
+		}
+		if (!ListUtil.isEmpty(tiIds)) {
+			if (!ListUtil.isEmpty(params))
+				query += " and";
+
+			query += " v.taskInstance in (:" + Variable.PARAM_TASK_INST_IDS + ")";
+			params.add(new Param(Variable.PARAM_TASK_INST_IDS, tiIds));
+		}
+		if (!ListUtil.isEmpty(piIds)) {
+			if (!ListUtil.isEmpty(params))
+				query += " and";
+
+			query += " v.processInstance in (:" + Variable.PARAM_PROC_INST_IDS + ")";
+			params.add(new Param(Variable.PARAM_PROC_INST_IDS, piIds));
+		}
+		if (!ListUtil.isEmpty(names)) {
+			if (!ListUtil.isEmpty(params))
+				query += " and";
+
+			query += " v.name in (:" + Variable.PARAM_NAMES + ")";
+			params.add(new Param(Variable.PARAM_NAMES, names));
+		}
+		query += " order by v.id desc";
+
+		return getResultListByInlineQuery(query, Variable.class, ArrayUtil.convertListToArray(params));
+	}
+
 }
