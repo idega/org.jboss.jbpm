@@ -2244,8 +2244,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
-	private ProcessDefinitionVariablesBind createProcessDefinitionVariablesBind(List<ProcessDefinitionVariablesBind> currentBinds, String processDefinitionName,
-			String variableName, String variableType) {
+	private ProcessDefinitionVariablesBind createProcessDefinitionVariablesBind(
+			List<ProcessDefinitionVariablesBind> currentBinds,
+			String processDefinitionName,
+			String variableName,
+			String variableType
+	) {
 		try {
 			if (bindExists(currentBinds, variableName, processDefinitionName)) {
 				return null;
@@ -2255,10 +2259,17 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				return null;
 			}
 
+			if (super.getEntityManager() == null) {
+				super.setEntityManager(getEntityManager());
+			}
+
 			bind.setProcessDefinition(processDefinitionName);
 			bind.setVariableName(variableName);
 			bind.setVariableType(variableType);
 			persist(bind);
+
+			if (currentBinds == null)
+				currentBinds = new ArrayList<ProcessDefinitionVariablesBind>();
 
 			currentBinds.add(bind);
 			LOGGER.info("Added new bind: " + bind);
