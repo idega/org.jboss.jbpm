@@ -206,5 +206,6 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public List<VariableInstanceInfo> getConverted(Map<Long, Map<String, VariableInstanceInfo>> vars);
 
 	public void doBindProcessVariables();
+	public void doIndexVariables(Long piId);
 
 }

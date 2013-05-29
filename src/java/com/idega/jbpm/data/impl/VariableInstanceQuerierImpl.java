@@ -23,7 +23,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.FullTextQuery;
@@ -551,7 +551,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return false;
 
 		if (value instanceof String) {
-			for (VariableInstanceInfo var : variables) {
+			for (VariableInstanceInfo var: variables) {
 				if (value.toString().equals(var.getValue())) {
 					return Boolean.TRUE;
 				}
@@ -2160,11 +2160,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
-	private void doIndexVariables(Long piId) {
-		if (piId == null)
+	@Override
+	@Transactional
+	public void doIndexVariables(Long piId) {
+		if (piId == null) {
+			getLogger().warning("Process instance ID is not provided");
 			return;
+		}
 
-		List<Variable> variables = getResultList(
+		final List<Variable> variables = getResultList(
 				Variable.QUERY_GET_BY_PROC_INST,
 				Variable.class,
 				new Param(Variable.PARAM_PROC_INST_ID, piId)
@@ -2174,13 +2178,24 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return;
 		}
 
-		for (Variable variable: variables) {
-			if (variable.getValue() == null)
-				continue;
+		getBpmContext().execute(new JbpmCallback<Boolean>() {
 
-			FullTextSession indexer = org.hibernate.search.Search.getFullTextSession((Session) getEntityManager().getDelegate());
-			indexer.index(variable);
-		}
+			@Override
+			public Boolean doInJbpm(JbpmContext context) throws JbpmException {
+				FullTextSession indexer = org.hibernate.search.Search.getFullTextSession(context.getSession());
+				Transaction tx = indexer.beginTransaction();
+				for (Variable variable: variables) {
+					if (variable.getValue() == null)
+						continue;
+
+					Object var = indexer.load(Variable.class, variable.getId());
+					indexer.index(var);
+				}
+				tx.commit();
+
+				return true;
+			}
+		});
 	}
 
 	@Override
@@ -2474,10 +2489,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						valueToMatch = value.toString();
 
 						flexible = MapUtil.isEmpty(flexibleVariables) ? false : flexibleVariables.get(activeVariable.getName());
-						if (flexible == null)
+						if (flexible == null) {
 							flexible = false;
-						if (flexible)
+						}
+						if (flexible) {
 							valueToMatch = CoreConstants.STAR + valueToMatch.toString() + CoreConstants.STAR;
+						}
 					} else if (value instanceof Long) {
 						field = "longValue";
 						valueToMatch = value;
@@ -2498,6 +2515,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					} else {
 						matching = b.keyword()
 										.onField(field)
+										.ignoreAnalyzer()
 										.matching(valueToMatch);
 					}
 					conditions.must(matching.createQuery());
@@ -2709,7 +2727,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			if (MapUtil.isEmpty(activeVariables)) {
 				List<Variable> vars = getVariablesByLucene(null, variables, procInstIds, taskInstIds, varIds, flexibleVariables);
 				if (ListUtil.isEmpty(vars)) {
-					getLogger().warning("Nothing found from Lucene indexes by var. names: " + variables + ", proc. inst. IDs: " + procInstIds);
+					getLogger().warning("Nothing found from Hibernate by var. names: " + variables + ", proc. inst. IDs: " + procInstIds +
+							", task inst. IDs: " + taskInstIds + ", var. inst. IDs: " + varIds);
 					return null;
 				}
 
@@ -2723,7 +2742,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				for (final VariableQuerierData queryData: activeVariables.values()) {
 					List<Variable> tmpVars = getVariablesByLucene(queryData, variables, procInstIds, taskInstIds, varIds, flexibleVariables);
 					if (ListUtil.isEmpty(tmpVars)) {
-						getLogger().warning("Nothing found from Lucene indexes by " + queryData + ". Terminating search");
+						getLogger().warning("Nothing found from Lucene by " + queryData + ". Terminating search");
 						return null;
 					}
 
