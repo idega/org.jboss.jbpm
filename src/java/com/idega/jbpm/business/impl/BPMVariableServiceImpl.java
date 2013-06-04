@@ -82,7 +82,6 @@
  */
 package com.idega.jbpm.business.impl;
 
-import java.math.BigDecimal;
 import java.util.logging.Level;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -190,17 +189,7 @@ public class BPMVariableServiceImpl extends DefaultSpringBean implements BPMVari
 		if (!ArrayUtil.isEmpty(values)) {
 			parsedValue = values[0];
 			if (!StringUtil.isEmpty(parsedValue)) {
-				parsedValue = parsedValue.replace(CoreConstants.HASH, CoreConstants.EMPTY);
-				
-				BigDecimal decimal = null;
-				try {
-					decimal = new BigDecimal(parsedValue);
-					decimal = decimal.multiply(new BigDecimal(1000));
-					return decimal.toPlainString();
-				} catch (NumberFormatException e) {	
-					getLogger().log(Level.WARNING, 
-							"Failed to convert " + parsedValue + " to " + Long.class);
-				}
+				return parsedValue.replace(CoreConstants.HASH, CoreConstants.EMPTY);
 			}
 		}
 		
