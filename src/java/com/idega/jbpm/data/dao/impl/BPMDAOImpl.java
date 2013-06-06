@@ -15,6 +15,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hibernate.Session;
+import org.hibernate.engine.spi.EntityEntry;
+import org.hibernate.engine.spi.PersistenceContext;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
@@ -45,6 +49,7 @@ import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.data.dao.BPMEntityEnum;
 import com.idega.jbpm.identity.Role;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
@@ -847,6 +852,55 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		query += " order by v.id desc";
 
 		return getResultListByInlineQuery(query, Variable.class, ArrayUtil.convertListToArray(params));
+	}
+
+	@Override
+	public void doRestoreVersion(Session session) {
+		if (!(session instanceof SessionImplementor))
+			return;
+
+		PersistenceContext pc = ((SessionImplementor) session).getPersistenceContext();
+		if (pc == null)
+			return;
+
+		Map<?, ?> entities = pc.getEntityEntries();
+		if (MapUtil.isEmpty(entities))
+			return;
+
+		for (Map.Entry<?, ?> entry: entities.entrySet()) {
+			Object o = entry.getValue();
+			if (o instanceof EntityEntry) {
+				EntityEntry entity = (EntityEntry) o;
+				String entityName = entity.getEntityName();
+				BPMEntityEnum bpmEntity = BPMEntityEnum.getEnum(entityName);
+				if (bpmEntity == null)
+					continue;
+
+				Long id = Long.valueOf(entity.getId().toString());
+				try {
+					String query = bpmEntity.getVersionQuery(id);
+					List<Serializable[]> results = SimpleQuerier.executeQuery(query, 1);
+					if (!ListUtil.isEmpty(results)) {
+						Serializable[] data = results.get(0);
+						if (!ArrayUtil.isEmpty(data)) {
+							Object versionObject = data[0];
+							if (versionObject instanceof Number) {
+								int version = ((Number) versionObject).intValue();
+								if (version > 0) {
+									version = 1;
+									String update = bpmEntity.getUpdateQuery(id, version);
+									if (!SimpleQuerier.executeUpdate(update, false)) {
+										getLogger().warning("Failed to refresh: " + entity);
+									}
+								}
+							}
+						}
+					}
+				} catch (Exception e) {
+					getLogger().log(Level.WARNING, "Error refreshing " + entity + " with ID: " + id, e);
+				}
+			}
+		}
 	}
 
 }

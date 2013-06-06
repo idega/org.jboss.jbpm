@@ -259,7 +259,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				Collection<String> binVarsInJSON = null;
 				if (val instanceof String) {
 					try {
-						binVarsInJSON = json.convertToObject(String.valueOf(val));
+						String jsonValue = (String) val;
+						if (jsonValue.startsWith(CoreConstants.CURLY_BRACKET_LEFT)) {
+							binVarsInJSON = json.convertToObject(jsonValue);
+						} else {
+							LOGGER.warning("Value '" + val + "' of variable " + entry + " is not JSON format, ignorring");
+						}
 					} catch (Exception e) {
 						String message = "Error converting '" + val + "' with " + json.getClass().getName() + " into the object (Collection.class)";
 						LOGGER.log(Level.WARNING, message, e);

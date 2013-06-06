@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import javax.persistence.EntityManagerFactory;
 
+import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -13,11 +14,15 @@ import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -107,6 +112,27 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 		public boolean isExposeNativeSession() {
 			return true;
 		}
+
+		@Autowired
+		private BPMDAO bpmDAO;
+
+		private BPMDAO getBPMDAO() {
+			if (bpmDAO == null)
+				ELUtil.getInstance().autowire(this);
+			return bpmDAO;
+		}
+
+		@Override
+		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
+			getBPMDAO().doRestoreVersion(session);
+
+			super.flushIfNecessary(session, existingTransaction);
+		}
+	}
+
+	@Override
+	public <T> T execute(final JbpmCallback<T> callback) {
+		return execute(callback, null);
 	}
 
 	/**
@@ -118,10 +144,13 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	 */
 	@Override
 	@Transactional
-	public <T> T execute(final JbpmCallback<T> callback) {
+	public <T> T execute(final JbpmCallback<T> callback, FlushMode flushMode) {
 		final JbpmContext context = JbpmConfiguration.getInstance().createJbpmContext();
 		try {
 			final Session session = entityManagerFactory.createEntityManager().unwrap(Session.class);
+			if (flushMode != null)
+				session.setFlushMode(flushMode);
+
 			HibernateTemplate hibernateTemplate = new IdegaHibernateTemplate(session);
 			return hibernateTemplate.execute(new HibernateCallback<T>() {
 

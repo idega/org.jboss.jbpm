@@ -1,5 +1,6 @@
 package com.idega.jbpm;
 
+import org.hibernate.FlushMode;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 
@@ -48,4 +49,6 @@ public interface BPMContext {
 	 * @return anything code returns
 	 */
 	public abstract <G> G execute(final JbpmCallback<G> callback);
+
+	public abstract <G> G execute(final JbpmCallback<G> callback, FlushMode flushMode);
 }

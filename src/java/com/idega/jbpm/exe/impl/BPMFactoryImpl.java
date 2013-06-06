@@ -11,8 +11,11 @@ import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
+import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
+import org.jbpm.taskmgmt.def.Task;
+import org.jbpm.taskmgmt.def.TaskMgmtDefinition;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.data.SimpleQuerier;
+import com.idega.hibernate.HibernateUtil;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.ProcessManagerBind;
@@ -466,14 +470,18 @@ public class BPMFactoryImpl implements BPMFactory {
 		if (id != null)
 			return id;
 
-		return getBpmContext().execute(new JbpmCallback<Long>() {
+		Long startTaskId = getBpmContext().execute(new JbpmCallback<Long>() {
 
 			@Override
 			public Long doInJbpm(JbpmContext context) throws JbpmException {
-				return context.getProcessInstance(piId).getProcessDefinition().getTaskMgmtDefinition().getStartTask().getId();
+				ProcessInstance pi = context.getProcessInstance(piId);
+				ProcessDefinition pd = HibernateUtil.initializeAndUnproxy(pi.getProcessDefinition());
+				TaskMgmtDefinition taskDef = HibernateUtil.initializeAndUnproxy(pd.getTaskMgmtDefinition());
+				Task startTask = HibernateUtil.initializeAndUnproxy(taskDef.getStartTask());
+				long startTaskId = startTask.getId();
+				return startTaskId;
 			}
 		});
-//		return getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getProcessDefinitionW()
-//				.getProcessDefinition().getTaskMgmtDefinition().getStartTask().getId();
+		return startTaskId;
 	}
 }

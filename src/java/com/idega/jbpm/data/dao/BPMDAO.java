@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hibernate.Session;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
@@ -122,4 +123,6 @@ public interface BPMDAO extends GenericDao {
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
 	public List<ProcessInstance> getProcessInstances(List<String> processDefinitionNames);
+
+	public void doRestoreVersion(Session session);
 }

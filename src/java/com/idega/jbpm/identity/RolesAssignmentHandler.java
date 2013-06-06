@@ -3,6 +3,8 @@ package com.idega.jbpm.identity;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.hibernate.FlushMode;
+import org.hibernate.Session;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
@@ -47,7 +49,13 @@ public class RolesAssignmentHandler implements ActionHandler {
 		JbpmContext context = ctx.getJbpmContext();
 		ProcessInstance pi = getBpmFactory().getMainProcessInstance(context, ctx.getProcessInstance().getId());
 		getBpmFactory().getRolesManager().createProcessActors(context, roles, pi);
-		context.getSession().flush();
+
+		Session session = context.getSession();
+		FlushMode flushMode = session.getFlushMode();
+		if (flushMode != null && FlushMode.ALWAYS != flushMode) {
+			session.flush();
+		}
+
 		for (Role role : roles) {
 			if (ListUtil.isEmpty(role.getIdentities()))
 				continue;
