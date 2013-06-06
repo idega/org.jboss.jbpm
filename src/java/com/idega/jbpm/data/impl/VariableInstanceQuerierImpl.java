@@ -2594,6 +2594,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return conditions;
 	}
 
+	@Transactional(readOnly = true)
 	private List<Variable> getVariablesByLucene(
 			final VariableQuerierData queryData,
 			final List<String> names,
