@@ -152,6 +152,47 @@ public class BPMVariableServiceImpl extends DefaultSpringBean implements BPMVari
 		return results[0];
 	}
 
+	@Override
+	public String getLastestStringVariableByTaskInstanceId(String taskInstanceID,
+			String variableName) {
+		if (StringUtil.isEmpty(taskInstanceID) || StringUtil.isEmpty(variableName)) {
+			return null;
+		}
+		
+		StringBuilder sb = new StringBuilder("SELECT jv.stringvalue_ ");
+		sb.append("FROM jbpm_variableinstance AS jv ")
+		.append("INNER JOIN jbpm_taskinstance AS j ")
+		.append("ON j.PROCINST_ = jv.PROCESSINSTANCE_ ")
+		.append("AND j.ID_ = '").append(taskInstanceID).append("' ")
+		.append("WHERE jv.NAME_ = '").append(variableName).append("' ")
+		.append("AND jv.TASKINSTANCE_ IS NOT NULL ")
+		.append("AND jv.stringvalue_ IS NOT NULL ")
+		.append("ORDER BY jv.TASKINSTANCE_ DESC;");
+		
+		String[] values = null;
+		try {
+			getLogger().log(Level.INFO, "Querying: " + sb.toString());
+			values = SimpleQuerier.executeStringQuery(sb.toString());
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING,
+					"Unable to get variable " + variableName + 
+					" by task instance id " + taskInstanceID + " cause of: ", e);
+		}
+		
+		String parsedValue = null;
+		if (!ArrayUtil.isEmpty(values)) {
+			parsedValue = values[0];
+			if (!StringUtil.isEmpty(parsedValue)) {
+				return parsedValue.replace(
+						CoreConstants.HASH, 
+						CoreConstants.EMPTY);
+			}
+		}
+		
+		return null;
+	}
+	
+	
 	/*
 	 * (non-Javadoc)
 	 * @see com.idega.jbpm.business.BPMVariableService#getLastestStringVariableByFormId(java.lang.String, java.lang.String)
@@ -176,6 +217,8 @@ public class BPMVariableServiceImpl extends DefaultSpringBean implements BPMVari
 		.append("AND jv.stringvalue_ IS NOT NULL ")
 		.append("ORDER BY jv.TASKINSTANCE_ DESC;");
 
+		getLogger().log(Level.INFO, sb.toString());
+		
 		String[] values = null;
 		try {
 			values = SimpleQuerier.executeStringQuery(sb.toString());

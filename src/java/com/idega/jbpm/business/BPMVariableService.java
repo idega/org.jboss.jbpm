@@ -85,6 +85,7 @@ package com.idega.jbpm.business;
 import org.jbpm.context.exe.VariableInstance;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
+import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.jbpm.view.View;
 
@@ -127,4 +128,20 @@ public interface BPMVariableService {
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
 	public String getLastestStringVariableByFormId(String formId, String variableName);
+
+	/**
+	 * 
+	 * <p>Searches for {@link ProcessInstance} by {@link TaskInstance#getId()}
+	 * then queries for given {@link VariableInstance#getName()} in data source.
+	 * </p>
+	 * @param taskInstanceID is {@link TaskInstance#getId()}, 
+	 * not <code>null</code>;
+	 * @param variableName is {@link VariableInstance#getName()}, 
+	 * not <code>null</code>;
+	 * @return {@link VariableInstance#getValue()} by given criteria and
+	 * biggest {@link TaskInstance#getId()}, or <code>null</code> on failure;
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public String getLastestStringVariableByTaskInstanceId(String taskInstanceID,
+			String variableName);
 }
