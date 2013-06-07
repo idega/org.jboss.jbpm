@@ -174,7 +174,7 @@ public class BPMVariableServiceImpl extends DefaultSpringBean implements BPMVari
 		.append("AND jv.NAME_ = '").append(variableName).append("' ")
 		.append("AND jv.TASKINSTANCE_ IS NOT NULL ")
 		.append("AND jv.stringvalue_ IS NOT NULL ")
-		.append("ORDER BY j.ID_ DESC;");
+		.append("ORDER BY jv.TASKINSTANCE_ DESC;");
 
 		String[] values = null;
 		try {
