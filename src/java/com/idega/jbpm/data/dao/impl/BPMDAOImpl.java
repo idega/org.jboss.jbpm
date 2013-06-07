@@ -856,7 +856,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	@Override
 	public void doRestoreVersion(Session session) {
-		if (!(session instanceof SessionImplementor))
+		if (!session.isOpen() || !(session instanceof SessionImplementor))
 			return;
 
 		PersistenceContext pc = ((SessionImplementor) session).getPersistenceContext();

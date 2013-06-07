@@ -124,6 +124,9 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
 		@Override
 		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
+			if (!session.isOpen())
+				return;
+
 			getBPMDAO().doRestoreVersion(session);
 
 			super.flushIfNecessary(session, existingTransaction);

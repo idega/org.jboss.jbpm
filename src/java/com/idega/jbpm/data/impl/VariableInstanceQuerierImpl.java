@@ -23,11 +23,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
-import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.jpa.FullTextQuery;
-import org.hibernate.search.jpa.Search;
+import org.hibernate.search.Search;
 import org.hibernate.search.query.dsl.BooleanJunction;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.TermTermination;
@@ -2594,7 +2594,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return conditions;
 	}
 
-	@Transactional(readOnly = true)
 	private List<Variable> getVariablesByLucene(
 			final VariableQuerierData queryData,
 			final List<String> names,
@@ -2612,33 +2611,40 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				return bpmDAO.getVariablesByConditions(names, procInstIds, taskInstIds, varIds);
 			}
 
-			return getBpmContext().execute(new JbpmCallback<List<Variable>>() {
+			List<Variable> data = getBpmContext().execute(new JbpmCallback<List<Variable>>() {
 
 				@Override
 				public List<Variable> doInJbpm(JbpmContext context) throws JbpmException {
-					FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(getEntityManager());
-					QueryBuilder queryBuilder = fullTextEntityManager
+					Session session = context.getSession();
+					FullTextSession fullTextSession = Search.getFullTextSession(session);
+					Transaction tx = fullTextSession.beginTransaction();
+
+					QueryBuilder queryBuilder = fullTextSession
 													.getSearchFactory()
 													.buildQueryBuilder()
 													.forEntity(Variable.class)
 													.get();
 
 					BooleanJunction<?> conditions = getVariablesConditions(
-							queryBuilder,
-							queryData,
-							queryData == null ? names : null,
-							procInstIds,
-							taskInstIds,
-							varIds,
-							flexibleVariables
-					);
+														queryBuilder,
+														queryData,
+														queryData == null ? names : null,
+														procInstIds,
+														taskInstIds,
+														varIds,
+														flexibleVariables
+													);
 
-					FullTextQuery query = fullTextEntityManager.createFullTextQuery(conditions.createQuery());
+					FullTextQuery query = fullTextSession.createFullTextQuery(conditions.createQuery());
 					@SuppressWarnings("unchecked")
-					List<Variable> results = query.getResultList();
+					List<Variable> results = query.list();
+
+					tx.commit();
+
 					return results;
 				}
 			});
+			return data;
 		} finally {
 //			if (CoreUtil.isSQLMeasurementOn()) {
 				long duration = System.currentTimeMillis() - start;
