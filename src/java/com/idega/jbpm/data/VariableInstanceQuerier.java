@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.jbpm.context.exe.VariableInstance;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 
@@ -228,5 +229,49 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Map<Long, VariableInstanceInfo> getCachedVariablesGroupedByProcess(String name);
 
 	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns);
+
+	/**
+	 * 
+	 * <p>Searches for {@link VariableInstance} from jbpm_variableinstance
+	 * table by:</p>
+	 * @param requiredVariableName is {@link VariableInstance#getName()} which 
+	 * instances should be found, not <code>null</code>;
+	 * @param argumentVariableName is {@link VariableInstance#getName()} of 
+	 * {@link VariableInstance} by which required variable should be found. 
+	 * When <code>null</code>, argumentValue will be ignored;
+	 * @param argumentValue is {@link VariableInstance#getValue()} of
+	 * {@link VariableInstance} by name defined in argumentVariableName;
+	 * @param processInstanceId is {@link ProcessInstance#getId()}, which 
+	 * contains required {@link VariableInstance};
+	 * @return {@link Collection} of {@link VariableInstanceInfo}, which 
+	 * matches criteria, or {@link Collections#emptyList()} on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public List<VariableInstanceInfo> findJBPMVariable(
+			String requiredVariableName,
+			String argumentVariableName, 
+			String argumentValue,
+			Long processInstanceId);
+
+	/**
+	 * 
+	 * <p>Searches for {@link VariableInstance} from jbpm_variableinstance
+	 * table by:</p>
+	 * @param requiredVariableName is {@link VariableInstance#getName()} which 
+	 * instances should be found, not <code>null</code>;
+	 * @param argumentVariableName is {@link VariableInstance#getName()} of 
+	 * {@link VariableInstance} by which required variable should be found. 
+	 * When <code>null</code>, argumentValue will be ignored;
+	 * @param argumentValue is {@link VariableInstance#getValue()} of
+	 * {@link VariableInstance} by name defined in argumentVariableName;
+	 * @param processInstanceId is {@link ProcessInstance#getId()}, which 
+	 * contains required {@link VariableInstance};
+	 * @return {@link Collection} of {@link VariableInstanceInfo#getValue()}, 
+	 * which matches criteria, or {@link Collections#emptyList()} on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public List<Serializable> findJBPMVariableValues(String requiredVariableName,
+			String argumentVariableName, String argumentValue,
+			Long processInstance);
 
 }

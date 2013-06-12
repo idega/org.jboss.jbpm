@@ -2365,4 +2365,104 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getProcessInstanceDataByVariableNameAndValuesAndProcessDefinition("select distinct pi.id_, max(pi.start_), var.stringvalue_ ",
 				variableName, values, processDefinition);
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.VariableInstanceQuerier#findJBPMVariableValues(java.lang.String, java.lang.String, java.lang.String, java.lang.Long)
+	 */
+	@Override
+	public List<Serializable> findJBPMVariableValues(
+			String requiredVariableName, 
+			String argumentVariableName, 
+			String argumentValue, 
+			Long processInstance) {
+
+		List<VariableInstanceInfo> jbpmVariables = findJBPMVariable(
+				requiredVariableName, 
+				argumentVariableName, 
+				argumentValue, 
+				processInstance);
+		if (ListUtil.isEmpty(jbpmVariables)) {
+			return Collections.emptyList();
+		}
+		
+		List<Serializable> values = new ArrayList<Serializable>(jbpmVariables.size());
+		for (VariableInstanceInfo jbpmVariable: jbpmVariables) {
+			Serializable value = jbpmVariable.getValue();
+			if (value == null) {
+				continue;
+			}
+			
+			values.add(value);
+		}
+		
+		return values;
+	}
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.VariableInstanceQuerier#findJBPMVariable(java.lang.String, java.lang.String, java.lang.String, java.lang.Long)
+	 */
+	@Override
+	public List<VariableInstanceInfo> findJBPMVariable(
+			String requiredVariableName, 
+			String argumentVariableName, 
+			String argumentValue, 
+			Long processInstanceId) {
+		
+		if (StringUtil.isEmpty(requiredVariableName)) {
+			return Collections.emptyList();
+		}
+		
+		/* Will search for: */
+		List<String> variables = new ArrayList<String>(1);
+		variables.add(requiredVariableName);
+		
+		/* by: */
+		Map<String, VariableQuerierData> variablesWithValues = null;
+		if (!StringUtil.isEmpty(argumentVariableName) && !StringUtil.isEmpty(argumentValue)) {
+			ArrayList<Serializable> serializableList = new ArrayList<Serializable>(1);
+			serializableList.add(argumentValue);
+			
+			VariableQuerierData variableQuerierData = new VariableQuerierData(
+					argumentVariableName, 
+					serializableList);
+			
+			variablesWithValues = new HashMap<String, VariableQuerierData>(1);
+			variablesWithValues.put(argumentVariableName, variableQuerierData);
+		}		
+		
+		ArrayList<Long> processInstanceIds = null;
+		if (processInstanceId != null) {
+			processInstanceIds = new ArrayList<Long>(1);
+			processInstanceIds.add(processInstanceId);
+		}
+		
+		/* Let's query: */
+		Map<Long, Map<String, VariableInstanceInfo>> resultsMapByProcessInstance = getVariablesByNamesAndValuesAndExpressionsByProcesses(
+						variablesWithValues, variables, 
+						null, processInstanceIds, null);
+		if (MapUtil.isEmpty(resultsMapByProcessInstance)) {
+			return Collections.emptyList();
+		}
+		
+		/* Parsing results */
+		List<VariableInstanceInfo> variableInstances = new ArrayList<VariableInstanceInfo>();
+		Map<String, VariableInstanceInfo> resultsMapByVariableName = null;
+		for (Long localProcessInstanceId: resultsMapByProcessInstance.keySet()) {
+			resultsMapByVariableName = resultsMapByProcessInstance.get(localProcessInstanceId);
+			if (MapUtil.isEmpty(resultsMapByVariableName)) {
+				continue;
+			}
+			
+			VariableInstanceInfo requiredVariable = resultsMapByVariableName
+					.get(requiredVariableName);
+			if (requiredVariable == null) {
+				continue;
+			}
+			
+			variableInstances.add(requiredVariable);
+		}
+		
+		return variableInstances;
+	}
 }
