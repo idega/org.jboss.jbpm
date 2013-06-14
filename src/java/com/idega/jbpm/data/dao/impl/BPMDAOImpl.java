@@ -856,6 +856,11 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	@Override
 	public void doRestoreVersion(Session session) {
+		IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
+		boolean doRestoreVersionForBPMEntities = settings.getBoolean("bpm.restore_versions", Boolean.FALSE);
+		if (!doRestoreVersionForBPMEntities)
+			return;
+
 		if (!session.isOpen() || !(session instanceof SessionImplementor))
 			return;
 
@@ -889,7 +894,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 								if (version > 0) {
 									version = 1;
 									String update = bpmEntity.getUpdateQuery(id, version);
-									if (!SimpleQuerier.executeUpdate(update, false)) {
+									if (SimpleQuerier.executeUpdate(update, false)) {
+										getLogger().info("Restored version (to " + version + ") for entity " + entityName + ", ID: " + id);
+									} else {
 										getLogger().warning("Failed to refresh: " + entity);
 									}
 								}
