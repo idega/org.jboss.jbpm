@@ -53,6 +53,7 @@ import com.idega.jbpm.data.dao.BPMEntityEnum;
 import com.idega.jbpm.identity.Role;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
@@ -851,7 +852,15 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		}
 		query += " order by v.id desc";
 
-		return getResultListByInlineQuery(query, Variable.class, ArrayUtil.convertListToArray(params));
+		try {
+			return getResultListByInlineQuery(query, Variable.class, ArrayUtil.convertListToArray(params));
+		} catch (Exception e) {
+			String message = "Error querying by: '" + query + "'";
+			getLogger().log(Level.WARNING, message, e);
+			CoreUtil.sendExceptionNotification(message, e);
+		}
+
+		return Collections.emptyList();
 	}
 
 	@Override
