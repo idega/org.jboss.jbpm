@@ -141,13 +141,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 	@Override
 	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
-		String path = getFolderForBinaryVariable(binaryVariable.getTaskInstanceId());
+		FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
 
-		final FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
-
-		final FileInfo fileInfo = fileURIHandler.getFileInfo(fileUri);
+		FileInfo fileInfo = fileURIHandler.getFileInfo(fileUri);
 		String fileName = fileInfo.getFileName();
 
+		String path = getFolderForBinaryVariable(binaryVariable.getTaskInstanceId());
 		try {
 			persistBinaryVariable(binaryVariable, path, fileName, fileInfo.getContentLength(), fileURIHandler.getFile(fileUri), true);
 		} catch (Exception e) {

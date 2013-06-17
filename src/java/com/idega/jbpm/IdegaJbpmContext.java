@@ -94,12 +94,16 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
 		private Session session;
 
-		private IdegaHibernateTemplate(SessionFactory sessionFactory) {
+		private boolean startingProcess = false;
+
+		private IdegaHibernateTemplate(SessionFactory sessionFactory, boolean startingProcess) {
 			super(sessionFactory);
+
+			this.startingProcess = startingProcess;
 		}
 
-		private IdegaHibernateTemplate(Session session) {
-			this(session.getSessionFactory());
+		private IdegaHibernateTemplate(Session session, boolean startingProcess) {
+			this(session.getSessionFactory(), startingProcess);
 			this.session = session;
 		}
 
@@ -127,7 +131,8 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			if (!session.isOpen())
 				return;
 
-			getBPMDAO().doRestoreVersion(session);
+			if (startingProcess)
+				getBPMDAO().doRestoreVersion(session);
 
 			super.flushIfNecessary(session, existingTransaction);
 		}
@@ -135,7 +140,17 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
 	@Override
 	public <T> T execute(final JbpmCallback<T> callback) {
-		return execute(callback, null);
+		return execute(callback, null, false);
+	}
+
+	@Override
+	public <T> T execute(final JbpmCallback<T> callback, boolean startingProcess) {
+		return execute(callback, null, startingProcess);
+	}
+
+	@Override
+	public <T> T execute(final JbpmCallback<T> callback, FlushMode flushMode) {
+		return execute(callback, flushMode, false);
 	}
 
 	/**
@@ -147,14 +162,14 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	 */
 	@Override
 	@Transactional
-	public <T> T execute(final JbpmCallback<T> callback, FlushMode flushMode) {
+	public <T> T execute(final JbpmCallback<T> callback, FlushMode flushMode, boolean startingProcess) {
 		final JbpmContext context = JbpmConfiguration.getInstance().createJbpmContext();
 		try {
 			final Session session = entityManagerFactory.createEntityManager().unwrap(Session.class);
 			if (flushMode != null)
 				session.setFlushMode(flushMode);
 
-			HibernateTemplate hibernateTemplate = new IdegaHibernateTemplate(session);
+			HibernateTemplate hibernateTemplate = new IdegaHibernateTemplate(session, startingProcess);
 			return hibernateTemplate.execute(new HibernateCallback<T>() {
 
 				/**
