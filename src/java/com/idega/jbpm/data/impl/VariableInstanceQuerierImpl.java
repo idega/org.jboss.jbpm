@@ -986,8 +986,17 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			boolean mirrow,
 			boolean strictBinaryVariables) {
 
-		return getInformationByVariablesNameAndValuesAndProcesses(null, null, null, data, variablesWithoutValues, procDefNames, procInstIds,
-				selectProcessInstanceId, mirrow, strictBinaryVariables);
+		return getInformationByVariablesNameAndValuesAndProcesses(
+				null, null, null,
+				data,
+				variablesWithoutValues,
+				procDefNames,
+				procInstIds,
+				null, null,
+				selectProcessInstanceId,
+				mirrow,
+				strictBinaryVariables
+		);
 	}
 
 	private List<Serializable[]> getInformationByVariablesNameAndValuesAndProcesses(
@@ -1000,9 +1009,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 			List<String> procDefNames,
 			List<Long> procInstIds,
+			List<Long> taskInstIds,
+			List<Long> varIds,
 			boolean selectProcessInstanceId,
 			boolean mirrow,
-			boolean strictBinaryVariables) {
+			boolean strictBinaryVariables
+	) {
 
 		boolean anyStringColumn = false;
 		boolean useBinding = true;
@@ -1027,11 +1039,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					LOGGER.warning("Values for variable '" + variableName + "' are not provided, skipping querying");
 					return Collections.emptyList();
 				}
-
-				//	TODO: add check if variable is cached
-//				if (getVariablesCache().containsKey(variableName)) {
-//					getCachedVariable(variableName, value)
-//				} else {
 
 				Serializable value = values.iterator().next();
 				if (value == null) {
@@ -1206,6 +1213,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 								" var.PROCESSINSTANCE_ "
 							: CoreConstants.EMPTY
 		));
+
+		if (!ListUtil.isEmpty(taskInstIds)) {
+			parts.add(getQueryParameters("var.TASKINSTANCE_", taskInstIds, false));
+		}
+		if (!ListUtil.isEmpty(varIds)) {
+			parts.add(getQueryParameters("var.id_", varIds, false));
+		}
 
 		if (useBinding && !ListUtil.isEmpty(variablesWithoutValues)) {
 			if (byProcessInstances || byProcDefs)
@@ -2715,6 +2729,31 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getVariablesByLucene(activeVariables, variables, procDefNames, procInstIds, null, null, flexibleVariables, strictBinaryVariables);
 	}
 
+	private Map<Long, Map<String, VariableInstanceInfo>> getConverted(Collection<VariableInstanceInfo> vars) {
+		if (ListUtil.isEmpty(vars))
+			return null;
+
+		Map<Long, Map<String, VariableInstanceInfo>> results = new HashMap<Long, Map<String,VariableInstanceInfo>>();
+		for (VariableInstanceInfo var: vars) {
+			Serializable value = var.getValue();
+			if (value == null)
+				continue;
+			String name = var.getName();
+			if (StringUtil.isEmpty(name))
+				continue;
+
+			Long procInstId = var.getProcessInstanceId();
+			Map<String, VariableInstanceInfo> procInstData = results.get(procInstId);
+			if (procInstData == null) {
+				procInstData = new HashMap<String, VariableInstanceInfo>();
+				results.put(procInstId, procInstData);
+			}
+
+			procInstData.put(name, var);
+		}
+		return results;
+	}
+
 	private Map<Long, Map<String, VariableInstanceInfo>> getVariablesByLucene(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
@@ -2741,6 +2780,20 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 				results = getConvertedVariables(vars);
 			} else {
+				if (!ListUtil.isEmpty(procInstIds) || !ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds)) {
+					List<Serializable[]> data = getInformationByVariablesNameAndValuesAndProcesses(null, null, null,
+							new ArrayList<VariableQuerierData>(activeVariables.values()),
+							variables, null,
+							procInstIds, taskInstIds, varIds, true, false, false);
+					Collection<VariableInstanceInfo> vars = getConverted(data, FULL_COLUMNS);
+					results = getConverted(vars);
+					if (MapUtil.isEmpty(results)) {
+						getLogger().warning("Nothing found from database by query " + activeVariables + " var. names: " + variables +
+								", proc. inst. IDs: " + procInstIds + ", task inst. IDs: " + taskInstIds + ", var. inst. IDs: " + varIds);
+					}
+					return results;
+				}
+
 				//	1. Find proc. inst. IDs from variables by conditions
 				List<Variable> vars = null;
 				boolean loadAddtionalVars = !ListUtil.isEmpty(variables);
