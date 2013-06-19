@@ -2509,12 +2509,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						if (flexible) {
 							valueToMatch = CoreConstants.STAR + valueToMatch.toString() + CoreConstants.STAR;
 						}
-					} else if (value instanceof Long) {
-						field = "longValue";
-						valueToMatch = value;
 					} else if (value instanceof Double) {
 						field = "doubleValue";
 						valueToMatch = value;
+					} else if (value instanceof Number) {
+						field = "longValue";
+						valueToMatch = ((Number) value).longValue();
 					} else if (value instanceof Date) {
 						field = "dateValue";
 						valueToMatch = VariableDateInstanceBridge.DATE_VAR_FORMATTER.format((Date) value);
