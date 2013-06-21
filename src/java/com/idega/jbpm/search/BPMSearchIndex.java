@@ -10,6 +10,8 @@ import org.hibernate.search.impl.SimpleIndexingProgressMonitor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.jbpm.data.Variable;
+import com.idega.jbpm.data.VariableByteArray;
+import com.idega.jbpm.data.VariableBytes;
 
 public class BPMSearchIndex {
 
@@ -24,6 +26,16 @@ public class BPMSearchIndex {
 
 			fullTextSession
 				.createIndexer(Variable.class)
+				.progressMonitor(new SimpleIndexingProgressMonitor(1))
+				.startAndWait();
+
+			fullTextSession
+				.createIndexer(VariableByteArray.class)
+				.progressMonitor(new SimpleIndexingProgressMonitor(1))
+				.startAndWait();
+
+			fullTextSession
+				.createIndexer(VariableBytes.class)
 				.progressMonitor(new SimpleIndexingProgressMonitor(1))
 				.startAndWait();
 		} finally {

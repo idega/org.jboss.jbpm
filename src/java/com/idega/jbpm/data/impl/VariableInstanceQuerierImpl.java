@@ -30,7 +30,7 @@ import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
 import org.hibernate.search.query.dsl.BooleanJunction;
 import org.hibernate.search.query.dsl.QueryBuilder;
-import org.hibernate.search.query.dsl.TermTermination;
+import org.hibernate.search.query.dsl.Termination;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
@@ -72,6 +72,7 @@ import com.idega.jbpm.event.TaskInstanceSubmitted;
 import com.idega.jbpm.event.VariableCreatedEvent;
 import com.idega.jbpm.search.bridge.VariableDateInstanceBridge;
 import com.idega.jbpm.variables.MultipleSelectionVariablesResolver;
+import com.idega.presentation.ui.handlers.IWDatePickerHandler;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -681,7 +682,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			.append(searchExpression ? "lower(" : CoreConstants.EMPTY)
 			.append(CoreConstants.QOUTE_SINGLE_MARK)
 			.append(searchExpression ? CoreConstants.PERCENT : CoreConstants.EMPTY)
-			.append(getStringValueExpression(value.toString()))
+			.append(getStringValueExpression(value.toString().trim()))
 			.append(searchExpression ? CoreConstants.PERCENT : CoreConstants.EMPTY)
 			.append(CoreConstants.QOUTE_SINGLE_MARK)
 			.append(searchExpression ? ")" : CoreConstants.EMPTY);
@@ -2472,8 +2473,139 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return entityManager;
 	}
 
+	private class ValueToMatch {
+		private String field;
+		private Object value;
+		private Boolean flexible, multipleValues = Boolean.FALSE;
+		private List<String> sentences;
+
+		private ValueToMatch(String field, Object value, Boolean flexible, Boolean multipleValues, List<String> sentences) {
+			this.field = field;
+			this.value = value;
+			this.flexible = flexible;
+			this.multipleValues = multipleValues;
+			this.sentences = sentences;
+
+			if (sentences != null && sentences.size() > 1)
+				multipleValues = true;
+		}
+
+		@Override
+		public String toString() {
+			return "Field: " + field + ", value to match: " + value + ", flexible: " + flexible + ", multiple values: " + multipleValues +
+					", sentences: " + sentences;
+		}
+	}
+
+	private ValueToMatch getValueToMatch(
+			ValueToMatch previousValueToMatch,
+			Serializable value, String name,
+			VariableQuerierData var,
+			Map<String, Boolean> flexibleVariables
+	) {
+		String field = null;
+		Object valueToMatch = null;
+		Boolean flexible = false;
+		if (value instanceof String) {
+			String stringValue = (String) value;
+			stringValue = stringValue.trim();
+			boolean foundNonStringValue = false;
+			if (name.indexOf("string") == -1) {
+				if (name.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix()) ||
+						name.startsWith(VariableInstanceType.LIST.getPrefix()) ||
+						name.startsWith(VariableInstanceType.OBJ_LIST.getPrefix())) {
+					field = "bytesValue";
+					stringValue = StringHandler.replace(stringValue, CoreConstants.SPACE, CoreConstants.HASH);
+					valueToMatch = CoreConstants.HASH + stringValue + CoreConstants.HASH;
+					foundNonStringValue = true;
+				} else if (stringValue.indexOf(CoreConstants.DOT) == -1 || stringValue.split(CoreConstants.DOT).length > 2) {
+					//	Candidate for Long or Date
+					Long longValue = null;
+					try {
+						longValue = Long.valueOf(stringValue);
+					} catch (NumberFormatException e) {}
+					if (longValue == null) {
+						//	Checking if date
+						Date dateValue = IWDatePickerHandler.getParsedDateByCurrentLocale(stringValue);
+						if (dateValue != null) {
+							field = "dateValue";
+							valueToMatch = VariableDateInstanceBridge.DATE_VAR_FORMATTER.format(dateValue);
+							foundNonStringValue = true;
+							getLogger().info("Resolved value '" + dateValue + "' of Date type for " + var);
+						}
+					} else {
+						field = "longValue";
+						valueToMatch = longValue;
+						foundNonStringValue = true;
+						getLogger().info("Resolved value '" + longValue + "' of Long type for " + var);
+					}
+				} else {
+					//	Candidate for double
+					Double doubleValue = null;
+					try {
+						doubleValue = Double.valueOf(stringValue);
+					} catch (NumberFormatException e) {}
+					if (doubleValue != null) {
+						field = "doubleValue";
+						valueToMatch = doubleValue;
+						foundNonStringValue = true;
+						getLogger().info("Resolved value '" + doubleValue + "' of Double type for " + var);
+					}
+				}
+			}
+
+			if (!foundNonStringValue) {
+				field = "stringValue";
+				valueToMatch = stringValue;
+
+				flexible = MapUtil.isEmpty(flexibleVariables) ? false : flexibleVariables.get(name);
+				if (flexible == null) {
+					flexible = false;
+				}
+				if (flexible) {
+					valueToMatch = CoreConstants.STAR + valueToMatch.toString() + CoreConstants.STAR;
+				}
+			}
+		} else if (value instanceof Double) {
+			field = "doubleValue";
+			valueToMatch = value;
+		} else if (value instanceof Number) {
+			field = "longValue";
+			valueToMatch = ((Number) value).longValue();
+		} else if (value instanceof Date) {
+			field = "dateValue";
+			valueToMatch = VariableDateInstanceBridge.DATE_VAR_FORMATTER.format((Date) value);
+		}
+
+		List<String> sentences = null;
+		String sentence = null;
+		if (field.equals("stringValue") &&
+				(valueToMatch.toString().indexOf(CoreConstants.SPACE) != -1 ||
+				(previousValueToMatch != null && !ListUtil.isEmpty(previousValueToMatch.sentences)))) {
+			sentence = valueToMatch.toString();
+
+			sentences = previousValueToMatch == null ? null : previousValueToMatch.sentences;
+			if (sentences == null)
+				sentences = new ArrayList<String>();
+			sentences.add(sentence);
+		}
+		boolean multipleValues = false;
+		if (previousValueToMatch != null && previousValueToMatch.value != null) {
+			String currentValue = String.valueOf(valueToMatch);
+
+			sentences = previousValueToMatch == null ? null : previousValueToMatch.sentences;
+			if (sentences != null)
+				sentences.add(currentValue);
+
+			String previousValue = String.valueOf(previousValueToMatch.value);
+			valueToMatch = previousValue.concat(CoreConstants.SPACE).concat(currentValue);
+			multipleValues = true;
+		}
+		return new ValueToMatch(field, valueToMatch, flexible, multipleValues, sentences);
+	}
+
 	private BooleanJunction<?> getVariablesConditions(
-			QueryBuilder b,
+			QueryBuilder query,
 			VariableQuerierData activeVariable,
 			List<String> names,
 			List<Long> procInstIds,
@@ -2481,59 +2613,63 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			List<Long> varIds,
 			Map<String, Boolean> flexibleVariables
 	) {
-		BooleanJunction<?> conditions = b.bool();
+		BooleanJunction<?> conditions = query.bool();
 
 		if (activeVariable != null) {
 			conditions.must(
-				b.keyword()
-					.onField("name")
-					.matching(activeVariable.getName())
-					.createQuery()
+					query.keyword()
+						.onField("name")
+						.matching(activeVariable.getName())
+						.createQuery()
 			);
 
 			List<Serializable> values = activeVariable.getValues();
 			if (!ListUtil.isEmpty(values)) {
+				ValueToMatch valueToMatch = null;
+				String name = activeVariable.getName();
 				for (Serializable value: values) {
-					String field = null;
-					Object valueToMatch = null;
-
-					Boolean flexible = false;
-					if (value instanceof String) {
-						field = "stringValue";
-						valueToMatch = value.toString();
-
-						flexible = MapUtil.isEmpty(flexibleVariables) ? false : flexibleVariables.get(activeVariable.getName());
-						if (flexible == null) {
-							flexible = false;
-						}
-						if (flexible) {
-							valueToMatch = CoreConstants.STAR + valueToMatch.toString() + CoreConstants.STAR;
-						}
-					} else if (value instanceof Double) {
-						field = "doubleValue";
-						valueToMatch = value;
-					} else if (value instanceof Number) {
-						field = "longValue";
-						valueToMatch = ((Number) value).longValue();
-					} else if (value instanceof Date) {
-						field = "dateValue";
-						valueToMatch = VariableDateInstanceBridge.DATE_VAR_FORMATTER.format((Date) value);
-					}
-
-					TermTermination matching = null;
-					if (flexible) {
-						matching = b.keyword()
-										.wildcard()
-										.onField(field)
-										.matching(valueToMatch);
-					} else {
-						matching = b.keyword()
-										.onField(field)
-										.ignoreAnalyzer()
-										.matching(valueToMatch);
-					}
-					conditions.must(matching.createQuery());
+					valueToMatch = getValueToMatch(valueToMatch, value, name, activeVariable, flexibleVariables);
 				}
+
+				Termination<?> matching = null;
+				if (valueToMatch.flexible) {
+					matching = query.keyword()
+									.wildcard()						//	To support LIKE
+									.onField(valueToMatch.field)
+									.matching(valueToMatch.value);
+				} else {
+					if (!ListUtil.isEmpty(valueToMatch.sentences)) {
+						List<String> sentences = valueToMatch.sentences;
+						if (sentences.size() == 1) {
+							String sentence = sentences.get(0);
+							matching = query.phrase()
+												.onField(valueToMatch.field)
+												.sentence(sentence);
+							conditions.must(matching.createQuery());
+						} else {
+							BooleanJunction<?> sentencesCondition = query.bool();
+							for (String sentence: sentences) {
+								matching = query.phrase()
+													.onField(valueToMatch.field)
+													.sentence(sentence);
+								sentencesCondition.should(matching.createQuery());
+							}
+							conditions.must(sentencesCondition.createQuery());
+						}
+						matching = null;
+					} else if (valueToMatch.multipleValues) {
+						matching = query.keyword()
+											.onField(valueToMatch.field)
+											.matching(valueToMatch.value);
+					} else {
+						matching = query.keyword()
+											.onField(valueToMatch.field)
+											.matching(valueToMatch.value);
+					}
+				}
+
+				if (matching != null)
+					conditions.must(matching.createQuery());
 			}
 		}
 
@@ -2547,10 +2683,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 
 			conditions.must(
-					b.keyword()
-						.onField("id")
-						.matching(varIdsCond.toString())
-						.createQuery()
+					query.keyword()
+							.onField("id")
+							.matching(varIdsCond.toString())
+							.createQuery()
 			);
 		}
 
@@ -2564,10 +2700,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 
 			conditions.must(
-					b.keyword()
-						.onField("processInstance")
-						.matching(procInstIdsCond.toString())
-						.createQuery()
+					query.keyword()
+							.onField("processInstance")
+							.matching(procInstIdsCond.toString())
+							.createQuery()
 			);
 		}
 
@@ -2581,10 +2717,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 
 			conditions.must(
-					b.keyword()
-						.onField("taskInstance")
-						.matching(taskInstIdsCond.toString())
-						.createQuery()
+					query.keyword()
+							.onField("taskInstance")
+							.matching(taskInstIdsCond.toString())
+							.createQuery()
 			);
 		}
 
@@ -2598,10 +2734,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 
 			conditions.must(
-					b.keyword()
-						.onField("name")
-						.matching(namesCond.toString())
-						.createQuery()
+					query.keyword()
+							.onField("name")
+							.matching(namesCond.toString())
+							.createQuery()
 			);
 		}
 
@@ -2780,7 +2916,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 				results = getConvertedVariables(vars);
 			} else {
-				if (!ListUtil.isEmpty(procInstIds) || !ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds)) {
+				/*if (!ListUtil.isEmpty(procInstIds) || !ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds)) {
 					List<Serializable[]> data = getInformationByVariablesNameAndValuesAndProcesses(null, null, null,
 							new ArrayList<VariableQuerierData>(activeVariables.values()),
 							variables, null,
@@ -2792,7 +2928,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 								", proc. inst. IDs: " + procInstIds + ", task inst. IDs: " + taskInstIds + ", var. inst. IDs: " + varIds);
 					}
 					return results;
-				}
+				}*/
 
 				//	1. Find proc. inst. IDs from variables by conditions
 				List<Variable> vars = null;

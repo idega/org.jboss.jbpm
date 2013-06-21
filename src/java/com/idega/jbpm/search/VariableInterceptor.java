@@ -5,7 +5,7 @@ import org.hibernate.search.indexes.interceptor.IndexingOverride;
 
 import com.idega.jbpm.data.Variable;
 
-public class BPMSearchIndexingInterceptor implements EntityIndexingInterceptor<Variable> {
+public class VariableInterceptor implements EntityIndexingInterceptor<Variable> {
 
 	@Override
 	public IndexingOverride onAdd(Variable entity) {

@@ -2,6 +2,9 @@ package com.idega.jbpm.data;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.persistence.Column;
@@ -12,13 +15,18 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 
+import com.idega.core.persistence.Param;
 import com.idega.jbpm.bean.VariableByteArrayInstance;
+import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.expression.ELUtil;
 
 @Indexed
 @Entity
@@ -78,13 +86,28 @@ public class Variable implements Serializable {
 	private Timestamp dateValue;
 
 	@Column(name = "BYTEARRAYVALUE_")
-	private Long byteValue;
+	private Long byteArrayValue;
 	/**
 	 * Value columns end
 	 */
 
 	@Column(name = "CLASS_")
 	private Character classType;
+
+	@Transient
+	private Collection<byte[]> bytesValue;
+	@Transient
+	private Serializable realObject;
+
+	public Serializable getRealObject() {
+		getValue();
+		return realObject;
+	}
+
+	public Collection<byte[]> getBytesValue() {
+		getValue();
+		return bytesValue;
+	}
 
 	public Long getId() {
 		return id;
@@ -111,8 +134,9 @@ public class Variable implements Serializable {
 			doubleValue = ((Number) value).doubleValue();
 		} else if (value instanceof Timestamp) {
 			dateValue = (Timestamp) value;
-		} else if (value instanceof Number && Character.valueOf('B').equals(getClassType())) {
-			byteValue = ((Number) value).longValue();
+		} else if (Character.valueOf('B').equals(getClassType())) {
+			Logger.getLogger(Variable.class.getName()).info("Set bytes value: " + value +
+					(value == null ? ", unknown type" : ", type: " + value.getClass()));
 		} else {
 			Logger.getLogger(Variable.class.getName()).warning("Do not know how to handle value: " + value);
 		}
@@ -144,8 +168,28 @@ public class Variable implements Serializable {
 			return (T) Double.valueOf(((Number) doubleValue).doubleValue());
 		} else if (dateValue instanceof Timestamp) {
 			return (T) dateValue;
-		} else if (byteValue != null) {
-			return VariableByteArrayInstance.getValue(byteValue, getId(), getProcessInstance());
+		} else if (classType == 'B' && byteArrayValue != null) {
+			if (bytesValue != null)
+				return (T) realObject;
+
+			BPMDAO bpmDAO = ELUtil.getInstance().getBean("bpmBindsDAO");
+			List<VariableBytes> varBytes = bpmDAO.getResultListByInlineQuery(
+					"from " + VariableBytes.class.getName() + " vb where vb.processFile = :processFile order by vb.index",
+					VariableBytes.class,
+					new Param("processFile", byteArrayValue)
+			);
+			if (ListUtil.isEmpty(varBytes)) {
+				bytesValue = new ArrayList<byte[]>(0);
+				return null;
+			}
+
+			Collection<byte[]> allBytes = new ArrayList<byte[]>();
+			for (VariableBytes vb: varBytes) {
+				allBytes.add(vb.getBytes());
+			}
+
+			realObject = VariableByteArrayInstance.getValue(allBytes);
+			return (T) realObject;
 		}
 
 		return null;
@@ -183,12 +227,12 @@ public class Variable implements Serializable {
 		this.dateValue = dateValue;
 	}
 
-	public Long getByteValue() {
-		return byteValue;
+	public Long getByteArrayValue() {
+		return byteArrayValue;
 	}
 
-	public void setByteValue(Long byteValue) {
-		this.byteValue = byteValue;
+	public void setByteArrayValue(Long byteArrayValue) {
+		this.byteArrayValue = byteArrayValue;
 	}
 
 	public Character getClassType() {

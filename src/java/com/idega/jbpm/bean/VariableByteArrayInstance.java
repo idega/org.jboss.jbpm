@@ -70,6 +70,23 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 		return getValue(value, getId(), getProcessInstanceId());
 	}
 
+	public static <T extends Serializable> T getValue(Collection<byte[]> allBytes) {
+		if (ListUtil.isEmpty(allBytes))
+			return null;
+
+		byte[] bytes = new byte[allBytes.size() * 1024];
+		int pos = 0;
+		for (Iterator<byte[]> it = allBytes.iterator(); it.hasNext();) {
+			byte[] tmp = it.next();
+			System.arraycopy(tmp, 0, bytes, pos, tmp.length);
+			pos += tmp.length;
+		}
+
+		@SuppressWarnings("unchecked")
+		T value = (T) getConvertedValue(bytes, null, null);
+		return value;
+	}
+
 	public static <T extends Serializable> T getValue(Serializable value, Long variableId, Long procInstId) {
 		if (value instanceof Number) {
 			String query = "select b.BYTES_ from JBPM_BYTEBLOCK b where b.PROCESSFILE_ = " + value;
