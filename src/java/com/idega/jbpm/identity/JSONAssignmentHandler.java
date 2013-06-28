@@ -105,7 +105,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 
 		// Roles that are for task
 		getBpmFactory().getRolesManager().createProcessActors(context, rolesForTask, mainProcessInstance);
-		getBpmFactory().getRolesManager().assignTaskRolesPermissions(taskInstance.getTask(), rolesForTask, mainProcessInstance.getId());
+		getBpmFactory().getRolesManager().assignTaskRolesPermissions(context, taskInstance.getTask().getId(), rolesForTask, mainProcessInstance.getId());
 		assignIdentities(mainProcessInstance, rolesForTask);
 
 		// Roles for task instance
@@ -118,7 +118,8 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		// User "roles" for task
 		for (Role role : userRolesForTask) {
 			List<Actor> processActors = getBpmFactory().getRolesManager().createProcessActors(context, Arrays.asList(role), mainProcessInstance);
-			getBpmFactory().getRolesManager().assignTaskRolesPermissions(taskInstance.getTask(), userRolesForTask, mainProcessInstance.getId());
+			getBpmFactory().getRolesManager().assignTaskRolesPermissions(context, taskInstance.getTask().getId(), userRolesForTask,
+					mainProcessInstance.getId());
 
 			getBpmFactory().getRolesManager().createIdentitiesForActors(
 				processActors, new Identity(String.valueOf(role.getUserId()), IdentityType.USER),
@@ -159,7 +160,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		List<Role> rolesToAssignIdentity = new ArrayList<Role>(roles.size());
 		for (Role role : roles) {
 			if (role.getAssignIdentities() != null) {
-				for (String assignTo : role.getAssignIdentities()) {
+				for (String assignTo: role.getAssignIdentities()) {
 					if (assignTo.equals(ASSIGN_IDENTITY_CURRENT_USER)) {
 						rolesToAssignIdentity.add(role);
 						break;

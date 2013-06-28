@@ -7,7 +7,6 @@ import java.util.Set;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.exe.ProcessInstance;
-import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.idegaweb.IWApplicationContext;
@@ -60,10 +59,7 @@ public interface RolesManager {
 	public abstract Collection<User> getAllUsersForRoles(
 	        Collection<String> rolesNames, long piId, BPMTypedPermission perm);
 
-//	public abstract void createNativeRolesFromProcessRoles(String processName,
-//	        Collection<Role> roles);
-
-	public abstract void createTaskRolesPermissions(Task task, List<Role> roles);
+	public abstract void createTaskRolesPermissions(JbpmContext context, Long taskId, List<Role> roles);
 
 	/**
 	 * creates actors for process roles provided, for given process instance
@@ -75,8 +71,7 @@ public interface RolesManager {
 	public abstract List<Actor> createProcessActors(Collection<Role> roles, ProcessInstance processInstance);
 	public List<Actor> createProcessActors(JbpmContext context, Collection<Role> roles, final ProcessInstance processInstance);
 
-	public abstract void assignTaskRolesPermissions(Task task,
-	        List<Role> roles, Long processInstanceId);
+	public abstract void assignTaskRolesPermissions(JbpmContext context, Long taskId, List<Role> roles, Long processInstanceId);
 
 	public abstract void assignRolesPermissions(List<Role> roles,
 	        ProcessInstance processInstance);
