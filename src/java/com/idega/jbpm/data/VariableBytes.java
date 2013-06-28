@@ -4,10 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
 import org.hibernate.search.annotations.Indexed;
@@ -20,10 +19,6 @@ public class VariableBytes implements Serializable {
 	private static final long serialVersionUID = -5044002250556419438L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "id", nullable = true)
-	private Long id;
-
 	@Column(name = "PROCESSFILE_")
 	private Long processFile;
 
@@ -31,15 +26,14 @@ public class VariableBytes implements Serializable {
 	@Column(name = "BYTES_")
 	private byte[] bytes;
 
-	@Column(name = "INDEX_")
+	@Column(name = "INDEX_", nullable = false)
 	private Integer index;
 
-	public Long getId() {
-		return id;
-	}
+	public VariableBytes() {
+		super();
 
-	public void setId(Long id) {
-		this.id = id;
+		this.processFile = Long.valueOf(0);
+		this.index = 0;
 	}
 
 	public Long getProcessFile() {
@@ -64,6 +58,13 @@ public class VariableBytes implements Serializable {
 
 	public void setIndex(Integer index) {
 		this.index = index;
+	}
+
+	@PrePersist
+	public void setDefaultValues() {
+		if (processFile == null) {
+			processFile = Long.valueOf(0);
+		}
 	}
 
 	@Override
