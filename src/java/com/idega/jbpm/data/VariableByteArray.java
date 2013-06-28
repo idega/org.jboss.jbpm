@@ -5,19 +5,16 @@ import java.util.Collection;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.PrePersist;
 
-import org.hibernate.search.annotations.Indexed;
-
-@Entity
-@Indexed
-@Table(name = "JBPM_BYTEARRAY")
+//@Entity
+//@Indexed
+//@Table(name = "JBPM_BYTEARRAY")
 public class VariableByteArray implements Serializable {
 
 	private static final long serialVersionUID = -542767802784233348L;
@@ -29,6 +26,15 @@ public class VariableByteArray implements Serializable {
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "processFile")
 	private Collection<VariableBytes> bytes;
+
+	@Column(name = "PROCESSFILE_")
+	private Long file;
+
+	public VariableByteArray() {
+		super();
+
+		file = Long.valueOf(0);
+	}
 
 	public Long getId() {
 		return id;
@@ -44,6 +50,21 @@ public class VariableByteArray implements Serializable {
 
 	public void setBytes(Collection<VariableBytes> bytes) {
 		this.bytes = bytes;
+	}
+
+	public Long getFile() {
+		return file;
+	}
+
+	public void setFile(Long file) {
+		this.file = file;
+	}
+
+	@PrePersist
+	public void setDefaultValues() {
+		if (file == null) {
+			file = Long.valueOf(0);
+		}
 	}
 
 	@Override

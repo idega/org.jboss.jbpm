@@ -13,7 +13,6 @@
     <entity class="com.idega.jbpm.data.ProcessDefinitionVariablesBind" />
     <entity class="com.idega.jbpm.data.BPMVariableData" />
     <entity class="com.idega.jbpm.data.Variable" />
-    <entity class="com.idega.jbpm.data.VariableByteArray" />
     <entity class="com.idega.jbpm.data.VariableBytes" />
         
 </entity-mappings>

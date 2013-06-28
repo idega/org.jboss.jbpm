@@ -6,7 +6,6 @@ import org.hibernate.search.annotations.Factory;
 import org.hibernate.search.cfg.SearchMapping;
 
 import com.idega.jbpm.data.Variable;
-import com.idega.jbpm.data.VariableByteArray;
 import com.idega.jbpm.data.VariableBytes;
 import com.idega.jbpm.search.bridge.VariableBytesInstanceBridge;
 import com.idega.jbpm.search.bridge.VariableDateInstanceBridge;
@@ -45,13 +44,13 @@ public class BPMSearchIndexMapping {
 						.bridge(VariableBytesInstanceBridge.class)
 						.field();
 
-		mapping.entity(VariableByteArray.class)
-			.indexed()
-				.interceptor(VariableByteArrayInterceptor.class)
-					.property("bytes", ElementType.FIELD)
-						.bridge(VariableBytesInstanceBridge.class)
-						.indexEmbedded()
-						.field();
+//		mapping.entity(VariableByteArray.class)
+//			.indexed()
+//				.interceptor(VariableByteArrayInterceptor.class)
+//					.property("bytes", ElementType.FIELD)
+//						.bridge(VariableBytesInstanceBridge.class)
+//						.indexEmbedded()
+//						.field();
 
 		mapping.entity(VariableBytes.class)
 			.indexed()
