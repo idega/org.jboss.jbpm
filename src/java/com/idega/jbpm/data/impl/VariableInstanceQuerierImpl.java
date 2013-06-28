@@ -2563,7 +2563,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					flexible = false;
 				}
 				if (flexible) {
-					valueToMatch = CoreConstants.STAR + valueToMatch.toString() + CoreConstants.STAR;
+					if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.search_vars_full_like", Boolean.FALSE)) {
+						valueToMatch = CoreConstants.STAR + valueToMatch.toString();
+					}
+					valueToMatch = valueToMatch.toString() + CoreConstants.STAR;
 				}
 			}
 		} else if (value instanceof Double) {
@@ -2916,7 +2919,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 				results = getConvertedVariables(vars);
 			} else {
-				/*if (!ListUtil.isEmpty(procInstIds) || !ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds)) {
+				if (!ListUtil.isEmpty(procInstIds) || !ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds)) {
 					List<Serializable[]> data = getInformationByVariablesNameAndValuesAndProcesses(null, null, null,
 							new ArrayList<VariableQuerierData>(activeVariables.values()),
 							variables, null,
@@ -2928,7 +2931,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 								", proc. inst. IDs: " + procInstIds + ", task inst. IDs: " + taskInstIds + ", var. inst. IDs: " + varIds);
 					}
 					return results;
-				}*/
+				}
 
 				//	1. Find proc. inst. IDs from variables by conditions
 				List<Variable> vars = null;
