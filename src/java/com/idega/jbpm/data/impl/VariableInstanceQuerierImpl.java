@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -3096,6 +3097,21 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			Map<String, Boolean> flexibleVariables,
 			boolean useCachedVariables,
 			boolean strictBinaryVariables) {
+
+		if (!MapUtil.isEmpty(activeVariables)) {
+			List<VariableQuerierData> queryData = new ArrayList<VariableQuerierData>(activeVariables.values());
+			Collections.sort(queryData, new Comparator<VariableQuerierData>() {
+
+				@Override
+				public int compare(VariableQuerierData var1, VariableQuerierData var2) {
+					return -1 * (Integer.valueOf(var1.getOrder()).compareTo(var2.getOrder()));
+				}
+			});
+
+			activeVariables = new LinkedHashMap<String, VariableQuerierData>();
+			for (VariableQuerierData activeVar: queryData)
+				activeVariables.put(activeVar.getName(), activeVar);
+		}
 
 		if (isLuceneQueryingTurnedOn()) {
 			return getVariablesByLucene(

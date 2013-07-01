@@ -100,6 +100,7 @@ public class VariableQuerierData implements Serializable {
 
 	private String name = null, searchExpression = null;
 	private List<Serializable> values = null;
+	private int order = 0;
 	private boolean flexible = Boolean.TRUE;
 
 	/**
@@ -185,6 +186,14 @@ public class VariableQuerierData implements Serializable {
 
 	public void setFlexible(boolean flexible) {
 		this.flexible = flexible;
+	}
+
+	public int getOrder() {
+		return order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
 	}
 
 	@Override
