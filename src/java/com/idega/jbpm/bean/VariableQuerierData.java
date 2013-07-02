@@ -110,8 +110,9 @@ public class VariableQuerierData implements Serializable {
 	 * @param searchExpression same as
 	 * {@link BPMProcessVariable#getExpression()}.
 	 */
-	public VariableQuerierData(String name) {
+	public VariableQuerierData(String name, int order) {
 		this.name = name;
+		this.order = order;
 	}
 
 	/**
@@ -121,8 +122,8 @@ public class VariableQuerierData implements Serializable {
 	 * @param searchExpression same as
 	 * {@link BPMProcessVariable#getExpression()}.
 	 */
-	public VariableQuerierData(String name, List<Serializable> value, String searchExpression) {
-		this(name, value);
+	public VariableQuerierData(String name, int order, boolean flexible, List<Serializable> value, String searchExpression) {
+		this(name, order, flexible, value);
 		this.searchExpression = searchExpression;
 	}
 
@@ -131,9 +132,11 @@ public class VariableQuerierData implements Serializable {
 	 * @param value same as {@link List} of
 	 * {@link BPMProcessVariable#getRealValue()}.
 	 */
-	public VariableQuerierData(String name, List<Serializable> value) {
+	public VariableQuerierData(String name, int order, boolean flexible, List<Serializable> value) {
 		super();
 		this.name = name;
+		this.order = order;
+		this.flexible = flexible;
 		this.values = value;
 	}
 
@@ -198,6 +201,7 @@ public class VariableQuerierData implements Serializable {
 
 	@Override
 	public String toString() {
-		return getName() + " values: " + getValues() + ", search expression: " + getSearchExpression() + ", flexible: " + isFlexible();
+		return getName() + " values: " + getValues() + ", search expression: " + getSearchExpression() + ", flexible: " + isFlexible() +
+				", order: " + getOrder();
 	}
 }

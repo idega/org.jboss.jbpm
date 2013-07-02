@@ -60,9 +60,9 @@ public class BPMProcessVariable implements Serializable {
 		this.expression = expression;
 	}
 
-	private String name, value, type;
+	private String name, value, type, expression = null;
 	private boolean flexible, multiple;
-	private String expression = null;
+	private int order = 0;
 
 	public String getName() {
 		return name;
@@ -134,6 +134,14 @@ public class BPMProcessVariable implements Serializable {
 
 	public void setMultiple(boolean multiple) {
 		this.multiple = multiple;
+	}
+
+	public int getOrder() {
+		return order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
 	}
 
 	@Override
