@@ -195,6 +195,16 @@ public interface VariableInstanceQuerier extends GenericDao {
 			boolean useCachedVariables,
 			boolean strictBinaryVariables
 	);
+	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+			Map<String, VariableQuerierData> activeVariables,
+			List<String> variables,
+			List<String> procDefNames,
+			List<Long> originalProcInstIds,
+			Map<String, Boolean> flexibleVariables,
+			boolean useCachedVariables,
+			boolean strictBinaryVariables,
+			boolean selectOnlyProcIntsIds
+	);
 
 	public boolean isVariableCached(String name);
 	public List<VariableInstanceInfo> getCachedVariables(String name, Serializable value, boolean approximate);
