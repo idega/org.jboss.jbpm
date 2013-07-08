@@ -146,13 +146,12 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				Map<String, Object> vars = null;
 				try {
 					vars = ti.getVariables();
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					LOGGER.log(Level.WARNING, "Error loading variables for task: " + taskInstanceId, e);
 				}
 				Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
 
 				if (!ti.hasEnded()) {
-					@SuppressWarnings("unchecked")
 					List<VariableAccess> accesses = ti.getTask().getTaskController().getVariableAccesses();
 
 					for (VariableAccess variableAccess: accesses) {

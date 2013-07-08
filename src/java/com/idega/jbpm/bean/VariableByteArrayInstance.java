@@ -17,6 +17,7 @@ import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.ListUtil;
+import com.idega.util.StringUtil;
 
 public class VariableByteArrayInstance extends VariableInstanceInfo {
 
@@ -87,33 +88,63 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 		return value;
 	}
 
+	public static <T extends Serializable> T getValue(String name, Long piId) {
+		if (piId == null || StringUtil.isEmpty(name))
+			return null;
+
+		String query = "select b.BYTES_ from JBPM_BYTEBLOCK b, JBPM_VARIABLEINSTANCE v where v.PROCESSINSTANCE_ = " + piId +
+				" and name_ = '" + name +  "' and b.PROCESSFILE_ = v.BYTEARRAYVALUE_";
+		return getValue(query, null, null);
+	}
+	public static <T extends Serializable> T getValue(Long tiId, String name) {
+		if (tiId == null || StringUtil.isEmpty(name))
+			return null;
+
+		String query = "select b.BYTES_ from JBPM_BYTEBLOCK b, JBPM_VARIABLEINSTANCE v where v.TASKINSTANCE_ = " + tiId +
+				" and name_ = '" + name +  "' and b.PROCESSFILE_ = v.BYTEARRAYVALUE_";
+		return getValue(query, null, null);
+	}
+
+	private static <T extends Serializable> T getValue(String query, Long variableId, Long procInstId) {
+		try {
+			List<Serializable[]> values = SimpleQuerier.executeQuery(query, 1);
+			if (ListUtil.isEmpty(values)) {
+				return null;
+			}
+			Object bytes = null;
+
+			if (values.size() > 1) {
+				bytes = new byte[values.size() * 1024];
+				int pos = 0;
+				for (Iterator<Serializable[]> it = values.iterator(); it.hasNext();) {
+					byte[] tmp = (byte[]) it.next()[0];
+					System.arraycopy(tmp, 0, bytes, pos, tmp.length);
+					pos += tmp.length;
+				}
+			} else {
+				bytes = values.iterator().next()[0];
+			}
+
+			Serializable value = bytes instanceof byte[] ? getConvertedValue((byte[]) bytes, variableId, procInstId) : null;
+
+			if (value instanceof Serializable) {
+				@SuppressWarnings("unchecked")
+				T realValue = (T) value;
+				return realValue;
+			}
+
+			return null;
+		} catch (Exception e) {
+			Logger.getLogger(VariableByteArrayInstance.class.getName()).log(Level.WARNING, "Error executing query: " + query, e);
+		}
+
+		return null;
+	}
+
 	public static <T extends Serializable> T getValue(Serializable value, Long variableId, Long procInstId) {
 		if (value instanceof Number) {
 			String query = "select b.BYTES_ from JBPM_BYTEBLOCK b where b.PROCESSFILE_ = " + value;
-			try {
-				List<Serializable[]> values = SimpleQuerier.executeQuery(query, 1);
-				if (ListUtil.isEmpty(values)) {
-					value = null;
-					return null;
-				}
-				Object bytes = null;
-
-				if (values.size() > 1) {
-					bytes = new byte[values.size() * 1024];
-					int pos = 0;
-					for (Iterator<Serializable[]> it = values.iterator(); it.hasNext();) {
-						byte[] tmp = (byte[]) it.next()[0];
-						System.arraycopy(tmp, 0, bytes, pos, tmp.length);
-						pos += tmp.length;
-					}
-				} else {
-					bytes = values.iterator().next()[0];
-				}
-
-				value = bytes instanceof byte[] ? getConvertedValue((byte[]) bytes, variableId, procInstId) : null;
-			} catch (Exception e) {
-				Logger.getLogger(VariableByteArrayInstance.class.getName()).log(Level.WARNING, "Error executing query: " + query, e);
-			}
+			value = getValue(query, variableId, procInstId);
 		} else if (value instanceof byte[]) {
 			value = getConvertedValue((byte[]) value, variableId, procInstId);
 		} else if (value instanceof Blob) {
