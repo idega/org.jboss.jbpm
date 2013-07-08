@@ -2303,7 +2303,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				currentBinds = new ArrayList<ProcessDefinitionVariablesBind>();
 
 			currentBinds.add(bind);
-			LOGGER.info("Added new bind: " + bind);
 			return bind;
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error adding new bind: " + variableName + " for process: " + processDefinitionName, e);
