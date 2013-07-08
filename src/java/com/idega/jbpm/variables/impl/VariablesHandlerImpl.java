@@ -138,12 +138,17 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	public Map<String, Object> populateVariables(final long taskInstanceId) {
 		return getIdegaJbpmContext().execute(new JbpmCallback<Map<String, Object>>() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public Map<String, Object> doInJbpm(JbpmContext context) throws JbpmException {
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 
-				@SuppressWarnings("unchecked")
-				Map<String, Object> vars = ti.getVariables();
+				Map<String, Object> vars = null;
+				try {
+					vars = ti.getVariables();
+				} catch (Exception e) {
+					LOGGER.log(Level.WARNING, "Error loading variables for task: " + taskInstanceId, e);
+				}
 				Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
 
 				if (!ti.hasEnded()) {
