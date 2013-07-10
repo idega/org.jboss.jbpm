@@ -69,6 +69,7 @@ import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.event.ProcessInstanceCreatedEvent;
 import com.idega.jbpm.event.TaskInstanceSubmitted;
 import com.idega.jbpm.event.VariableCreatedEvent;
 import com.idega.jbpm.search.bridge.VariableDateInstanceBridge;
@@ -2173,6 +2174,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			doIndexVariables(variableEvent.getProcessInstanceId());
 		} else if (event instanceof TaskInstanceSubmitted) {
 			doIndexVariables(((TaskInstanceSubmitted) event).getProcessInstanceId());
+		} else if (event instanceof ProcessInstanceCreatedEvent) {
+			doIndexVariables(((ProcessInstanceCreatedEvent) event).getProcessInstanceId());
 		}
 	}
 
@@ -3461,6 +3464,36 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		return results;
+	}
+
+	@Override
+	public Map<Long, Map<String, VariableInstanceInfo>> getGroupedData(Collection<VariableInstanceInfo> variables) {
+		if (ListUtil.isEmpty(variables))
+			return null;
+
+		Map<Long, Map<String, VariableInstanceInfo>> data = new LinkedHashMap<Long, Map<String,VariableInstanceInfo>>();
+		for (VariableInstanceInfo var: variables) {
+			Long piId = var.getProcessInstanceId();
+			if (piId == null)
+				continue;
+
+			String name = var.getName();
+			if (StringUtil.isEmpty(name))
+				continue;
+
+			Serializable value = var.getValue();
+			if (value == null)
+				continue;
+
+			Map<String, VariableInstanceInfo> procData = data.get(piId);
+			if (procData == null) {
+				procData = new HashMap<String, VariableInstanceInfo>();
+				data.put(piId, procData);
+			}
+
+			procData.put(var.getName(), var);
+		}
+		return data;
 	}
 
 }
