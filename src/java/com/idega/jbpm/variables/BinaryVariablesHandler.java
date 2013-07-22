@@ -28,6 +28,7 @@ public interface BinaryVariablesHandler {
 	public abstract Map<String, Object> resolveBinaryVariables(Map<String, Object> variables);
 
 	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables);
+	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Long tiId, Map<String, Object> variables);
 
 	public abstract void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri);
 	public void persistBinaryVariable(BinaryVariable binaryVariable, String path, String fileName, Long contentLength, InputStream stream,

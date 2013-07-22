@@ -243,6 +243,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 	@Override
 	public List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables) {
+		return resolveBinaryVariablesAsList(null, variables);
+	}
+
+	@Override
+	public List<BinaryVariable> resolveBinaryVariablesAsList(Long tiId, Map<String, Object> variables) {
 		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
 
 		for (Entry<String, Object> entry : variables.entrySet()) {
@@ -282,9 +287,15 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					try {
 						BinaryVariable binaryVariable = (BinaryVariable) json.convertToObject(binVarJSON);
 
-						if (binaryVariable != null)
-							binaryVars.add(binaryVariable);
-						else {
+						if (binaryVariable != null) {
+							if (tiId != null) {
+								if (binaryVariable.getTaskInstanceId() == tiId.longValue()) {
+									binaryVars.add(binaryVariable);
+								}
+							} else {
+								binaryVars.add(binaryVariable);
+							}
+						} else {
 							LOGGER.log(Level.WARNING, "Null returned from json.convertToObject by json="+ binVarJSON+ ". All json expression = "+
 									binVarsInJSON);
 						}

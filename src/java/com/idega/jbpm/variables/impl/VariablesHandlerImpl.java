@@ -196,13 +196,13 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	@Override
 	public List<BinaryVariable> resolveBinaryVariables(long taskInstanceId) {
 		Map<String, Object> variables = populateVariables(taskInstanceId);
-		return getBinaryVariablesHandler().resolveBinaryVariablesAsList(variables);
+		return getBinaryVariablesHandler().resolveBinaryVariablesAsList(taskInstanceId, variables);
 	}
 
 	@Override
 	public List<BinaryVariable> resolveBinaryVariables(long taskInstanceId, Variable variable) {
 		Map<String, Object> variables = populateVariables(taskInstanceId);
-		List<BinaryVariable> binVars = getBinaryVariablesHandler().resolveBinaryVariablesAsList(variables);
+		List<BinaryVariable> binVars = getBinaryVariablesHandler().resolveBinaryVariablesAsList(taskInstanceId, variables);
 
 		if (ListUtil.isEmpty(binVars))
 			return binVars;
