@@ -81,7 +81,6 @@ public class VariableBytesInstanceBridge implements FieldBridge, TwoWayStringBri
 					values = values.concat(CoreConstants.SPACE);
 			}
 
-			LOGGER.info("Set value " + values + " for field " + name + " in Lucene index document");
 			luceneOptions.addFieldToDocument(name, values, document);
 		}
 	}

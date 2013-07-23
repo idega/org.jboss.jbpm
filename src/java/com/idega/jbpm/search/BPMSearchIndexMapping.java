@@ -3,6 +3,7 @@ package com.idega.jbpm.search;
 import java.lang.annotation.ElementType;
 
 import org.hibernate.search.annotations.Factory;
+import org.hibernate.search.annotations.Store;
 import org.hibernate.search.cfg.SearchMapping;
 
 import com.idega.jbpm.data.Variable;
@@ -22,21 +23,29 @@ public class BPMSearchIndexMapping {
 						.documentId()
 					.property("name", ElementType.FIELD)
 						.field()
+							.store(Store.YES)
 					.property("processInstance", ElementType.FIELD)
 						.field()
+							.store(Store.YES)
 					.property("taskInstance", ElementType.FIELD)
 						.field()
+							.store(Store.YES)
 					.property("stringValue", ElementType.FIELD)
 						.field()
+							.store(Store.YES)
 					.property("longValue", ElementType.FIELD)
 						.field()
+							.store(Store.YES)
 					.property("doubleValue", ElementType.FIELD)
 						.field()
+							.store(Store.YES)
 					.property("dateValue", ElementType.FIELD)
 						.bridge(VariableDateInstanceBridge.class)
 						.field()
+							.store(Store.YES)
 					.property("classType", ElementType.FIELD)
 						.field()
+							.store(Store.YES)
 					.property("bytesValue", ElementType.FIELD)
 						.bridge(VariableBytesInstanceBridge.class)
 						.field()

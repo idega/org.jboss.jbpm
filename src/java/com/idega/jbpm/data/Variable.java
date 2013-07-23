@@ -61,6 +61,7 @@ public class Variable implements Serializable {
 	private Long id;
 
 	@Column(name = "name_")
+	@Field(store=Store.YES)
 	private String name;
 
 	@Column(name = "PROCESSINSTANCE_")
@@ -68,30 +69,37 @@ public class Variable implements Serializable {
 	private Long processInstance;
 
 	@Column(name = "TASKINSTANCE_")
+	@Field(store=Store.YES)
 	private Long taskInstance;
 
 	/**
 	 * Value columns start
 	 */
 	@Column(name = "stringvalue_", length = Integer.MAX_VALUE)
+	@Field(store=Store.YES)
 	private String stringValue;
 
 	@Column(name = "longvalue_")
+	@Field(store=Store.YES)
 	private Long longValue;
 
 	@Column(name = "DOUBLEVALUE_")
+	@Field(store=Store.YES)
 	private Double doubleValue;
 
 	@Column(name = "DATEVALUE_")
+	@Field(store=Store.YES)
 	private Timestamp dateValue;
 
 	@Column(name = "BYTEARRAYVALUE_")
+	@Field(store=Store.YES)
 	private Long byteArrayValue;
 	/**
 	 * Value columns end
 	 */
 
 	@Column(name = "CLASS_")
+	@Field(store=Store.YES)
 	private Character classType;
 
 	@Transient
