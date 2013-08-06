@@ -1,5 +1,7 @@
 package com.idega.jbpm.event;
 
+import java.util.Map;
+
 import org.springframework.context.ApplicationEvent;
 
 import com.idega.jbpm.exe.TaskInstanceW;
@@ -10,11 +12,15 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 
 	private Long piId, tiId;
 
-	public TaskInstanceSubmitted(TaskInstanceW source, Long piId, Long tiId) {
+	private Map<String, Object> variables;
+
+	public TaskInstanceSubmitted(TaskInstanceW source, Long piId, Long tiId, Map<String, Object> variables) {
 		super(source);
 
 		this.piId = piId;
 		this.tiId = tiId;
+
+		this.variables = variables;
 	}
 
 	public Long getProcessInstanceId() {
@@ -33,8 +39,17 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 		this.tiId = tiId;
 	}
 
+	public Map<String, Object> getVariables() {
+		return variables;
+	}
+
+	public void setVariables(Map<String, Object> variables) {
+		this.variables = variables;
+	}
+
 	@Override
 	public String toString() {
-		return "Task instance (ID: " + getTaskInstanceId() + ") submitted for process instance: " + getProcessInstanceId();
+		return "Task instance (ID: " + getTaskInstanceId() + ") submitted for process instance: " + getProcessInstanceId() + " with variables: " +
+				getVariables();
 	}
 }
