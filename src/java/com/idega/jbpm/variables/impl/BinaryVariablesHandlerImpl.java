@@ -149,51 +149,66 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 	@Override
 	public void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri) {
-		String path = getFolderForBinaryVariable(binaryVariable.getTaskInstanceId());
-
 		final FileURIHandler fileURIHandler = getFileURIHandlerFactory().getHandler(fileUri);
 
 		final FileInfo fileInfo = fileURIHandler.getFileInfo(fileUri);
 		String fileName = fileInfo.getFileName();
-
-		try {
-			IWSlideService repository = getIWSlideService();
-
-			String normalizedName = StringHandler.stripNonRomanCharacters(fileName,
-					new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_', '.'});
-			normalizedName = StringHandler.removeWhiteSpace(normalizedName);
-
-			int index = 0;
-			String tmpUri = path;
-			//	File by the same name already exists! Renaming this file not to overwrite existing file
-			while (repository.getExistence(concPF(tmpUri, normalizedName))) {
-				tmpUri = path.concat(String.valueOf((index++)));
+		
+		
+		boolean persistedToRepository = binaryVariable.isPersistedToRepository();
+		String path;
+		if(persistedToRepository){
+			path = fileUri.getPath();
+			if(path.startsWith(CoreConstants.WEBDAV_SERVLET_URI)){
+				path = path.substring(CoreConstants.WEBDAV_SERVLET_URI.length());
 			}
-			path = tmpUri;
-
-			// This should be changed, temporal fix. user will not be able submit a form if exception will be thrown here
-			InputStream stream = null;
-			try {
-				String uploadPath = path.concat(CoreConstants.SLASH);
-				for (int i = 0; i < 5; i++) {
-					try {
-						stream = fileURIHandler.getFile(fileUri);
-						if (!repository.uploadFile(uploadPath, normalizedName, null, stream))
-							throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName) + ". Tried to upload using " +
-									repository.getClass() + " for " + i + " times");
-					} catch (Exception e) {
-						if (i < 4) {
-							Thread.sleep(500);
-							continue;
-						}
-
-						doSendErrorNotification(fileURIHandler.getFile(fileUri), normalizedName, uploadPath, e);
-						throw e;
-					}
-					break;
+			path = path.substring(0, path.lastIndexOf('/'));
+		}else{
+			path = getFolderForBinaryVariable(binaryVariable.getTaskInstanceId());
+		}
+		
+		try {
+			String normalizedName = fileName;
+			if(!persistedToRepository){
+				IWSlideService repository = getIWSlideService();
+	
+				normalizedName = StringHandler.stripNonRomanCharacters(fileName,
+						new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_', '.'});
+				normalizedName = StringHandler.removeWhiteSpace(normalizedName);
+	
+				int index = 0;
+				String tmpUri = path;
+				//	File by the same name already exists! Renaming this file not to overwrite existing file
+				while (repository.getExistence(concPF(tmpUri, normalizedName))) {
+					tmpUri = path.concat(String.valueOf((index++)));
 				}
-			} finally {
-				IOUtil.close(stream);
+				path = tmpUri;
+	
+				// This should be changed, temporal fix. user will not be able submit a form if exception will be thrown here
+				InputStream stream = null;
+				try {
+					String uploadPath = path.concat(CoreConstants.SLASH);
+					for (int i = 0; i < 5; i++) {
+						try {
+							stream = fileURIHandler.getFile(fileUri);
+							if (!repository.uploadFile(uploadPath, normalizedName, null, stream))
+								throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName) + ". Tried to upload using " +
+										repository.getClass() + " for " + i + " times");
+						} catch (Exception e) {
+							if (i < 4) {
+								Thread.sleep(500);
+								continue;
+							}
+	
+							doSendErrorNotification(fileURIHandler.getFile(fileUri), normalizedName, uploadPath, e);
+							throw e;
+						}
+						break;
+					}
+					binaryVariable.setPersistedToRepository(true);
+				} finally {
+					IOUtil.close(stream);
+				}
 			}
 
 			binaryVariable.setFileName(fileName);
