@@ -1,5 +1,7 @@
 package com.idega.jbpm.events;
 
+import java.util.Map;
+
 import org.springframework.context.ApplicationEvent;
 
 public class ProcessInstanceCreatedEvent extends ApplicationEvent {
@@ -8,12 +10,14 @@ public class ProcessInstanceCreatedEvent extends ApplicationEvent {
 
 	private String processDefinitionName;
 	private Long processInstanceId;
+	private Map<String, Object> variables;
 
-	public ProcessInstanceCreatedEvent(String processDefinitionName, Long processInstanceId) {
+	public ProcessInstanceCreatedEvent(String processDefinitionName, Long processInstanceId, Map<String, Object> variables) {
 		super(processDefinitionName);
 
 		this.processDefinitionName = processDefinitionName;
 		this.processInstanceId = processInstanceId;
+		this.variables = variables;
 	}
 
 	public String getProcessDefinitionName() {
@@ -24,10 +28,14 @@ public class ProcessInstanceCreatedEvent extends ApplicationEvent {
 		return processInstanceId;
 	}
 
+	public Map<String, Object> getVariables() {
+		return variables;
+	}
+
 	@Override
 	public String toString() {
-		return "Notification about new process instance (ID: " + getProcessInstanceId() + ") for proc. def. with name '" + getProcessDefinitionName() +
-				"'";
+		return "Notification about new process instance (ID: " + getProcessInstanceId() +
+				") for proc. def. with name '" + getProcessDefinitionName() + "', variables: " + getVariables();
 	}
 
 }

@@ -18,6 +18,7 @@ import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.identity.Role;
+import com.idega.user.data.User;
 import com.idega.util.IWTimestamp;
 
 /**
@@ -96,27 +97,28 @@ public interface BPMDAO extends GenericDao {
 	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId);
 
 	/**
-	 * 
+	 *
 	 * @param processDefinitionName is {@link ProcessDefinition#getName()},
 	 * not <code>null</code>;
-	 * @return all {@link ProcessDefinition}s by given name or 
+	 * @return all {@link ProcessDefinition}s by given name or
 	 * {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
 	public List<ProcessDefinition> getProcessDefinitions(String processDefinitionName);
-	
+
 	public List<Long> getProcessDefinitionIdsByName(String procDefName);
 
 	/**
-	 * 
-	 * @param processDefinitionNames is {@link Collection} of 
+	 *
+	 * @param processDefinitionNames is {@link Collection} of
 	 * {@link ProcessDefinition#getName()},
 	 * not <code>null</code>;
-	 * @return {@link List} of {@link ProcessInstance}s by 
+	 * @return {@link List} of {@link ProcessInstance}s by
 	 * {@link ProcessDefinition} names or {@link Collections#emptyList()}
 	 * on failure;
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public List<ProcessInstance> getProcessInstances(
-			List<String> processDefinitionNames);
+	public List<ProcessInstance> getProcessInstances(List<String> processDefinitionNames);
+
+	public List<User> getUsersConnectedToProcess(Long piId, String procDefName, Map<String, Object> variables);
 }
