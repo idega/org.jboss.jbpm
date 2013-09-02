@@ -1,6 +1,7 @@
 package com.idega.jbpm.artifacts.presentation;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
@@ -83,6 +84,7 @@ import com.idega.presentation.text.Text;
 import com.idega.presentation.ui.CheckBox;
 import com.idega.presentation.ui.GenericButton;
 import com.idega.user.business.UserBusiness;
+import com.idega.user.data.Group;
 import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -746,9 +748,9 @@ public class ProcessArtifacts {
 			return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger(), loggedInUser);
 	}
 
-	public Collection<User> getUsersConnectedToProces(ProcessInstanceW piw ){
-		List<User> usersConnectedToProcess = piw.getUsersConnectedToProcess();
-		if(ListUtil.isEmpty(usersConnectedToProcess)){
+	public Collection<User> getUsersConnectedToProces(ProcessInstanceW piW) {
+		List<User> usersConnectedToProcess = piW.getUsersConnectedToProcess();
+		if (ListUtil.isEmpty(usersConnectedToProcess)) {
 			return Collections.emptyList();
 		}
 		return new ArrayList<User>(usersConnectedToProcess);
@@ -1545,8 +1547,12 @@ public class ProcessArtifacts {
 
 		RolesManager rolesManager = getBpmFactory().getRolesManager();
 		List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.caseHandler);
-		Collection<User> users = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
-
+		Collection<User> handlers = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
+		List<User> usersConnectedToProcess = piw.getUsersConnectedToProcess();
+		if (!ListUtil.isEmpty(handlers) && !ListUtil.isEmpty(usersConnectedToProcess)) {
+			handlers.retainAll(usersConnectedToProcess);
+		}
+		
 		Integer assignedCaseHandlerId = piw.getHandlerId();
 		String assignedCaseHandlerIdStr = assignedCaseHandlerId == null ? null : String.valueOf(assignedCaseHandlerId);
 
@@ -1561,9 +1567,9 @@ public class ProcessArtifacts {
 		AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, iwrb.getLocalizedString("bpm.selectCaseHandler", "Select handler"));
 		allHandlers.add(ap);
 
-		for (User user : users) {
-			String pk = String.valueOf(user.getPrimaryKey());
-			ap = new AdvancedProperty(pk, user.getName());
+		for (User handler: handlers) {
+			String pk = String.valueOf(handler.getPrimaryKey());
+			ap = new AdvancedProperty(pk, handler.getName());
 			if (pk.equals(assignedCaseHandlerIdStr)) {
 				ap.setSelected(true);
 			}

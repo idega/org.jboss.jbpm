@@ -37,6 +37,7 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	private Boolean hidden;
 	private long taskInstanceId;
 	private Map<String, Object> metadata;
+	private boolean persistedToRepository;
 	
 	@Autowired
 	private transient VariablesHandler variablesHandler;
@@ -44,62 +45,76 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	private transient Variable variable;
 	private transient URI uri;
 	
+	@Override
 	public long getTaskInstanceId() {
 		return taskInstanceId;
 	}
 	
+	@Override
 	public void setTaskInstanceId(long taskInstanceId) {
 		this.taskInstanceId = taskInstanceId;
 	}
 	
+	@Override
 	public String getDescription() {
 		return description;
 	}
 	
+	@Override
 	public void setDescription(String description) {
 		this.description = description;
 	}
 	
+	@Override
 	public Integer getHash() {
 		
 		checkGenHash();
 		return hash;
 	}
 	
+	@Override
 	public void setHash(int hash) {
 		this.hash = hash;
 	}
 	
+	@Override
 	public String getIdentifier() {
 		return identifier;
 	}
 	
+	@Override
 	public void setIdentifier(String identifier) {
 		this.identifier = identifier;
 		checkGenHash();
 	}
 	
+	@Override
 	public String getFileName() {
 		return fileName;
 	}
 	
+	@Override
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
 	
+	@Override
 	public String getStorageType() {
 		return storageType;
 	}
 	
+	@Override
 	public void setStorageType(String storageType) {
 		this.storageType = storageType;
 		checkGenHash();
 	}
 	
+	@Override
 	public void setMimeType(String mimeType) {
 		this.mimeType = mimeType;
 	}
 	
+	@Override
 	public String getMimeType() {
 		return mimeType;
 	}
@@ -125,10 +140,12 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		            ((BinaryVariable) obj).getIdentifier());
 	}
 	
+	@Override
 	public Long getContentLength() {
 		return contentLength;
 	}
 	
+	@Override
 	public void setContentLength(Long contentLength) {
 		this.contentLength = contentLength;
 	}
@@ -141,22 +158,27 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		this.variableName = variableName;
 	}
 	
+	@Override
 	public Boolean getSigned() {
 		return signed;
 	}
 	
+	@Override
 	public void setSigned(Boolean signed) {
 		this.signed = signed;
 	}
 	
+	@Override
 	public Boolean getHidden() {
 		return hidden;
 	}
 	
+	@Override
 	public void setHidden(Boolean hidden) {
 		this.hidden = hidden;
 	}
 	
+	@Override
 	public Variable getVariable() {
 		if (variable == null && getVariableName() != null)
 			variable = Variable.parseDefaultStringRepresentation(getVariableName());
@@ -164,15 +186,18 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		return variable;
 	}
 	
+	@Override
 	public void setVariable(Variable variable) {
 		this.variable = variable;
 		setVariableName(variable.getDefaultStringRepresentation());
 	}
 	
+	@Override
 	public boolean isPersisted() {
 		return getIdentifier() != null;
 	}
 	
+	@Override
 	public void persist() {
 		if (!isPersisted()) {
 			if (getUri() != null) {
@@ -186,6 +211,7 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		}
 	}
 	
+	@Override
 	public void update() {
 		List<BinaryVariable> binVars = getVariablesHandler().resolveBinaryVariables(getTaskInstanceId(), getVariable());
 		if (binVars != null && !binVars.isEmpty()) {
@@ -210,6 +236,7 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		            + " and task instanceid=" + getTaskInstanceId());
 	}
 	
+	@Override
 	public Object getPersistentResource() {
 		return getVariablesHandler().getBinaryVariablesHandler().getBinaryVariablePersistentResource(this);
 	}
@@ -229,6 +256,7 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		this.uri = uri;
 	}
 	
+	@Override
 	public boolean isSignable() {
 		if (getFileName().toLowerCase().endsWith(".pdf"))
 			return true;
@@ -236,12 +264,14 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		return false;
 	}
 	
+	@Override
 	public Map<String, Object> getMetadata() {
 		if (metadata == null)
 			metadata = new HashMap<String, Object>();
 		return metadata;
 	}
 	
+	@Override
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
 	}
@@ -250,4 +280,14 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	public String toString() {
 		return getFileName() + ": " + getIdentifier();
 	}
+
+	@Override
+	public boolean isPersistedToRepository() {
+		return persistedToRepository;
+	}
+
+	public void setPersistedToRepository(boolean persistedToRepository) {
+		this.persistedToRepository = persistedToRepository;
+	}
+
 }

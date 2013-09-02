@@ -66,6 +66,9 @@ public interface BinaryVariable {
 	
 	public abstract long getTaskInstanceId();
 	
+	public boolean isPersistedToRepository();
+	public void setPersistedToRepository(boolean persistedToRepository);
+	
 	public abstract boolean isPersisted();
 	
 	public abstract boolean isSignable();

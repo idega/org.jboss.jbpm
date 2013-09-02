@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.ServletContext;
+
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
@@ -26,6 +28,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.idega.block.process.data.CaseBMPBean;
 import com.idega.core.persistence.Param;
@@ -39,6 +43,7 @@ import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.bean.VariableInstanceInfo;
 import com.idega.jbpm.bean.VariableInstanceType;
+import com.idega.jbpm.business.BPMAssetsResolver;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.AutoloadedProcessDefinition;
@@ -52,6 +57,7 @@ import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.events.VariableCreatedEvent;
 import com.idega.jbpm.identity.Role;
+import com.idega.user.data.User;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.IWTimestamp;
@@ -890,14 +896,14 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 
 		return getResultListByInlineQuery(
-				"FROM " + ProcessInstance.class.getName() + " pi, " + 
+				"FROM " + ProcessInstance.class.getName() + " pi, " +
 				ProcessDefinition.class.getName() + " pd " +
 				"WHERE pi.processDefinition = pd.id " +
-				"AND pd.name = :processDefinitionNames", 
-				ProcessInstance.class, 
+				"AND pd.name = :processDefinitionNames",
+				ProcessInstance.class,
 				new Param("processDefinitionNames", processDefinitionNames));
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.idega.jbpm.data.dao.BPMDAO#getProcessDefinitions(java.lang.String)
@@ -908,11 +914,43 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		if (StringUtil.isEmpty(processDefinitionName)) {
 			return Collections.emptyList();
 		}
-		
+
 		return getResultListByInlineQuery(
 				"FROM " + ProcessDefinition.class.getName() + " pd " +
-						"WHERE pd.name = :procDefName", 
-				ProcessDefinition.class, 
+						"WHERE pd.name = :procDefName",
+				ProcessDefinition.class,
 				new Param("procDefName", processDefinitionName));
+	}
+
+	@Override
+	public List<User> getUsersConnectedToProcess(Long piId, String procDefName, Map<String, Object> variables) {
+		ServletContext servletCtx = IWMainApplication.getDefaultIWMainApplication().getServletContext();
+		WebApplicationContext webAppCtx = WebApplicationContextUtils.getWebApplicationContext(servletCtx);
+		@SuppressWarnings("unchecked")
+		Map<String, BPMAssetsResolver> bpmAssetsResolvers = webAppCtx.getBeansOfType(BPMAssetsResolver.class);
+		if (!MapUtil.isEmpty(bpmAssetsResolvers)) {
+			if (MapUtil.isEmpty(variables)) {
+				Collection<VariableInstanceInfo> vars = getVariablesQuerier().getVariablesByProcessInstanceId(piId);
+				if (!ListUtil.isEmpty(vars)) {
+					variables = new HashMap<String, Object>();
+					for (VariableInstanceInfo var: vars) {
+						Serializable value = var.getValue();
+						if (value != null) {
+							variables.put(var.getName(), value);
+						}
+					}
+				}
+			}
+
+			List<User> allUsers = new ArrayList<User>();
+			for (BPMAssetsResolver resolver: bpmAssetsResolvers.values()) {
+				List<User> usersConnectedToProcess = resolver.getUsersConectedToProcess(piId, procDefName, variables);
+				if (!ListUtil.isEmpty(usersConnectedToProcess)) {
+					allUsers.addAll(usersConnectedToProcess);
+				}
+			}
+			return allUsers;
+		}
+		return null;
 	}
 }
