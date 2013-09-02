@@ -762,14 +762,24 @@ public class ProcessArtifacts {
 
 		Long processInstanceId = params.getPiId();
 		if (processInstanceId == null) {
+			LOGGER.warning("Failed to get process instance id");
 			return null;
 		}
 
-		ProcessInstanceW piw = getBpmFactory()
-		        .getProcessManagerByProcessInstanceId(processInstanceId)
-		        .getProcessInstance(processInstanceId);
+		ProcessManager processManager = getBpmFactory()
+		        .getProcessManagerByProcessInstanceId(processInstanceId);
+		if (processManager == null) {
+			LOGGER.warning("Failed to get " + ProcessManager.class);
+			return null;
+		}
 
-		Collection<User> uniqueUsers = Collections.emptyList();
+		ProcessInstanceW piw = processManager.getProcessInstance(processInstanceId);
+		if (piw == null) {
+			LOGGER.warning("Failed to get " + ProcessInstanceW.class);
+			return null;
+		}
+
+		Collection<User> uniqueUsers = null;
 		if (params.isShowOnlyCreatorInContacts()) {
 			User owner = piw.getOwner();
 			if (owner == null) {
@@ -781,6 +791,10 @@ public class ProcessArtifacts {
 			uniqueUsers = getUsersConnectedToProces(piw);
 		}
 
+		if (ListUtil.isEmpty(uniqueUsers)) {
+			uniqueUsers = Collections.emptyList();
+		}
+		
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 		rows.setTotal(uniqueUsers.size());
 		rows.setPage(uniqueUsers.isEmpty() ? 0 : 1);
@@ -1632,25 +1646,46 @@ public class ProcessArtifacts {
 
 	@Transactional(readOnly = true)
 	public boolean isTaskSubmitted(Long tiId) {
+		LOGGER.info("Starting method: isTaskSubmitted with tiid: " + tiId);
+		
 		try {
 			TaskInstanceW tiW = getBpmFactory().getTaskInstanceW(tiId);
-			if (tiW == null)
+			if (tiW == null) {
+				LOGGER.warning("No " + TaskInstanceW.class + " found by tiid: " + tiId);
 				return false;
-
+			}
+				
 			TaskInstance task = tiW.getTaskInstance();
-			if (task != null && task.hasEnded())
+			if (task != null && task.hasEnded()) {
+				LOGGER.warning(TaskInstance.class + 
+						" is null or has ended (" + tiId + ")");
 				return true;
-
-			List<TaskInstanceW> submittedTasks = tiW.getProcessInstanceW().getSubmittedTaskInstances();
-			if (ListUtil.isEmpty(submittedTasks))
+			}
+				
+			ProcessInstanceW processInstanceW = tiW.getProcessInstanceW();
+			List<TaskInstanceW> submittedTasks = processInstanceW.getSubmittedTaskInstances();
+			if (ListUtil.isEmpty(submittedTasks)) {
+				LOGGER.warning("No submitted tasks found by tiid: " + tiId + 
+						" and process instance id: " + 
+						processInstanceW.getProcessInstanceId());
 				return false;
+			}
+				
 
-			for (TaskInstanceW submittedTask: submittedTasks)
+			for (TaskInstanceW submittedTask: submittedTasks) {
+				LOGGER.info("Verifying if submitted task " + submittedTask + 
+						" has id: " + tiId );
+				
 				if (submittedTask.getTaskInstanceId().longValue() == tiId.longValue())
 					return true;
+			}
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while resolving if task by ID " + tiId + " is submitted", e);
+		} finally {
+			LOGGER.info("finished verifying if task by id :" + tiId + 
+					" is submitted");
 		}
+		
 		return false;
 	}
 
