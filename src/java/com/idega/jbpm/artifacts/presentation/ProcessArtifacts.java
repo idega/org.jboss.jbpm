@@ -1436,6 +1436,7 @@ public class ProcessArtifacts {
 	}
 
 	public boolean assignCase(String handlerIdStr, Long processInstanceId) {
+		
 		ProcessInstanceW piw = getBpmFactory()
 		        .getProcessManagerByProcessInstanceId(processInstanceId)
 		        .getProcessInstance(processInstanceId);
