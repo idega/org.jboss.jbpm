@@ -67,6 +67,7 @@ import com.idega.jbpm.data.AutoloadedProcessDefinition;
 import com.idega.jbpm.data.BPMVariableData;
 import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.Variable;
+import com.idega.jbpm.data.VariableBytes;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.event.ProcessInstanceCreatedEvent;
@@ -2612,6 +2613,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private BooleanJunction<?> getVariablesConditions(
+			Class<?> queryType,
 			QueryBuilder query,
 			VariableQuerierData activeVariable,
 			List<String> names,
@@ -2621,6 +2623,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			Map<String, Boolean> flexibleVariables
 	) {
 		BooleanJunction<?> conditions = query.bool();
+
+		if (VariableBytes.class.getName().equals(queryType.getName())) {
+			conditions.must(
+					query.phrase()
+						.onField("bytes")
+						.sentence(activeVariable.getValues().toString())
+						.createQuery()
+			);
+			return conditions;
+		}
 
 		if (activeVariable != null) {
 			conditions.must(
@@ -2757,6 +2769,69 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return conditions;
 	}
 
+	private Class<?> getQueryType(VariableQuerierData queryData) {
+		if (queryData == null) {
+			return Variable.class;
+		}
+
+		String varName = queryData.getName();
+		if (varName.startsWith(VariableInstanceType.LIST.getPrefix()) || varName.startsWith(VariableInstanceType.OBJ_LIST.getPrefix())) {
+			return VariableBytes.class;
+		}
+
+		return Variable.class;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private <T> List<T> getResults(
+			Class<?> queryType,
+			Class<T> resultsType,
+
+			FullTextSession fullTextSession,
+			Transaction tx,
+			BooleanJunction<?> conditions,
+			String... fields
+	) {
+		try {
+			FullTextQuery query = fullTextSession.createFullTextQuery(conditions.createQuery());
+			if (queryType.getName().equals(VariableBytes.class.getName())) {
+				//	1. Load variable bytes by conditions
+				List<VariableBytes> varsBytes = query.list();
+				if (ListUtil.isEmpty(varsBytes)) {
+					return null;
+				}
+
+				//	2. Find variables by bytes
+				Map<Long, Boolean> ids = new HashMap<Long, Boolean>();
+				for (VariableBytes varBytes: varsBytes) {
+					ids.put(varBytes.getProcessFile(), Boolean.TRUE);
+				}
+				tx.commit();
+				List<Variable> vars = bpmDAO.getVariablesByBytes(new ArrayList<Long>(ids.keySet()));
+				if (ListUtil.isEmpty(vars))
+					return null;
+
+				if (!Variable.class.getName().equals(resultsType.getName())) {
+					Map<Long, Boolean> procInstIds = new HashMap<Long, Boolean>();
+					for (Variable var: vars) {
+						procInstIds.put(var.getProcessInstance(), Boolean.TRUE);
+					}
+					return new ArrayList(procInstIds.values());
+				}
+
+				return (List<T>) vars;
+			} else {
+				if (!ArrayUtil.isEmpty(fields)) {
+					query.setProjection(fields);
+				}
+				return query.list();
+			}
+		} finally {
+			if (tx != null && !tx.wasCommitted())
+				tx.commit();
+		}
+	}
+
 	private List<Variable> getVariablesByLucene(
 			final VariableQuerierData queryData,
 			final List<String> names,
@@ -2782,13 +2857,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					FullTextSession fullTextSession = Search.getFullTextSession(session);
 					Transaction tx = fullTextSession.beginTransaction();
 
+					Class<?> queryType = getQueryType(queryData);
+
 					QueryBuilder queryBuilder = fullTextSession
 													.getSearchFactory()
 													.buildQueryBuilder()
-													.forEntity(Variable.class)
+													.forEntity(queryType)
 													.get();
 
 					BooleanJunction<?> conditions = getVariablesConditions(
+														queryType,
 														queryBuilder,
 														queryData,
 														queryData == null ? names : null,
@@ -2797,14 +2875,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 														varIds,
 														flexibleVariables
 													);
-
-					FullTextQuery query = fullTextSession.createFullTextQuery(conditions.createQuery());
-					@SuppressWarnings("unchecked")
-					List<Variable> results = query.list();
-
-					tx.commit();
-
-					return results;
+					return getResults(queryType, Variable.class, fullTextSession, tx, conditions);
 				}
 			});
 			return data;
@@ -2832,21 +2903,24 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		boolean lucene = true;
 		try {
-			List<Long> varsIds = getBpmContext().execute(new JbpmCallback<List<Long>>() {
+			return getBpmContext().execute(new JbpmCallback<List<Long>>() {
 
+				@SuppressWarnings("unchecked")
 				@Override
 				public List<Long> doInJbpm(JbpmContext context) throws JbpmException {
 					Session session = context.getSession();
 					FullTextSession fullTextSession = Search.getFullTextSession(session);
 					Transaction tx = fullTextSession.beginTransaction();
 
+					Class<?> queryType = getQueryType(queryData);
 					QueryBuilder queryBuilder = fullTextSession
 													.getSearchFactory()
 													.buildQueryBuilder()
-													.forEntity(Variable.class)
+													.forEntity(queryType)
 													.get();
 
 					BooleanJunction<?> conditions = getVariablesConditions(
+														queryType,
 														queryBuilder,
 														queryData,
 														queryData == null ? names : null,
@@ -2856,39 +2930,30 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 														flexibleVariables
 													);
 
-					FullTextQuery query = fullTextSession.createFullTextQuery(conditions.createQuery());
-					query.setProjection("id");
-					@SuppressWarnings("unchecked")
-					List<Long[]> varIds = query.list();
-					tx.commit();
-
-					if (ListUtil.isEmpty(varIds))
+					List<?> results = getResults(queryType, Long[].class, fullTextSession, tx, conditions, "processInstance");
+					if (ListUtil.isEmpty(results))
 						return null;
 
-					Map<Long, Boolean> varsIds = new HashMap<Long, Boolean>();
-					for (Object[] ids: varIds) {
-						if (ArrayUtil.isEmpty(ids))
-							continue;
+					if (queryType.getName().equals(VariableBytes.class.getName())) {
+						return (List<Long>) results;
+					} else {
+						List<Long[]> procInstIds = (List<Long[]>) results;
 
-						for (Object id: ids) {
-							if (id instanceof Number)
-								varsIds.put(((Number) id).longValue(), Boolean.TRUE);
+						Map<Long, Boolean> allProcInstIds = new HashMap<Long, Boolean>();
+						for (Object[] ids: procInstIds) {
+							if (ArrayUtil.isEmpty(ids))
+								continue;
+
+							for (Object id: ids) {
+								if (id instanceof Number)
+									allProcInstIds.put(((Number) id).longValue(), Boolean.TRUE);
+							}
 						}
-					}
 
-					return new ArrayList<Long>(varsIds.keySet());
+						return new ArrayList<Long>(allProcInstIds.keySet());
+					}
 				}
 			});
-
-			if (ListUtil.isEmpty(varsIds))
-				return null;
-
-			List<Long> procInstIdsByVars = getResultListByInlineQuery(
-					"select distinct v.processInstance from " + Variable.class.getName() + " v where v.id in (:ids)",
-					Long.class,
-					new Param("ids", varsIds)
-			);
-			return procInstIdsByVars;
 		} finally {
 //			if (CoreUtil.isSQLMeasurementOn()) {
 				long duration = System.currentTimeMillis() - start;
@@ -3024,10 +3089,20 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				results = getConvertedVariables(vars);
 			} else {
 				if (!ListUtil.isEmpty(procInstIds) || !ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds)) {
-					List<Serializable[]> data = getInformationByVariablesNameAndValuesAndProcesses(null, null, null,
+					List<Serializable[]> data = getInformationByVariablesNameAndValuesAndProcesses(
+							null,
+							null,
+							null,
 							new ArrayList<VariableQuerierData>(activeVariables.values()),
-							variables, null,
-							procInstIds, taskInstIds, varIds, true, false, false);
+							variables,
+							null,
+							procInstIds,
+							taskInstIds,
+							varIds,
+							true,
+							false,
+							false
+					);
 					Collection<VariableInstanceInfo> vars = getConverted(data, FULL_COLUMNS);
 					results = getConverted(vars);
 					if (MapUtil.isEmpty(results)) {

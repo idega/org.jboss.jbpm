@@ -919,4 +919,16 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		}
 	}
 
+	@Override
+	public List<Variable> getVariablesByBytes(List<Long> varBytesIds) {
+		if (ListUtil.isEmpty(varBytesIds))
+			return null;
+
+		return getResultListByInlineQuery(
+				"from " + Variable.class.getName() + " v where v.byteArrayValue in (:varBytesIds)",
+				Variable.class,
+				new Param("varBytesIds", varBytesIds)
+		);
+	}
+
 }

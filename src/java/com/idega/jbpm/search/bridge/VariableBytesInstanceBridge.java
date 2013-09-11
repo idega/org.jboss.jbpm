@@ -16,6 +16,7 @@ import com.idega.jbpm.bean.VariableByteArrayInstance;
 import com.idega.jbpm.data.VariableBytes;
 import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
+import com.idega.util.StringUtil;
 
 public class VariableBytesInstanceBridge implements FieldBridge, TwoWayStringBridge {
 
@@ -25,7 +26,12 @@ public class VariableBytesInstanceBridge implements FieldBridge, TwoWayStringBri
 	public String objectToString(Object object) {
 		if (object instanceof String) {
 			return (String) object;
+		} else if (object instanceof Collection<?>) {
+			Collection<?> values = (Collection<?>) object;
+			String value = getIndexedValue(values);
+			return value;
 		}
+
 		return null;
 	}
 
@@ -66,9 +72,7 @@ public class VariableBytesInstanceBridge implements FieldBridge, TwoWayStringBri
 		}
 	}
 
-	private void setIndexedValue(Collection<byte[]> bytes, String name, Document document, LuceneOptions luceneOptions) {
-		@SuppressWarnings("unchecked")
-		Collection<Serializable> objects = (Collection<Serializable>) VariableByteArrayInstance.getValue(bytes);
+	private String getIndexedValue(Collection<?> objects) {
 		if (!ListUtil.isEmpty(objects)) {
 			String values = CoreConstants.EMPTY;
 			for (Iterator<?> objIter = objects.iterator(); objIter.hasNext();) {
@@ -80,7 +84,16 @@ public class VariableBytesInstanceBridge implements FieldBridge, TwoWayStringBri
 				if (objIter.hasNext())
 					values = values.concat(CoreConstants.SPACE);
 			}
+			return values;
+		}
+		return null;
+	}
 
+	private void setIndexedValue(Collection<byte[]> bytes, String name, Document document, LuceneOptions luceneOptions) {
+		@SuppressWarnings("unchecked")
+		Collection<Serializable> objects = (Collection<Serializable>) VariableByteArrayInstance.getValue(bytes);
+		String values = getIndexedValue(objects);
+		if (!StringUtil.isEmpty(values)) {
 			luceneOptions.addFieldToDocument(name, values, document);
 		}
 	}
