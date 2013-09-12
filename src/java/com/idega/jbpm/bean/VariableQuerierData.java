@@ -84,6 +84,7 @@ package com.idega.jbpm.bean;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * <p>Additional data structure to hold {@link BPMProcessVariable} data.</p>
@@ -99,21 +100,14 @@ public class VariableQuerierData implements Serializable {
 	private static final long serialVersionUID = 954452096066080568L;
 
 	private String name = null, searchExpression = null;
+
 	private List<Serializable> values = null;
+
 	private int order = 0;
+
 	private boolean flexible = Boolean.TRUE;
 
-	/**
-	 * @param name same as {@link BPMProcessVariable#getName()}.
-	 * @param value same as {@link List} of
-	 * {@link BPMProcessVariable#getRealValue()}.
-	 * @param searchExpression same as
-	 * {@link BPMProcessVariable#getExpression()}.
-	 */
-	public VariableQuerierData(String name, int order) {
-		this.name = name;
-		this.order = order;
-	}
+	private VariableInstanceType type = null;
 
 	/**
 	 * @param name same as {@link BPMProcessVariable#getName()}.
@@ -124,6 +118,7 @@ public class VariableQuerierData implements Serializable {
 	 */
 	public VariableQuerierData(String name, int order, boolean flexible, List<Serializable> value, String searchExpression) {
 		this(name, order, flexible, value);
+
 		this.searchExpression = searchExpression;
 	}
 
@@ -134,10 +129,32 @@ public class VariableQuerierData implements Serializable {
 	 */
 	public VariableQuerierData(String name, int order, boolean flexible, List<Serializable> value) {
 		super();
+
 		this.name = name;
 		this.order = order;
 		this.flexible = flexible;
 		this.values = value;
+
+		for (VariableInstanceType type: VariableInstanceType.ALL_TYPES) {
+			if (name.startsWith(type.getPrefix())) {
+				this.type = type;
+			}
+		}
+
+		if (this.type == null) {
+			if ("officerID".equals(name)) {
+				this.type = VariableInstanceType.LONG;
+			} else if (	"officerIsMeterMaid".equals(name) ||
+						"isProtested".equals(name) ||
+						"isProtestApproved".equals(name) ||
+						"isProtestDenied".equals(name)
+			) {
+				this.type = VariableInstanceType.STRING;
+			}
+		}
+		if (this.type == null) {
+			Logger.getLogger(getClass().getName()).warning("Unable to determine variably type for name: " + name);
+		}
 	}
 
 	/**
@@ -199,9 +216,17 @@ public class VariableQuerierData implements Serializable {
 		this.order = order;
 	}
 
+	public VariableInstanceType getType() {
+		return type;
+	}
+
+	public void setType(VariableInstanceType type) {
+		this.type = type;
+	}
+
 	@Override
 	public String toString() {
 		return getName() + " values: " + getValues() + ", search expression: " + getSearchExpression() + ", flexible: " + isFlexible() +
-				", order: " + getOrder();
+				", order: " + getOrder() + ", type: " + getType();
 	}
 }
