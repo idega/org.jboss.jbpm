@@ -681,7 +681,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			expression.append(searchExpression ? " lower(" : CoreConstants.EMPTY)
 			.append(columnName)
 			.append(searchExpression ? ")" : CoreConstants.EMPTY)
-			.append(" like ")
+			.append(searchExpression || isLikeExpressionEnabled() ? " like " : " = ")
 			.append(searchExpression ? "lower(" : CoreConstants.EMPTY)
 			.append(CoreConstants.QOUTE_SINGLE_MARK)
 			.append(searchExpression ? CoreConstants.PERCENT : CoreConstants.EMPTY)
@@ -1003,6 +1003,53 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		);
 	}
 
+	private List<Long> getNarrowedResults(String prefix, String keyword, List<Long> initialIds, List<Long> resultIds) {
+		if (ListUtil.isEmpty(initialIds))
+			return resultIds;
+
+		if (resultIds == null) {
+			resultIds = new ArrayList<Long>();
+		}
+
+		List<Long> usedIds = null;
+		if (initialIds.size() > 1000) {
+			usedIds = new ArrayList<Long>(initialIds.subList(0, 1000));
+			initialIds = new ArrayList<Long>(initialIds.subList(1000, initialIds.size()));
+		} else {
+			usedIds = new ArrayList<Long>(initialIds);
+			initialIds = null;
+		}
+
+		List<Serializable[]> results = null;
+		keyword = keyword.trim();
+		if (!keyword.startsWith("and ")) {
+			keyword = " and " + keyword;
+		}
+		String query = "select " + prefix + ".processinstance_ from jbpm_variableinstance " + prefix + " where " +
+				getQueryParameters(prefix + ".processinstance_", usedIds, false) + keyword + " group by " + prefix + ".processinstance_";
+		try {
+			results = SimpleQuerier.executeQuery(query, 1);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error executing query: " + query, e);
+			return null;
+		}
+
+		if (ListUtil.isEmpty(results))
+			return null;
+		for (Serializable[] ids: results) {
+			if (ArrayUtil.isEmpty(ids))
+				continue;
+
+			Serializable id = ids[0];
+			if (id instanceof Number) {
+				resultIds.add(((Number) id).longValue());
+			}
+		}
+
+
+		return getNarrowedResults(prefix, keyword, initialIds, resultIds);
+	}
+
 	private List<Serializable[]> getInformationByVariablesNameAndValuesAndProcesses(
 			String columnsToSelect,
 			String groupBy,
@@ -1034,8 +1081,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		if (!ListUtil.isEmpty(data)) {
 			boolean addAnd = false;
+			boolean searchForEachKeywordSeparately = IWMainApplication.getDefaultIWMainApplication().getSettings()
+					.getBoolean("bpm.var_load_res_separ", Boolean.TRUE);
 			for (Iterator<VariableQuerierData> queryPartIter = data.iterator(); queryPartIter.hasNext();) {
 				VariableQuerierData queryPart = queryPartIter.next();
+
 				String variableName = queryPart.getName();
 				VariableInstanceType type = queryPart.getType();
 
@@ -1176,6 +1226,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 
 				fromParts.put(currentColumnPrefix, currentColumnName);
+
+				if (searchForEachKeywordSeparately && !ListUtil.isEmpty(procInstIds)) {
+					procInstIds = getNarrowedResults(currentColumnPrefix, valuesToSelect.toString(), procInstIds, null);
+					if (ListUtil.isEmpty(procInstIds)) {
+						return null;
+					}
+
+					valuesToSelect = new StringBuffer();
+				}
 
 				addAnd = true;
 			}
@@ -2524,6 +2583,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
+	private boolean isLikeExpressionEnabled() {
+		return IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.search_vars_full_like", Boolean.FALSE);
+	}
+
 	private ValueToMatch getValueToMatch(
 			ValueToMatch previousValueToMatch,
 			Serializable value, String name,
@@ -2590,7 +2653,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					flexible = false;
 				}
 				if (flexible) {
-					if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.search_vars_full_like", Boolean.FALSE)) {
+					if (isLikeExpressionEnabled()) {
 						valueToMatch = CoreConstants.STAR + valueToMatch.toString();
 					}
 					valueToMatch = valueToMatch.toString() + CoreConstants.STAR;
