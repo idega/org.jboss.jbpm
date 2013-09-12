@@ -3128,7 +3128,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					results = getGroupedData(getConverted(rawData, rawData.get(0).length));
 				}
 			} else {
-				if (!ListUtil.isEmpty(procInstIds) || !ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds)) {
+				if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.load_var_by_sql_ids", Boolean.TRUE) &&
+						!ListUtil.isEmpty(procInstIds) || !ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds)) {
 					List<Serializable[]> data = getInformationByVariablesNameAndValuesAndProcesses(
 							null,
 							null,
