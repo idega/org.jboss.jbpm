@@ -3085,7 +3085,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private Map<Long, Map<String, VariableInstanceInfo>> getVariablesByLucene(
-			Map<String, VariableQuerierData> activeVariables,
+			Map<String, VariableQuerierData> keywords,
 			List<String> variables,
 			List<String> procDefNames,
 			List<Long> procInstIds,
@@ -3101,22 +3101,39 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 			Map<Long, Map<String, VariableInstanceInfo>> results = null;
 
-			if (MapUtil.isEmpty(activeVariables)) {
-				List<Variable> vars = getVariablesByLucene(null, variables, procInstIds, taskInstIds, varIds, flexibleVariables);
-				if (ListUtil.isEmpty(vars)) {
-					getLogger().warning("Nothing found from Hibernate by var. names: " + variables + ", proc. inst. IDs: " + procInstIds +
-							", task inst. IDs: " + taskInstIds + ", var. inst. IDs: " + varIds);
-					return null;
+			if (MapUtil.isEmpty(keywords)) {
+				if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.load_vars_by_hib_no_kw", Boolean.FALSE)) {
+					List<Variable> vars = getVariablesByLucene(null, variables, procInstIds, taskInstIds, varIds, flexibleVariables);
+					if (ListUtil.isEmpty(vars)) {
+						getLogger().warning("Nothing found from Hibernate by var. names: " + variables + ", proc. inst. IDs: " + procInstIds +
+								", task inst. IDs: " + taskInstIds + ", var. inst. IDs: " + varIds);
+						return null;
+					}
+					results = getConvertedVariables(vars);
+				} else {
+					List<Serializable[]> rawData = getInformationByVariablesNameAndValuesAndProcesses(
+							null,
+							variables,
+							procDefNames,
+							procInstIds,
+							true,
+							false,
+							strictBinaryVariables
+					);
+					if (ListUtil.isEmpty(rawData)) {
+						getLogger().warning("Nothing found from SQL by var. names: " + variables + ", proc. inst. IDs: " + procInstIds +
+								", task inst. IDs: " + taskInstIds + ", var. inst. IDs: " + varIds);
+						return null;
+					}
+					results = getGroupedData(getConverted(rawData, rawData.get(0).length));
 				}
-
-				results = getConvertedVariables(vars);
 			} else {
 				if (!ListUtil.isEmpty(procInstIds) || !ListUtil.isEmpty(taskInstIds) || !ListUtil.isEmpty(varIds)) {
 					List<Serializable[]> data = getInformationByVariablesNameAndValuesAndProcesses(
 							null,
 							null,
 							null,
-							new ArrayList<VariableQuerierData>(activeVariables.values()),
+							new ArrayList<VariableQuerierData>(keywords.values()),
 							variables,
 							null,
 							procInstIds,
@@ -3129,7 +3146,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					Collection<VariableInstanceInfo> vars = getConverted(data, FULL_COLUMNS);
 					results = getConverted(vars);
 					if (MapUtil.isEmpty(results)) {
-						getLogger().warning("Nothing found from database by query " + activeVariables + " var. names: " + variables +
+						getLogger().warning("Nothing found from database by keywords " + keywords + " var. names: " + variables +
 								", proc. inst. IDs: " + procInstIds + ", task inst. IDs: " + taskInstIds + ", var. inst. IDs: " + varIds);
 					}
 					return results;
@@ -3140,8 +3157,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				boolean loadAddtionalVars = !ListUtil.isEmpty(variables);
 				Map<Long, Boolean> allFoundedProcInstIds = null;
 				Map<Long, List<Variable>> allVariables = null;
-				for (String varName: activeVariables.keySet()) {
-					VariableQuerierData queryData = activeVariables.get(varName);
+				for (String varName: keywords.keySet()) {
+					VariableQuerierData queryData = keywords.get(varName);
 					String searchExpression = null;
 					boolean checkValues = false;
 					if (queryData.getValues() != null && queryData.getValues().size() == 1) {
@@ -3259,7 +3276,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 			return results;
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error querying for " + variables + " by " + activeVariables + " and proc. inst. IDs: " + procInstIds, e);
+			getLogger().log(Level.WARNING, "Error querying for " + variables + " by " + keywords + " and proc. inst. IDs: " + procInstIds, e);
 		}
 
 		return null;
