@@ -1019,7 +1019,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			boolean mirrow,
 			boolean strictBinaryVariables
 	) {
-
 		boolean anyStringColumn = false;
 		boolean useBinding = true;
 		String columnPrefix = "var";
@@ -1034,10 +1033,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		Map<String, VariableInstanceType> types = new HashMap<String, VariableInstanceType>();
 
 		if (!ListUtil.isEmpty(data)) {
+			boolean addAnd = false;
 			for (Iterator<VariableQuerierData> queryPartIter = data.iterator(); queryPartIter.hasNext();) {
 				VariableQuerierData queryPart = queryPartIter.next();
-
 				String variableName = queryPart.getName();
+				VariableInstanceType type = queryPart.getType();
+
 				List<Serializable> values = queryPart.getValues();
 				if (ListUtil.isEmpty(values)) {
 					LOGGER.warning("Values for variable '" + variableName + "' are not provided, skipping querying");
@@ -1050,12 +1051,29 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					return Collections.emptyList();
 				}
 
+				if (type == null) {
+					if (value instanceof String) {
+						type = VariableInstanceType.STRING;
+					} else if (value instanceof Long) {
+						type = VariableInstanceType.LONG;
+					} else if (value instanceof Double) {
+						type = VariableInstanceType.DOUBLE;
+					} else if (value instanceof Timestamp) {
+						type = VariableInstanceType.DATE;
+					}
+				}
+				if (type == null) {
+					getLogger().warning("Unknown variable (name: " + variableName + ") type, using String as default");
+					type = VariableInstanceType.STRING;
+				}
+
 				if (currentColumnPrefix == null) {
 					if (data.size() == 1 && ListUtil.isEmpty(variablesWithoutValues)) {
 						useBinding = false;
 						currentColumnPrefix = columnPrefix;
-					} else
+					} else {
 						currentColumnPrefix = "v".concat(currentColumnPrefix == null ? columnPrefix : currentColumnPrefix);
+					}
 				} else {
 					currentColumnPrefix = "v".concat(currentColumnPrefix);
 				}
@@ -1088,28 +1106,31 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						rawData.add(binVarData.getRawData());
 					}
 
+					addAnd = false;
 					continue;
-
-				//	Determining variable type
-				} else if (value instanceof String) {
+				} else if (type == VariableInstanceType.STRING) {
 					anyStringColumn = true;
 					currentColumnName = getStringValueColumn(currentColumnPrefix, mirrowPrefix, mirrow);
 					currentColumnName = mirrow ? currentColumnName : getSubstring(currentColumnName);
 					types.put(currentColumnPrefix, VariableInstanceType.STRING);
 					mirrows.put(currentColumnPrefix, mirrowPrefix);
 					mirrowPrefix = "m".concat(mirrowPrefix);
-				} else if (value instanceof Long) {
+				} else if (type == VariableInstanceType.LONG) {
 					currentColumnName = currentColumnName.concat("LONGVALUE_");
 					types.put(currentColumnPrefix, VariableInstanceType.LONG);
-				} else if (value instanceof Double) {
+				} else if (type == VariableInstanceType.DOUBLE) {
 					currentColumnName = currentColumnName.concat("DOUBLEVALUE_");
 					types.put(currentColumnPrefix, VariableInstanceType.DOUBLE);
-				} else if (value instanceof Timestamp) {
+				} else if (type == VariableInstanceType.DATE) {
 					currentColumnName = currentColumnName.concat("DATEVALUE_");
 					types.put(currentColumnPrefix, VariableInstanceType.DATE);
 				} else {
 					LOGGER.warning("Unsupported type of value: " + value + ", "	+ value.getClass());
 					return Collections.emptyList();
+				}
+
+				if (addAnd) {
+					valuesToSelect.append(" and ");
 				}
 
 				if (values.size() > 1) {
@@ -1120,8 +1141,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						for (Iterator<Serializable> valuesIter = values.iterator();	valuesIter.hasNext();) {
 							valuesToSelect.append(valuesIter.next());
 
-							if (valuesIter.hasNext())
+							if (valuesIter.hasNext()) {
 								valuesToSelect.append(", ");
+							}
 						}
 						valuesToSelect.append(") ");
 					} else {
@@ -1131,8 +1153,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 							valuesToSelect.append(getColumnAndValueExpression(currentColumnName, valuesIter.next(), queryPart.getSearchExpression(),
 									queryPart.isFlexible()));
 
-							if (valuesIter.hasNext())
+							if (valuesIter.hasNext()) {
 								valuesToSelect.append(" or ");
+							}
 						}
 						valuesToSelect.append(")");
 					}
@@ -1143,19 +1166,19 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 
 				valuesToSelect.append(" and ").append(currentColumnPrefix).append(".name_ = '").append(variableName).append("' ");
-				if (variablesWithoutValues == null)
+				if (variablesWithoutValues == null) {
 					variablesWithoutValues = new ArrayList<String>();
-				else
+				} else {
 					variablesWithoutValues = new ArrayList<String>(variablesWithoutValues);
-				if (!variablesWithoutValues.contains(variableName))
+				}
+				if (!variablesWithoutValues.contains(variableName)) {
 					variablesWithoutValues.add(variableName);
+				}
 
 				fromParts.put(currentColumnPrefix, currentColumnName);
 
-				if (queryPartIter.hasNext())
-					valuesToSelect.append(" and ");
-				}
-//			}
+				addAnd = true;
+			}
 		}
 		allValuesClause = valuesToSelect.toString();
 		if (!StringUtil.isEmpty(allValuesClause))
