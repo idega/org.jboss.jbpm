@@ -207,7 +207,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 			boolean selectOnlyProcIntsIds
 	);
 
-	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns);
+	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data);
 	public Map<Long, Map<String, VariableInstanceInfo>> getConvertedVariables(List<Variable> variables);
 	public List<VariableInstanceInfo> getConverted(Map<Long, Map<String, VariableInstanceInfo>> vars);
 

@@ -149,7 +149,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					processDefinitionName, e);
 		}
 
-		return getConverted(data, columns);
+		return getConverted(data);
 	}
 
 	@Override
@@ -165,7 +165,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		    new Param(ProcessDefinitionVariablesBind.PARAM_PROC_DEF_NAMES,
 		            Arrays.asList(processDefinitionName)));
 		if (!ListUtil.isEmpty(binds))
-			return getConverted(binds);
+			return getConvertedBinds(binds);
 
 		return getVariablesByProcessDefinitionNaiveWay(processDefinitionName);
 	}
@@ -199,7 +199,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					processInstanceId, e);
 		}
 
-		return getConverted(data, full ? FULL_COLUMNS : COLUMNS);
+		return getConverted(data);
 	}
 
 	@Override
@@ -702,9 +702,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
-	private Map<Long, BinaryVariableData> getDataByVariablesByNameAndValuesAndProcessDefinitions(String name, List<String> procDefNames,
-			Collection<?> values, List<Long> procInstIds) {
-
+	private Map<Long, BinaryVariableData> getDataByVariablesByNameAndValuesAndProcessDefinitions(
+			String name,
+			List<String> procDefNames,
+			Collection<?> values,
+			List<Long> procInstIds
+	) {
 		if (StringUtil.isEmpty(name))
 			return Collections.emptyMap();
 
@@ -730,7 +733,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return Collections.emptyMap();
 
 		Collection<VariableInstanceInfo> resolvedVars = null;
-		Collection<VariableInstanceInfo> vars = getConverted(data, columns);
+		Collection<VariableInstanceInfo> vars = getConverted(data);
 		MultipleSelectionVariablesResolver resolver = getMultipleValuesResolver(name);
 		if (resolver == null) {
 			if (ListUtil.isEmpty(vars))
@@ -774,12 +777,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			if (procInstId == null)
 				continue;
 
-			if (resolvedProcInstIds.size() == 0)
-				for (VariableInstanceInfo var: resolvedVars)
+			if (resolvedProcInstIds.size() == 0) {
+				for (VariableInstanceInfo var: resolvedVars) {
 					resolvedProcInstIds.put(var.getProcessInstanceId(), var);
+				}
+			}
 
-			if (!resolvedProcInstIds.containsKey(procInstId))
+			if (!resolvedProcInstIds.containsKey(procInstId)) {
 				continue;
+			}
 
 			results.put(procInstId, new BinaryVariableData(procInstId, rawData, resolvedProcInstIds.get(procInstId)));
 		}
@@ -919,8 +925,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return Collections.emptyList();
 
 		//	Converting raw data into the objects
-		int numberOfColumns = queriedData.iterator().next().length;
-		return getConverted(queriedData, numberOfColumns);
+		return getConverted(queriedData);
 	}
 
 	private List<Serializable[]> getInformationByVariablesNameAndValuesAndProcesses(
@@ -1319,9 +1324,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceIds(
 			String query,
 			int columns,
-			List<Long> procInstIds) {
+			List<Long> procInstIds
+	) {
 		List<Serializable[]> data = getDataByProcessInstanceIds(null, query, columns, procInstIds);
-		return getConverted(data, columns);
+		return getConverted(data);
 	}
 
 	private List<Serializable[]> getDataByProcessInstanceIds(List<Serializable[]> data, String query, int columns, List<Long> procInstIds) {
@@ -1359,7 +1365,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	 * <code>null</code> on failure;
 	 */
 	private Collection<VariableInstanceInfo> getVariablesByQuery(String query, int columns) {
-		return getConverted(getDataByQuery(query, columns), columns);
+		return getConverted(getDataByQuery(query, columns));
 	}
 
 	private List<Serializable[]> getDataByQuery(String query, int columns) {
@@ -1441,14 +1447,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return id;
 	}
 
-	private Collection<VariableInstanceInfo> getConverted(List<ProcessDefinitionVariablesBind> binds) {
+	private Collection<VariableInstanceInfo> getConvertedBinds(Collection<ProcessDefinitionVariablesBind> binds) {
 		if (ListUtil.isEmpty(binds)) {
 			return null;
 		}
 
 		List<String> variables = new ArrayList<String>();
 		List<Serializable[]> data = new ArrayList<Serializable[]>();
-		for (ProcessDefinitionVariablesBind bind : binds) {
+		for (ProcessDefinitionVariablesBind bind: binds) {
 			String variableName = bind.getVariableName();
 			if (StringUtil.isEmpty(variableName) || variables.contains(variableName)) {
 				continue;
@@ -1461,11 +1467,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			variables.add(variableName);
 		}
 
-		return getConverted(data, 2);
+		return getConverted(data);
 	}
 
 	@Override
-	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns) {
+	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data) {
 		if (ListUtil.isEmpty(data))
 			return null;
 
@@ -1473,7 +1479,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		Map<Number, VariableInstanceInfo> variables = new HashMap<Number, VariableInstanceInfo>();
 		Map<Number, VariableByteArrayInstance> variablesToConvert = new HashMap<Number, VariableByteArrayInstance>();
-		for (Serializable[] dataSet : data) {
+		for (Serializable[] dataSet: data) {
+			int numberOfColumns = dataSet.length;
+
 			int startValues = 0;
 			Number id = null;
 			String name = null;
@@ -1843,7 +1851,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names: " + names, e);
 		}
 
-		return getConverted(data, FULL_COLUMNS);
+		return getConverted(data);
 	}
 
 	/**
@@ -1930,7 +1938,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			LOGGER.log(Level.WARNING, "Error getting variables by process instance IDs. Query: " + query, e);
 		}
 
-		return getConverted(data, columns);
+		return getConverted(data);
 	}
 
 	@Override
@@ -2188,7 +2196,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		if (ListUtil.isEmpty(results))
 			return null;
 
-		Collection<VariableInstanceInfo> vars = getConverted(results, 8);
+		Collection<VariableInstanceInfo> vars = getConverted(results);
 		if (ListUtil.isEmpty(vars))
 			return null;
 		return new ArrayList<VariableInstanceInfo>(vars);
@@ -2877,7 +2885,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 								", task inst. IDs: " + taskInstIds + ", var. inst. IDs: " + varIds);
 						return null;
 					}
-					results = getGroupedData(getConverted(rawData, rawData.get(0).length));
+					results = getGroupedData(getConverted(rawData));
 				}
 			} else {
 				if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.load_var_by_sql_ids", Boolean.TRUE) &&
@@ -2894,9 +2902,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 							varIds,
 							true,
 							false,
-							false
+							strictBinaryVariables
 					);
-					Collection<VariableInstanceInfo> vars = getConverted(data, FULL_COLUMNS);
+					Collection<VariableInstanceInfo> vars = getConverted(data);
 					results = getConverted(vars);
 					if (MapUtil.isEmpty(results)) {
 						getLogger().warning("Nothing found from database by keywords " + keywords + " var. names: " + variables +
