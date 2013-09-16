@@ -39,15 +39,26 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceId(Long processInstanceId, boolean mirrow);
 
 	public Collection<VariableInstanceInfo> getVariableByProcessInstanceIdAndVariableName(Long procId, String name);
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, boolean checkCache,
-			List<String> names);
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names);
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefsAndVariablesNames(List<String> procDefNames, List<String> names);
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean checkTaskInstance);
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(List<String> names, Collection<Long> procIds, boolean checkTaskInstance,
-			boolean addEmptyVars);
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(List<String> names, Collection<Long> procIds, boolean checkTaskInstance,
-			boolean addEmptyVars, boolean mirrowData);
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(
+			Collection<Long> procIds,
+			List<String> names,
+			boolean checkTaskInstance
+	);
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(
+			List<String> names,
+			Collection<Long> procIds,
+			boolean checkTaskInstance,
+			boolean addEmptyVars
+	);
+	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(
+			List<String> names,
+			Collection<Long> procIds,
+			boolean checkTaskInstance,
+			boolean addEmptyVars,
+			boolean mirrowData
+	);
 
 	public Map<Long, Map<String, VariableInstanceInfo>> getGroupedData(Collection<VariableInstanceInfo> variables);
 
@@ -57,8 +68,6 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public boolean isVariableStored(String name, Serializable value);
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value);
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(String name, Serializable value, List<Long> procInstIds);
-
-//	public void loadVariables(List<String> variablesNames);
 
 	/**
 	 * <p>Gets values of jBPM variable instances from database.</p>
@@ -172,15 +181,6 @@ public interface VariableInstanceQuerier extends GenericDao {
 			List<Long> procInstIds,
 			Map<String, Boolean> flexibleVariables);
 
-	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
-			Map<String, VariableQuerierData> activeVariables,
-			List<String> variables,
-			List<String> procDefNames,
-			List<Long> procInstIds,
-			Map<String, Boolean> flexibleVariables,
-			boolean useCachedVariables);
-
-//	public List<String> getValuesByVariableFromMirrowedTable(String name);
 	public List<String> getValuesByVariable(String name);
 
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIds(Collection<Long> procInstIds);
@@ -195,7 +195,6 @@ public interface VariableInstanceQuerier extends GenericDao {
 			List<String> procDefNames,
 			List<Long> procInstIds,
 			Map<String, Boolean> flexibleVariables,
-			boolean useCachedVariables,
 			boolean strictBinaryVariables
 	);
 	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
@@ -204,15 +203,9 @@ public interface VariableInstanceQuerier extends GenericDao {
 			List<String> procDefNames,
 			List<Long> originalProcInstIds,
 			Map<String, Boolean> flexibleVariables,
-			boolean useCachedVariables,
 			boolean strictBinaryVariables,
 			boolean selectOnlyProcIntsIds
 	);
-
-	public boolean isVariableCached(String name);
-	public List<VariableInstanceInfo> getCachedVariables(String name, Serializable value, boolean approximate);
-	public List<VariableInstanceInfo> getCachedVariables(String name);
-	public Map<Long, VariableInstanceInfo> getCachedVariablesGroupedByProcess(String name);
 
 	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns);
 	public Map<Long, Map<String, VariableInstanceInfo>> getConvertedVariables(List<Variable> variables);
@@ -222,42 +215,42 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public void doIndexVariables(Long piId);
 
 	/**
-	 * 
+	 *
 	 * <p>Searches for {@link VariableInstance} from jbpm_variableinstance
 	 * table by:</p>
-	 * @param requiredVariableName is {@link VariableInstance#getName()} which 
+	 * @param requiredVariableName is {@link VariableInstance#getName()} which
 	 * instances should be found, not <code>null</code>;
-	 * @param argumentVariableName is {@link VariableInstance#getName()} of 
-	 * {@link VariableInstance} by which required variable should be found. 
+	 * @param argumentVariableName is {@link VariableInstance#getName()} of
+	 * {@link VariableInstance} by which required variable should be found.
 	 * When <code>null</code>, argumentValue will be ignored;
 	 * @param argumentValue is {@link VariableInstance#getValue()} of
 	 * {@link VariableInstance} by name defined in argumentVariableName;
-	 * @param processInstanceId is {@link ProcessInstance#getId()}, which 
+	 * @param processInstanceId is {@link ProcessInstance#getId()}, which
 	 * contains required {@link VariableInstance};
-	 * @return {@link Collection} of {@link VariableInstanceInfo}, which 
+	 * @return {@link Collection} of {@link VariableInstanceInfo}, which
 	 * matches criteria, or {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
 	public List<VariableInstanceInfo> findJBPMVariable(
 			String requiredVariableName,
-			String argumentVariableName, 
+			String argumentVariableName,
 			String argumentValue,
 			Long processInstanceId);
 
 	/**
-	 * 
+	 *
 	 * <p>Searches for {@link VariableInstance} from jbpm_variableinstance
 	 * table by:</p>
-	 * @param requiredVariableName is {@link VariableInstance#getName()} which 
+	 * @param requiredVariableName is {@link VariableInstance#getName()} which
 	 * instances should be found, not <code>null</code>;
-	 * @param argumentVariableName is {@link VariableInstance#getName()} of 
-	 * {@link VariableInstance} by which required variable should be found. 
+	 * @param argumentVariableName is {@link VariableInstance#getName()} of
+	 * {@link VariableInstance} by which required variable should be found.
 	 * When <code>null</code>, argumentValue will be ignored;
 	 * @param argumentValue is {@link VariableInstance#getValue()} of
 	 * {@link VariableInstance} by name defined in argumentVariableName;
-	 * @param processInstanceId is {@link ProcessInstance#getId()}, which 
+	 * @param processInstanceId is {@link ProcessInstance#getId()}, which
 	 * contains required {@link VariableInstance};
-	 * @return {@link Collection} of {@link VariableInstanceInfo#getValue()}, 
+	 * @return {@link Collection} of {@link VariableInstanceInfo#getValue()},
 	 * which matches criteria, or {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */

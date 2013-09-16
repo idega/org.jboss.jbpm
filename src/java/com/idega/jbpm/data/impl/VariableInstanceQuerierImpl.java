@@ -14,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -45,7 +44,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.builder.bean.AdvancedProperty;
-import com.idega.core.cache.IWCacheManager2;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.data.SimpleQuerier;
@@ -216,30 +214,25 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	@Override
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names) {
-		return getVariablesByProcessInstanceIdAndVariablesNames(procIds, true, names);
-	}
-	@Override
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, boolean checkCache,
-			List<String> names) {
-		return getVariablesByProcessesAndVariablesNames(procIds, null, names, isDataMirrowed(), false, checkCache);
+		return getVariablesByProcessesAndVariablesNames(procIds, null, names, isDataMirrowed(), false);
 	}
 
 	@Override
 	public Collection<VariableInstanceInfo> getVariableByProcessInstanceIdAndVariableName(Long procId, String name) {
 		if (procId == null || StringUtil.isEmpty(name))
 			return null;
-		return getVariablesByProcessesAndVariablesNames(Arrays.asList(procId), null, Arrays.asList(name), isDataMirrowed(), false, false);
+		return getVariablesByProcessesAndVariablesNames(Arrays.asList(procId), null, Arrays.asList(name), isDataMirrowed(), false);
 	}
 
 	@Override
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names,
 			boolean checkTaskInstance) {
-		return getVariablesByProcessesAndVariablesNames(procIds, null, names, isDataMirrowed(), checkTaskInstance, true);
+		return getVariablesByProcessesAndVariablesNames(procIds, null, names, isDataMirrowed(), checkTaskInstance);
 	}
 
 	@Override
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefsAndVariablesNames(List<String> procDefs, List<String> names) {
-		return getVariablesByProcessesAndVariablesNames(null, procDefs, names, isDataMirrowed(), true, true);
+		return getVariablesByProcessesAndVariablesNames(null, procDefs, names, isDataMirrowed(), true);
 	}
 
 	@Override
@@ -264,9 +257,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getVariablesByProcessesAndVariablesNames(names, null, procIds, checkTaskInstance, addEmptyVars, mirrowData);
 	}
 
-	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(List<String> variablesNames, List<String> procDefNames,
-			Collection<Long> procIds, boolean checkTaskInstance, boolean addEmptyVars, boolean mirrowData) {
-
+	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(
+			List<String> variablesNames,
+			List<String> procDefNames,
+			Collection<Long> procIds,
+			boolean checkTaskInstance,
+			boolean addEmptyVars,
+			boolean mirrowData
+	) {
 		if (ListUtil.isEmpty(variablesNames)) {
 			LOGGER.warning("Variable name(s) unknown");
 			return Collections.emptyList();
@@ -285,16 +283,31 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				stringVariables.removeAll(notStringVariables);
 			}
 
-			Collection<VariableInstanceInfo> stringVars = getVariablesByProcessesAndVariablesNames(procIds, procDefNames, stringVariables,
-					mirrowData, checkTaskInstance, true);
-			Collection<VariableInstanceInfo> otherVars = getVariablesByProcessesAndVariablesNames(procIds, procDefNames, notStringVariables,
-					false, checkTaskInstance, true);
+			Collection<VariableInstanceInfo> stringVars = getVariablesByProcessesAndVariablesNames(
+					procIds,
+					procDefNames,
+					stringVariables,
+					mirrowData,
+					checkTaskInstance
+			);
+			Collection<VariableInstanceInfo> otherVars = getVariablesByProcessesAndVariablesNames(
+					procIds,
+					procDefNames,
+					notStringVariables,
+					false,
+					checkTaskInstance
+			);
 
 			fillMapWithData(vars, variablesNames, stringVars);
 			fillMapWithData(vars, variablesNames, otherVars);
 		} else {
-			Collection<VariableInstanceInfo> allVars = getVariablesByProcessesAndVariablesNames(procIds, procDefNames, variablesNames, mirrowData,
-					checkTaskInstance, true);
+			Collection<VariableInstanceInfo> allVars = getVariablesByProcessesAndVariablesNames(
+					procIds,
+					procDefNames,
+					variablesNames,
+					mirrowData,
+					checkTaskInstance
+			);
 			fillMapWithData(vars, variablesNames, allVars);
 		}
 
@@ -369,33 +382,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return piId == null ? index : index * 100000000 + piId.intValue();
 	}
 
-//	@Override
-//	public List<String> getValuesByVariableFromMirrowedTable(String name) {
-//		if (StringUtil.isEmpty(name))
-//			return null;
-//
-//		List<Serializable[]> data = null;
-//		String query = "select distinct m." + BPMVariableData.COLUMN_VALUE + " from " + BPMVariableData.TABLE_NAME +
-//				" m, JBPM_VARIABLEINSTANCE v where v.NAME_ = '" + name + "' and v.ID_ = m." + BPMVariableData.COLUMN_VARIABLE_ID +
-//				" order by m." + BPMVariableData.COLUMN_VALUE;
-//		try {
-//			data = SimpleQuerier.executeQuery(query, 1);
-//		} catch (Exception e) {
-//			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
-//		}
-//		if (ListUtil.isEmpty(data))
-//			return null;
-//
-//		List<String> results = new ArrayList<String>();
-//		for (Serializable[] value: data) {
-//			if (ArrayUtil.isEmpty(value))
-//				continue;
-//
-//			results.add(value[0].toString());
-//		}
-//		return results;
-//	}
-
 	@Override
 	public List<String> getValuesByVariable(String name) {
 		if (StringUtil.isEmpty(name))
@@ -436,8 +422,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return results;
 	}
 
-	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(Collection<Long> procInstIds, List<String> procDefNames,
-			List<String> variablesNames, boolean mirrow, boolean checkTaskInstance, boolean checkCache) {
+	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(
+			Collection<Long> procInstIds,
+			List<String> procDefNames,
+			List<String> variablesNames,
+			boolean mirrow,
+			boolean checkTaskInstance
+	) {
 
 		if (isLuceneQueryingTurnedOn() && ListUtil.isEmpty(procDefNames)) {
 			return getVariablesCollectionByLucene(variablesNames, procDefNames, ListUtil.isEmpty(procInstIds) ? null : new ArrayList<Long>(procInstIds));
@@ -453,37 +444,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		variablesNames = new ArrayList<String>(variablesNames);
-		List<String> cachedVars = new ArrayList<String>();
 		List<VariableInstanceInfo> allVariables = new ArrayList<VariableInstanceInfo>();
-		if (checkCache) {
-			for (String name: variablesNames) {
-				List<VariableInstanceInfo> vars = getCachedVariables(name);
-				if (ListUtil.isEmpty(vars))
-					continue;
-
-				cachedVars.add(name);
-
-				if (ListUtil.isEmpty(procInstIds)) {
-					allVariables.addAll(vars);
-				} else {
-					for (VariableInstanceInfo var: vars) {
-						if (var == null)
-							continue;
-
-						Long procInstId = var.getProcessInstanceId();
-						if (procInstId == null)
-							continue;
-
-						if (procInstIds.contains(procInstId))
-							allVariables.add(var);
-					}
-				}
-			}
-
-			variablesNames.removeAll(cachedVars);
-			if (ListUtil.isEmpty(variablesNames))
-				return allVariables;
-		}
 
 		boolean anyStringColumn = false;
 		for (Iterator<String> namesIter = variablesNames.iterator(); (!anyStringColumn && namesIter.hasNext());)
@@ -538,18 +499,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public boolean isVariableCached(String name) {
-		if (StringUtil.isEmpty(name))
-			return false;
-
-		return getVariablesCache().get(name) != null;
-	}
-
-	@Override
 	public boolean isVariableStored(String name, Serializable value) {
-		if (isVariableCached(name) && getCachedVariable(name, value) != null)
-			return true;
-
 		Collection<VariableInstanceInfo> variables = getProcessVariablesByNameAndValue(name, value, false);
 		if (ListUtil.isEmpty(variables))
 			return false;
@@ -573,14 +523,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	@Override
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(String name, Serializable value, List<Long> procInstIds) {
-		VariableInstanceInfo cachedVariable = getCachedVariable(name, value);
-		boolean useCaching = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getBoolean("use_cached_proc_inst_ids",
-				true);
-
-		if (cachedVariable != null && cachedVariable.getProcessInstanceId() != null && useCaching) {
-			return Arrays.asList(cachedVariable.getProcessInstanceId());
-		}
-
 		Collection<VariableInstanceInfo> variables = null;
 		try {
 			variables = getProcessVariablesByNameAndValue(name, Arrays.asList(value), null, procInstIds, true, false, isDataMirrowed());
@@ -1079,10 +1021,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		Map<String, String> fromParts = new HashMap<String, String>();
 		Map<String, VariableInstanceType> types = new HashMap<String, VariableInstanceType>();
 
+		boolean searchForEachKeywordSeparately = IWMainApplication.getDefaultIWMainApplication().getSettings()
+				.getBoolean("bpm.var_load_res_separ", Boolean.TRUE);
+
 		if (!ListUtil.isEmpty(data)) {
 			boolean addAnd = false;
-			boolean searchForEachKeywordSeparately = IWMainApplication.getDefaultIWMainApplication().getSettings()
-					.getBoolean("bpm.var_load_res_separ", Boolean.TRUE);
 			for (Iterator<VariableQuerierData> queryPartIter = data.iterator(); queryPartIter.hasNext();) {
 				VariableQuerierData queryPart = queryPartIter.next();
 
@@ -1216,6 +1159,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 
 				valuesToSelect.append(" and ").append(currentColumnPrefix).append(".name_ = '").append(variableName).append("' ");
+
 				if (variablesWithoutValues == null) {
 					variablesWithoutValues = new ArrayList<String>();
 				} else {
@@ -1233,6 +1177,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						return null;
 					}
 
+					fromParts.remove(currentColumnPrefix);
+					types.remove(currentColumnPrefix);
 					valuesToSelect = new StringBuffer();
 				}
 
@@ -1987,259 +1933,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getConverted(data, columns);
 	}
 
-	/*@Override
-	public void loadVariables(List<String> variablesNames) {
-		if (ListUtil.isEmpty(variablesNames)) {
-			LOGGER.warning("No variables provided!");
-			return;
-		}
-
-		for (String name: variablesNames) {
-			try {
-				List<String> tmp = Arrays.asList(name);
-				Collection<VariableInstanceInfo> vars = getVariablesByNames(tmp);
-				if (vars == null) {
-					LOGGER.warning("No data was found for variable: " + tmp);
-					return;
-				}
-
-				cachedVariablesNames.put(name, Boolean.TRUE);
-
-				//	Name -> Value -> Variables
-				Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
-				for (VariableInstanceInfo var : vars) {
-					String variableName = var.getName();
-					if (StringUtil.isEmpty(variableName))
-						continue;
-
-					Serializable value = var.getValue();
-					if (value == null)
-						continue;
-
-					Map<String, List<VariableInstanceInfo>> variablesByName = cache.get(variableName);
-					if (variablesByName == null) {
-						variablesByName = new HashMap<String, List<VariableInstanceInfo>>();
-						cache.put(variableName, variablesByName);
-					}
-
-					String key = var instanceof VariableStringInstance ? ((String) value).intern() : value.toString().intern();
-					List<VariableInstanceInfo> variablesByValues = variablesByName.get(key);
-					if (variablesByValues == null) {
-						variablesByValues = new ArrayList<VariableInstanceInfo>();
-						variablesByName.put(key, variablesByValues);
-					}
-					variablesByValues.add(var);
-				}
-			} catch (Exception e) {
-				String message = "Error loading variables by " + name + " into cache";
-				LOGGER.log(Level.WARNING, message, e);
-				CoreUtil.sendExceptionNotification(message, e);
-				cachedVariablesNames.remove(name);
-			}
-		}
-	}*/
-
-	@Override
-	public List<VariableInstanceInfo> getCachedVariables(String name) {
-		return getCachedVariables(name, null, false, true);
-	}
-
-	@Override
-	public List<VariableInstanceInfo> getCachedVariables(String name, Serializable value, boolean approximate) {
-		return getCachedVariables(name, value, approximate, true);
-	}
-
-	@Override
-	public Map<Long, VariableInstanceInfo> getCachedVariablesGroupedByProcess(String name) {
-		//	Name -> Value -> Variable
-		Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
-		if (MapUtil.isEmpty(cache))
-			return Collections.emptyMap();
-		//	Value -> Variable
-		Map<String, List<VariableInstanceInfo>> cachedVariables = cache.get(name);
-		if (MapUtil.isEmpty(cachedVariables))
-			return Collections.emptyMap();
-
-		Map<Long, VariableInstanceInfo> allCachedVariables = new HashMap<Long, VariableInstanceInfo>();
-		Collection<List<VariableInstanceInfo>> temp = new ArrayList<List<VariableInstanceInfo>>(cachedVariables.values());
-		for (List<VariableInstanceInfo> varsForValue: temp) {
-			List<VariableInstanceInfo> tempValues = new ArrayList<VariableInstanceInfo>(varsForValue);
-			for (VariableInstanceInfo varForValue: tempValues)
-				allCachedVariables.put(varForValue.getProcessInstanceId(), varForValue);
-		}
-		return allCachedVariables;
-	}
-
-	private List<VariableInstanceInfo> getCachedVariables(String name, Serializable value, boolean approximate, boolean allVariables) {
-		if (StringUtil.isEmpty(name))
-			return null;
-
-		Map<String, VariableInstanceInfo> results = new HashMap<String, VariableInstanceInfo>();
-		//	Name -> Value -> Variable
-		Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
-		//	Value -> Variable
-		Map<String, List<VariableInstanceInfo>> cachedVariables = cache.get(name);
-		if (MapUtil.isEmpty(cachedVariables))
-			return Collections.emptyList();
-		if (value == null && allVariables) {
-			Map<Long, VariableInstanceInfo> allCachedVariables = getCachedVariablesGroupedByProcess(name);
-			return new ArrayList<VariableInstanceInfo>(allCachedVariables.values());
-		} else if (value == null)
-			return Collections.emptyList();
-
-		String valueKey = value.toString();
-		//	All variables by provided name and value
-		List<VariableInstanceInfo> cachedVariablesByNameAndValue = cachedVariables.get(valueKey);
-		if (!approximate && ListUtil.isEmpty(cachedVariablesByNameAndValue)) {
-			VariableInstanceInfo tmp = cachedVariables.values().iterator().next().iterator().next();
-			if (tmp instanceof VariableStringInstance || tmp instanceof VariableDateInstance || tmp instanceof VariableLongInstance ||
-					tmp instanceof VariableDoubleInstance) {
-				LOGGER.warning("Provided value " + valueKey + " does not exist in cache. First variable in cache by name " + name + " is: " + tmp);
-				return Collections.emptyList();
-			} else if (tmp instanceof VariableByteArrayInstance) {
-				valueKey = "[".concat(valueKey).concat("]");
-				cachedVariablesByNameAndValue = cachedVariables.get(valueKey);
-				if (ListUtil.isEmpty(cachedVariablesByNameAndValue)) {
-					LOGGER.warning("Provided value " + valueKey + " does not exist in cache for byte array variables." +
-							" First variable in cache by name " + name + " is: " + tmp);
-					return Collections.emptyList();
-				}
-			} else {
-				LOGGER.warning("Do not know how to resolve if provided value " + valueKey + " is cached for variables by name " + name +
-						". First variable in cache: " + tmp);
-				return Collections.emptyList();
-			}
-		}
-		if (approximate && ListUtil.isEmpty(cachedVariablesByNameAndValue)) {
-			Set<String> values = cachedVariables.keySet();
-			cachedVariablesByNameAndValue = new ArrayList<VariableInstanceInfo>();
-			for (String varValue: values) {
-				if (varValue.toLowerCase().indexOf(valueKey.toLowerCase()) != -1)
-					cachedVariablesByNameAndValue.addAll(cachedVariables.get(varValue));
-			}
-		}
-		if (ListUtil.isEmpty(cachedVariablesByNameAndValue))
-			return Collections.emptyList();
-
-		VariableInstanceInfo variable = null;
-		boolean iterCondition = allVariables ? Boolean.TRUE : variable == null;
-		for (Iterator<VariableInstanceInfo> varsIterator = cachedVariablesByNameAndValue.iterator(); (varsIterator.hasNext() && iterCondition);) {
-			VariableInstanceInfo var = varsIterator.next();
-			if (var == null)
-				continue;
-
-			Serializable varValue = var.getValue();
-			if (varValue == null)
-				continue;
-
-			String key = getKeyForVariable(var, false);
-			if (results.get(key) != null)
-				continue;
-
-			boolean satisfiesCondition = false;
-			if (var instanceof VariableStringInstance || var instanceof VariableLongInstance || var instanceof VariableDoubleInstance) {
-				String realValue = valueKey;
-				String realVarValue = var instanceof VariableStringInstance ? ((String) varValue).intern() : varValue.toString().intern();
-
-				if (approximate) {
-					realValue = realValue.toLowerCase();
-					realVarValue = realVarValue.toLowerCase();
-					satisfiesCondition = realVarValue.indexOf(realValue) != -1;
-				} else {
-					satisfiesCondition = valueKey.equals(varValue instanceof Number ? varValue.toString() : varValue);
-				}
-			} else if (var instanceof VariableDateInstance && ((Date) varValue).equals(value)) {
-				variable = var;
-				satisfiesCondition = true;
-			} else if (var instanceof VariableByteArrayInstance) {
-				satisfiesCondition = varValue.toString().intern().indexOf(valueKey) != -1;
-			} else {
-				LOGGER.warning("Do not know how to resovle if variable " + var + " satisfies condition: " + value +
-						(approximate ? " approximately" : " strictly"));
-			}
-
-			variable = satisfiesCondition ? var : null;
-			if (variable != null)
-				results.put(key, variable);
-		}
-
-		return new ArrayList<VariableInstanceInfo>(results.values());
-	}
-
-	private VariableInstanceInfo getCachedVariable(String name, Serializable value) {
-		List<VariableInstanceInfo> cached = getCachedVariables(name, value, false, false);
-		return ListUtil.isEmpty(cached) ? null : cached.iterator().next();
-	}
-
-	private int lastUsedCacheSize = 5;
-	private Map<String, Map<String, List<VariableInstanceInfo>>> getVariablesCache() {
-		IWMainApplication iwma = IWMainApplication.getDefaultIWMainApplication();
-		String cacheName = "bpmVariablesInfoCache";
-		int cacheSize = Integer.valueOf(iwma.getSettings().getProperty("bpm_variables_cache_size", String.valueOf(5)));
-		if (cacheSize == lastUsedCacheSize)
-			return IWCacheManager2.getInstance(iwma).getCache(cacheName, cacheSize, true, false, 8640000, 8640000, false); // 100 days
-
-		IWCacheManager2.getInstance(iwma).invalidate(cacheName);
-		lastUsedCacheSize = cacheSize;
-		return getVariablesCache();
-	}
-
 	@Override
 	public void onApplicationEvent(final ApplicationEvent event) {
-//			Thread importer = new Thread(new Runnable() {
-//
-//				@Override
-//				public void run() {
-//					VariableCreatedEvent varCreated = event;
-//
-//					Map<String, Object> vars = varCreated.getVariables();
-//					if (MapUtil.isEmpty(vars)) {
-//						getLogger().warning("No variables were submitted: " + varCreated);
-//						return;
-//					}
-//
-//					Long processInstanceId = varCreated.getProcessInstanceId();
-//					Map<String, Map<String, List<VariableInstanceInfo>>> cache = getVariablesCache();
-//					for (String name: vars.keySet()) {
-//						if (!cachedVariablesNames.containsKey(name))
-//							continue;	//	Variable is not cached
-//
-//						Map<String, List<VariableInstanceInfo>> cachedValues = cache.get(name);
-//						if (cachedValues == null) {
-//							cachedValues = new HashMap<String, List<VariableInstanceInfo>>();
-//							cache.put(name, cachedValues);
-//						}
-//
-//						VariableInstanceInfo info = getEmptyVariable(name);
-//						if (info == null) {
-//							getLogger().warning("Unable to add variable " + name + " to cache!");
-//							continue;	//	Invalid variable
-//						}
-//
-//						Object value = vars.get(name);
-//						if (!(value instanceof Serializable)) {
-//							if (value != null)
-//								getLogger().warning("Invalid value (" + value + ", class: " + value.getClass().getName() + ") for variable " + name);
-//
-//							continue;	//	Invalid value
-//						}
-//
-//						info.setProcessInstanceId(processInstanceId);
-//						info.setValue((Serializable) value);
-//
-//						String key = value.toString();
-//						List<VariableInstanceInfo> variablesByNameAndValue = cachedValues.get(key);
-//						if (variablesByNameAndValue == null)
-//							variablesByNameAndValue = new ArrayList<VariableInstanceInfo>();
-//						variablesByNameAndValue.add(0, info);
-//
-//						cachedValues.put(key, variablesByNameAndValue);
-//						cache.put(name, cachedValues);
-//					}
-//				}
-//			});
-//			importer.start();
-
 		if (event instanceof VariableCreatedEvent) {
 			final VariableCreatedEvent variableEvent = (VariableCreatedEvent) event;
 
@@ -2527,23 +2222,17 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			List<String> variables,
 			List<String> procDefNames,
 			List<Long> procInstIds,
-			Map<String, Boolean> flexibleVariables) {
+			Map<String, Boolean> flexibleVariables
+		) {
 
-		return getVariablesByNamesAndValuesAndExpressionsByProcesses(activeVariables, variables, procDefNames, procInstIds,
-				flexibleVariables, true);
-	}
-
-	@Override
-	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
-			Map<String, VariableQuerierData> activeVariables,
-			List<String> variables,
-			List<String> procDefNames,
-			List<Long> procInstIds,
-			Map<String, Boolean> flexibleVariables,
-			boolean useCachedVariables) {
-
-		return getVariablesByNamesAndValuesAndExpressionsByProcesses(activeVariables, variables, procDefNames, procInstIds, flexibleVariables,
-				useCachedVariables, false);
+		return getVariablesByNamesAndValuesAndExpressionsByProcesses(
+				activeVariables,
+				variables,
+				procDefNames,
+				procInstIds,
+				flexibleVariables,
+				false
+		);
 	}
 
 	private EntityManager entityManager;
@@ -2966,14 +2655,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			});
 			return data;
 		} finally {
-//			if (CoreUtil.isSQLMeasurementOn()) {
+			if (CoreUtil.isSQLMeasurementOn()) {
 				long duration = System.currentTimeMillis() - start;
 				if (duration >= 1000) {
 					getLogger().info("******* " +  (lucene? "LUCENE" : "HIBERNATE") + ": it took " + duration + " ms to query for variable name(s): " +
 							names + ", query: '" + queryData + "', proc. inst. IDs: " + procInstIds + ", task inst. IDs: " + taskInstIds +
 							" and var. inst. IDs: " + varIds);
 				}
-//			}
+			}
 		}
 	}
 
@@ -3041,14 +2730,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 			});
 		} finally {
-//			if (CoreUtil.isSQLMeasurementOn()) {
+			if (CoreUtil.isSQLMeasurementOn()) {
 				long duration = System.currentTimeMillis() - start;
 				if (duration >= 1000) {
 					getLogger().info("******* " +  (lucene? "LUCENE" : "HIBERNATE") + ": it took " + duration +
 							" ms to query for proc. instance IDs by variable name(s): " + names + ", query: '" + queryData + "', proc. inst. IDs: " +
 							procInstIds + ", task inst. IDs: " + taskInstIds + " and var. inst. IDs: " + varIds);
 				}
-//			}
+			}
 		}
 	}
 
@@ -3402,8 +3091,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		convertByteValues(variablesToConvert);
 		if (!MapUtil.isEmpty(variablesToConvert)) {
 			getLogger().info("Convert: " + variablesToConvert);
-//		for (VariableByteArrayInstance byteVar: variablesToConvert.values())
-//			variables.put(byteVar.getId(), byteVar);
 		}
 
 		return converted;
@@ -3420,7 +3107,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			List<String> procDefNames,
 			List<Long> originalProcInstIds,
 			Map<String, Boolean> flexibleVariables,
-			boolean useCachedVariables,
 			boolean strictBinaryVariables
 	) {
 		return getVariablesByNamesAndValuesAndExpressionsByProcesses(
@@ -3429,7 +3115,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				procDefNames,
 				originalProcInstIds,
 				flexibleVariables,
-				useCachedVariables,
 				strictBinaryVariables,
 				false
 		);
@@ -3442,7 +3127,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			List<String> procDefNames,
 			List<Long> originalProcInstIds,
 			Map<String, Boolean> flexibleVariables,
-			boolean useCachedVariables,
 			boolean strictBinaryVariables,
 			boolean selectOnlyProcInstIds
 	) {
@@ -3477,102 +3161,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		List<String> variablesToQuery = new ArrayList<String>();
 		List<Long> procInstIds = originalProcInstIds == null ? null : new ArrayList<Long>(originalProcInstIds);
 
-		//	Determining cached variables
-		Map<String, List<VariableInstanceInfo>> cachedVariables = new HashMap<String, List<VariableInstanceInfo>>();
 		if (!MapUtil.isEmpty(activeVariables)) {
-			if (useCachedVariables) {
-				for (String name: activeVariables.keySet()) {
-					List<Serializable> values = activeVariables.get(name).getValues();
-					for (Serializable value: values) {
-						List<VariableInstanceInfo> info = getCachedVariables(
-								name, value,
-								flexibleVariables == null ?
-										false : flexibleVariables.get(name) == null
-										? false : flexibleVariables.get(name), true);
-						if (ListUtil.isEmpty(info)) {
-							if (isVariableCached(name)) {
-								LOGGER.warning("Variable " + name + " is cached, but no variables were found by value: " + value);
-								return null;
-							} else
-								continue;
-						}
-
-						List<VariableInstanceInfo> existingInfo = cachedVariables.get(name);
-						if (existingInfo != null) {
-							existingInfo.addAll(info);
-							cachedVariables.put(name, existingInfo);
-						} else
-							cachedVariables.put(name, info);
-					}
-
-					List<VariableInstanceInfo> cached = cachedVariables.get(name);
-					if (cached == null || cached.size() < activeVariables.get(name).getValues().size()) {
-						if (!variablesToQuery.contains(name))
-							variablesToQuery.add(name);
-
-						cachedVariables.remove(name);
-					}
-				}
-			} else
-				variablesToQuery.addAll(activeVariables.keySet());
+			variablesToQuery.addAll(activeVariables.keySet());
 		}
-		int numberOfCachedVariables = cachedVariables.size();
 
 		Map<Long, Map<String, VariableInstanceInfo>> results = new LinkedHashMap<Long, Map<String, VariableInstanceInfo>>();
 
-		if (!cachedVariables.isEmpty()) {
-			//	Grouping variables by processes
-			for (Entry<String, List<VariableInstanceInfo>> entry: cachedVariables.entrySet()) {
-				for (VariableInstanceInfo varInfo: entry.getValue()) {
-					Long piId = varInfo.getProcessInstanceId();
-					Map<String, VariableInstanceInfo> processVariables = results.get(piId);
-
-					if (processVariables == null) {
-						processVariables = new HashMap<String, VariableInstanceInfo>();
-						results.put(piId, processVariables);
-					}
-
-					processVariables.put(varInfo.getName(), varInfo);
-				}
-			}
-
-			List<Long> idsToRemove = new ArrayList<Long>();
-			for (Long id: results.keySet()) {
-				Map<String, VariableInstanceInfo> cachedData = results.get(id);
-				if (MapUtil.isEmpty(cachedData) || cachedData.keySet().size() != numberOfCachedVariables)
-					idsToRemove.add(id);
-			}
-			for (Long id: idsToRemove)
-				results.remove(id);
-
-			if (numberOfCachedVariables == activeVariables.size() && MapUtil.isEmpty(results))
-				return null;
-
-			if (ListUtil.isEmpty(procInstIds)) {
-				if (MapUtil.isEmpty(results))
-					return null;	//	Nothing was found in the cache
-
-				//	Must query by process instance IDs that were found by cached variables
-				procInstIds = new ArrayList<Long>(results.keySet());
-			} else {
-				//	Restricting a set of process instance IDs
-				procInstIds.retainAll(results.keySet());
-				if (ListUtil.isEmpty(procInstIds)) {
-					LOGGER.info("There are no results after initial data set was restricted by the cached data " + results.keySet());
-					return Collections.emptyMap();
-				}
-			}
-		}
-
-		if (useCachedVariables && ListUtil.isEmpty(variablesToQuery) && ListUtil.isEmpty(variables)) {
-			//	Everything was found in cache or nothing else needed to query
-			return results;
-		} else if (!MapUtil.isEmpty(activeVariables)) {
+		if (!MapUtil.isEmpty(activeVariables)) {
 			for (String variableName: activeVariables.keySet()) {
 				if (variablesToQuery.contains(variableName))
-					continue;
-
-				if (useCachedVariables && cachedVariables.containsKey(variableName))
 					continue;
 
 				variablesToQuery.add(variableName);
