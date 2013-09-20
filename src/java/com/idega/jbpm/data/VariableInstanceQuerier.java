@@ -43,6 +43,20 @@ public interface VariableInstanceQuerier extends GenericDao {
 			List<String> names);
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names);
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefsAndVariablesNames(List<String> procDefNames, List<String> names);
+	
+	/**
+	 * 
+	 * <p>Queries jBPM data source for variables.</p>
+	 * @param procDefNames is {@link List} of {@link ProcessDefinition#getName()}, 
+	 * not <code>null</code>;
+	 * @param variableNames is name of JBPM variable: 
+	 * {@link VariableInstance#getName()}, not <code>null</code>
+	 * @param checkTaskInstance 
+	 * @return variables with values, found in data source, 
+	 * or {@link Collections#emptyList()} on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public Collection<VariableInstanceInfo> getVariables(List<String> procDefNames, List<String> variableNames, boolean checkTaskInstance);
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean checkTaskInstance);
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(List<String> names, Collection<Long> procIds, boolean checkTaskInstance,
 			boolean addEmptyVars);

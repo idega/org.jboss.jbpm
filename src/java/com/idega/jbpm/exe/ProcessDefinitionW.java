@@ -7,8 +7,11 @@ import java.util.Locale;
 import org.jbpm.graph.def.ProcessDefinition;
 
 import com.idega.block.process.variables.Variable;
+import com.idega.core.accesscontrol.data.ICRole;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewSubmission;
+import com.idega.user.data.Group;
+import com.idega.user.data.User;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -18,6 +21,8 @@ import com.idega.jbpm.view.ViewSubmission;
  */
 public interface ProcessDefinitionW {
 
+	public static final String VARIABLE_MANAGER_ROLE_NAME = "managerRoleName";
+	
 	/**
 	 * Starts process
 	 * @param viewSubmission
@@ -47,4 +52,15 @@ public interface ProcessDefinitionW {
 	public abstract Collection<String> getTaskNodeTransitionsNames(String taskName);
 
 	public abstract String getProcessName(Locale locale);
+	
+	/**
+	 * 
+	 * <p>Checks if given {@link User} has cases </p>
+	 * @param user which should be in {@link Group} with {@link ICRole} of
+	 * manager in {@link ProcessDefinition}, not <code>null</code>;
+	 * @return <code>true</code> if {@link User} has managers role, 
+	 * <code>false</code> otherwise;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public boolean hasManagerRole(User user); 
 }

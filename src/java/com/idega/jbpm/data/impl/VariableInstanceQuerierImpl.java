@@ -215,6 +215,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getVariablesByProcessesAndVariablesNames(null, procDefs, names, isDataMirrowed(), true, true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.VariableInstanceQuerier#getVariables(java.util.List, java.util.List, boolean)
+	 */
+	@Override
+	public Collection<VariableInstanceInfo> getVariables(List<String> procDefs, List<String> names, boolean checkTaskInstance) {
+		return getVariablesByProcessesAndVariablesNames(null, procDefs, names, isDataMirrowed(), checkTaskInstance, Boolean.FALSE);
+	}
+	
 	@Override
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(List<String> names, Collection<Long> procIds,
 			boolean checkTaskInstance, boolean addEmptyVars) {
