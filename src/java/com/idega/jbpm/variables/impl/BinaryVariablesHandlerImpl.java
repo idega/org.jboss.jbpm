@@ -153,29 +153,28 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 		final FileInfo fileInfo = fileURIHandler.getFileInfo(fileUri);
 		String fileName = fileInfo.getFileName();
-		
-		
+
 		boolean persistedToRepository = binaryVariable.isPersistedToRepository();
 		String path;
-		if(persistedToRepository){
+		if (persistedToRepository) {
 			path = fileUri.getPath();
-			if(path.startsWith(CoreConstants.WEBDAV_SERVLET_URI)){
+			if (path.startsWith(CoreConstants.WEBDAV_SERVLET_URI)){
 				path = path.substring(CoreConstants.WEBDAV_SERVLET_URI.length());
 			}
 			path = path.substring(0, path.lastIndexOf('/'));
-		}else{
+		} else {
 			path = getFolderForBinaryVariable(binaryVariable.getTaskInstanceId());
 		}
-		
+
 		try {
 			String normalizedName = fileName;
-			if(!persistedToRepository){
+			if (!persistedToRepository) {
 				IWSlideService repository = getIWSlideService();
-	
+
 				normalizedName = StringHandler.stripNonRomanCharacters(fileName,
 						new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_', '.'});
 				normalizedName = StringHandler.removeWhiteSpace(normalizedName);
-	
+
 				int index = 0;
 				String tmpUri = path;
 				//	File by the same name already exists! Renaming this file not to overwrite existing file
@@ -183,7 +182,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					tmpUri = path.concat(String.valueOf((index++)));
 				}
 				path = tmpUri;
-	
+
 				// This should be changed, temporal fix. user will not be able submit a form if exception will be thrown here
 				InputStream stream = null;
 				try {
@@ -199,7 +198,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 								Thread.sleep(500);
 								continue;
 							}
-	
+
 							doSendErrorNotification(fileURIHandler.getFile(fileUri), normalizedName, uploadPath, e);
 							throw e;
 						}
