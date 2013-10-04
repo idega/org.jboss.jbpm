@@ -10,6 +10,7 @@ import java.util.Map;
 import org.jbpm.context.exe.VariableInstance;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.bean.BPMProcessVariable;
@@ -57,6 +58,30 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
 	public Collection<VariableInstanceInfo> getVariables(List<String> procDefNames, List<String> variableNames, boolean checkTaskInstance);
+
+	/**
+	 * 
+	 * <p>Selects {@link VariableInstance}s from jBPM data source.</p>
+	 * @param variableNames is {@link Collection} of {@link VariableInstance#getName()}
+	 * to search values for, not <code>null</code>;
+	 * @param processInstances to get variables for, not <code>null</code>; 
+	 * @param checkTaskInstance - tells if {@link TaskInstance}s should be 
+	 * selected too;
+	 * @param addEmptyVars tells if empty {@link VariableInstanceInfo}s
+	 * should be created for variable names, which are not found in database.
+	 * They won't have {@link VariableInstanceInfo#getValue()};
+	 * @param mirrowData tells if {@link BPMVariableData} data table should be used;
+	 * @return {@link VariableInstance}s from jBPM data tables or 
+	 * {@link Collections#emptyList()} on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public List<VariableInstanceInfo> getVariables(
+			Collection<String> variableNames, 
+			Collection<ProcessInstance> processInstances, 
+			boolean checkTaskInstance,
+			boolean addEmptyVars, 
+			boolean mirrowData);
+
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean checkTaskInstance);
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(List<String> names, Collection<Long> procIds, boolean checkTaskInstance,
 			boolean addEmptyVars);

@@ -242,6 +242,41 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getVariablesByProcessesAndVariablesNames(names, null, procIds, checkTaskInstance, addEmptyVars, mirrowData);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.VariableInstanceQuerier#getVariables(java.util.Collection, java.util.Collection, boolean, boolean, boolean)
+	 */
+	@Override
+	public List<VariableInstanceInfo> getVariables(
+			Collection<String> variableNames,
+			Collection<ProcessInstance> processInstances,
+			boolean checkTaskInstance, 
+			boolean addEmptyVars, 
+			boolean mirrowData) {
+
+		ArrayList<Long> processInstanceIDs = null;
+		if (!ListUtil.isEmpty(processInstances)) {
+			processInstanceIDs = new ArrayList<Long>(processInstances.size());
+
+			for (ProcessInstance pi : processInstances) {
+				processInstanceIDs.add(pi.getId());
+			}
+		}
+
+		ArrayList<String> names = null;
+		if (!ListUtil.isEmpty(variableNames)) {
+			names = new ArrayList<String>(variableNames);
+		}
+
+		Collection<VariableInstanceInfo> variableInstances = getVariablesByProcessInstanceIdAndVariablesNames(
+				names, processInstanceIDs, checkTaskInstance, addEmptyVars, mirrowData);
+		if (ListUtil.isEmpty(variableInstances)) {
+			return Collections.emptyList();
+		}
+
+		return new ArrayList<VariableInstanceInfo>(variableInstances);
+	}
+
 	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(List<String> variablesNames, List<String> procDefNames,
 			Collection<Long> procIds, boolean checkTaskInstance, boolean addEmptyVars, boolean mirrowData) {
 

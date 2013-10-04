@@ -120,5 +120,15 @@ public interface BPMDAO extends GenericDao {
 	 */
 	public List<ProcessInstance> getProcessInstances(List<String> processDefinitionNames);
 
+	/**
+	 * 
+	 * @param processInstanceIds is {@link Collection} of 
+	 * {@link ProcessInstance#getId()}, not <code>null</code>;
+	 * @return loads {@link ProcessInstance}s from data source 
+	 * or {@link Collections#emptyList()} on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public List<ProcessInstance> getProcessInstancesByIDs(Collection<Long> processInstanceIds);
+
 	public List<User> getUsersConnectedToProcess(Long piId, String procDefName, Map<String, Object> variables);
 }
