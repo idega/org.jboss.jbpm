@@ -51,6 +51,7 @@ import com.idega.jbpm.data.BPMVariableData;
 import com.idega.jbpm.data.ProcessDefinitionVariablesBind;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.events.VariableCreatedEvent;
+import com.idega.jbpm.exe.ProcessDefinitionW;
 import com.idega.jbpm.variables.MultipleSelectionVariablesResolver;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
@@ -213,6 +214,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	@Override
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefsAndVariablesNames(List<String> procDefs, List<String> names) {
 		return getVariablesByProcessesAndVariablesNames(null, procDefs, names, isDataMirrowed(), true, true);
+	}
+	@Override
+	public Collection<VariableInstanceInfo> getVariablesByProcessDefAndVariableName(String procDefName, String name) {
+		if (StringUtil.isEmpty(procDefName) || StringUtil.isEmpty(name)) {
+			return null;
+		}
+		return getVariablesByProcessesAndVariablesNames(null, Arrays.asList(procDefName), Arrays.asList(name), isDataMirrowed(), false, true);
 	}
 
 	/*
@@ -435,9 +443,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return results;
 	}
 
-	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(Collection<Long> procInstIds, List<String> procDefNames,
-			List<String> variablesNames, boolean mirrow, boolean checkTaskInstance, boolean checkCache) {
-
+	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(
+			Collection<Long> procInstIds,
+			List<String> procDefNames,
+			List<String> variablesNames,
+			boolean mirrow,
+			boolean checkTaskInstance,
+			boolean checkCache
+	) {
 		if (ListUtil.isEmpty(variablesNames)) {
 			LOGGER.warning("The names of variables are not provided!");
 			return null;
@@ -481,8 +494,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		boolean anyStringColumn = false;
-		for (Iterator<String> namesIter = variablesNames.iterator(); (!anyStringColumn && namesIter.hasNext());)
-			anyStringColumn = namesIter.next().contains(VariableInstanceType.STRING.getPrefix());
+		for (Iterator<String> namesIter = variablesNames.iterator(); (!anyStringColumn && namesIter.hasNext());) {
+			String name = namesIter.next();
+			anyStringColumn = 	name.contains(VariableInstanceType.STRING.getPrefix()) ||
+								ProcessDefinitionW.VARIABLE_MANAGER_ROLE_NAME.equals(name);
+		}
 
 		Collection<VariableInstanceInfo> vars = null;
 

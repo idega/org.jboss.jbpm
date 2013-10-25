@@ -43,43 +43,45 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, boolean checkCache,
 			List<String> names);
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names);
+
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefsAndVariablesNames(List<String> procDefNames, List<String> names);
-	
+	public Collection<VariableInstanceInfo> getVariablesByProcessDefAndVariableName(String procDefName, String name);
+
 	/**
-	 * 
+	 *
 	 * <p>Queries jBPM data source for variables.</p>
-	 * @param procDefNames is {@link List} of {@link ProcessDefinition#getName()}, 
+	 * @param procDefNames is {@link List} of {@link ProcessDefinition#getName()},
 	 * not <code>null</code>;
-	 * @param variableNames is name of JBPM variable: 
+	 * @param variableNames is name of JBPM variable:
 	 * {@link VariableInstance#getName()}, not <code>null</code>
-	 * @param checkTaskInstance 
-	 * @return variables with values, found in data source, 
+	 * @param checkTaskInstance
+	 * @return variables with values, found in data source,
 	 * or {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
 	public Collection<VariableInstanceInfo> getVariables(List<String> procDefNames, List<String> variableNames, boolean checkTaskInstance);
 
 	/**
-	 * 
+	 *
 	 * <p>Selects {@link VariableInstance}s from jBPM data source.</p>
 	 * @param variableNames is {@link Collection} of {@link VariableInstance#getName()}
 	 * to search values for, not <code>null</code>;
-	 * @param processInstances to get variables for, not <code>null</code>; 
-	 * @param checkTaskInstance - tells if {@link TaskInstance}s should be 
+	 * @param processInstances to get variables for, not <code>null</code>;
+	 * @param checkTaskInstance - tells if {@link TaskInstance}s should be
 	 * selected too;
 	 * @param addEmptyVars tells if empty {@link VariableInstanceInfo}s
 	 * should be created for variable names, which are not found in database.
 	 * They won't have {@link VariableInstanceInfo#getValue()};
 	 * @param mirrowData tells if {@link BPMVariableData} data table should be used;
-	 * @return {@link VariableInstance}s from jBPM data tables or 
+	 * @return {@link VariableInstance}s from jBPM data tables or
 	 * {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
 	public List<VariableInstanceInfo> getVariables(
-			Collection<String> variableNames, 
-			Collection<ProcessInstance> processInstances, 
+			Collection<String> variableNames,
+			Collection<ProcessInstance> processInstances,
 			boolean checkTaskInstance,
-			boolean addEmptyVars, 
+			boolean addEmptyVars,
 			boolean mirrowData);
 
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names, boolean checkTaskInstance);
@@ -270,42 +272,42 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data, int numberOfColumns);
 
 	/**
-	 * 
+	 *
 	 * <p>Searches for {@link VariableInstance} from jbpm_variableinstance
 	 * table by:</p>
-	 * @param requiredVariableName is {@link VariableInstance#getName()} which 
+	 * @param requiredVariableName is {@link VariableInstance#getName()} which
 	 * instances should be found, not <code>null</code>;
-	 * @param argumentVariableName is {@link VariableInstance#getName()} of 
-	 * {@link VariableInstance} by which required variable should be found. 
+	 * @param argumentVariableName is {@link VariableInstance#getName()} of
+	 * {@link VariableInstance} by which required variable should be found.
 	 * When <code>null</code>, argumentValue will be ignored;
 	 * @param argumentValue is {@link VariableInstance#getValue()} of
 	 * {@link VariableInstance} by name defined in argumentVariableName;
-	 * @param processInstanceId is {@link ProcessInstance#getId()}, which 
+	 * @param processInstanceId is {@link ProcessInstance#getId()}, which
 	 * contains required {@link VariableInstance};
-	 * @return {@link Collection} of {@link VariableInstanceInfo}, which 
+	 * @return {@link Collection} of {@link VariableInstanceInfo}, which
 	 * matches criteria, or {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
 	public List<VariableInstanceInfo> findJBPMVariable(
 			String requiredVariableName,
-			String argumentVariableName, 
+			String argumentVariableName,
 			String argumentValue,
 			Long processInstanceId);
 
 	/**
-	 * 
+	 *
 	 * <p>Searches for {@link VariableInstance} from jbpm_variableinstance
 	 * table by:</p>
-	 * @param requiredVariableName is {@link VariableInstance#getName()} which 
+	 * @param requiredVariableName is {@link VariableInstance#getName()} which
 	 * instances should be found, not <code>null</code>;
-	 * @param argumentVariableName is {@link VariableInstance#getName()} of 
-	 * {@link VariableInstance} by which required variable should be found. 
+	 * @param argumentVariableName is {@link VariableInstance#getName()} of
+	 * {@link VariableInstance} by which required variable should be found.
 	 * When <code>null</code>, argumentValue will be ignored;
 	 * @param argumentValue is {@link VariableInstance#getValue()} of
 	 * {@link VariableInstance} by name defined in argumentVariableName;
-	 * @param processInstanceId is {@link ProcessInstance#getId()}, which 
+	 * @param processInstanceId is {@link ProcessInstance#getId()}, which
 	 * contains required {@link VariableInstance};
-	 * @return {@link Collection} of {@link VariableInstanceInfo#getValue()}, 
+	 * @return {@link Collection} of {@link VariableInstanceInfo#getValue()},
 	 * which matches criteria, or {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
