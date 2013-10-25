@@ -1,8 +1,10 @@
 package com.idega.jbpm.exe;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.jbpm.JbpmContext;
+import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.ProcessInstance;
 
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -126,4 +128,7 @@ public interface BPMFactory {
 	public abstract ProcessDefinitionW getProcessDefinitionW(String processName);
 
 	public Long getIdOfStartTaskInstance(Long piId);
+
+	public <T extends Serializable> T getVariable(ExecutionContext ctx, String name);
+	public <T extends Serializable> T getVariable(ExecutionContext ctx, String name, Long piId);
 }

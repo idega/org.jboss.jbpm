@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
+import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.Task;
@@ -28,6 +29,7 @@ import com.idega.hibernate.HibernateUtil;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.ProcessManagerBind;
+import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
@@ -45,6 +47,7 @@ import com.idega.jbpm.view.ViewSubmission;
 import com.idega.jbpm.view.ViewSubmissionImpl;
 import com.idega.util.ArrayUtil;
 import com.idega.util.ListUtil;
+import com.idega.util.StringUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -483,5 +486,52 @@ public class BPMFactoryImpl implements BPMFactory {
 			}
 		});
 		return startTaskId;
+	}
+
+	@Override
+	public <T extends Serializable> T getVariable(ExecutionContext ctx, String name) {
+		if (ctx == null) {
+			LOGGER.warning("Execution context is not provided");
+			return null;
+		}
+
+		try {
+			Long piId = ctx.getProcessInstance().getId();
+			return getVariable(ctx, name, piId);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting variable " + name + " from execution context " + ctx, e);
+		}
+		return null;
+	}
+
+	@Override
+	public <T extends Serializable> T getVariable(ExecutionContext ctx, String name, Long piId) {
+		if (StringUtil.isEmpty(name)) {
+			LOGGER.warning("Variable's name is not provided!");
+			return null;
+		}
+
+		if (ctx != null) {
+			try {
+				Object o = ctx.getVariable(name);
+				if (o != null) {
+					@SuppressWarnings("unchecked")
+					T var = (T) o;
+					return var;
+				}
+			} catch (Exception e) {}
+		}
+
+		if (piId != null) {
+			List<Variable> vars = getBPMDAO().getVariablesByNameAndProcessInstance(name, piId);
+			if (!ListUtil.isEmpty(vars)) {
+				Variable var = vars.get(0);
+				T value = var.getValue();
+				return value;
+			}
+		}
+
+		LOGGER.warning("Unable to get variable " + name + " for process instance " + piId);
+		return null;
 	}
 }
