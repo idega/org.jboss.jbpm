@@ -61,9 +61,8 @@ public class IWBundleStarter implements IWBundleStartable {
 
 	private void doBuildIndexes(IWMainApplicationSettings settings) {
 		try {
-			if (!settings.getBoolean("bpm_vars_lucene_indexed", Boolean.FALSE)) {
+			if (settings.getBoolean("bpm.auto_index_vars", Boolean.FALSE)) {
 				getSearchIndexForVariable().rebuild();
-				settings.setProperty("bpm_vars_lucene_indexed", Boolean.TRUE.toString());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
