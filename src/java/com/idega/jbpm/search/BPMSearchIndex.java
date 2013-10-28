@@ -24,6 +24,7 @@ import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.VariableBytes;
 import com.idega.util.ArrayUtil;
+import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
 
 public class BPMSearchIndex extends DefaultSpringBean {
@@ -35,7 +36,7 @@ public class BPMSearchIndex extends DefaultSpringBean {
 	private EntityManagerFactory entityManagerFactory;
 
 	public void rebuild() throws Exception {
-		doRebuildIndexes(new Class<?>[] {Variable.class, VariableBytes.class});
+		doRebuildIndexes(new Class<?>[] {Variable.class, VariableBytes.class/*, VariableByteArray.class*/});
 	}
 
 	private void doRebuildIndexes(Class<?>... classesOfObjectsToIndex) throws Exception {
@@ -54,35 +55,22 @@ public class BPMSearchIndex extends DefaultSpringBean {
 					.progressMonitor(new SimpleIndexingProgressMonitor(1))
 					.startAndWait();
 			}
-
-//			fullTextSession
-//				.createIndexer(Variable.class)
-//				.progressMonitor(new SimpleIndexingProgressMonitor(1))
-//				.startAndWait();
-//
-////			fullTextSession
-////				.createIndexer(VariableByteArray.class)
-////				.progressMonitor(new SimpleIndexingProgressMonitor(1))
-////				.startAndWait();
-//
-//			fullTextSession
-//				.createIndexer(VariableBytes.class)
-//				.progressMonitor(new SimpleIndexingProgressMonitor(1))
-//				.startAndWait();
 		} finally {
 			entityManager.close();
 		}
 	}
 
 	public void doIndexVariable(Session session, Serializable id) {
-		if (session == null || id == null) {
+		if (session == null || !(id instanceof Number)) {
+			getLogger().warning("Session is invalid (" + session + ") or ID is not type of Number: " + id +
+					(id == null ? CoreConstants.EMPTY : ", class: " + id.getClass()));
 			return;
 		}
 
 		try {
 			FullTextSession indexer = org.hibernate.search.Search.getFullTextSession(session);
 
-			Object var = indexer.load(Variable.class, id);
+			Object var = indexer.load(Variable.class, ((Number) id).longValue());
 			if (var == null) {
 				getLogger().warning("Variable can not be found by ID: " + id);
 				return;
@@ -153,7 +141,13 @@ public class BPMSearchIndex extends DefaultSpringBean {
 								}
 
 								Serializable id = varId[0];
-								Object var = indexer.load(Variable.class, id);
+								if (!(id instanceof Number)) {
+									getLogger().warning("ID is not type of Number: " + id +
+											(id == null ? CoreConstants.EMPTY : ", class: " + id.getClass()));
+									continue;
+								}
+
+								Object var = indexer.load(Variable.class, ((Number) id).longValue());
 								if (var == null) {
 									getLogger().warning("Variable can not be found by ID: " + id);
 									continue;
