@@ -874,7 +874,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		}
 
 		if (!session.isOpen() || !(session instanceof SessionImplementor)) {
-			getLogger().warning("Session is closed or wrong implementation: " + session);
+			getLogger().warning("Session is closed or wrong implementation: " + session + ". Expected: " + SessionImplementor.class.getName());
 			return;
 		}
 
@@ -886,7 +886,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 		Map<?, ?> entities = pc.getEntityEntries();
 		if (MapUtil.isEmpty(entities)) {
-			getLogger().info("There are no entities to restore");
 			return;
 		}
 
@@ -897,9 +896,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 				String entityName = entity.getEntityName();
 				BPMEntityEnum bpmEntity = BPMEntityEnum.getEnum(entityName);
 				if (bpmEntity == null) {
-					if (settings.getBoolean("bpm.log_restore_failure", Boolean.FALSE)) {
-						getLogger().info("Entity " + entityName + " is not from " + Arrays.asList(BPMEntityEnum.values()));
-					}
 					continue;
 				}
 
@@ -917,16 +913,16 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 									version = 1;
 									String update = bpmEntity.getUpdateQuery(id, version);
 									if (SimpleQuerier.executeUpdate(update, false)) {
-										getLogger().info("Restored version (to " + version + ") for entity " + entityName + ", ID: " + id);
-									} else {
-										getLogger().warning("Failed to refresh: " + entity);
+										if (settings.getBoolean("bpm.log_restore_success", Boolean.FALSE)) {
+											getLogger().info("Restored version (to " + version + ") for entity " + entityName + ", ID: " + id);
+										}
+									} else if (settings.getBoolean("bpm.log_restore_failure", Boolean.TRUE)) {
+										getLogger().warning("Failed to restore version (to " + version + ") for entity: " + entityName + ", ID: " + id);
 									}
-								} else {
-									getLogger().info("No need to restore verion: " + version);
 								}
 							} else {
 								getLogger().warning("Expected Number object, got: " + versionObject +
-										(versionObject == null ? "" : ", class: " + versionObject.getClass().getName()));
+										(versionObject == null ? CoreConstants.EMPTY : ", class: " + versionObject.getClass().getName()));
 							}
 						} else {
 							getLogger().warning("No data in " + results);
@@ -937,8 +933,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 				} catch (Exception e) {
 					getLogger().log(Level.WARNING, "Error refreshing " + entity + " with ID: " + id, e);
 				}
-			} else {
-				getLogger().warning("Object " + o + " is not instance of " + EntityEntry.class.getName());
 			}
 		}
 	}

@@ -140,10 +140,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 				canRestore = false;
 			}
 			if (canRestore) {
-				Logger.getLogger(getClass().getName()).info("Will restore versions for BPM enities (if found)");
 				getBPMDAO().doRestoreVersion(session);
-			} else {
-				Logger.getLogger(getClass().getName()).info("Version restoring for BPM enities is turned off");
 			}
 
 			super.flushIfNecessary(session, existingTransaction);
