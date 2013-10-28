@@ -1,7 +1,6 @@
 package com.idega.jbpm.search;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -23,14 +22,10 @@ import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.VariableBytes;
-import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.util.ArrayUtil;
 import com.idega.util.ListUtil;
 
 public class BPMSearchIndex extends DefaultSpringBean {
-
-	@Autowired
-	private BPMDAO bpmDAO;
 
 	@Autowired
 	private BPMContext bpmContext;
@@ -104,26 +99,40 @@ public class BPMSearchIndex extends DefaultSpringBean {
 					continue;
 				}
 
-				String varName = (String) nameCandidate;
+				final String varName = (String) nameCandidate;
 				getLogger().info("Indexing variables by name: " + varName + ". " + (i + 1) + " out of " + total);
-				final List<Variable> vars = bpmDAO.getVariablesByConditions(Arrays.asList(varName), null, null, null);
-				if (ListUtil.isEmpty(vars)) {
-					getLogger().warning("No variables found by name: " + varName);
-					continue;
-				}
 
 				try {
 					bpmContext.execute(new JbpmCallback<Boolean>() {
 
 						@Override
 						public Boolean doInJbpm(JbpmContext context) throws JbpmException {
+							String varsIdsQuery = "select distinct var.id_ from jbpm_variableinstance var where var.name_ = '" + varName + "'";
+							List<Serializable[]> ids = null;
+							try {
+								ids = SimpleQuerier.executeQuery(varsIdsQuery, 1);
+							} catch (Exception e) {
+								getLogger().log(Level.WARNING, "Error executing query: " + varsIdsQuery, e);
+							}
+							if (ListUtil.isEmpty(ids)) {
+								getLogger().warning("No IDs found for variables by name: " + varName);
+								return false;
+							}
+
 							FullTextSession indexer = org.hibernate.search.Search.getFullTextSession(context.getSession());
 							Transaction tx = indexer.beginTransaction();
-							for (Variable variable: vars) {
-								if (variable.getValue() == null)
+							for (Serializable[] varId: ids) {
+								if (ArrayUtil.isEmpty(varId)) {
 									continue;
+								}
 
-								Object var = indexer.load(Variable.class, variable.getId());
+								Serializable id = varId[0];
+								Object var = indexer.load(Variable.class, id);
+								if (var == null) {
+									getLogger().warning("Variable can not be found by ID: " + id);
+									continue;
+								}
+
 								indexer.index(var);
 							}
 							tx.commit();
