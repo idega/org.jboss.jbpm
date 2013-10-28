@@ -855,7 +855,8 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		try {
 			return getResultListByInlineQuery(query, Variable.class, ArrayUtil.convertListToArray(params));
 		} catch (Exception e) {
-			String message = "Error querying by: '" + query + "'";
+			String message = "Error querying by: '" + query + "'. Variables names: " + names + ", proc. inst. IDs: " + piIds + ", task inst. IDs: " +
+					tiIds + ", var. inst. IDs: " + viIds;
 			getLogger().log(Level.WARNING, message, e);
 			CoreUtil.sendExceptionNotification(message, e);
 		}
