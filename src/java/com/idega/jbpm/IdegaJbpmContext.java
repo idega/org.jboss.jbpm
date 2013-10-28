@@ -21,6 +21,7 @@ import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.util.expression.ELUtil;
 
@@ -128,11 +129,22 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
 		@Override
 		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
-			if (!session.isOpen())
+			if (!session.isOpen()) {
+				Logger.getLogger(getClass().getName()).warning("Session is closed");
 				return;
+			}
 
-			if (startingProcess)
+			boolean canRestore = true;
+			if (startingProcess &&
+					IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.restore_vrs_on_start_only", Boolean.FALSE)) {
+				canRestore = false;
+			}
+			if (canRestore) {
+				Logger.getLogger(getClass().getName()).info("Will restore versions for BPM enities (if found)");
 				getBPMDAO().doRestoreVersion(session);
+			} else {
+				Logger.getLogger(getClass().getName()).info("Version restoring for BPM enities is turned off");
+			}
 
 			super.flushIfNecessary(session, existingTransaction);
 		}

@@ -868,19 +868,27 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	public void doRestoreVersion(Session session) {
 		IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
 		boolean doRestoreVersionForBPMEntities = settings.getBoolean("bpm.restore_versions", Boolean.FALSE);
-		if (!doRestoreVersionForBPMEntities)
+		if (!doRestoreVersionForBPMEntities) {
+			getLogger().warning("Session restoring is turned off");
 			return;
+		}
 
-		if (!session.isOpen() || !(session instanceof SessionImplementor))
+		if (!session.isOpen() || !(session instanceof SessionImplementor)) {
+			getLogger().warning("Session is closed or wrong implementation: " + session);
 			return;
+		}
 
 		PersistenceContext pc = ((SessionImplementor) session).getPersistenceContext();
-		if (pc == null)
+		if (pc == null) {
+			getLogger().warning("Persistence context is not available");
 			return;
+		}
 
 		Map<?, ?> entities = pc.getEntityEntries();
-		if (MapUtil.isEmpty(entities))
+		if (MapUtil.isEmpty(entities)) {
+			getLogger().info("There are no entities to restore");
 			return;
+		}
 
 		for (Map.Entry<?, ?> entry: entities.entrySet()) {
 			Object o = entry.getValue();
@@ -888,8 +896,12 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 				EntityEntry entity = (EntityEntry) o;
 				String entityName = entity.getEntityName();
 				BPMEntityEnum bpmEntity = BPMEntityEnum.getEnum(entityName);
-				if (bpmEntity == null)
+				if (bpmEntity == null) {
+					if (settings.getBoolean("bpm.log_restore_failure", Boolean.FALSE)) {
+						getLogger().info("Entity " + entityName + " is not from " + Arrays.asList(BPMEntityEnum.values()));
+					}
 					continue;
+				}
 
 				Long id = Long.valueOf(entity.getId().toString());
 				try {
@@ -909,13 +921,24 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 									} else {
 										getLogger().warning("Failed to refresh: " + entity);
 									}
+								} else {
+									getLogger().info("No need to restore verion: " + version);
 								}
+							} else {
+								getLogger().warning("Expected Number object, got: " + versionObject +
+										(versionObject == null ? "" : ", class: " + versionObject.getClass().getName()));
 							}
+						} else {
+							getLogger().warning("No data in " + results);
 						}
+					} else {
+						getLogger().warning("Nothing found by query: " + query);
 					}
 				} catch (Exception e) {
 					getLogger().log(Level.WARNING, "Error refreshing " + entity + " with ID: " + id, e);
 				}
+			} else {
+				getLogger().warning("Object " + o + " is not instance of " + EntityEntry.class.getName());
 			}
 		}
 	}
