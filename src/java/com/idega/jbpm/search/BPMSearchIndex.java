@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.core.business.DefaultSpringBean;
 import com.idega.data.SimpleQuerier;
+import com.idega.hibernate.HibernateUtil;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.Variable;
@@ -70,6 +71,27 @@ public class BPMSearchIndex extends DefaultSpringBean {
 //				.startAndWait();
 		} finally {
 			entityManager.close();
+		}
+	}
+
+	public void doIndexVariable(Session session, Serializable id) {
+		if (session == null || id == null) {
+			return;
+		}
+
+		try {
+			FullTextSession indexer = org.hibernate.search.Search.getFullTextSession(session);
+
+			Object var = indexer.load(Variable.class, id);
+			if (var == null) {
+				getLogger().warning("Variable can not be found by ID: " + id);
+				return;
+			}
+			var = HibernateUtil.initializeAndUnproxy(var);
+
+			indexer.index(var);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error indexing variable by ID: " + id, e);
 		}
 	}
 

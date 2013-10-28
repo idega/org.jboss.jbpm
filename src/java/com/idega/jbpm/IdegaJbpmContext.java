@@ -22,6 +22,7 @@ import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.util.expression.ELUtil;
 
@@ -134,13 +135,17 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 				return;
 			}
 
+			IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
 			boolean canRestore = true;
-			if (startingProcess &&
-					IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.restore_vrs_on_start_only", Boolean.FALSE)) {
+			if (startingProcess && settings.getBoolean("bpm.restore_vrs_on_start_only", Boolean.FALSE)) {
 				canRestore = false;
 			}
 			if (canRestore) {
 				getBPMDAO().doRestoreVersion(session);
+			}
+
+			if (settings.getBoolean("bpm.index_var_on_session_flush", Boolean.TRUE)) {
+				getBPMDAO().doIndexVariables(session);
 			}
 
 			super.flushIfNecessary(session, existingTransaction);

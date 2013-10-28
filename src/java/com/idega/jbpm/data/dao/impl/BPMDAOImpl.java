@@ -50,7 +50,9 @@ import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.data.dao.BPMEntityEnum;
+import com.idega.jbpm.data.dao.BPMVariableEnum;
 import com.idega.jbpm.identity.Role;
+import com.idega.jbpm.search.BPMSearchIndex;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -864,6 +866,58 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return Collections.emptyList();
 	}
 
+	private Map<?, ?> getBPMEntities(Session session) {
+		if (session == null || !session.isOpen() || !(session instanceof SessionImplementor)) {
+			getLogger().warning("Session is not provided or closed or wrong implementation: " + session + ". Expected: " +
+					SessionImplementor.class.getName());
+			return null;
+		}
+
+		PersistenceContext pc = ((SessionImplementor) session).getPersistenceContext();
+		if (pc == null) {
+			getLogger().warning("Persistence context is not available");
+			return null;
+		}
+
+		Map<?, ?> entities = pc.getEntityEntries();
+		if (MapUtil.isEmpty(entities)) {
+			return null;
+		}
+
+		return entities;
+	}
+
+	@Autowired
+	private BPMSearchIndex bpmSearchIndexer;
+
+	@Override
+	public void doIndexVariables(Session session) {
+		Serializable id = null;
+		try {
+			Map<?, ?> entities = getBPMEntities(session);
+			if (MapUtil.isEmpty(entities)) {
+				return;
+			}
+
+			for (Map.Entry<?, ?> entry: entities.entrySet()) {
+				Object o = entry.getValue();
+				if (o instanceof EntityEntry) {
+					EntityEntry entity = (EntityEntry) o;
+					String entityName = entity.getEntityName();
+					BPMVariableEnum varEnum = BPMVariableEnum.getEnum(entityName);
+					if (varEnum == null) {
+						continue;
+					}
+
+					id = entity.getId();
+					bpmSearchIndexer.doIndexVariable(session, id);
+				}
+			}
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error while indexing BPM variable(s). Failed on variable with ID: " + id, e);
+		}
+	}
+
 	@Override
 	public void doRestoreVersion(Session session) {
 		IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
@@ -873,18 +927,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			return;
 		}
 
-		if (!session.isOpen() || !(session instanceof SessionImplementor)) {
-			getLogger().warning("Session is closed or wrong implementation: " + session + ". Expected: " + SessionImplementor.class.getName());
-			return;
-		}
-
-		PersistenceContext pc = ((SessionImplementor) session).getPersistenceContext();
-		if (pc == null) {
-			getLogger().warning("Persistence context is not available");
-			return;
-		}
-
-		Map<?, ?> entities = pc.getEntityEntries();
+		Map<?, ?> entities = getBPMEntities(session);
 		if (MapUtil.isEmpty(entities)) {
 			return;
 		}

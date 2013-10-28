@@ -126,4 +126,6 @@ public interface BPMDAO extends GenericDao {
 	public List<ProcessInstance> getProcessInstances(List<String> processDefinitionNames);
 
 	public void doRestoreVersion(Session session);
+
+	public void doIndexVariables(Session session);
 }
