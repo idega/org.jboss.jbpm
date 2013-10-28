@@ -88,6 +88,10 @@ public class BPMSearchIndex extends DefaultSpringBean {
 				return;
 			}
 			var = HibernateUtil.initializeAndUnproxy(var);
+			if (var == null) {
+				getLogger().warning("Object became null after initialization and un-proxying. Variable ID: " + id);
+				return;
+			}
 
 			indexer.index(var);
 		} catch (Exception e) {
