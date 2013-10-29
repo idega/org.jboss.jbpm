@@ -47,10 +47,10 @@ public class BPMSearchIndex extends DefaultSpringBean {
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
 
 		try {
-			FullTextSession fullTextSession = Search.getFullTextSession((Session) entityManager.getDelegate());
+			FullTextSession indexer = Search.getFullTextSession((Session) entityManager.getDelegate());
 
 			for (Class<?> theClass: classesOfObjectsToIndex) {
-				fullTextSession
+				indexer
 					.createIndexer(theClass)
 					.progressMonitor(new SimpleIndexingProgressMonitor(1))
 					.startAndWait();
