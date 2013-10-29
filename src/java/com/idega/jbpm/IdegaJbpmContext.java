@@ -141,7 +141,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 				canRestore = false;
 			}
 			if (canRestore) {
-				getBPMDAO().doRestoreVersion(session);
+				getBPMDAO().doRestoreVersion(session, startingProcess ? null : 1);
 			}
 
 			if (settings.getBoolean("bpm.index_var_on_session_flush", Boolean.TRUE)) {

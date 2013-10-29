@@ -36,6 +36,7 @@ import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.data.DatastoreInterface;
 import com.idega.data.OracleDatastoreInterface;
 import com.idega.data.SimpleQuerier;
+import com.idega.hibernate.HibernateUtil;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.BPMContext;
@@ -920,6 +921,11 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	@Override
 	public void doRestoreVersion(Session session) {
+		doRestoreVersion(session, null);
+	}
+
+	@Override
+	public void doRestoreVersion(Session session, Integer decreaseBy) {
 		IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
 		boolean doRestoreVersionForBPMEntities = settings.getBoolean("bpm.restore_versions", Boolean.FALSE);
 		if (!doRestoreVersionForBPMEntities) {
@@ -953,9 +959,23 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 							if (versionObject instanceof Number) {
 								int version = ((Number) versionObject).intValue();
 								if (version > 0) {
-									version = 1;
+									if (decreaseBy == null) {
+										version = 1;
+									} else {
+										version = version - decreaseBy;
+										if (version <= 0) {
+											version = 1;
+										}
+									}
 									String update = bpmEntity.getUpdateQuery(id, version);
 									if (SimpleQuerier.executeUpdate(update, false)) {
+										//	Refreshing object
+										Object object = session.get(Class.forName(bpmEntity.getEntityClass()), id);
+										if (object != null) {
+											object = HibernateUtil.initializeAndUnproxy(object);
+											session.refresh(object);
+										}
+
 										if (settings.getBoolean("bpm.log_restore_success", Boolean.FALSE)) {
 											getLogger().info("Restored version (to " + version + ") for entity " + entityName + ", ID: " + id);
 										}
