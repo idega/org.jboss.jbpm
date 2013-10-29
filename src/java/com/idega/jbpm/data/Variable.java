@@ -72,6 +72,10 @@ public class Variable implements Serializable {
 	@Field(store=Store.YES)
 	private Long taskInstance;
 
+	@Column(name = "TOKEN_")
+	@Field(store=Store.YES)
+	private Long token;
+
 	/**
 	 * Value columns start
 	 */
@@ -249,6 +253,14 @@ public class Variable implements Serializable {
 
 	public void setClassType(Character classType) {
 		this.classType = classType;
+	}
+
+	public Long getToken() {
+		return token;
+	}
+
+	public void setToken(Long token) {
+		this.token = token;
 	}
 
 	@Override
