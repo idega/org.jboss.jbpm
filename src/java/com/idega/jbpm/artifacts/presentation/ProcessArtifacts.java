@@ -551,47 +551,43 @@ public class ProcessArtifacts {
 	}
 
 	public Document getTaskAttachments(ProcessArtifactsParamsBean params) {
-
-		// TODO: check permission to view task variables
+		if (params == null) {
+			return null;	// This will result in 'closed' row in grid
+		}
+		IWContext iwc = getIWContext(true);
+		if (iwc == null) {
+			return null;
+		}
 
 		Long taskInstanceId = params.getTaskId();
-
 		if (taskInstanceId == null)
 			return null;
 
-		TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(
-		    taskInstanceId).getTaskInstance(taskInstanceId);
-		ProcessInstanceW piw = tiw.getProcessInstanceW();
+		TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
 
 		List<BinaryVariable> binaryVariables = tiw.getAttachments();
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
-		if (binaryVariables == null || binaryVariables.size() == 0) {
-			return null; // This will result in 'closed' row in grid
+		if (ListUtil.isEmpty(binaryVariables)) {
+			return null;
 		}
 
 		int size = binaryVariables.size();
 		rows.setTotal(size);
 		rows.setPage(size == 0 ? 0 : 1);
 
-		IWContext iwc = getIWContext(true);
-		if (iwc == null) {
-			return null;
-		}
-
-		IWBundle bundle = iwc.getIWMainApplication().getBundle(
-		    IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 
 		String message = iwrb.getLocalizedString("signing", "Signing...");
-		String image = bundle
-		        .getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
+		String image = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
 		String errorMessage = iwrb.getLocalizedString(
 		    "unable_to_sign_attachment",
 		    "Sorry, unable to sign selected attachment");
 
 		String attachmentWindowLabel = null;
 		String attachmentInfoImage = null;
+		ProcessInstanceW piw = tiw.getProcessInstanceW();
 		boolean canSeeStatistics = piw.hasRight(Right.processHandler);
 		if (params.isShowAttachmentStatistics()) {
 			params.setShowAttachmentStatistics(canSeeStatistics);
@@ -602,10 +598,7 @@ public class ProcessArtifacts {
 		}
 
 		for (BinaryVariable binaryVariable : binaryVariables) {
-
-			if (binaryVariable.getHash() == null
-			        || (binaryVariable.getHidden() != null && binaryVariable
-			                .getHidden() == true))
+			if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true))
 				continue;
 
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
@@ -613,61 +606,49 @@ public class ProcessArtifacts {
 			row.setId(binaryVariable.getHash().toString());
 
 			String description = binaryVariable.getDescription();
-			row.addCell(StringUtil.isEmpty(description) ? binaryVariable
-			        .getFileName() : description);
+			row.addCell(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
 
 			String fileName = binaryVariable.getFileName();
-			row.addCell(new StringBuilder(
-			        "<a href=\"javascript:void(0)\" rel=\"").append(fileName)
-			        .append("\">").append(fileName).append("</a>").toString());
+			row.addCell(new StringBuilder("<a href=\"javascript:void(0)\" rel=\"").append(fileName).append("\">").append(fileName).append("</a>")
+					.toString());
 
 			Long fileSize = binaryVariable.getContentLength();
-			row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long
-			        .valueOf(0) : fileSize));
+			row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
 
 			if (params.isShowAttachmentStatistics()) {
 				row.addCell(new StringBuilder("<a href=\"javascript:void(0);\" attachment-link=\"")
 						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId)).append("\" title=\"")
-						.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
+						.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"")
+						.append(attachmentInfoImage).append("\"></img></a>").toString());
 			}
 
-			if (params.getAllowPDFSigning() && getSigningHandler() != null
-			        && tiw.isSignable() && binaryVariable.isSignable()
-			        && !tiw.getProcessInstanceW().hasEnded()) {
-				if (isPDFFile(binaryVariable.getFileName())
-				        && (binaryVariable.getSigned() == null || !binaryVariable
-				                .getSigned())) {
-					row
-					        .addCell(new StringBuilder("<img src=\"")
-					                .append(image)
-					                .append(
-					                    "\" onclick=\"CasesBPMAssets.signCaseAttachment")
-					                .append(
-					                    getJavaScriptActionForPDF(iwrb,
-					                        taskInstanceId, binaryVariable
-					                                .getHash().toString(),
-					                        message, errorMessage)).append(
-					                    "\" />").toString());
+			if (params.getAllowPDFSigning() &&
+				getSigningHandler() != null &&
+				tiw.isSignable() &&
+				binaryVariable.isSignable() &&
+				!tiw.getProcessInstanceW().hasEnded()
+			) {
+				if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
+					row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
+							.append(getJavaScriptActionForPDF(iwrb, taskInstanceId, binaryVariable.getHash().toString(),message, errorMessage))
+							.append("\" />").toString());
 				} else {
 					row.addCell(CoreConstants.EMPTY);
 				}
 			}
 			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, params.getPiId(), taskInstanceId,
-				    binaryVariable.getHash(), null, false);
+				addRightsChangerCell(row, params.getPiId(), taskInstanceId, binaryVariable.getHash(), null, false);
 			}
 		}
 
 		try {
 			if (!ListUtil.isEmpty(rows.getRows())) {
-
 				return rows.getDocument();
 			} else {
 				return null;
 			}
-
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
+			LOGGER.log(Level.SEVERE, "Exception while parsing rows of attachments. Params: " + params, e);
 			return null;
 		}
 	}
