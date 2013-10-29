@@ -112,6 +112,7 @@ public interface BPMDAO extends GenericDao {
 	public List<Variable> getVariablesByNamesAndProcessInstanceIds(List<String> names, List<Long> piIds);
 	public List<Variable> getVariablesByConditions(List<String> names, List<Long> piIds, List<Long> tiIds, List<Long> viIds);
 	public List<Variable> getVariablesByBytes(List<Long> varBytesIds);
+	public List<Variable> getVariablesByTokens(List<Long> tokensIds);
 
 	/**
 	 *

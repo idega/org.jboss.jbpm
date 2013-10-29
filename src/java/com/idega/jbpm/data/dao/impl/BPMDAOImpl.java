@@ -992,4 +992,16 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		);
 	}
 
+	@Override
+	public List<Variable> getVariablesByTokens(List<Long> tokensIds) {
+		if (ListUtil.isEmpty(tokensIds))
+			return null;
+
+		return getResultListByInlineQuery(
+				"from " + Variable.class.getName() + " v where v.token in (:tokensIds)",
+				Variable.class,
+				new Param("tokensIds", tokensIds)
+		);
+	}
+
 }

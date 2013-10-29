@@ -27,10 +27,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.idega.block.process.variables.Variable;
+import com.idega.hibernate.HibernateUtil;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.event.VariableCreatedEvent;
+import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.jbpm.variables.VariablesHandler;
@@ -53,6 +55,9 @@ public class VariablesHandlerImpl implements VariablesHandler {
 
 	private BPMContext idegaJbpmContext;
 	private BinaryVariablesHandler binaryVariablesHandler;
+
+	@Autowired
+	private BPMFactory bpmFactory;
 
 	@Override
 	@Transactional(readOnly = false)
@@ -145,9 +150,16 @@ public class VariablesHandlerImpl implements VariablesHandler {
 
 				Map<String, Object> vars = null;
 				try {
-					vars = ti.getVariables();
+					Token token = ti.getToken();
+					if (token == null) {
+						LOGGER.warning("Token is null for task instance: " + taskInstanceId);
+						vars = ti.getVariables();
+					} else {
+						token = HibernateUtil.initializeAndUnproxy(token);
+						vars = bpmFactory.getTaskInstanceW(taskInstanceId).getVariables(token);
+					}
 				} catch (Throwable e) {
-					LOGGER.log(Level.WARNING, "Error loading variables for task: " + taskInstanceId, e);
+					LOGGER.log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId, e);
 				}
 				Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
 

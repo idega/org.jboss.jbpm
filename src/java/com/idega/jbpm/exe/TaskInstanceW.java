@@ -4,8 +4,10 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.jbpm.JbpmContext;
+import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.block.process.variables.Variable;
@@ -63,8 +65,7 @@ public interface TaskInstanceW {
 	public abstract TaskInstance getTaskInstance();
 	public abstract TaskInstance getTaskInstance(JbpmContext context);
 
-	public abstract void setTaskRolePermissions(Role role,
-	        boolean setSameForAttachments, String variableIdentifier);
+	public abstract void setTaskRolePermissions(Role role, boolean setSameForAttachments, String variableIdentifier);
 
 	/**
 	 * creates, stores and adds binary variable to the variable specified. If the variable is not
@@ -78,12 +79,21 @@ public interface TaskInstanceW {
 	 * @return
 	 */
 	public abstract BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is);
-
-	public abstract BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is,
-			String destinationInRepository);
-	public abstract BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is,
-			String destinationInRepository, boolean overwrite);
-
+	public abstract BinaryVariable addAttachment(
+			Variable variable,
+			String fileName,
+			String description,
+			InputStream is,
+			String destinationInRepository
+	);
+	public abstract BinaryVariable addAttachment(
+			Variable variable,
+			String fileName,
+			String description,
+			InputStream is,
+			String destinationInRepository,
+			boolean overwrite
+	);
 	public BinaryVariable addAttachment(Variable variable, String fileName, String description, String pathInRepository);
 
 	public boolean hasAttachment(String identifier, String variableName);
@@ -113,13 +123,15 @@ public interface TaskInstanceW {
 	public abstract ProcessInstanceW getProcessInstanceW();
 
 	public void setTaskPermissionsForActors(
-	        List<Actor> actorsToSetPermissionsTo, List<Access> accesses,
-	        boolean setSameForAttachments, String variableIdentifier);
+	        List<Actor> actorsToSetPermissionsTo,
+	        List<Access> accesses,
+	        boolean setSameForAttachments,
+	        String variableIdentifier
+	);
 
 	public abstract Collection<Role> getRolesPermissions();
 
-	public abstract Collection<Role> getAttachmentRolesPermissions(
-	        String attachmentHashValue);
+	public abstract Collection<Role> getAttachmentRolesPermissions(String attachmentHashValue);
 
 	public abstract Object getVariable(String variableName);
 
@@ -128,4 +140,7 @@ public interface TaskInstanceW {
 	public abstract void addVariable(Variable variable, Object value);
 
 	public Integer getOrder();
+
+	public Map<String, Object> getVariables(Token token);
+
 }
