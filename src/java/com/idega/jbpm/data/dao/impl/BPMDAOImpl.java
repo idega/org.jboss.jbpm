@@ -969,15 +969,21 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 									}
 									String update = bpmEntity.getUpdateQuery(id, version);
 									if (SimpleQuerier.executeUpdate(update, false)) {
-										//	Refreshing object
-										Object object = session.get(Class.forName(bpmEntity.getEntityClass()), id);
-										if (object != null) {
-											object = HibernateUtil.initializeAndUnproxy(object);
-											session.refresh(object);
-										}
+										Object entityToRefresh = null;
+										try {
+											//	Refreshing object
+											entityToRefresh = session.get(Class.forName(bpmEntity.getEntityClass()), id);
+											if (entityToRefresh != null) {
+												entityToRefresh = HibernateUtil.initializeAndUnproxy(entityToRefresh);
+												session.refresh(entityToRefresh);
+											}
 
-										if (settings.getBoolean("bpm.log_restore_success", Boolean.FALSE)) {
-											getLogger().info("Restored version (to " + version + ") for entity " + entityName + ", ID: " + id);
+											//	Logging about successful refresh
+											if (settings.getBoolean("bpm.log_restore_success", Boolean.FALSE)) {
+												getLogger().info("Restored version (to " + version + ") for entity " + entityName + ", ID: " + id);
+											}
+										} catch (Exception e) {
+											getLogger().log(Level.WARNING, "Error refreshing object: " + entityToRefresh + ". ID: " + id + ". Cause: " + e.getMessage());
 										}
 									} else if (settings.getBoolean("bpm.log_restore_failure", Boolean.TRUE)) {
 										getLogger().warning("Failed to restore version (to " + version + ") for entity: " + entityName + ", ID: " + id);
