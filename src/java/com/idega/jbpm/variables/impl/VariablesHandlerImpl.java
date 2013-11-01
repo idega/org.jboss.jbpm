@@ -37,6 +37,7 @@ import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.jbpm.variables.VariablesManager;
+import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.datastructures.map.MapUtil;
@@ -127,7 +128,9 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				setVariables(ti, vars);
 
 				ProcessInstance pi = ti.getProcessInstance();
-				ELUtil.getInstance().publishEvent(new VariableCreatedEvent(this, pi.getProcessDefinition().getName(), pi.getId(), vars));
+				if (pi != null) {
+					ELUtil.getInstance().publishEvent(new VariableCreatedEvent(this, pi.getProcessDefinition().getName(), pi.getId(), vars));
+				}
 
 				return variables;
 			}
@@ -149,17 +152,27 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 
 				Map<String, Object> vars = null;
+				boolean loadByToken = false;
 				try {
-					Token token = ti.getToken();
-					if (token == null) {
-						LOGGER.warning("Token is null for task instance: " + taskInstanceId);
-						vars = ti.getVariables();
-					} else {
-						token = HibernateUtil.initializeAndUnproxy(token);
-						vars = bpmFactory.getTaskInstanceW(taskInstanceId).getVariables(token);
-					}
-				} catch (Throwable e) {
+					vars = ti.getVariables();
+				} catch (Exception e) {
+					loadByToken = true;
 					LOGGER.log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId, e);
+				}
+				if (MapUtil.isEmpty(vars) || loadByToken) {
+					Token token = null;
+					try {
+						token = ti.getToken();
+						if (token == null) {
+							LOGGER.warning("Token is null for task instance: " + taskInstanceId);
+						} else {
+							token = HibernateUtil.initializeAndUnproxy(token);
+							vars = bpmFactory.getTaskInstanceW(taskInstanceId).getVariables(token);
+						}
+					} catch (Throwable e) {
+						LOGGER.log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId + " by token: " + token +
+								(token == null ? CoreConstants.EMPTY : token.getId()), e);
+					}
 				}
 				Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
 
@@ -196,7 +209,6 @@ public class VariablesHandlerImpl implements VariablesHandler {
 							LOGGER.info("Variable '" + varName + "' is writable but not readable for task instance ID: " + ti.getId());
 							variables.remove(variableAccess.getVariableName());
 						}
-
 					}
 				}
 
