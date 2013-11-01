@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.jbpm.context.exe.VariableInstance;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
@@ -17,6 +19,8 @@ import com.idega.jbpm.bean.VariableInstanceInfo;
 import com.idega.jbpm.bean.VariableQuerierData;
 
 public interface VariableInstanceQuerier extends GenericDao {
+
+	public EntityManager getEntityManager();
 
 	/**
 	 * Use a method to get variables by process instance id: getVariablesByProcessInstanceId or getVariablesByProcessDefinition
