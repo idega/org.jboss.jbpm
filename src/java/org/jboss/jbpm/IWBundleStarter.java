@@ -47,6 +47,22 @@ public class IWBundleStarter implements IWBundleStartable {
 		return searchIndex;
 	}
 
+	private <T> void doManageFlushListener(EventListenerGroup<T> listenersGroup, String classNameToRemove, T listenerToAdd) {
+		boolean hasListener = false;
+		for (Iterator<T> iter = listenersGroup.listeners().iterator(); iter.hasNext();) {
+			T listener = iter.next();
+			String name = listener.getClass().getName();
+			if (name.equals(classNameToRemove)) {
+				iter.remove();
+			} else if (name.equals(listenerToAdd.getClass().getName())) {
+				hasListener = true;
+			}
+		}
+		if (!hasListener) {
+			listenersGroup.prependListener(listenerToAdd);
+		}
+	}
+
 	@Override
 	public void start(IWBundle starterBundle) {
 		Object session = getVariableInstanceQuerier().getEntityManager().getDelegate();
@@ -56,25 +72,15 @@ public class IWBundleStarter implements IWBundleStartable {
 					.getServiceRegistry()
 					.getService(EventListenerRegistry.class);
 
-			EventListenerGroup<FlushEntityEventListener> flushEntityListenersGroup = eventListenerRegistry
+			FlushEntityEventListener flushEntityEventListener = new IdegaFlushEntityEventListener();
+			EventListenerGroup<FlushEntityEventListener> flushEntityEventListenersGroup = eventListenerRegistry
 						.getEventListenerGroup(EventType.FLUSH_ENTITY);
-			for (Iterator<FlushEntityEventListener> iter = flushEntityListenersGroup.listeners().iterator(); iter.hasNext();) {
-				FlushEntityEventListener listener = iter.next();
-				if (listener.getClass().getName().equals(EJB3FlushEntityEventListener.class.getName())) {
-					iter.remove();
-				}
-			}
-			flushEntityListenersGroup.prependListener(new IdegaFlushEntityEventListener());
+			doManageFlushListener(flushEntityEventListenersGroup, EJB3FlushEntityEventListener.class.getName(), flushEntityEventListener);
 
+			FlushEventListener flushEventListener = new IdegaFlushEventListener();
 			EventListenerGroup<FlushEventListener> flushEventListenersGroup = eventListenerRegistry
 					.getEventListenerGroup(EventType.FLUSH);
-			for (Iterator<FlushEventListener> iter = flushEventListenersGroup.listeners().iterator(); iter.hasNext();) {
-				FlushEventListener listener = iter.next();
-				if (listener.getClass().getName().equals(EJB3FlushEventListener.class.getName())) {
-					iter.remove();
-				}
-			}
-			flushEventListenersGroup.prependListener(new IdegaFlushEventListener());
+			doManageFlushListener(flushEventListenersGroup, EJB3FlushEventListener.class.getName(), flushEventListener);
 		}
 
 		doBuildIndexes(starterBundle.getApplication().getSettings());
