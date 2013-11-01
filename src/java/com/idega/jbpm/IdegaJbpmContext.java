@@ -14,17 +14,11 @@ import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.idega.idegaweb.IWMainApplication;
-import com.idega.idegaweb.IWMainApplicationSettings;
-import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -96,16 +90,12 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
 		private Session session;
 
-		private boolean startingProcess = false;
-
-		private IdegaHibernateTemplate(SessionFactory sessionFactory, boolean startingProcess) {
+		private IdegaHibernateTemplate(SessionFactory sessionFactory) {
 			super(sessionFactory);
-
-			this.startingProcess = startingProcess;
 		}
 
-		private IdegaHibernateTemplate(Session session, boolean startingProcess) {
-			this(session.getSessionFactory(), startingProcess);
+		private IdegaHibernateTemplate(Session session) {
+			this(session.getSessionFactory());
 			this.session = session;
 		}
 
@@ -119,52 +109,61 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			return true;
 		}
 
-		@Autowired
-		private BPMDAO bpmDAO;
+//		@Autowired
+//		private BPMDAO bpmDAO;
+//
+//		private BPMDAO getBPMDAO() {
+//			if (bpmDAO == null)
+//				ELUtil.getInstance().autowire(this);
+//			return bpmDAO;
+//		}
 
-		private BPMDAO getBPMDAO() {
-			if (bpmDAO == null)
-				ELUtil.getInstance().autowire(this);
-			return bpmDAO;
-		}
-
-		@Override
+		/*@Override
 		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
-			if (!session.isOpen()) {
-				Logger.getLogger(getClass().getName()).warning("Session is closed");
-				return;
-			}
+//			if (!readOnly && (getFlushMode() == FLUSH_EAGER || (!existingTransaction && getFlushMode() != FLUSH_NEVER))) {
+				if (!session.isOpen()) {
+					Logger.getLogger(getClass().getName()).warning("Session is closed");
+					return;
+				}
 
-			IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
-			boolean canRestore = true;
-			if (startingProcess && settings.getBoolean("bpm.restore_vrs_on_start_only", Boolean.FALSE)) {
-				canRestore = false;
-			}
-			if (canRestore) {
-				getBPMDAO().doRestoreVersion(session, startingProcess ? null : 1);
-			}
+//				IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
+//				boolean canRestore = true;
+//				if (startingProcess && settings.getBoolean("bpm.restore_vrs_on_start_only", Boolean.FALSE)) {
+//					canRestore = false;
+//				}
+//				if (canRestore) {
+				EventListenerRegistry eventListenerRegistry = ((SessionImpl) session)
+						.getFactory()
+						.getServiceRegistry()
+						.getService(EventListenerRegistry.class);
 
-			if (settings.getBoolean("bpm.index_var_on_session_flush", Boolean.TRUE)) {
-				getBPMDAO().doIndexVariables(session);
-			}
+//				synchronized (eventListenerRegistry) {
+					EventListenerGroup<FlushEntityEventListener> listenersGroup = eventListenerRegistry
+							.getEventListenerGroup(EventType.FLUSH_ENTITY);
+//					listenersGroup.clear();
+//					listenersGroup.appendListener(new IdegaFlushEntityEventListener());
+//
+					EventListenerGroup<FlushEventListener> flushEventListenersGroup = eventListenerRegistry
+							.getEventListenerGroup(EventType.FLUSH);
+//					flushEventListenersGroup.clear();
+//					flushEventListenersGroup.appendListener(new IdegaFlushEventListener());
+//				}
+
+//					getBPMDAO().doRestoreVersion(session);
+//				}
+
+//				if (settings.getBoolean("bpm.index_var_on_session_flush", Boolean.TRUE)) {
+//					getBPMDAO().doIndexVariables(session);
+//				}
+//			}
 
 			super.flushIfNecessary(session, existingTransaction);
-		}
+		}*/
 	}
 
 	@Override
-	public <T> T execute(final JbpmCallback<T> callback) {
-		return execute(callback, null, false);
-	}
-
-	@Override
-	public <T> T execute(final JbpmCallback<T> callback, boolean startingProcess) {
-		return execute(callback, null, startingProcess);
-	}
-
-	@Override
-	public <T> T execute(final JbpmCallback<T> callback, FlushMode flushMode) {
-		return execute(callback, flushMode, false);
+	public <G> G execute(JbpmCallback<G> callback) {
+		return execute(callback, null);
 	}
 
 	/**
@@ -176,14 +175,14 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 	 */
 	@Override
 	@Transactional
-	public <T> T execute(final JbpmCallback<T> callback, FlushMode flushMode, boolean startingProcess) {
+	public <T> T execute(final JbpmCallback<T> callback, FlushMode flushMode) {
 		final JbpmContext context = JbpmConfiguration.getInstance().createJbpmContext();
 		try {
 			final Session session = entityManagerFactory.createEntityManager().unwrap(Session.class);
 			if (flushMode != null)
 				session.setFlushMode(flushMode);
 
-			HibernateTemplate hibernateTemplate = new IdegaHibernateTemplate(session, startingProcess);
+			HibernateTemplate hibernateTemplate = new IdegaHibernateTemplate(session);
 			return hibernateTemplate.execute(new HibernateCallback<T>() {
 
 				/**

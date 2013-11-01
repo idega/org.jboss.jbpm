@@ -49,8 +49,6 @@ public interface BPMContext {
 	 * @return anything code returns
 	 */
 	public abstract <G> G execute(final JbpmCallback<G> callback);
-	public abstract <G> G execute(final JbpmCallback<G> callback, boolean startingProcess);
 	public abstract <G> G execute(final JbpmCallback<G> callback, FlushMode flushMode);
-	public abstract <G> G execute(final JbpmCallback<G> callback, FlushMode flushMode, boolean startingProcess);
 
 }
