@@ -4,21 +4,20 @@ import java.sql.SQLException;
 import java.util.logging.Logger;
 
 import org.hibernate.HibernateException;
-import org.hibernate.ejb.event.EJB3FlushEntityEventListener;
-import org.hibernate.ejb.event.EntityCallbackHandler;
 import org.hibernate.engine.spi.EntityEntry;
+import org.hibernate.event.internal.DefaultFlushEntityEventListener;
 import org.hibernate.event.spi.FlushEntityEvent;
 
 import com.idega.data.SimpleQuerier;
 import com.idega.jbpm.data.dao.BPMEntityEnum;
 import com.idega.util.StringHandler;
 
-public class IdegaFlushEntityEventListener extends /*DefaultFlushEntityEventListener*/EJB3FlushEntityEventListener {
+public class IdegaFlushEntityEventListener extends DefaultFlushEntityEventListener /*EJB3FlushEntityEventListener*/ {
 
 	private static final long serialVersionUID = -3570810235084335673L;
 
 	public IdegaFlushEntityEventListener() {
-		super(new EntityCallbackHandler());
+//		super(new EntityCallbackHandler());
 	}
 
 	public static final void doManageEntity(Object entity, EntityEntry entry) {
