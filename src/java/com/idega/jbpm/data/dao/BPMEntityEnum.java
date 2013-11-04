@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.idega.data.SimpleQuerier;
-import com.idega.jbpm.version.BPMInstanceVersionUpdater;
+import com.idega.jbpm.version.BPMInstanceVersionProvider;
 import com.idega.util.ArrayUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.expression.ELUtil;
@@ -116,9 +116,9 @@ public enum BPMEntityEnum {
 		this.entityClass = entityClass;
 	}
 
-	private static <T extends Serializable> BPMInstanceVersionUpdater<T> getVersionUpdater(Class<T> type) {
+	private static <T extends Serializable> BPMInstanceVersionProvider<T> getVersionUpdater(Class<T> type) {
 		try {
-			BPMInstanceVersionUpdater<T> updater = ELUtil.getInstance().getBean("jbpm" + type.getSimpleName() + "VersionUpdater");
+			BPMInstanceVersionProvider<T> updater = ELUtil.getInstance().getBean("jbpm" + type.getSimpleName() + "VersionUpdater");
 			return updater;
 		} catch (Exception e) {}
 		return null;
