@@ -1,6 +1,7 @@
 package com.idega.jbpm;
 
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -10,6 +11,10 @@ import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.engine.spi.EntityEntry;
+import org.hibernate.engine.spi.PersistenceContext;
+import org.hibernate.internal.SessionImpl;
+import org.hibernate.internal.util.collections.IdentityMap;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -19,6 +24,10 @@ import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.idega.data.SimpleQuerier;
+import com.idega.jbpm.data.dao.BPMEntityEnum;
+import com.idega.util.StringHandler;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -109,56 +118,55 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			return true;
 		}
 
-//		@Autowired
-//		private BPMDAO bpmDAO;
-//
-//		private BPMDAO getBPMDAO() {
-//			if (bpmDAO == null)
-//				ELUtil.getInstance().autowire(this);
-//			return bpmDAO;
-//		}
-
-		/*@Override
+		@SuppressWarnings("unchecked")
+		@Override
 		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
-//			if (!readOnly && (getFlushMode() == FLUSH_EAGER || (!existingTransaction && getFlushMode() != FLUSH_NEVER))) {
-				if (!session.isOpen()) {
-					Logger.getLogger(getClass().getName()).warning("Session is closed");
-					return;
+			if (session instanceof SessionImpl) {
+				PersistenceContext persistenceContext = ((SessionImpl) session).getPersistenceContext();
+				for (Map.Entry<?, EntityEntry> entry : IdentityMap.concurrentEntries(persistenceContext.getEntityEntries())) {
+					EntityEntry entityEntry = entry.getValue();
+					if (entityEntry == null) {
+						continue;
+					}
+
+					BPMEntityEnum bpmEntity = BPMEntityEnum.getEnum(entityEntry.getEntityName());
+					if (bpmEntity == null) {
+						continue;
+					}
+
+					try {
+						String entryId = entityEntry.getId().toString();
+						if (!StringHandler.isNumeric(entryId)) {
+							continue;
+						}
+
+						Long id = Long.valueOf(entityEntry.getId().toString());
+						Object entity = session.get(Class.forName(bpmEntity.getEntityClass()), id);
+						if (entity == null) {
+							continue;
+						}
+
+						Number versionInDB = bpmEntity.getVersionFromDatabase(id);
+						if (versionInDB instanceof Number) {
+							Object previousVersion = entityEntry.getVersion();
+							if (previousVersion instanceof Number && versionInDB.intValue() != ((Number) previousVersion).intValue()) {
+								String updateSQL = bpmEntity.getUpdateQuery(id, ((Number) previousVersion).intValue());
+								try {
+									SimpleQuerier.executeUpdate(updateSQL, false);
+									Logger.getLogger(getClass().getName()).info("Changed version to " + previousVersion + " for " +
+											bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
+								} catch (SQLException e) {}
+							}
+						}
+					} catch (Exception e) {
+						Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error changing version for " + bpmEntity, e);
+					}
 				}
-
-//				IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
-//				boolean canRestore = true;
-//				if (startingProcess && settings.getBoolean("bpm.restore_vrs_on_start_only", Boolean.FALSE)) {
-//					canRestore = false;
-//				}
-//				if (canRestore) {
-				EventListenerRegistry eventListenerRegistry = ((SessionImpl) session)
-						.getFactory()
-						.getServiceRegistry()
-						.getService(EventListenerRegistry.class);
-
-//				synchronized (eventListenerRegistry) {
-					EventListenerGroup<FlushEntityEventListener> listenersGroup = eventListenerRegistry
-							.getEventListenerGroup(EventType.FLUSH_ENTITY);
-//					listenersGroup.clear();
-//					listenersGroup.appendListener(new IdegaFlushEntityEventListener());
-//
-					EventListenerGroup<FlushEventListener> flushEventListenersGroup = eventListenerRegistry
-							.getEventListenerGroup(EventType.FLUSH);
-//					flushEventListenersGroup.clear();
-//					flushEventListenersGroup.appendListener(new IdegaFlushEventListener());
-//				}
-
-//					getBPMDAO().doRestoreVersion(session);
-//				}
-
-//				if (settings.getBoolean("bpm.index_var_on_session_flush", Boolean.TRUE)) {
-//					getBPMDAO().doIndexVariables(session);
-//				}
-//			}
+			}
 
 			super.flushIfNecessary(session, existingTransaction);
-		}*/
+		}
+
 	}
 
 	@Override
