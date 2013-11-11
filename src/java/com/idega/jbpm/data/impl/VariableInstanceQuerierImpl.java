@@ -951,8 +951,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private List<Long> getNarrowedResults(String prefix, String keyword, List<Long> initialIds, List<Long> resultIds) {
-		if (ListUtil.isEmpty(initialIds))
+		if (ListUtil.isEmpty(initialIds)) {
 			return resultIds;
+		}
 
 		if (resultIds == null) {
 			resultIds = new ArrayList<Long>();
@@ -981,18 +982,17 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return null;
 		}
 
-		if (ListUtil.isEmpty(results))
-			return null;
-		for (Serializable[] ids: results) {
-			if (ArrayUtil.isEmpty(ids))
-				continue;
+		if (!ListUtil.isEmpty(results)) {
+			for (Serializable[] ids: results) {
+				if (ArrayUtil.isEmpty(ids))
+					continue;
 
-			Serializable id = ids[0];
-			if (id instanceof Number) {
-				resultIds.add(((Number) id).longValue());
+				Serializable id = ids[0];
+				if (id instanceof Number) {
+					resultIds.add(((Number) id).longValue());
+				}
 			}
 		}
-
 
 		return getNarrowedResults(prefix, keyword, initialIds, resultIds);
 	}
@@ -1179,6 +1179,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				if (searchForEachKeywordSeparately && !ListUtil.isEmpty(procInstIds)) {
 					procInstIds = getNarrowedResults(currentColumnPrefix, valuesToSelect.toString(), procInstIds, null);
 					if (ListUtil.isEmpty(procInstIds)) {
+						getLogger().info("Nothing was found while narrowing results by variable value " + currentColumnPrefix + " = " + valuesToSelect +
+								" and proc. inst. IDs " + procInstIds + ". Terminating search");
 						return null;
 					}
 
