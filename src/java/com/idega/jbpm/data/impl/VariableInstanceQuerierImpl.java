@@ -3152,8 +3152,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			});
 
 			activeVariables = new LinkedHashMap<String, VariableQuerierData>();
-			for (VariableQuerierData activeVar: queryData)
-				activeVariables.put(activeVar.getName(), activeVar);
+			for (VariableQuerierData activeVar: queryData) {
+				if (activeVar != null) {
+					activeVariables.put(activeVar.getName(), activeVar);
+				}
+			}
 		}
 
 		if (isLuceneQueryingTurnedOn()) {
