@@ -1,6 +1,7 @@
 package com.idega.jbpm.bean;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -12,6 +13,7 @@ import com.idega.presentation.ui.handlers.IWDatePickerHandler;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
+import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 
 public class BPMProcessVariable implements Serializable {
@@ -156,9 +158,14 @@ public class BPMProcessVariable implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	public <T extends Serializable> T getRealValue(Locale locale) {
+		String value = getValue();
+		if (StringUtil.isEmpty(value)) {
+			return null;
+		}
+		boolean multiValues = value.indexOf(CoreConstants.SEMICOLON) != -1;
+
 		Serializable realValue = null;
 		if (isStringType()) {
-			String value = getValue();
 			if (locale != null) {
 				value = value.toLowerCase(locale);
 			}
@@ -183,7 +190,19 @@ public class BPMProcessVariable implements Serializable {
 			}
 		} else if (isLongType()) {
 			try {
-				realValue = Long.valueOf(getValue());
+				if (multiValues) {
+					ArrayList<Long> longValues = new ArrayList<Long>();
+					String[] values = value.split(CoreConstants.SEMICOLON);
+					for (String longValue: values) {
+						longValue = longValue.trim();
+						if (StringHandler.isNumeric(longValue)) {
+							longValues.add(Long.valueOf(longValue));
+						}
+					}
+					realValue = longValues;
+				} else {
+					realValue = Long.valueOf(getValue());
+				}
 			} catch (Exception e) {
 				Logger.getLogger(BPMProcessVariable.class.getName()).log(Level.WARNING, "Error converting string to long: " + getValue(), e);
 			}
