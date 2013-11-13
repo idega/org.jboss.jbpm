@@ -1492,8 +1492,11 @@ public class RolesManagerImpl implements RolesManager {
 			HashMultimap<String, ActorActorPerm> candidates = new HashMultimap<String, ActorActorPerm>();
 
 			for (ActorPermissions perm : perms) {
-
-				for (Actor act : perm.getActors()) {
+				List<Actor> actors = perm.getActors();
+				if(ListUtil.isEmpty(actors)){
+					continue;
+				}
+				for (Actor act : actors) {
 
 					// resolving all candidate actors, for each _can see role_
 					candidates.put(perm.getCanSeeContactsOfRoleName(),
@@ -2015,7 +2018,7 @@ public class RolesManagerImpl implements RolesManager {
 
 	private UserBusiness getUserBusiness() {
 		try {
-			return (UserBusiness) IBOLookup.getServiceInstance(
+			return IBOLookup.getServiceInstance(
 			    IWMainApplication.getDefaultIWApplicationContext(),
 			    UserBusiness.class);
 		} catch (IBOLookupException ile) {

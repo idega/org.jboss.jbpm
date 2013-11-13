@@ -17,38 +17,11 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.httpclient.HttpURL;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
-import com.idega.block.process.variables.Variable;
-import com.idega.block.process.variables.VariableDataType;
-import com.idega.core.accesscontrol.business.LoginBusinessBean;
-import com.idega.core.file.util.FileInfo;
-import com.idega.core.file.util.FileURIHandler;
-import com.idega.core.file.util.FileURIHandlerFactory;
-import com.idega.idegaweb.IWMainApplication;
+import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.utils.JSONUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
-import com.idega.repository.RepositoryService;
-import com.idega.repository.bean.RepositoryItem;
-import com.idega.user.data.bean.User;
-import com.idega.util.ArrayUtil;
-import com.idega.util.CoreConstants;
-import com.idega.util.CoreUtil;
-import com.idega.util.FileUtil;
-import com.idega.util.IOUtil;
-import com.idega.util.IWTimestamp;
-import com.idega.util.ListUtil;
-import com.idega.util.StringHandler;
-import com.idega.util.expression.ELUtil;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.StreamException;
-import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -424,7 +397,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 	}
 
 	private RepositoryItem getResource(BinaryVariable variable, RepositoryService repository) {
-		LOGGER.warning("No webdav resource found for path provided: " + variable.getIdentifier() + ". Will try to remove non-Latin letters to resolve the resource");
+		LOGGER.warning("No resource found for path provided: " + variable.getIdentifier() + ". Will try to remove non-Latin letters to resolve the resource");
 
 		RepositoryItem res = null;
 		try {

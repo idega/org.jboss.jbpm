@@ -10,18 +10,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.idega.block.process.variables.Variable;
+import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
-import com.idega.repository.RepositoryService;
-import com.idega.repository.bean.RepositoryItem;
-import com.idega.util.ListUtil;
-import com.idega.util.StringUtil;
-import com.idega.util.datastructures.map.MapUtil;
-import com.idega.util.expression.ELUtil;
 
 /**
  * the actual persisting and resolving is left to BinaryVariableHandler
@@ -44,6 +36,7 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	private long taskInstanceId;
 
 	private Map<String, Object> metadata;
+	private boolean persistedToRepository;
 
 	@Autowired
 	private transient VariablesHandler variablesHandler;
@@ -310,4 +303,15 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	public String toString() {
 		return getFileName() + ": " + getIdentifier();
 	}
+
+	@Override
+	public boolean isPersistedToRepository() {
+		return persistedToRepository;
+	}
+
+	@Override
+	public void setPersistedToRepository(boolean persistedToRepository) {
+		this.persistedToRepository = persistedToRepository;
+	}
+
 }

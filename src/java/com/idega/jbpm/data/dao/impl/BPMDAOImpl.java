@@ -15,7 +15,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hibernate.Session;
+import javax.servlet.ServletContext;
+
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
@@ -26,6 +27,8 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.idega.block.process.data.CaseBMPBean;
 import com.idega.core.persistence.Param;
@@ -37,6 +40,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
+import com.idega.jbpm.business.BPMAssetsResolver;
 import com.idega.jbpm.data.Actor;
 import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.BPMVariableData;
@@ -47,6 +51,7 @@ import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.Role;
+import com.idega.user.data.User;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -726,6 +731,10 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 				new Param("procDefName", procDefName));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.dao.BPMDAO#getProcessInstances(java.util.List)
+	 */
 	@Override
 	public List<Variable> getVariablesByNameAndProcessInstance(String name, Long piId) {
 		if (StringUtil.isEmpty(name)) {
@@ -797,6 +806,27 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.dao.BPMDAO#getProcessInstancesByIDs(java.util.Collection)
+	 */
+	@Override
+	public List<ProcessInstance> getProcessInstancesByIDs(
+			Collection<Long> processInstanceIds) {
+		if (ListUtil.isEmpty(processInstanceIds)) {
+			return Collections.emptyList();
+		}
+
+		StringBuilder query = new StringBuilder();
+		query.append("FROM ").append(ProcessInstance.class.getName()).append(" pi ")
+		.append("WHERE pi.id IN (:processInstanceIDs)");
+
+		return getResultListByInlineQuery(
+				query.toString(),
+				ProcessInstance.class,
+				new Param("processInstanceIDs", processInstanceIds));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see com.idega.jbpm.data.dao.BPMDAO#getProcessDefinitions(java.lang.String)
 	 */
 	@Override
@@ -860,267 +890,6 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return Collections.emptyList();
 	}
 
-//	private Map<?, EntityEntry> getBPMEntities(Session session) {
-//		if (session == null || !session.isOpen() || !(session instanceof SessionImplementor)) {
-//			getLogger().warning("Session is not provided or closed or wrong implementation: " + session + ". Expected: " +
-//					SessionImplementor.class.getName());
-//			return null;
-//		}
-//
-//		PersistenceContext pc = ((SessionImplementor) session).getPersistenceContext();
-//		if (pc == null) {
-//			getLogger().warning("Persistence context is not available");
-//			return null;
-//		}
-//
-//		@SuppressWarnings("unchecked")
-//		Map<?, EntityEntry> entities = pc.getEntityEntries();
-//		if (MapUtil.isEmpty(entities)) {
-//			return null;
-//		}
-//
-//		return entities;
-//	}
-
-//	@Autowired
-//	private BPMSearchIndex bpmSearchIndexer;
-
-	@Override
-	public void doIndexVariables(Session session) {
-//		Serializable id = null;
-//		try {
-//			Map<?, ?> entities = getBPMEntities(session);
-//			if (MapUtil.isEmpty(entities)) {
-//				return;
-//			}
-//
-//			for (Map.Entry<?, ?> entry: entities.entrySet()) {
-//				Object o = entry.getValue();
-//				if (o instanceof EntityEntry) {
-//					EntityEntry entity = (EntityEntry) o;
-//					String entityName = entity.getEntityName();
-//					BPMVariableEnum varEnum = BPMVariableEnum.getEnum(entityName);
-//					if (varEnum == null) {
-//						continue;
-//					}
-//
-//					id = entity.getId();
-//					bpmSearchIndexer.doIndexVariable(session, id);
-//				}
-//			}
-//		} catch (Exception e) {
-//			getLogger().log(Level.WARNING, "Error while indexing BPM variable(s). Failed on variable with ID: " + id, e);
-//		}
-	}
-
-	/*@Override
-	public void doRestoreVersion(Session session) {
-		doRestoreVersion(session, null);
-	}
-
-	private <T extends Serializable> BPMInstanceVersionUpdater<T> getVersionUpdater(Class<T> updateType) {
-		try {
-			BPMInstanceVersionUpdater<T> updater = ELUtil.getInstance().getBean("jbpm" + updateType.getSimpleName() + "VersionUpdater");
-			return updater;
-		} catch (Exception e) {}
-		return null;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T extends Serializable> boolean updateInstanceVersion(
-			Session session,
-			Object instance,
-			int version,
-			boolean newProcessInstance,
-			Long id,
-			Class<T> entityType
-	) {
-		boolean refreshed = false;
-
-		BPMInstanceVersionUpdater<T> versionUpdater = getVersionUpdater(entityType);
-		try {
-			//	Refreshing object
-			session.setCacheMode(CacheMode.REFRESH);
-			instance = session.get(instance.getClass(), id);
-			if (instance != null) {
-				instance = HibernateUtil.initializeAndUnproxy(instance);
-
-				if (Hibernate.isInitialized(instance)) {
-					boolean canRefresh = true;
-					if (versionUpdater != null && !versionUpdater.isPossibleToUpdateVersion(session, (T) instance)) {
-						canRefresh = false;
-					}
-
-					if (canRefresh) {
-						session.refresh(instance);
-						refreshed = true;
-					}
-				} else {
-					getLogger().warning("Can not restore version for " + instance + ". This entity (or some enclosing entities) are not persisted");
-				}
-			}
-		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error restoring version for " + instance, e);
-			refreshed = false;
-		}
-
-		if (refreshed) {
-			return true;
-		}
-
-		if (!refreshed &&
-				versionUpdater != null &&
-				IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.manualy_restore_version", Boolean.FALSE)) {
-			try {
-				return versionUpdater.doUpdateInstanceVersion((T) instance, version);
-			} catch (Exception e) {
-				getLogger().log(Level.WARNING, "Error refreshing object: " + instance + ". ID: " + id + ". New process: " + newProcessInstance +
-						". Cause: " + e.getMessage());
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public void doRestoreVersion(Session session, Integer decreaseBy) {
-		if (true)
-			return;
-
-		IWMainApplicationSettings settings = IWMainApplication.getDefaultIWMainApplication().getSettings();
-		boolean doRestoreVersionForBPMEntities = settings.getBoolean("bpm.restore_versions", Boolean.FALSE);
-		if (!doRestoreVersionForBPMEntities) {
-			getLogger().warning("Session restoring is turned off");
-			return;
-		}
-
-		Map<?, EntityEntry> entities = getBPMEntities(session);
-		if (MapUtil.isEmpty(entities)) {
-			return;
-		}
-
-		boolean logAboutError = settings.getBoolean("bpm.log_restore_failure", Boolean.TRUE);
-		for (Map.Entry<?, EntityEntry> entry: entities.entrySet()) {
-			Object o = entry.getValue();
-			if (o instanceof EntityEntry) {
-				EntityEntry entity = (EntityEntry) o;
-				String entityName = entity.getEntityName();
-				BPMEntityEnum bpmEntity = BPMEntityEnum.getEnum(entityName);
-				if (bpmEntity == null) {
-					continue;
-				}
-
-				Long id = Long.valueOf(entity.getId().toString());
-				try {
-					String query = bpmEntity.getVersionQuery(id);
-					List<Serializable[]> results = SimpleQuerier.executeQuery(query, 1);
-					if (ListUtil.isEmpty(results)) {
-						if (logAboutError) {
-							getLogger().warning("Unable to update state for " + entityName + ", ID: " + id + " because no results found by query: " +
-									query);
-						}
-						continue;
-					}
-
-					Serializable[] data = results.get(0);
-					if (ArrayUtil.isEmpty(data)) {
-						if (logAboutError) {
-							getLogger().warning("Unable to update state for " + entityName + ", ID: " + id + " because no results found by query: " +
-									query);
-						}
-						continue;
-					}
-
-					Object versionObject = data[0];
-					if (!(versionObject instanceof Number)) {
-						if (logAboutError) {
-							getLogger().warning("Unable to update state for " + entityName + ", ID: " + id + " because version object (" +
-									versionObject + (versionObject == null ? "" : ", class: " + versionObject.getClass()) + ") is not type of Number");
-						}
-						continue;
-					}
-
-					int version = ((Number) versionObject).intValue();
-//								if (version > 0) {
-//									boolean newProcessInstance = decreaseBy == null;
-//									if (decreaseBy == null) {
-//										version = 1;
-//									} else {
-//										version = version - decreaseBy;
-//										if (version <= 0) {
-//											version = 1;
-//										}
-//									}
-//									String update = bpmEntity.getUpdateQuery(id, version);
-//									if (SimpleQuerier.executeUpdate(update, false)) {
-										boolean success = true;
-//										if (settings.getBoolean("bpm.refresh_bpm_entity", Boolean.FALSE)) {
-											Object entityToRefresh = null;
-											entityToRefresh = session.get(Class.forName(bpmEntity.getEntityClass()), id);
-											if (entityToRefresh != null) {
-												entityToRefresh = HibernateUtil.initializeAndUnproxy(entityToRefresh);
-											}
-
-											Object[] state = entity.getLoadedState();
-											state[0] = versionObject;
-											entity.getPersister().setPropertyValues(entityToRefresh, state);
-
-											Object entityVersion = entity.getVersion();
-											if (entityVersion instanceof Number && ((Integer) entityVersion).intValue() != version) {
-												entity = new EntityEntry(
-														entity.getStatus(),
-														entity.getLoadedState(),
-														entity.getRowId(),
-														entity.getId(),
-														version,
-														entity.getLockMode(),
-														entity.isExistsInDatabase(),
-														entity.getPersister(),
-														entity.getPersister().getEntityMode(),
-														session.getTenantIdentifier(),
-														entity.isBeingReplicated(),
-														entity.isLoadedWithLazyPropertiesUnfetched(),
-														((SessionImpl) session).getPersistenceContext()
-												);
-												getLogger().info("Entity: " + entity);
-												o = entity;
-												entry.setValue(entity);
-											}
-
-											success = true;
-
-//											success = updateInstanceVersion(
-//													session,
-//													entityToRefresh,
-//													version,
-//													newProcessInstance,
-//													id,
-//													bpmEntity.getEntityType()
-//											);
-//										}
-//										if (success && settings.getBoolean("bpm.log_restore_success", Boolean.FALSE)) {
-											getLogger().info("Set version (to " + version + ") for entity " + entityName + ", ID: " + id);
-//										}
-//									} else if (settings.getBoolean("bpm.log_restore_failure", Boolean.TRUE)) {
-//										getLogger().warning("Failed to restore version (to " + version + ") for entity: " + entityName + ", ID: " + id);
-//									}
-//								}
-//							} else {
-//								getLogger().warning("Expected Number object, got: " + versionObject +
-//										(versionObject == null ? CoreConstants.EMPTY : ", class: " + versionObject.getClass().getName()));
-//							}
-//						} else {
-//							getLogger().warning("No data in " + results);
-//						}
-//					} else {
-//						getLogger().warning("Nothing found by query: " + query);
-//					}
-				} catch (Exception e) {
-					getLogger().log(Level.WARNING, "Error refreshing " + entity + " with ID: " + id, e);
-				}
-			}
-		}
-	}*/
-
 	@Override
 	public List<Variable> getVariablesByBytes(List<Long> varBytesIds) {
 		if (ListUtil.isEmpty(varBytesIds))
@@ -1143,6 +912,37 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 				Variable.class,
 				new Param("tokensIds", tokensIds)
 		);
+	}
+
+	@Override
+	public List<User> getUsersConnectedToProcess(Long piId, String procDefName, Map<String, Object> variables) {
+		ServletContext servletCtx = IWMainApplication.getDefaultIWMainApplication().getServletContext();
+		WebApplicationContext webAppCtx = WebApplicationContextUtils.getWebApplicationContext(servletCtx);
+		Map<String, BPMAssetsResolver> bpmAssetsResolvers = webAppCtx.getBeansOfType(BPMAssetsResolver.class);
+		if (!MapUtil.isEmpty(bpmAssetsResolvers)) {
+			if (MapUtil.isEmpty(variables)) {
+				Collection<Variable> vars = getVariablesByConditions(null, Arrays.asList(piId), null, null);
+				if (!ListUtil.isEmpty(vars)) {
+					variables = new HashMap<String, Object>();
+					for (Variable var: vars) {
+						Serializable value = var.getValue();
+						if (value != null) {
+							variables.put(var.getName(), value);
+						}
+					}
+				}
+			}
+
+			List<User> allUsers = new ArrayList<User>();
+			for (BPMAssetsResolver resolver: bpmAssetsResolvers.values()) {
+				List<User> usersConnectedToProcess = resolver.getUsersConectedToProcess(piId, procDefName, variables);
+				if (!ListUtil.isEmpty(usersConnectedToProcess)) {
+					allUsers.addAll(usersConnectedToProcess);
+				}
+			}
+			return allUsers;
+		}
+		return null;
 	}
 
 }

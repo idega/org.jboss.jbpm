@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hibernate.Session;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.taskmgmt.def.Task;
@@ -20,6 +19,7 @@ import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.identity.Role;
+import com.idega.user.data.User;
 import com.idega.util.IWTimestamp;
 
 /**
@@ -126,8 +126,15 @@ public interface BPMDAO extends GenericDao {
 	 */
 	public List<ProcessInstance> getProcessInstances(List<String> processDefinitionNames);
 
-//	public void doRestoreVersion(Session session);
-//	public void doRestoreVersion(Session session, Integer decreaseBy);
+	/**
+	 *
+	 * @param processInstanceIds is {@link Collection} of
+	 * {@link ProcessInstance#getId()}, not <code>null</code>;
+	 * @return loads {@link ProcessInstance}s from data source
+	 * or {@link Collections#emptyList()} on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public List<ProcessInstance> getProcessInstancesByIDs(Collection<Long> processInstanceIds);
 
-	public void doIndexVariables(Session session);
+	public List<User> getUsersConnectedToProcess(Long piId, String procDefName, Map<String, Object> variables);
 }

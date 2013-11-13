@@ -1,6 +1,7 @@
 package com.idega.jbpm.artifacts.presentation;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.security.AccessControlException;
@@ -84,6 +85,7 @@ import com.idega.presentation.text.Text;
 import com.idega.presentation.ui.CheckBox;
 import com.idega.presentation.ui.GenericButton;
 import com.idega.user.business.UserBusiness;
+import com.idega.user.data.Group;
 import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -740,9 +742,9 @@ public class ProcessArtifacts {
 			return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger(), loggedInUser);
 	}
 
-	public Collection<User> getUsersConnectedToProces(ProcessInstanceW piw ){
-		List<User> usersConnectedToProcess = piw.getUsersConnectedToProcess();
-		if(ListUtil.isEmpty(usersConnectedToProcess)){
+	public Collection<User> getUsersConnectedToProces(ProcessInstanceW piW) {
+		List<User> usersConnectedToProcess = piW.getUsersConnectedToProcess();
+		if (ListUtil.isEmpty(usersConnectedToProcess)) {
 			return Collections.emptyList();
 		}
 		return new ArrayList<User>(usersConnectedToProcess);
@@ -755,14 +757,24 @@ public class ProcessArtifacts {
 
 		Long processInstanceId = params.getPiId();
 		if (processInstanceId == null) {
+			LOGGER.warning("Failed to get process instance id");
 			return null;
 		}
 
-		ProcessInstanceW piw = getBpmFactory()
-		        .getProcessManagerByProcessInstanceId(processInstanceId)
-		        .getProcessInstance(processInstanceId);
+		ProcessManager processManager = getBpmFactory()
+		        .getProcessManagerByProcessInstanceId(processInstanceId);
+		if (processManager == null) {
+			LOGGER.warning("Failed to get " + ProcessManager.class);
+			return null;
+		}
 
-		Collection<User> uniqueUsers = Collections.emptyList();
+		ProcessInstanceW piw = processManager.getProcessInstance(processInstanceId);
+		if (piw == null) {
+			LOGGER.warning("Failed to get " + ProcessInstanceW.class);
+			return null;
+		}
+
+		Collection<User> uniqueUsers = null;
 		if (params.isShowOnlyCreatorInContacts()) {
 			User owner = piw.getOwner();
 			if (owner == null) {
@@ -772,6 +784,10 @@ public class ProcessArtifacts {
 			}
 		} else {
 			uniqueUsers = getUsersConnectedToProces(piw);
+		}
+
+		if (ListUtil.isEmpty(uniqueUsers)) {
+			uniqueUsers = Collections.emptyList();
 		}
 
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
@@ -784,7 +800,7 @@ public class ProcessArtifacts {
 			        .getApplicationSettings().getProperty(
 			            CoreConstants.PROP_SYSTEM_ACCOUNT);
 
-			if (systemEmail.indexOf("@") == -1) {
+			if (systemEmail != null && systemEmail.indexOf("@") == -1) {
 				String emailHost = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_HOST);
 				systemEmail = systemEmail + "@" + emailHost.substring(emailHost.indexOf(".") + 1);
 			}
@@ -1407,6 +1423,7 @@ public class ProcessArtifacts {
 	}
 
 	public boolean assignCase(String handlerIdStr, Long processInstanceId) {
+
 		ProcessInstanceW piw = getBpmFactory()
 		        .getProcessManagerByProcessInstanceId(processInstanceId)
 		        .getProcessInstance(processInstanceId);
@@ -1518,7 +1535,11 @@ public class ProcessArtifacts {
 
 		RolesManager rolesManager = getBpmFactory().getRolesManager();
 		List<String> caseHandlersRolesNames = rolesManager.getRolesForAccess(processInstanceId, Access.caseHandler);
-		Collection<User> users = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
+		Collection<User> handlers = rolesManager.getAllUsersForRoles(caseHandlersRolesNames, processInstanceId);
+		List<User> usersConnectedToProcess = piw.getUsersConnectedToProcess();
+		if (!ListUtil.isEmpty(handlers) && !ListUtil.isEmpty(usersConnectedToProcess)) {
+			handlers.retainAll(usersConnectedToProcess);
+		}
 
 		Integer assignedCaseHandlerId = piw.getHandlerId();
 		String assignedCaseHandlerIdStr = assignedCaseHandlerId == null ? null : String.valueOf(assignedCaseHandlerId);
@@ -1534,9 +1555,9 @@ public class ProcessArtifacts {
 		AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, iwrb.getLocalizedString("bpm.selectCaseHandler", "Select handler"));
 		allHandlers.add(ap);
 
-		for (User user : users) {
-			String pk = String.valueOf(user.getPrimaryKey());
-			ap = new AdvancedProperty(pk, user.getName());
+		for (User handler: handlers) {
+			String pk = String.valueOf(handler.getPrimaryKey());
+			ap = new AdvancedProperty(pk, handler.getName());
 			if (pk.equals(assignedCaseHandlerIdStr)) {
 				ap.setSelected(true);
 			}
@@ -1619,25 +1640,46 @@ public class ProcessArtifacts {
 
 	@Transactional(readOnly = true)
 	public boolean isTaskSubmitted(Long tiId) {
+		LOGGER.info("Starting method: isTaskSubmitted with tiid: " + tiId);
+
 		try {
 			TaskInstanceW tiW = getBpmFactory().getTaskInstanceW(tiId);
-			if (tiW == null)
+			if (tiW == null) {
+				LOGGER.warning("No " + TaskInstanceW.class + " found by tiid: " + tiId);
 				return false;
+			}
 
 			TaskInstance task = tiW.getTaskInstance();
-			if (task != null && task.hasEnded())
+			if (task != null && task.hasEnded()) {
+				LOGGER.warning(TaskInstance.class +
+						" is null or has ended (" + tiId + ")");
 				return true;
+			}
 
-			List<TaskInstanceW> submittedTasks = tiW.getProcessInstanceW().getSubmittedTaskInstances();
-			if (ListUtil.isEmpty(submittedTasks))
+			ProcessInstanceW processInstanceW = tiW.getProcessInstanceW();
+			List<TaskInstanceW> submittedTasks = processInstanceW.getSubmittedTaskInstances();
+			if (ListUtil.isEmpty(submittedTasks)) {
+				LOGGER.warning("No submitted tasks found by tiid: " + tiId +
+						" and process instance id: " +
+						processInstanceW.getProcessInstanceId());
 				return false;
+			}
 
-			for (TaskInstanceW submittedTask: submittedTasks)
+
+			for (TaskInstanceW submittedTask: submittedTasks) {
+				LOGGER.info("Verifying if submitted task " + submittedTask +
+						" has id: " + tiId );
+
 				if (submittedTask.getTaskInstanceId().longValue() == tiId.longValue())
 					return true;
+			}
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while resolving if task by ID " + tiId + " is submitted", e);
+		} finally {
+			LOGGER.info("finished verifying if task by id :" + tiId +
+					" is submitted");
 		}
+
 		return false;
 	}
 
