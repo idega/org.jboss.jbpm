@@ -46,7 +46,9 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.BPMContext;
+import com.idega.jbpm.bean.JBPMCompany;
 import com.idega.jbpm.bean.VariableInstanceInfo;
+import com.idega.jbpm.business.JBPMCompanyBusiness;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.exe.BPMDocument;
 import com.idega.jbpm.exe.BPMEmailDocument;
@@ -124,6 +126,9 @@ public class ProcessArtifacts {
 	private SigningHandler signingHandler;
 	@Autowired(required = false)
 	private VariableInstanceQuerier variablesQuerier;
+	
+	@Autowired
+	private JBPMCompanyBusiness jbpmCompanyBusiness;
 
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
@@ -820,11 +825,25 @@ public class ProcessArtifacts {
 
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication()
 		        .getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		
+		boolean showUserCompany = params.isShowUserCompany();
 		for (User user : uniqueUsers) {
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 
 			row.addCell(user.getName());
+			
+			if(showUserCompany){
+				Collection<JBPMCompany> companies = jbpmCompanyBusiness.getJBPMCompaniesForUser(user);
+				String companyName;
+				if(!ListUtil.isEmpty(companies)){
+					JBPMCompany company = companies.iterator().next();
+					companyName = company.getName();
+				}else{
+					companyName = "-";
+				}
+				row.addCell(companyName);
+			}
 			row.addCell(getUserEmails(user.getEmails(), processIdentifier,
 			    systemEmail));
 			row.addCell(new StringBuilder(getUserPhones(user.getPhones()))
@@ -1603,7 +1622,7 @@ public class ProcessArtifacts {
 
 	protected UserBusiness getUserBusiness() {
 		try {
-			return (UserBusiness) IBOLookup.getServiceInstance(CoreUtil
+			return IBOLookup.getServiceInstance(CoreUtil
 			        .getIWContext(), UserBusiness.class);
 		} catch (IBOLookupException ile) {
 			throw new IBORuntimeException(ile);
