@@ -10,10 +10,18 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.idega.jbpm.data.Variable;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.idega.block.process.variables.Variable;
 import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
+import com.idega.repository.RepositoryService;
+import com.idega.repository.bean.RepositoryItem;
+import com.idega.util.ListUtil;
+import com.idega.util.StringUtil;
+import com.idega.util.datastructures.map.MapUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * the actual persisting and resolving is left to BinaryVariableHandler
