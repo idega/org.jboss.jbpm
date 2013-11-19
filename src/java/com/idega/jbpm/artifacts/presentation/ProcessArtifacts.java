@@ -97,6 +97,7 @@ import com.idega.util.SendMail;
 import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * TODO: access control checks shouldn't be done here at all - remake!
@@ -114,28 +115,48 @@ public class ProcessArtifacts {
 
 	@Autowired
 	private BPMFactory bpmFactory;
+
 	@Autowired
 	private BPMContext idegaJbpmContext;
+
 	@Autowired
 	private VariablesHandler variablesHandler;
+
 	@Autowired
 	private PermissionsFactory permissionsFactory;
+
 	@Autowired
 	private BuilderLogicWrapper builderLogicWrapper;
+
 	@Autowired(required = false)
 	private SigningHandler signingHandler;
+
 	@Autowired(required = false)
 	private VariableInstanceQuerier variablesQuerier;
-	
-	@Autowired
+
+	@Autowired(required = false)
 	private GeneralCompanyBusiness generalCompanyBusiness;
 
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
 
-	private GridEntriesBean getDocumentsListDocument(IWContext iwc, Collection<BPMDocument> processDocuments, Long processInstanceId,
-			ProcessArtifactsParamsBean params) {
+	private GeneralCompanyBusiness getGeneralCompanyBusiness() {
+		if (generalCompanyBusiness == null) {
+			try {
+				generalCompanyBusiness = ELUtil.getInstance().getBean(GeneralCompanyBusiness.BEAN_NAME);
+			} catch (Exception e) {
+				LOGGER.warning("There is no implementation for " + GeneralCompanyBusiness.class.getName());
+			}
+		}
+		return generalCompanyBusiness;
+	}
 
+	private GridEntriesBean getDocumentsListDocument(
+			IWContext iwc,
+			Collection<BPMDocument> processDocuments,
+			Long processInstanceId,
+			ProcessArtifactsParamsBean params
+	) {
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
 		int size = processDocuments.size();
@@ -826,16 +847,16 @@ public class ProcessArtifacts {
 
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication()
 		        .getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-		
+
 		boolean showUserCompany = params.isShowUserCompany();
 		for (User user : uniqueUsers) {
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 
 			row.addCell(user.getName());
-			
-			if(showUserCompany){
-				Collection<GeneralCompany> companies = generalCompanyBusiness.getJBPMCompaniesForUser(user);
+
+			if(showUserCompany && getGeneralCompanyBusiness() != null){
+				Collection<GeneralCompany> companies = getGeneralCompanyBusiness().getJBPMCompaniesForUser(user);
 				String companyName;
 				if(!ListUtil.isEmpty(companies)){
 					GeneralCompany company = companies.iterator().next();
