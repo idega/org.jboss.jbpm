@@ -38,6 +38,8 @@ import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.NotLoggedOnException;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
+import com.idega.core.business.GeneralCompanyBusiness;
+import com.idega.core.company.bean.GeneralCompany;
 import com.idega.core.contact.data.Email;
 import com.idega.core.contact.data.Phone;
 import com.idega.idegaweb.IWApplicationContext;
@@ -46,9 +48,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.BPMContext;
-import com.idega.jbpm.bean.JBPMCompany;
 import com.idega.jbpm.bean.VariableInstanceInfo;
-import com.idega.jbpm.business.JBPMCompanyBusiness;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.exe.BPMDocument;
 import com.idega.jbpm.exe.BPMEmailDocument;
@@ -128,7 +128,7 @@ public class ProcessArtifacts {
 	private VariableInstanceQuerier variablesQuerier;
 	
 	@Autowired
-	private JBPMCompanyBusiness jbpmCompanyBusiness;
+	private GeneralCompanyBusiness generalCompanyBusiness;
 
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
@@ -631,7 +631,7 @@ public class ProcessArtifacts {
 
 			if (params.isShowAttachmentStatistics()) {
 				row.addCell(new StringBuilder("<a href=\"javascript:void(0);\" attachment-link=\"")
-						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId)).append("\" title=\"")
+						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId,params.isShowUserCompany())).append("\" title=\"")
 						.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
 			}
 
@@ -676,7 +676,7 @@ public class ProcessArtifacts {
 		}
 	}
 
-	private String getAttachmentInfoWindowLink(IWApplicationContext iwac, BinaryVariable binaryVariable, String caseId, Long taskInstanceId) {
+	private String getAttachmentInfoWindowLink(IWApplicationContext iwac, BinaryVariable binaryVariable, String caseId, Long taskInstanceId,boolean showCompany) {
 		String hash = String.valueOf(binaryVariable.getHash());
 
 		//	TODO: remove hard-coding!
@@ -684,7 +684,8 @@ public class ProcessArtifacts {
 				new AdvancedProperty(FileDownloadStatisticsViewer.PARAMETER_FILE_HASH, hash),
 				new AdvancedProperty(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash),
 				new AdvancedProperty(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, taskInstanceId.toString()),
-				new AdvancedProperty("caseId", StringUtil.isEmpty(caseId) ? "-1" : caseId)
+				new AdvancedProperty("caseId", StringUtil.isEmpty(caseId) ? "-1" : caseId),
+				new AdvancedProperty(FileDownloadStatisticsViewer.SHOW_COMPANY, showCompany ? "y" : "n")
 		));
 		return uri;
 	}
@@ -834,10 +835,10 @@ public class ProcessArtifacts {
 			row.addCell(user.getName());
 			
 			if(showUserCompany){
-				Collection<JBPMCompany> companies = jbpmCompanyBusiness.getJBPMCompaniesForUser(user);
+				Collection<GeneralCompany> companies = generalCompanyBusiness.getJBPMCompaniesForUser(user);
 				String companyName;
 				if(!ListUtil.isEmpty(companies)){
-					JBPMCompany company = companies.iterator().next();
+					GeneralCompany company = companies.iterator().next();
 					companyName = company.getName();
 				}else{
 					companyName = "-";
