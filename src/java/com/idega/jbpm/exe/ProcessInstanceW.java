@@ -196,6 +196,7 @@ public interface ProcessInstanceW {
 
 	public boolean doSubmitSharedTask(String taskName, Map<String, Object> variables);
 
+	public TaskInstanceW getSubmittedTaskInstance(String taskName, Map<String, Object> variables);
 	public boolean doSubmitTask(String taskName, Map<String, Object> variables);
 
 	public TaskInstanceW getTaskInstance(String taskName);

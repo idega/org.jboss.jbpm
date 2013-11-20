@@ -304,6 +304,10 @@ public class BPMFactoryImpl implements BPMFactory {
 	public ProcessInstanceW getProcessInstanceW(long processInstanceId) {
 		return getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
 	}
+	@Override
+	public ProcessInstanceW getProcessInstanceW(JbpmContext context, long processInstanceId) {
+		return getProcessManagerByProcessInstanceId(context, processInstanceId).getProcessInstance(processInstanceId);
+	}
 
 	@Override
 	public ProcessDefinitionW getProcessDefinitionW(String processName) {
@@ -341,16 +345,20 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	@Override
-	@Transactional(readOnly = true)
 	public ProcessManager getProcessManagerByProcessInstanceId(final long processInstanceId) {
 		return getBpmContext().execute(new JbpmCallback<ProcessManager>() {
 			@Override
 			public ProcessManager doInJbpm(JbpmContext context) throws JbpmException {
-				ProcessInstance processInstance = context.getProcessInstance(processInstanceId);
-				long pdId = processInstance.getProcessDefinition().getId();
-				return getProcessManager(pdId);
+				return getProcessManagerByProcessInstanceId(context, processInstanceId);
 			}
 		});
+	}
+
+	@Transactional(readOnly = true)
+	private ProcessManager getProcessManagerByProcessInstanceId(JbpmContext context, long processInstanceId) {
+		ProcessInstance processInstance = context.getProcessInstance(processInstanceId);
+		long pdId = processInstance.getProcessDefinition().getId();
+		return getProcessManager(pdId);
 	}
 
 	@Override

@@ -124,6 +124,7 @@ public interface BPMFactory {
 	public abstract TaskInstanceW getTaskInstanceW(long taskInstanceId);
 
 	public abstract ProcessInstanceW getProcessInstanceW(long processInstanceId);
+	public abstract ProcessInstanceW getProcessInstanceW(JbpmContext context, long processInstanceId);
 
 	public abstract ProcessDefinitionW getProcessDefinitionW(String processName);
 
