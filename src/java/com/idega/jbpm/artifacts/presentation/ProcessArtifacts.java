@@ -856,7 +856,7 @@ public class ProcessArtifacts {
 			row.addCell(user.getName());
 
 			if(showUserCompany && getGeneralCompanyBusiness() != null){
-				Collection<GeneralCompany> companies = getGeneralCompanyBusiness().getJBPMCompaniesForUser(user);
+				Collection<GeneralCompany> companies = getGeneralCompanyBusiness().getCompaniesForUser(user);
 				String companyName;
 				if(!ListUtil.isEmpty(companies)){
 					GeneralCompany company = companies.iterator().next();
