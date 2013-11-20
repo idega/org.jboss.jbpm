@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -102,6 +103,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 		}
 	}
 	
+	@Override
 	public void execute(final ExecutionContext ectx) throws Exception {
 		
 		final Object handler = getHandler(ectx);
@@ -127,10 +129,12 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 			
 			new Thread(new Runnable() {
 				
+				@Override
 				public void run() {
 					
 					getBpmContext().execute(new JbpmCallback() {
 						
+						@Override
 						public Object doInJbpm(JbpmContext context)
 						        throws JbpmException {
 							
@@ -177,6 +181,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 		}
 	}
 	
+	@Override
 	public void assign(Assignable ass, ExecutionContext ectx) throws Exception {
 		
 		Object handler = getHandler(ectx);
@@ -207,6 +212,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 		}
 	}
 	
+	@Override
 	public String decide(ExecutionContext ectx) throws Exception {
 		
 		Object handler = getHandler(ectx);
@@ -237,6 +243,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 		}
 	}
 	
+	@Override
 	public void initializeTaskVariables(TaskInstance ti,
 	        ContextInstance contextInstance, Token tkn) {
 		
@@ -269,6 +276,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 		}
 	}
 	
+	@Override
 	public void submitTaskVariables(TaskInstance ti,
 	        ContextInstance contextInstance, Token tkn) {
 		
@@ -318,6 +326,21 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 			        .length() - 1);
 			
 			try {
+				int jbpmExpressionStart = script.indexOf("#{");
+				if(jbpmExpressionStart != -1){
+					String[] expressions = script.split("\\#\\{");
+					for(int i = 0;i < expressions.length;i++){
+						String expression = expressions[i];
+						int endIndex = expression.indexOf("}");
+						if(((i == 0) && (jbpmExpressionStart != 0)) || (endIndex < 0)){
+							continue;
+						}
+						String variable = "#{" + expression.substring(0,endIndex+1);
+						
+						String regex = Pattern.quote(variable);
+						script = script.replaceAll(regex, JbpmExpressionEvaluator.evaluate(variable,ectx).toString());
+					}
+				}
 				propertyValue = getScriptEvaluator().evaluate(script, ectx);
 				
 			} catch (Exception e) {
