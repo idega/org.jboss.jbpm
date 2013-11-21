@@ -1590,7 +1590,7 @@ public class ProcessArtifacts {
 
 	protected UserBusiness getUserBusiness() {
 		try {
-			return (UserBusiness) IBOLookup.getServiceInstance(CoreUtil
+			return IBOLookup.getServiceInstance(CoreUtil
 			        .getIWContext(), UserBusiness.class);
 		} catch (IBOLookupException ile) {
 			throw new IBORuntimeException(ile);
@@ -1640,44 +1640,34 @@ public class ProcessArtifacts {
 
 	@Transactional(readOnly = true)
 	public boolean isTaskSubmitted(Long tiId) {
-		LOGGER.info("Starting method: isTaskSubmitted with tiid: " + tiId);
-
 		try {
 			TaskInstanceW tiW = getBpmFactory().getTaskInstanceW(tiId);
 			if (tiW == null) {
-				LOGGER.warning("No " + TaskInstanceW.class + " found by tiid: " + tiId);
+				LOGGER.warning("No " + TaskInstanceW.class.getName() + " found by tiid: " + tiId);
 				return false;
 			}
 
 			TaskInstance task = tiW.getTaskInstance();
-			if (task != null && task.hasEnded()) {
-				LOGGER.warning(TaskInstance.class +
-						" is null or has ended (" + tiId + ")");
+			if (task == null) {
+				LOGGER.warning("Task instance by ID " + tiId + " does not have task!");
+				return true;
+			}
+			if (task.hasEnded()) {
 				return true;
 			}
 
 			ProcessInstanceW processInstanceW = tiW.getProcessInstanceW();
 			List<TaskInstanceW> submittedTasks = processInstanceW.getSubmittedTaskInstances();
 			if (ListUtil.isEmpty(submittedTasks)) {
-				LOGGER.warning("No submitted tasks found by tiid: " + tiId +
-						" and process instance id: " +
-						processInstanceW.getProcessInstanceId());
 				return false;
 			}
 
-
 			for (TaskInstanceW submittedTask: submittedTasks) {
-				LOGGER.info("Verifying if submitted task " + submittedTask +
-						" has id: " + tiId );
-
 				if (submittedTask.getTaskInstanceId().longValue() == tiId.longValue())
 					return true;
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while resolving if task by ID " + tiId + " is submitted", e);
-		} finally {
-			LOGGER.info("finished verifying if task by id :" + tiId +
-					" is submitted");
 		}
 
 		return false;
