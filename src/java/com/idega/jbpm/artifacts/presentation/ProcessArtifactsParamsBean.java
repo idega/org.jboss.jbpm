@@ -23,6 +23,7 @@ public class ProcessArtifactsParamsBean {
 	private boolean showOnlyCreatorInContacts;
 	private boolean nameFromExternalEntity = false;
 	private boolean showUserCompany = false;
+	private boolean showLastLoginDate = false;
 	
 	public Integer getPage() {
 		return page;
@@ -113,5 +114,11 @@ public class ProcessArtifactsParamsBean {
 	}
 	public void setShowUserCompany(boolean showUserCompany) {
 		this.showUserCompany = showUserCompany;
+	}
+	public boolean isShowLastLoginDate() {
+		return showLastLoginDate;
+	}
+	public void setShowLastLoginDate(boolean showLastLoginDate) {
+		this.showLastLoginDate = showLastLoginDate;
 	}
 }

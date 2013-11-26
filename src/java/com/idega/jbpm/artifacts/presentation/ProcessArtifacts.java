@@ -652,7 +652,7 @@ public class ProcessArtifacts {
 
 			if (params.isShowAttachmentStatistics()) {
 				row.addCell(new StringBuilder("<a href=\"javascript:void(0);\" attachment-link=\"")
-						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId,params.isShowUserCompany())).append("\" title=\"")
+						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId,params.isShowUserCompany(), params.isShowLastLoginDate())).append("\" title=\"")
 						.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
 			}
 
@@ -697,7 +697,8 @@ public class ProcessArtifacts {
 		}
 	}
 
-	private String getAttachmentInfoWindowLink(IWApplicationContext iwac, BinaryVariable binaryVariable, String caseId, Long taskInstanceId,boolean showCompany) {
+	private String getAttachmentInfoWindowLink(IWApplicationContext iwac, BinaryVariable binaryVariable,
+			String caseId,Long taskInstanceId,boolean showCompany,boolean showLastLoginDate) {
 		String hash = String.valueOf(binaryVariable.getHash());
 
 		//	TODO: remove hard-coding!
@@ -706,7 +707,8 @@ public class ProcessArtifacts {
 				new AdvancedProperty(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash),
 				new AdvancedProperty(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, taskInstanceId.toString()),
 				new AdvancedProperty("caseId", StringUtil.isEmpty(caseId) ? "-1" : caseId),
-				new AdvancedProperty(FileDownloadStatisticsViewer.SHOW_COMPANY, showCompany ? "y" : "n")
+				new AdvancedProperty(FileDownloadStatisticsViewer.SHOW_COMPANY, showCompany ? "y" : "n"),
+				new AdvancedProperty(FileDownloadStatisticsViewer.SHOW_LAST_LOGIN_DATE, showLastLoginDate ? "y" : "n")
 		));
 		return uri;
 	}
