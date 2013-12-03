@@ -6,9 +6,11 @@ import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.idega.data.SimpleQuerier;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.util.CoreConstants;
 import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
@@ -37,8 +39,20 @@ public class VariableStringInstance extends VariableInstanceInfo {
 			Clob clob = (Clob) value;
 
 			try {
-				variableValue = clob.getSubString(1, (int) clob.length());
-			} catch (Exception e) {}
+				long maxClobSize = Long.valueOf(
+						IWMainApplication.getDefaultIWMainApplication().getSettings().getProperty("bpm.max_clob_size", String.valueOf(1024 * 1024 * 250))
+				);
+				long clobLength = clob.length();
+				if (clobLength > maxClobSize) {
+					variableValue = clob.getSubString(1, Long.valueOf(maxClobSize).intValue());
+					Logger.getLogger(getClass().getName()).warning("Shortened CLOB's value to " + maxClobSize + " bytes. It's original size: " +
+							clobLength + " bytes. Variable ID: " + id);
+				} else {
+					variableValue = clob.getSubString(1, Long.valueOf(clobLength).intValue());
+				}
+			} catch (Exception e) {
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error while getting value from CLOB. Variable ID: " + id, e);
+			}
 
 			if (variableValue == null && id != null) {
 				Connection conn = null;
