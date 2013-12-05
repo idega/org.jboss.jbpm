@@ -1667,7 +1667,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	private String getSubstring(String column) {
 		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("substring_jbpm_vars", Boolean.FALSE))
-			return "substr(".concat(column).concat(", 1, 255)");
+			return "substr(".concat(column).concat(", 1, " + getMaxStringValueLength("1048576") + ")");	//	1 MB
 		return column;
 	}
 
@@ -1765,6 +1765,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
+	private String getMaxStringValueLength() {
+		return getMaxStringValueLength("255");
+	}
+	private String getMaxStringValueLength(String defaultLength) {
+		return IWMainApplication.getDefaultIWMainApplication().getSettings().getProperty("max_string_var_length", defaultLength);
+	}
+
 	@Override
 	public Collection<VariableInstanceInfo> getVariablesByNames(List<String> names) {
 		if (ListUtil.isEmpty(names)) {
@@ -1777,9 +1784,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			query = getQuery(getSelectPart(getFullColumns()), getFromClause(), " where", getQueryParameters("var.NAME_", names, true),
 					VAR_DEFAULT_CONDITION,
 					getMirrowTableCondition());
-			String maxLength = IWMainApplication.getDefaultIWMainApplication().getSettings().getProperty("max_string_var_length");
-			if (!StringUtil.isEmpty(maxLength))
+
+			String maxLength = getMaxStringValueLength();
+			if (!StringUtil.isEmpty(maxLength)) {
 				query = StringHandler.replace(query, "var.stringvalue_ as sv", "substr(var.stringvalue_, 1, " + maxLength + ") as sv");
+			}
+
 			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names: " + names, e);
