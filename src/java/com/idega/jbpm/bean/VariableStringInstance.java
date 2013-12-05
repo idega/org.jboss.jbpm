@@ -38,10 +38,13 @@ public class VariableStringInstance extends VariableInstanceInfo {
 		} else if (value instanceof Clob) {
 			Clob clob = (Clob) value;
 
+			Connection connection = null;
 			try {
 				long maxClobSize = Long.valueOf(
 						IWMainApplication.getDefaultIWMainApplication().getSettings().getProperty("bpm.max_clob_size", String.valueOf(1024 * 1024 * 250))
 				);
+
+				connection = SimpleQuerier.getConnection();
 				long clobLength = clob.length();
 				if (clobLength > maxClobSize) {
 					variableValue = clob.getSubString(1, Long.valueOf(maxClobSize).intValue());
@@ -52,6 +55,10 @@ public class VariableStringInstance extends VariableInstanceInfo {
 				}
 			} catch (Exception e) {
 				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error while getting value from CLOB. Variable ID: " + id, e);
+			} finally {
+				if (connection != null) {
+					SimpleQuerier.freeConnection(connection);
+				}
 			}
 
 			if (variableValue == null && id != null) {
