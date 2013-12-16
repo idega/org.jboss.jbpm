@@ -35,6 +35,8 @@ import com.idega.util.StringHandler;
  */
 public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
+	private static final Logger LOGGER = Logger.getLogger(IdegaJbpmContext.class.getName());
+
 	public static final String beanIdentifier = "idegaJbpmContext";
 
 	private EntityManagerFactory entityManagerFactory;
@@ -154,13 +156,13 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 									String updateSQL = bpmEntity.getUpdateQuery(id, ((Number) previousVersion).intValue());
 									try {
 										SimpleQuerier.executeUpdate(updateSQL, false);
-										Logger.getLogger(getClass().getName()).info("Changed version to " + previousVersion + " for " +
+										LOGGER.info("Changed version to " + previousVersion + " for " +
 												bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
 									} catch (SQLException e) {}
 								}
 							}
 						} catch (Exception e) {
-							Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error changing version for " + bpmEntity, e);
+							LOGGER.log(Level.WARNING, "Error changing version for " + bpmEntity, e);
 						}
 					}
 				}
@@ -207,7 +209,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 		} catch (JbpmException ex) {
 			throw convertJbpmException(ex);
 		} catch (Throwable ex) {
-			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error executing callback: " + callback, ex);
+			LOGGER.log(Level.WARNING, "Error executing callback: " + callback, ex);
 		} finally {
 			closeAndCommit(context);
 		}
