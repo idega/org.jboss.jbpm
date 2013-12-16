@@ -1,6 +1,7 @@
 package com.idega.jbpm;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
 import org.jbpm.JbpmConfiguration;
@@ -11,6 +12,7 @@ import org.jbpm.job.executor.JobExecutor;
 import org.jbpm.job.executor.JobExecutorThread;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.idega.util.ListUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
@@ -45,6 +47,9 @@ public class JobExecutorThreadW extends JobExecutorThread {
 	private Collection<Job> acquireJobsSuper(JbpmContext context) {
 		@SuppressWarnings("unchecked")
 		Collection<Job> jobs = super.acquireJobs();
+		if (ListUtil.isEmpty(jobs)) {
+			return Collections.emptyList();
+		}
 		return jobs;
 	}
 

@@ -14,7 +14,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.PersistenceContext;
 import org.hibernate.internal.SessionImpl;
-import org.hibernate.internal.util.collections.IdentityMap;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -27,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.data.SimpleQuerier;
 import com.idega.jbpm.data.dao.BPMEntityEnum;
+import com.idega.util.ArrayUtil;
 import com.idega.util.StringHandler;
 
 /**
@@ -118,48 +118,50 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			return true;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
 			if (session instanceof SessionImpl) {
 				PersistenceContext persistenceContext = ((SessionImpl) session).getPersistenceContext();
-				for (Map.Entry<?, EntityEntry> entry : IdentityMap.concurrentEntries(persistenceContext.getEntityEntries())) {
-					EntityEntry entityEntry = entry.getValue();
-					if (entityEntry == null) {
-						continue;
-					}
-
-					BPMEntityEnum bpmEntity = BPMEntityEnum.getEnum(entityEntry.getEntityName());
-					if (bpmEntity == null) {
-						continue;
-					}
-
-					try {
-						String entryId = entityEntry.getId().toString();
-						if (!StringHandler.isNumeric(entryId)) {
+				Map.Entry<Object,EntityEntry>[] entries = persistenceContext.reentrantSafeEntityEntries();
+				if (!ArrayUtil.isEmpty(entries)) {
+					for (Map.Entry<?, EntityEntry> entry: entries) {
+						EntityEntry entityEntry = entry.getValue();
+						if (entityEntry == null) {
 							continue;
 						}
 
-						Long id = Long.valueOf(entityEntry.getId().toString());
-						Object entity = session.get(Class.forName(bpmEntity.getEntityClass()), id);
-						if (entity == null) {
+						BPMEntityEnum bpmEntity = BPMEntityEnum.getEnum(entityEntry.getEntityName());
+						if (bpmEntity == null) {
 							continue;
 						}
 
-						Number versionInDB = bpmEntity.getVersionFromDatabase(id);
-						if (versionInDB instanceof Number) {
-							Object previousVersion = entityEntry.getVersion();
-							if (previousVersion instanceof Number && versionInDB.intValue() != ((Number) previousVersion).intValue()) {
-								String updateSQL = bpmEntity.getUpdateQuery(id, ((Number) previousVersion).intValue());
-								try {
-									SimpleQuerier.executeUpdate(updateSQL, false);
-									Logger.getLogger(getClass().getName()).info("Changed version to " + previousVersion + " for " +
-											bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
-								} catch (SQLException e) {}
+						try {
+							String entryId = entityEntry.getId().toString();
+							if (!StringHandler.isNumeric(entryId)) {
+								continue;
 							}
+
+							Long id = Long.valueOf(entityEntry.getId().toString());
+							Object entity = session.get(Class.forName(bpmEntity.getEntityClass()), id);
+							if (entity == null) {
+								continue;
+							}
+
+							Number versionInDB = bpmEntity.getVersionFromDatabase(id);
+							if (versionInDB instanceof Number) {
+								Object previousVersion = entityEntry.getVersion();
+								if (previousVersion instanceof Number && versionInDB.intValue() != ((Number) previousVersion).intValue()) {
+									String updateSQL = bpmEntity.getUpdateQuery(id, ((Number) previousVersion).intValue());
+									try {
+										SimpleQuerier.executeUpdate(updateSQL, false);
+										Logger.getLogger(getClass().getName()).info("Changed version to " + previousVersion + " for " +
+												bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
+									} catch (SQLException e) {}
+								}
+							}
+						} catch (Exception e) {
+							Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error changing version for " + bpmEntity, e);
 						}
-					} catch (Exception e) {
-						Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error changing version for " + bpmEntity, e);
 					}
 				}
 			}
