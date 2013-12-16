@@ -137,7 +137,7 @@ public interface TaskInstanceW {
 
 	public abstract void hide();
 
-	public abstract void addVariable(Variable variable, Object value);
+	public abstract boolean addVariable(Variable variable, Object value);
 
 	public Integer getOrder();
 
