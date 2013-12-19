@@ -165,12 +165,6 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>com.google.common</groupId>
-      <artifactId>google-collect</artifactId>
-      <version>${com.google.common-google-collect-version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
     </dependency>
@@ -190,20 +184,5 @@
         <artifactId>slf4j-log4j12</artifactId>
         <version>1.5.5</version>
       </dependency>
-    <!--  
-    <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils</artifactId>
-      <version>${commons-beanutils-commons-beanutils-version}</version>
-      <type>jar</type>
-    </dependency>
-    -->
-    <!--  
-    <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>jsr250-api</artifactId>
-      <version>${javax.annotation-jsr250-api-version}</version>
-    </dependency>
-    -->
   </dependencies>
 </project>
