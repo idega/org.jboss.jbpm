@@ -983,9 +983,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		}
 
 		return getResultListByInlineQuery(
-				"from " + Token.class.getName() + " t where t.processInstance = :processInstance",
+				"from " + Token.class.getName() + " t where t.processInstance.id = :piId",
 				Token.class,
-				new Param("processInstance", piId)
+				new Param("piId", piId)
 		);
 	}
 }
