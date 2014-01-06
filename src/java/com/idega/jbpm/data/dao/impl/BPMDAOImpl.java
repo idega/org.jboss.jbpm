@@ -20,6 +20,7 @@ import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -918,13 +919,13 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 		StringBuilder query = new StringBuilder();
 		query.append("FROM ").append(ProcessInstance.class.getName()).append(" pi ")
 		.append("WHERE pi.id IN (:processInstanceIDs)");
-		
+
 		return getResultListByInlineQuery(
 				query.toString(),
 				ProcessInstance.class,
 				new Param("processInstanceIDs", processInstanceIds));
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.idega.jbpm.data.dao.BPMDAO#getProcessDefinitions(java.lang.String)
@@ -973,5 +974,18 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 			return allUsers;
 		}
 		return null;
+	}
+
+	@Override
+	public List<Token> getProcessTokens(Long piId) {
+		if (piId == null) {
+			return null;
+		}
+
+		return getResultListByInlineQuery(
+				"from " + Token.class.getName() + " t where t.processInstance = :processInstance",
+				Token.class,
+				new Param("processInstance", piId)
+		);
 	}
 }
