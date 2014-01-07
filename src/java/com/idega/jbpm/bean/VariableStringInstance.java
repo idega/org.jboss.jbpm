@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +52,11 @@ public class VariableStringInstance extends VariableInstanceInfo {
 					Logger.getLogger(getClass().getName()).warning("Shortened CLOB's value to " + maxClobSize + " bytes. It's original size: " +
 							clobLength + " bytes. Variable ID: " + id);
 				} else {
-					variableValue = clob.getSubString(1, Long.valueOf(clobLength).intValue());
+					try {
+						variableValue = clob.getSubString(1, Long.valueOf(clobLength).intValue());
+					} catch (SQLException e) {
+						variableValue = SimpleQuerier.getClobValue("select stringvalue_ from jbpm_variableinstance where id_ = " + id);
+					}
 				}
 			} catch (Exception e) {
 				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error while getting value from CLOB. Variable ID: " + id, e);
