@@ -133,5 +133,7 @@ public interface BPMDAO extends GenericDao {
 
 	public List<User> getUsersConnectedToProcess(Long piId, String procDefName, Map<String, Object> variables);
 
-	List<Token> getProcessTokens(Long piId);
+	public List<Token> getProcessTokens(Long piId);
+
+	public List<Long> getSubProcInstIdsByParentProcInstIdAndProcDefName(Long piId, String procDefName);
 }

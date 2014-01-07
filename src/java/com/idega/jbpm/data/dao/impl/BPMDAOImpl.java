@@ -988,4 +988,15 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO, ApplicationLis
 				new Param("piId", piId)
 		);
 	}
+
+	@Override
+	public List<Long> getSubProcInstIdsByParentProcInstIdAndProcDefName(Long piId, String procDefName) {
+		return getResultListByInlineQuery(
+				"select t.subProcessInstance.id from " + Token.class.getName() + " t where t.processInstance.id = :piId and " +
+						"t.subProcessInstance is not null and t.subProcessInstance.processDefinition.name = :procDefName",
+				Long.class,
+				new Param("piId", piId),
+				new Param("procDefName", procDefName)
+		);
+	}
 }
