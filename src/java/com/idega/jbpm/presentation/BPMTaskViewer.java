@@ -14,10 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessConstants;
+import com.idega.jbpm.exe.ProcessDefinitionW;
 import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.view.View;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
+import com.idega.presentation.Page;
 import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
@@ -59,7 +61,6 @@ public class BPMTaskViewer extends IWBaseComponent {
 
 	@Override
 	public void encodeBegin(FacesContext context) throws IOException {
-
 		super.encodeBegin(context);
 
 		String processName = getProcessName();
@@ -68,59 +69,72 @@ public class BPMTaskViewer extends IWBaseComponent {
 
 		UIComponent viewer = null;
 
-		if (!StringUtil.isEmpty(processName))
+		if (!StringUtil.isEmpty(processName)) {
 			viewer = loadViewerFromProcessName(context, processName);
-		else if (processDefinitionId != null)
+		} else if (processDefinitionId != null) {
 			viewer = loadViewerFromDefinition(context, processDefinitionId);
-		else if (taskInstanceId != null)
+		} else if (taskInstanceId != null) {
 			viewer = loadViewerFromTaskInstance(context, taskInstanceId);
+		}
 
 		Map<String, UIComponent> facets = getFacets();
 
-		if (viewer != null)
-			facets.put(VIEWER_FACET, viewer);
-		else
+		if (viewer == null) {
 			facets.remove(VIEWER_FACET);
+		} else {
+			facets.put(VIEWER_FACET, viewer);
+		}
 	}
 
-	private UIComponent loadViewerFromDefinition(FacesContext context,
-			Long processDefinitionId) {
-
+	private UIComponent loadViewerFromDefinition(FacesContext context, Long processDefinitionId) {
 		final IWContext iwc = IWContext.getIWContext(context);
 		final Integer initiatorId;
 
-		if (iwc.isLoggedOn())
+		if (iwc.isLoggedOn()) {
 			initiatorId = iwc.getCurrentUserId();
-		else
+		} else {
 			initiatorId = null;
+		}
 
-		View initView = getBpmFactory().getProcessManager(processDefinitionId)
-				.getProcessDefinition(processDefinitionId).loadInitView(
-						initiatorId);
+		ProcessDefinitionW procDef = getBpmFactory().getProcessManager(processDefinitionId).getProcessDefinition(processDefinitionId);
+		setPageTitle(procDef.getProcessName(iwc.getCurrentLocale()));
+		View initView = procDef.loadInitView(initiatorId);
 		return initView.getViewForDisplay();
 	}
 
-	private UIComponent loadViewerFromProcessName(FacesContext context,
-			String processName) {
+	private void setPageTitle(String title) {
+		if (StringUtil.isEmpty(title)) {
+			return;
+		}
 
+		Page page = getParentPage();
+		if (page != null) {
+			page.setTitle(title);
+		}
+	}
+
+	private UIComponent loadViewerFromProcessName(FacesContext context, String processName) {
 		final IWContext iwc = IWContext.getIWContext(context);
 		final Integer initiatorId;
 
 		PresentationUtil.addJavaScriptActionToBody(iwc, "var BPMConfiguration = {}; BPMConfiguration.processName = '"+processName+"';");
 
-		if (iwc.isLoggedOn())
+		if (iwc.isLoggedOn()) {
 			initiatorId = iwc.getCurrentUserId();
-		else
+		} else {
 			initiatorId = null;
+		}
 
-		View initView = getBpmFactory().getProcessManager(processName)
-				.getProcessDefinition(processName).loadInitView(initiatorId);
+		ProcessDefinitionW procDef = getBpmFactory().getProcessManager(processName).getProcessDefinition(processName);
+		setPageTitle(procDef.getProcessName(iwc.getCurrentLocale()));
+		View initView = procDef.loadInitView(initiatorId);
 		return initView.getViewForDisplay();
 	}
 
 	private UIComponent loadViewerFromTaskInstance(FacesContext context, Long taskInstanceId) {
 		try {
 			TaskInstanceW tiW = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
+			setPageTitle(tiW.getName(IWContext.getIWContext(context).getCurrentLocale()));
 			View initView = tiW.loadView();
 			initView.setSubmitted(tiW.isSubmitted());
 
@@ -133,33 +147,24 @@ public class BPMTaskViewer extends IWBaseComponent {
 
 	@Override
 	public void encodeChildren(FacesContext context) throws IOException {
-
 		super.encodeChildren(context);
 
 		Map<String, UIComponent> facets = getFacets();
 		UIComponent viewer = facets.get(VIEWER_FACET);
 
-		if (viewer != null)
+		if (viewer != null) {
 			renderChild(context, viewer);
+		}
 	}
 
 	public Long getTaskInstanceId(FacesContext context) {
-
 		Long taskInstanceId = getTaskInstanceId();
-
 		if (taskInstanceId == null) {
-
 			taskInstanceId = getExpressionValue(context, TASK_INSTANCE_PROPERTY);
 
-			if (taskInstanceId == null
-					&& context.getExternalContext().getRequestParameterMap()
-							.containsKey(TASK_INSTANCE_PROPERTY)) {
-
-				String val = context.getExternalContext()
-						.getRequestParameterMap().get(TASK_INSTANCE_PROPERTY);
-
+			if (taskInstanceId == null && context.getExternalContext().getRequestParameterMap().containsKey(TASK_INSTANCE_PROPERTY)) {
+				String val = context.getExternalContext().getRequestParameterMap().get(TASK_INSTANCE_PROPERTY);
 				if (!StringUtil.isEmpty(val)) {
-
 					taskInstanceId = new Long(val);
 				}
 			}
@@ -171,45 +176,33 @@ public class BPMTaskViewer extends IWBaseComponent {
 	}
 
 	public BPMFactory getBpmFactory() {
-
-		if (bpmFactory == null)
+		if (bpmFactory == null) {
 			ELUtil.getInstance().autowire(this);
+		}
 
 		return bpmFactory;
 	}
 
 	public BPMContext getBpmContext() {
-
-		if (bpmContext == null)
+		if (bpmContext == null) {
 			ELUtil.getInstance().autowire(this);
+		}
 
 		return bpmContext;
 	}
 
 	public Long getProcessDefinitionId() {
-
 		return processDefinitionId;
 	}
 
 	public Long getProcessDefinitionId(FacesContext context) {
-
 		Long processDefinitionId = getProcessDefinitionId();
-
 		if (processDefinitionId == null) {
+			processDefinitionId = getExpressionValue(context, PROCESS_DEFINITION_PROPERTY);
 
-			processDefinitionId = getExpressionValue(context,
-					PROCESS_DEFINITION_PROPERTY);
-
-			if (processDefinitionId == null
-					&& context.getExternalContext().getRequestParameterMap()
-							.containsKey(PROCESS_DEFINITION_PROPERTY)) {
-
-				String val = context.getExternalContext()
-						.getRequestParameterMap().get(
-								PROCESS_DEFINITION_PROPERTY);
-
+			if (processDefinitionId == null && context.getExternalContext().getRequestParameterMap().containsKey(PROCESS_DEFINITION_PROPERTY)) {
+				String val = context.getExternalContext().getRequestParameterMap().get(PROCESS_DEFINITION_PROPERTY);
 				if (!StringUtil.isEmpty(val)) {
-
 					processDefinitionId = new Long(val);
 				}
 			}
@@ -221,7 +214,6 @@ public class BPMTaskViewer extends IWBaseComponent {
 	}
 
 	public void setProcessDefinitionId(Long processDefinitionId) {
-
 		this.processDefinitionId = processDefinitionId;
 	}
 
