@@ -394,7 +394,7 @@ public class ProcessArtifacts {
 	public GridEntriesBean getProcessDocumentsList(ProcessArtifactsParamsBean params) {
 		Long processInstanceId = params.getPiId();
 
-		if (processInstanceId == null) {
+		if (processInstanceId == null || processInstanceId < 0) {
 			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 			rows.setTotal(0);
 			rows.setPage(0);
@@ -426,7 +426,7 @@ public class ProcessArtifacts {
 	public Document getProcessTasksList(ProcessArtifactsParamsBean params) {
 		Long processInstanceId = params.getPiId();
 
-		if (processInstanceId == null)
+		if (processInstanceId == null || processInstanceId < 0)
 			return null;
 
 		IWContext iwc = getIWContext(true);
@@ -753,7 +753,7 @@ public class ProcessArtifacts {
 	public Document getProcessEmailsList(ProcessArtifactsParamsBean params) {
 		Long processInstanceId = params.getPiId();
 
-		if (processInstanceId == null)
+		if (processInstanceId == null || processInstanceId < 0)
 			return null;
 
 		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
@@ -792,7 +792,7 @@ public class ProcessArtifacts {
 		}
 
 		Long processInstanceId = params.getPiId();
-		if (processInstanceId == null) {
+		if (processInstanceId == null || processInstanceId < 0) {
 			LOGGER.warning("Failed to get process instance id");
 			return null;
 		}
@@ -1580,7 +1580,7 @@ public class ProcessArtifacts {
 	}
 
 	public List<AdvancedProperty> getAllHandlerUsers(Long processInstanceId) {
-		if (processInstanceId == null) {
+		if (processInstanceId == null || processInstanceId < 0) {
 			return Collections.emptyList();
 		}
 
