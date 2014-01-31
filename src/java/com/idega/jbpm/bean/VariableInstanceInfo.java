@@ -17,7 +17,7 @@ public abstract class VariableInstanceInfo implements Serializable {
 	private VariableInstanceType type;
 
 	private Long id;
-	private Long processInstanceId;
+	private Long processInstanceId, taskInstanceId;
 
 	public VariableInstanceInfo() {
 		super();
@@ -98,6 +98,14 @@ public abstract class VariableInstanceInfo implements Serializable {
 		this.processInstanceId = processInstanceId;
 	}
 
+	public Long getTaskInstanceId() {
+		return taskInstanceId;
+	}
+
+	public void setTaskInstanceId(Long taskInstanceId) {
+		this.taskInstanceId = taskInstanceId;
+	}
+
 	public Long getId() {
 		return id;
 	}
@@ -142,8 +150,8 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Variable " + getName() + ", type " + getType() + ", value: " + getValue() + ", ID: " + getId() + ", process instance ID: " +
-				getProcessInstanceId();
+		return "Variable " + getName() + ", type " + getType() + ", value: " + getValue() + ", ID: " + getId() + ", task instance ID: " +
+				getTaskInstanceId() + ", process instance ID: " + getProcessInstanceId();
 	}
 
 	public static VariableInstanceInfo getDefaultVariable(String name) {
