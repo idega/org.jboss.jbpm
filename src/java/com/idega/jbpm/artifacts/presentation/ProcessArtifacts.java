@@ -785,7 +785,6 @@ public class ProcessArtifacts {
 		return new ArrayList<User>(usersConnectedToProcess);
 	}
 
-	@SuppressWarnings("unchecked")
 	public Document getProcessContactsList(ProcessArtifactsParamsBean params) {
 		if (params == null) {
 			return null;
