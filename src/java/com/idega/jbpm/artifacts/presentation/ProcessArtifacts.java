@@ -444,7 +444,8 @@ public class ProcessArtifacts {
 		try {
 			tasksDocuments = loggedInUser == null ?
 				null :
-				getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getTaskDocumentsForUser(loggedInUser, userLocale, params.isNameFromExternalEntity());
+				getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId)
+					.getTaskDocumentsForUser(loggedInUser, userLocale, params.isNameFromExternalEntity());
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +	userLocale, e);
 		}
@@ -759,8 +760,10 @@ public class ProcessArtifacts {
 		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
 
 		Collection<BPMEmailDocument> processEmails = null;
-		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("load_bpm_emails", Boolean.TRUE))
-			processEmails = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getAttachedEmails(loggedInUser);
+		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("load_bpm_emails", Boolean.TRUE)) {
+			ProcessInstanceW piW = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
+			processEmails = piW.getAttachedEmails(loggedInUser);
+		}
 
 		if (ListUtil.isEmpty(processEmails)) {
 			try {

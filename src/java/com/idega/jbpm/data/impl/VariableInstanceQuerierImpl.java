@@ -2201,9 +2201,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		if (ListUtil.isEmpty(names) || tiId == null)
 			return null;
 
-		String query = getQuery(getFullColumns(), getFromClause(true, false),
+		String query = getQuery(
+				"select ",
+				getFullColumns(),
+				getFromClause(true, false),
 				" where var.taskinstance_ = ",
-				String.valueOf(tiId), " and ", getQueryParameters("var.name_", names, Boolean.TRUE));
+				String.valueOf(tiId),
+				" and ",
+				getQueryParameters("var.name_", names, Boolean.TRUE)
+		);
 		List<Serializable[]> results = null;
 		try {
 			results = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
