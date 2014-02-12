@@ -21,6 +21,7 @@ import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -945,4 +946,27 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return null;
 	}
 
+	@Override
+	public List<Token> getProcessTokens(Long piId) {
+		if (piId == null) {
+			return null;
+		}
+
+		return getResultListByInlineQuery(
+				"from " + Token.class.getName() + " t where t.processInstance.id = :piId",
+				Token.class,
+				new Param("piId", piId)
+		);
+	}
+
+	@Override
+	public List<Long> getSubProcInstIdsByParentProcInstIdAndProcDefName(Long piId, String procDefName) {
+		return getResultListByInlineQuery(
+				"select t.subProcessInstance.id from " + Token.class.getName() + " t where t.processInstance.id = :piId and " +
+						"t.subProcessInstance is not null and t.subProcessInstance.processDefinition.name = :procDefName",
+				Long.class,
+				new Param("piId", piId),
+				new Param("procDefName", procDefName)
+		);
+	}
 }

@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.core.persistence.GenericDao;
@@ -137,4 +138,8 @@ public interface BPMDAO extends GenericDao {
 	public List<ProcessInstance> getProcessInstancesByIDs(Collection<Long> processInstanceIds);
 
 	public List<User> getUsersConnectedToProcess(Long piId, String procDefName, Map<String, Object> variables);
+
+	public List<Token> getProcessTokens(Long piId);
+
+	public List<Long> getSubProcInstIdsByParentProcInstIdAndProcDefName(Long piId, String procDefName);
 }

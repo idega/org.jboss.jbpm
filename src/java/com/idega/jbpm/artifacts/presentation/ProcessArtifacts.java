@@ -39,6 +39,8 @@ import com.idega.business.IBORuntimeException;
 import com.idega.core.accesscontrol.business.NotLoggedOnException;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
+import com.idega.core.business.GeneralCompanyBusiness;
+import com.idega.core.company.bean.GeneralCompany;
 import com.idega.core.contact.data.Email;
 import com.idega.core.contact.data.Phone;
 import com.idega.idegaweb.IWApplicationContext;
@@ -96,6 +98,7 @@ import com.idega.util.SendMail;
 import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * TODO: access control checks shouldn't be done here at all - remake!
@@ -113,25 +116,48 @@ public class ProcessArtifacts {
 
 	@Autowired
 	private BPMFactory bpmFactory;
+
 	@Autowired
 	private BPMContext idegaJbpmContext;
+
 	@Autowired
 	private VariablesHandler variablesHandler;
+
 	@Autowired
 	private PermissionsFactory permissionsFactory;
+
 	@Autowired
 	private BuilderLogicWrapper builderLogicWrapper;
+
 	@Autowired(required = false)
 	private SigningHandler signingHandler;
+
 	@Autowired(required = false)
 	private VariableInstanceQuerier variablesQuerier;
+
+	@Autowired(required = false)
+	private GeneralCompanyBusiness generalCompanyBusiness;
 
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
 
-	private GridEntriesBean getDocumentsListDocument(IWContext iwc, Collection<BPMDocument> processDocuments, Long processInstanceId,
-			ProcessArtifactsParamsBean params) {
+	private GeneralCompanyBusiness getGeneralCompanyBusiness() {
+		if (generalCompanyBusiness == null) {
+			try {
+				generalCompanyBusiness = ELUtil.getInstance().getBean(GeneralCompanyBusiness.BEAN_NAME);
+			} catch (Exception e) {
+				LOGGER.warning("There is no implementation for " + GeneralCompanyBusiness.class.getName());
+			}
+		}
+		return generalCompanyBusiness;
+	}
 
+	private GridEntriesBean getDocumentsListDocument(
+			IWContext iwc,
+			Collection<BPMDocument> processDocuments,
+			Long processInstanceId,
+			ProcessArtifactsParamsBean params
+	) {
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
 		int size = processDocuments.size();
@@ -371,7 +397,7 @@ public class ProcessArtifacts {
 	public GridEntriesBean getProcessDocumentsList(ProcessArtifactsParamsBean params) {
 		Long processInstanceId = params.getPiId();
 
-		if (processInstanceId == null) {
+		if (processInstanceId == null || processInstanceId < 0) {
 			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 			rows.setTotal(0);
 			rows.setPage(0);
@@ -403,7 +429,7 @@ public class ProcessArtifacts {
 	public Document getProcessTasksList(ProcessArtifactsParamsBean params) {
 		Long processInstanceId = params.getPiId();
 
-		if (processInstanceId == null)
+		if (processInstanceId == null || processInstanceId < 0)
 			return null;
 
 		IWContext iwc = getIWContext(true);
@@ -643,8 +669,15 @@ public class ProcessArtifacts {
 						row.addCell(CoreConstants.EMPTY);
 					}
 				}
+				
 				if (params.isRightsChanger()) {
 					addRightsChangerCell(row, params.getPiId(), taskInstanceId, binaryVariable.getHash(), null, false);
+				}
+				
+				if (params.isShowAttachmentStatistics()) {
+					row.addCell(new StringBuilder("<a href=\"javascript:void(0);\" attachment-link=\"")
+						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId,params.isShowUserCompany(), params.isShowLastLoginDate())).append("\" title=\"")
+						.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
 				}
 			}
 
@@ -665,7 +698,8 @@ public class ProcessArtifacts {
 		}
 	}
 
-	private String getAttachmentInfoWindowLink(IWApplicationContext iwac, BinaryVariable binaryVariable, String caseId, Long taskInstanceId) {
+	private String getAttachmentInfoWindowLink(IWApplicationContext iwac, BinaryVariable binaryVariable,
+			String caseId,Long taskInstanceId,boolean showCompany,boolean showLastLoginDate) {
 		String hash = String.valueOf(binaryVariable.getHash());
 
 		//	TODO: remove hard-coding!
@@ -673,7 +707,9 @@ public class ProcessArtifacts {
 				new AdvancedProperty(FileDownloadStatisticsViewer.PARAMETER_FILE_HASH, hash),
 				new AdvancedProperty(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash),
 				new AdvancedProperty(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, taskInstanceId.toString()),
-				new AdvancedProperty("caseId", StringUtil.isEmpty(caseId) ? "-1" : caseId)
+				new AdvancedProperty("caseId", StringUtil.isEmpty(caseId) ? "-1" : caseId),
+				new AdvancedProperty(FileDownloadStatisticsViewer.SHOW_COMPANY, showCompany ? "y" : "n"),
+				new AdvancedProperty(FileDownloadStatisticsViewer.SHOW_LAST_LOGIN_DATE, showLastLoginDate ? "y" : "n")
 		));
 		return uri;
 	}
@@ -718,14 +754,16 @@ public class ProcessArtifacts {
 	public Document getProcessEmailsList(ProcessArtifactsParamsBean params) {
 		Long processInstanceId = params.getPiId();
 
-		if (processInstanceId == null)
+		if (processInstanceId == null || processInstanceId < 0)
 			return null;
 
 		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
 
 		Collection<BPMEmailDocument> processEmails = null;
-		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("load_bpm_emails", Boolean.TRUE))
-			processEmails = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getAttachedEmails(loggedInUser);
+		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("load_bpm_emails", Boolean.TRUE)) {
+			ProcessInstanceW piW = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
+			processEmails = piW.getAttachedEmails(loggedInUser);
+		}
 
 		if (ListUtil.isEmpty(processEmails)) {
 			try {
@@ -756,7 +794,7 @@ public class ProcessArtifacts {
 		}
 
 		Long processInstanceId = params.getPiId();
-		if (processInstanceId == null) {
+		if (processInstanceId == null || processInstanceId < 0) {
 			LOGGER.warning("Failed to get process instance id");
 			return null;
 		}
@@ -813,11 +851,25 @@ public class ProcessArtifacts {
 
 		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication()
 		        .getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+
+		boolean showUserCompany = params.isShowUserCompany();
 		for (User user : uniqueUsers) {
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 
 			row.addCell(user.getName());
+
+			if(showUserCompany && getGeneralCompanyBusiness() != null){
+				Collection<GeneralCompany> companies = getGeneralCompanyBusiness().getCompaniesForUser(user);
+				String companyName;
+				if(!ListUtil.isEmpty(companies)){
+					GeneralCompany company = companies.iterator().next();
+					companyName = company.getName();
+				}else{
+					companyName = "-";
+				}
+				row.addCell(companyName);
+			}
 			row.addCell(getUserEmails(user.getEmails(), processIdentifier,
 			    systemEmail));
 			row.addCell(new StringBuilder(getUserPhones(user.getPhones()))
@@ -1524,7 +1576,7 @@ public class ProcessArtifacts {
 	}
 
 	public List<AdvancedProperty> getAllHandlerUsers(Long processInstanceId) {
-		if (processInstanceId == null) {
+		if (processInstanceId == null || processInstanceId < 0) {
 			return Collections.emptyList();
 		}
 

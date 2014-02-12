@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -134,8 +135,7 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 					getBpmContext().execute(new JbpmCallback<Void>() {
 
 						@Override
-						public Void doInJbpm(JbpmContext context)
-						        throws JbpmException {
+						public Void doInJbpm(JbpmContext context) throws JbpmException {
 
 							// TODO: this is probably not a valid execution context - i.e. it needs
 							// to be merged in the transaction
@@ -308,29 +308,36 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 		}
 	}
 
-	private Object getPropertyValue(ExecutionContext ectx,
-	        String propertyValueExp) {
-
+	private Object getPropertyValue(ExecutionContext ectx, String propertyValueExp) {
 		final Object propertyValue;
 
 		if (propertyValueExp.startsWith("#{") && propertyValueExp.endsWith("}")) {
+			propertyValue = JbpmExpressionEvaluator.evaluate(propertyValueExp, ectx);
 
-			propertyValue = JbpmExpressionEvaluator.evaluate(propertyValueExp,
-			    ectx);
-
-		} else if (propertyValueExp.startsWith("${")
-		        && propertyValueExp.endsWith("}")) {
-
-			String script = propertyValueExp.substring(2, propertyValueExp
-			        .length() - 1);
+		} else if (propertyValueExp.startsWith("${") && propertyValueExp.endsWith("}")) {
+			String script = propertyValueExp.substring(2, propertyValueExp.length() - 1);
 
 			try {
+				int jbpmExpressionStart = script.indexOf("#{");
+				if (jbpmExpressionStart != -1) {
+					String[] expressions = script.split("\\#\\{");
+					for (int i = 0;i < expressions.length;i++) {
+						String expression = expressions[i];
+						int endIndex = expression.indexOf("}");
+						if (((i == 0) && (jbpmExpressionStart != 0)) || (endIndex < 0)) {
+							continue;
+						}
+						String variable = "#{" + expression.substring(0,endIndex+1);
+
+						String regex = Pattern.quote(variable);
+						script = script.replaceAll(regex, JbpmExpressionEvaluator.evaluate(variable,ectx).toString());
+					}
+				}
 				propertyValue = getScriptEvaluator().evaluate(script, ectx);
 
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-
 		} else {
 			propertyValue = propertyValueExp;
 		}
@@ -338,26 +345,17 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 		return propertyValue;
 	}
 
-	private Map<String, Object> injectProperties(Object handler,
-	        ExecutionContext ectx) {
-
+	private Map<String, Object> injectProperties(Object handler, ExecutionContext ectx) {
 		Map<String, Object> nonExistingProperties = null;
-
 		if (getPropertyMap() != null) {
-
-			BeanWrapper wrapper = PropertyAccessorFactory
-			        .forBeanPropertyAccess(handler);
-
-			for (Entry<String, String> property : getPropertyMap().entrySet()) {
-
+			BeanWrapper wrapper = PropertyAccessorFactory.forBeanPropertyAccess(handler);
+			for (Entry<String, String> property: getPropertyMap().entrySet()) {
 				final String propertyName = property.getKey();
 				final String propertyValueExp = property.getValue();
-				final Object propertyValue = getPropertyValue(ectx,
-				    propertyValueExp);
+				final Object propertyValue = getPropertyValue(ectx, propertyValueExp);
 
 				try {
 					wrapper.setPropertyValue(propertyName, propertyValue);
-
 				} catch (NotWritablePropertyException e) {
 					// if property doesn't exist:
 					if (nonExistingProperties == null) {

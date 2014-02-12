@@ -157,12 +157,6 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>com.google.common</groupId>
-      <artifactId>google-collect</artifactId>
-      <version>${com.google.common-google-collect-version}</version>
-      <type>jar</type>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
     </dependency>
@@ -187,7 +181,6 @@
       <artifactId>commons-xmlio</artifactId>
       <version>0.1pre</version>
     </dependency>
-    
     <dependency>
     	<groupId>org.apache.lucene</groupId>
         <artifactId>lucene-core</artifactId>

@@ -105,12 +105,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 								CONDITION = NAME_CONDITION + " and" + CLASS_CONDITION,
 								VAR_DEFAULT_CONDITION = " and" + CONDITION,
 								OTHER_VALUES = " var.LONGVALUE_ as lv, var.DOUBLEVALUE_ as dov, var.DATEVALUE_ as dav, var.BYTEARRAYVALUE_ as bv," +
-										" var.PROCESSINSTANCE_ as piid",
+										" var.TASKINSTANCE_ as tiid, var.PROCESSINSTANCE_ as piid",
 								MIRRROW_TABLE_ALIAS = "mirrow",
 								PROC_INST_IDS_EXPRESSION = ":processInstanceIdsExpression";
 
 	private static final int COLUMNS = 3,
-							FULL_COLUMNS = COLUMNS + 6;
+							FULL_COLUMNS = COLUMNS + 7;
 
 	private static final Random ID_GENERATOR = new Random();
 
@@ -771,10 +771,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		if (StringUtil.isEmpty(name))
 			return Collections.emptyMap();
 
-		int columns = COLUMNS + 2;
+		int columns = COLUMNS + 3;
 		boolean byProcInst = !ListUtil.isEmpty(procInstIds);
 		//	Getting all binary variables
-		String query = getQuery(getSelectPart(STANDARD_COLUMNS), ", b.BYTES_, var.PROCESSINSTANCE_ ", getFromClause(true, false),
+		String query = getQuery(getSelectPart(STANDARD_COLUMNS), ", b.BYTES_, var.taskinstance_, var.PROCESSINSTANCE_ ", getFromClause(true, false),
 				", JBPM_BYTEBLOCK b",
 					byProcInst ?
 						CoreConstants.EMPTY :
@@ -1542,9 +1542,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		Map<Number, VariableInstanceInfo> variables = new HashMap<Number, VariableInstanceInfo>();
 		Map<Number, VariableByteArrayInstance> variablesToConvert = new HashMap<Number, VariableByteArrayInstance>();
 		for (Serializable[] dataSet: data) {
+			if (ArrayUtil.isEmpty(dataSet)) {
+				continue;
+			}
+
 			int numberOfColumns = dataSet.length;
 
-			int startValues = 0;
 			Number id = null;
 			String name = null;
 			try {
@@ -1568,12 +1571,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				String type = (String) dataSet[startValues];
 
 				if (id == null || name == null || type == null) {
-					LOGGER.warning("Unable to create variable from initial values (" + dataSet + "): ID: " + id	+ ", name: " + name	+ ", class: " + type);
+					LOGGER.warning("Unable to create variable from initial values (" + dataSet + "): ID: " + id	+ ", name: " + name	+ ", class: " +
+							type);
 					continue;
 				}
 
 				Serializable value = null;
-				Long piId = null;
+				Long piId = null, tiId = null;
 				String caseId = null;
 				if (numberOfColumns > COLUMNS) {
 					int index = COLUMNS;
@@ -1585,24 +1589,34 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 					//	Resolving process instance ID
 					int piIdIndex = 0;
-					if (numberOfColumns == FULL_COLUMNS)
+					if (numberOfColumns == FULL_COLUMNS) {
 						piIdIndex = numberOfColumns - 1;
-					else if (numberOfColumns == FULL_COLUMNS + 1)
+					} else if (numberOfColumns == FULL_COLUMNS + 1) {
 						piIdIndex = numberOfColumns - 2;
-					else
+					} else {
 						piIdIndex = dataSet.length - 1;
+					}
 					if (piIdIndex >= index && piIdIndex < dataSet.length) {
 						Serializable temp = dataSet[piIdIndex];
 						if (temp instanceof Number) {
 							piId = Long.valueOf(((Number) temp).longValue());
+						}
+
+						int tiIdIndex = piIdIndex - 1;
+						if (tiIdIndex >= index && tiIdIndex < dataSet.length) {
+							Serializable tempTiId = dataSet[tiIdIndex];
+							if (tempTiId instanceof Number) {
+								tiId = Long.valueOf(((Number) tempTiId).longValue());
+							}
 						}
 					}
 
 					//	Resolving case
 					if (numberOfColumns > FULL_COLUMNS) {
 						Serializable tmp = dataSet[dataSet.length - 1];
-						if (tmp instanceof Number)
+						if (tmp instanceof Number) {
 							caseId = String.valueOf(((Number) tmp).longValue());
+						}
 					}
 				}
 
@@ -1614,6 +1628,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					} else {
 						variable.setId(id.longValue());
 						variable.setProcessInstanceId(piId);
+						variable.setTaskInstanceId(tiId);
 						if (caseId != null)
 							variable.setCaseId(caseId);
 						variables.put(id, variable);
@@ -1793,7 +1808,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	private String getSubstring(String column) {
 		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("substring_jbpm_vars", Boolean.FALSE))
-			return "substr(".concat(column).concat(", 1, 255)");
+			return "substr(".concat(column).concat(", 1, " + getMaxStringValueLength("1048576") + ")");	//	1 MB
 		return column;
 	}
 
@@ -1891,6 +1906,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
+	private String getMaxStringValueLength() {
+		return getMaxStringValueLength("255");
+	}
+	private String getMaxStringValueLength(String defaultLength) {
+		return IWMainApplication.getDefaultIWMainApplication().getSettings().getProperty("max_string_var_length", defaultLength);
+	}
+
 	@Override
 	public Collection<VariableInstanceInfo> getVariablesByNames(List<String> names) {
 		if (ListUtil.isEmpty(names)) {
@@ -1907,9 +1929,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			query = getQuery(getSelectPart(getFullColumns()), getFromClause(), " where", getQueryParameters("var.NAME_", names, true),
 					VAR_DEFAULT_CONDITION,
 					getMirrowTableCondition());
-			String maxLength = IWMainApplication.getDefaultIWMainApplication().getSettings().getProperty("max_string_var_length");
-			if (!StringUtil.isEmpty(maxLength))
+
+			String maxLength = getMaxStringValueLength();
+			if (!StringUtil.isEmpty(maxLength)) {
 				query = StringHandler.replace(query, "var.stringvalue_ as sv", "substr(var.stringvalue_, 1, " + maxLength + ") as sv");
+			}
+
 			data = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variables by names: " + names, e);
@@ -1987,10 +2012,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return getVariablesCollectionByLucene(existingVars, processInstanceIds);
 		}
 
-		int columns = COLUMNS + 2;
+		int columns = COLUMNS + 3;
 		List<Serializable[]> data = null;
-		String query = getQuery("select ", STANDARD_COLUMNS, ", ", getSubstring("var.STRINGVALUE_"), " as sv, var.PROCESSINSTANCE_ ", FROM,
-				" where ",
+		String query = getQuery("select ", STANDARD_COLUMNS, ", ", getSubstring("var.STRINGVALUE_"), " as sv, var.taskinstance_, var.PROCESSINSTANCE_ ",
+				FROM, " where ",
 		    getQueryParameters("var.PROCESSINSTANCE_", processInstanceIds, false), " and ", NAME_CONDITION + " and ",
 		    getQueryParameters("var.CLASS_", VariableInstanceType.STRING.getTypeKeys(), true));
 		if (!ListUtil.isEmpty(existingVars)) {
@@ -2250,10 +2275,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		String query = getQuery(getSelectPart(STANDARD_COLUMNS), CoreConstants.COMMA, OTHER_VALUES, getFromClause(true, false),
 				" where var.taskinstance_ = ",
-				String.valueOf(tiId), " and ", getQueryParameters("var.name_", names, Boolean.TRUE));
+				String.valueOf(tiId),
+				" and ",
+				getQueryParameters("var.name_", names, Boolean.TRUE)
+		);
 		List<Serializable[]> results = null;
 		try {
-			results = SimpleQuerier.executeQuery(query, 8);
+			results = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
 		}

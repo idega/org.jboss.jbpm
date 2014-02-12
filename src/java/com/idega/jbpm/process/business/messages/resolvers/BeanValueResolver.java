@@ -3,9 +3,6 @@ package com.idega.jbpm.process.business.messages.resolvers;
 import java.util.logging.Level;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.jbpm.JbpmContext;
-import org.jbpm.JbpmException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -77,14 +74,19 @@ public class BeanValueResolver extends DefaultSpringBean implements MessageValue
 		}
 
 		Object mvVal = mvCtx.getValue(beanType, beanName);
-		if (beanOnly)
+		if (mvVal == null) {
+			getLogger().warning("There is no value for " + beanName);
+			return null;
+		}
+
+		if (beanOnly) {
 			return mvVal.toString();
-		else {
+		} else {
 			try {
 				String val = getValue(mvVal, key);
 				return val;
 			} catch (Exception e) {
-				getLogger().log(Level.SEVERE, "Exception while resolving property from object: "+mvVal+", property: "+key, e);
+				getLogger().log(Level.WARNING, "Exception while resolving property from object: " + mvVal + ", property: " + key, e);
 			}
 		}
 
