@@ -84,7 +84,7 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 			ELUtil.getInstance().autowire(this);
 		return bpmContext;
 	}
-	
+
 	// TODO: just return handleResult object here with status, and message, let
 	// identityAuthorizationService throw exceptions or so
 	@Override
@@ -111,10 +111,10 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 					result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
 				else if (PermissionsFactoryImpl.viewTaskInstancePermType.equals(permission.getType())) {
 					final TaskInstance taskInstance = permission.getAttribute(taskInstanceAtt);
-				
+
 					List<Object[]> permissionsForEveryone = getBpmContext()
 							.execute(new JbpmCallback() {
-						
+
 								@Override
 								public List<Object[]> doInJbpm(JbpmContext context) throws JbpmException {
 									try {
@@ -128,7 +128,7 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 									return null;
 								}
 					});
-					
+
 					if (ListUtil.isEmpty(permissionsForEveryone))
 						result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
 					else {
@@ -260,14 +260,14 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 	        String variableIdentifier) {
 
 		final Long taskInstanceId = taskInstance.getId();
-		
+
 		taskInstance = getBpmContext().execute(new JbpmCallback() {
 			@Override
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
 				return context.getTaskInstance(taskInstanceId);
 			}
 		});
-		
+
 		Long taskId = taskInstance.getTask().getId();
 //		Long taskInstanceId = taskInstance.getId();
 
@@ -293,8 +293,7 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 		boolean checkWriteAccess = accesses.contains(Access.write);
 		boolean checkReadAccess = accesses.contains(Access.read);
 
-		Map<String, Boolean[]> accessesForRoles = new HashMap<String, Boolean[]>(
-		        10);
+		Map<String, Boolean[]> accessesForRoles = new HashMap<String, Boolean[]>(10);
 
 		for (ActorPermissions perm : userPermissions) {
 
@@ -377,11 +376,7 @@ public class TaskAccessPermissionsHandler implements BPMTypedHandler {
 		}
 
 		PermissionHandleResult result = null;
-
-		Iterator<Boolean[]> accessesForRolesIterator = accessesForRoles
-		        .values().iterator();
-
-		while (accessesForRolesIterator.hasNext() && result == null) {
+		for (Iterator<Boolean[]> accessesForRolesIterator = accessesForRoles.values().iterator(); (accessesForRolesIterator.hasNext() && result == null);) {
 			Boolean[] accMtrx = accessesForRolesIterator.next();
 
 			Boolean hasTaskInstanceScopeANDVarAccess = accMtrx[TI_VAR];
