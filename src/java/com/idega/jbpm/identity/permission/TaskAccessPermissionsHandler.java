@@ -83,6 +83,12 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 		        PermissionsFactoryImpl.viewTaskInstanceVariablePermType };
 	}
 
+	private BPMContext getBpmContext() {
+		if (bpmContext == null)
+			ELUtil.getInstance().autowire(this);
+		return bpmContext;
+	}
+
 	// TODO: just return handleResult object here with status, and message, let
 	// identityAuthorizationService throw exceptions or so
 	@Override

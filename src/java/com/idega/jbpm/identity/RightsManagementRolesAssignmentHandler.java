@@ -34,10 +34,11 @@ public class RightsManagementRolesAssignmentHandler implements ActionHandler {
 
 	@Override
 	public void execute(ExecutionContext ctx) throws Exception {
-		if (StringUtil.isEmpty(getAssignmentExpression()))
+		String expression = getAssignmentExpression();
+		if (StringUtil.isEmpty(expression))
 			return;
 
-		TaskAssignment ta = JSONExpHandler.resolveRightsRolesFromJSONExpression(getAssignmentExpression());
+		TaskAssignment ta = JSONExpHandler.resolveRightsRolesFromJSONExpression(expression, ctx);
 		List<Role> roles = ta.getRoles();
 		if (ListUtil.isEmpty(roles))
 			return;

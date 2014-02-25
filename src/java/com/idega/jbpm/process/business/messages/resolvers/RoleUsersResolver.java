@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import org.jbpm.graph.exe.Token;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -24,30 +25,31 @@ import com.idega.user.data.User;
  *
  * Last modified: $Date: 2008/08/08 16:16:42 $ by $Author: civilis $
  */
-@Scope("singleton")
 @Service
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class RoleUsersResolver implements MessageValueResolver {
-	
+
 	private static final String beanType = "roleUsers";
 	@Autowired
 	private BPMFactory bpmFactory;
-	
+
+	@Override
 	public String getResolverType() {
 		return beanType;
 	}
 
+	@Override
 	public String getValue(String key, MessageValueContext mvCtx) {
-		
-		Role role = JSONExpHandler.resolveRoleFromJSONExpression(key);
+		Role role = JSONExpHandler.resolveRoleFromJSONExpression(key, null);
 		Token token = mvCtx.getValue(MessageValueContext.tokenBean);
-		
+
 		Collection<User> users = getBpmFactory().getRolesManager().getAllUsersForRoles(Arrays.asList(new String[] {role.getRoleName()}), token.getProcessInstance().getId());
-		
+
 		if(users != null && !users.isEmpty())
 			return users.iterator().next().getName();
 		else
 			Logger.getLogger(getClass().getName()).log(Level.WARNING, "No user found for role="+role.getRoleName());
-		
+
 		return null;
 	}
 

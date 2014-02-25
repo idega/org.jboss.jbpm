@@ -8,6 +8,7 @@ import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -23,38 +24,39 @@ import com.idega.jbpm.identity.RolesManager;
  * @version $Revision: 1.5 $ Last modified: $Date: 2009/02/23 12:36:38 $ by $Author: civilis $
  */
 @Service("assignUserToRoleHandler")
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class AssignUserToRoleHandler implements ActionHandler {
-	
+
 	private static final long serialVersionUID = 2953390756074619221L;
-	
+
 	@Autowired
 	private BPMFactory bpmFactory;
-	
+
 	private Integer userId;
 	private String roleExpression;
 	private Long processInstanceId;
-	
+
+	@Override
 	public void execute(ExecutionContext ectx) throws Exception {
-		
+
 		if (getUserId() != null && getProcessInstanceId() != null
 		        && getRoleExpression() != null) {
-			
+
 			Integer userId = getUserId();
-			
+
 			Long pid = getProcessInstanceId();
 			ProcessInstance pi = ectx.getJbpmContext().getProcessInstance(pid);
-			
+
 			String roleExpression = getRoleExpression();
-			
+
 			Role role = JSONExpHandler
-			        .resolveRoleFromJSONExpression(roleExpression);
-			
+			        .resolveRoleFromJSONExpression(roleExpression, ectx);
+
 			ArrayList<Role> rolz = new ArrayList<Role>(1);
 			rolz.add(role);
-			
+
 			RolesManager rolesManager = getBpmFactory().getRolesManager();
-			
+
 			rolesManager.createProcessActors(rolz, pi);
 			rolesManager.createIdentitiesForRoles(rolz, new Identity(userId
 			        .toString(), IdentityType.USER), pi.getId());
@@ -73,35 +75,35 @@ public class AssignUserToRoleHandler implements ActionHandler {
 			                    + ectx.getProcessInstance().getId());
 		}
 	}
-	
+
 	public Integer getUserId() {
 		return userId;
 	}
-	
+
 	public void setUserId(Integer userId) {
 		this.userId = userId;
 	}
-	
+
 	public String getRoleExpression() {
 		return roleExpression;
 	}
-	
+
 	public void setRoleExpression(String roleExpression) {
 		this.roleExpression = roleExpression;
 	}
-	
+
 	public Long getProcessInstanceId() {
 		return processInstanceId;
 	}
-	
+
 	public void setProcessInstanceId(Long processInstanceId) {
 		this.processInstanceId = processInstanceId;
 	}
-	
+
 	public BPMFactory getBpmFactory() {
 		return bpmFactory;
 	}
-	
+
 	public void setBpmFactory(BPMFactory bpmFactory) {
 		this.bpmFactory = bpmFactory;
 	}

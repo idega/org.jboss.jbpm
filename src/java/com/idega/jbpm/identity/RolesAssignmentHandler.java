@@ -41,7 +41,7 @@ public class RolesAssignmentHandler implements ActionHandler {
 		if (StringUtil.isEmpty(getAssignmentExpression()))
 			return;
 
-		RolesAssignment rolesAssignment = JSONExpHandler.resolveRolesAssignment(getAssignmentExpression());
+		RolesAssignment rolesAssignment = JSONExpHandler.resolveRolesAssignment(getAssignmentExpression(), ctx);
 		List<Role> roles = rolesAssignment.getRoles();
 		if (ListUtil.isEmpty(roles))
 			return;

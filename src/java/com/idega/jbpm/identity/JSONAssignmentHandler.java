@@ -12,6 +12,7 @@ import org.jbpm.identity.assignment.ExpressionAssignmentHandler;
 import org.jbpm.taskmgmt.exe.Assignable;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +44,7 @@ import com.idega.util.StringUtil;
  *          Last modified: $Date: 2009/03/19 15:41:24 $ by $Author: juozas $
  */
 @Service("jsonAssignmentHandler")
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 
 	private static final String ASSIGN_IDENTITY_CURRENT_USER = "current_user";
@@ -72,7 +73,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		ProcessManager pm = getBpmFactory().getProcessManagerByProcessInstanceId(piId);
 		TaskInstanceW tiw = pm.getTaskInstance(taskInstance.getId());
 
-		TaskAssignment ta = JSONExpHandler.resolveRolesFromJSONExpression(exp);
+		TaskAssignment ta = JSONExpHandler.resolveRolesFromJSONExpression(exp, executionContext);
 		List<Role> roles = ta.getRoles();
 		if (ListUtil.isEmpty(roles)) {
 			Logger.getLogger(getClass().getName()).warning("No roles for task instance: " + taskInstance.getId());
@@ -145,6 +146,12 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	}
 
 	public String getExpression() {
+		if (expression == null) {
+			return null;
+		}
+
+		expression = JSONExpHandler.getResolvedExpression(expression, executionContext);
+
 		return expression;
 	}
 

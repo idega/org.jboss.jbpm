@@ -6,6 +6,7 @@ import java.security.Permission;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.node.DecisionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +17,14 @@ import com.idega.jbpm.identity.Role;
 /**
  * Jbpm action handler, checks if <b>current</b> user belongs to process role
  * provided. Output is boolean string expression (true/false)
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.6 $
- * 
+ *
  *          Last modified: $Date: 2008/11/30 08:17:52 $ by $Author: civilis $
  */
 @Service("belongsToRoleDecisionHandler")
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class BelongsToRoleDecisionHandler implements DecisionHandler {
 
 	private static final long serialVersionUID = -5509068763021941599L;
@@ -36,11 +37,12 @@ public class BelongsToRoleDecisionHandler implements DecisionHandler {
 	private static final String booleanTrue = "true";
 	private static final String booleanFalse = "false";
 
+	@Override
 	public String decide(ExecutionContext ectx) throws Exception {
 
 		final String roleExpression = getRoleExpression();
 		Role role = JSONExpHandler
-				.resolveRoleFromJSONExpression(roleExpression);
+				.resolveRoleFromJSONExpression(roleExpression, ectx);
 
 		final Long processInstanceId = getProcessInstanceId();
 
