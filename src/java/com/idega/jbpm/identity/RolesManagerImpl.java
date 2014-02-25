@@ -1039,7 +1039,6 @@ public class RolesManagerImpl implements RolesManager {
 		// TODO: check permissions if rights can be changed
 		final String roleName = role.getRoleName();
 
-<<<<<<< HEAD
 		if (roleName != null && taskInstanceId != null && roleName.length() != 0) {
 
 			List<Actor> actorsToSetPermissionsTo = getBpmContext().execute(new JbpmCallback<List<Actor>>() {
@@ -1064,42 +1063,6 @@ public class RolesManagerImpl implements RolesManager {
 					return actorsToSetPermissionsTo;
 				}
 			});
-=======
-		if (roleName != null && taskInstanceId != null
-		        && roleName.length() != 0) {
-
-			List<Actor> actorsToSetPermissionsTo = getBpmContext().execute(
-			    new JbpmCallback() {
-
-				    @Override
-					public Object doInJbpm(JbpmContext context)
-				            throws JbpmException {
-
-					    TaskInstance ti = context
-					            .getTaskInstance(taskInstanceId);
-					    long processInstanceIdFromTaskInstance = ti
-					            .getProcessInstance().getId();
-
-					    ProcessInstance mainprocessInstance = getBpmFactory()
-					            .getMainProcessInstance(
-					                processInstanceIdFromTaskInstance);
-					    Long mainProcessInstanceId = mainprocessInstance
-					            .getId();
-
-					    /*
-					     * if(mainprocessInstance != null) {
-					     * mainProcessInstanceId =
-					     * mainprocessInstance.getId(); } else { //
-					     * backwards compat mainProcessInstanceId =
-					     * processInstanceIdFromTaskInstance; }
-					     */
-
-					    final List<Actor> actorsToSetPermissionsTo = getPermissionsByProcessInstanceId(
-					        mainProcessInstanceId, roleName);
-					    return actorsToSetPermissionsTo;
-				    }
-			    });
->>>>>>> f64013899dcbf66d07ee4966cd2ad19d58ee4d33
 
 			/*
 			 * if(!ListUtil.isEmpty(actorsToSetPermissionsTo) &&
@@ -1152,24 +1115,11 @@ public class RolesManagerImpl implements RolesManager {
 		final Actor actor;
 
 		if ((actors == null || actors.isEmpty()) && !setDefault) {
-<<<<<<< HEAD
 			// creating new actor for the user
 			String processName = getBpmContext().execute(new JbpmCallback<String>() {
 				@Override
 				public String doInJbpm(JbpmContext context) throws JbpmException {
 					return context.getProcessInstance(processInstanceId).getProcessDefinition().getName();
-=======
-
-			// creating new actor for the user
-
-			String processName = getBpmContext().execute(new JbpmCallback() {
-
-				@Override
-				public Object doInJbpm(JbpmContext context)
-				        throws JbpmException {
-					return context.getProcessInstance(processInstanceId)
-					        .getProcessDefinition().getName();
->>>>>>> f64013899dcbf66d07ee4966cd2ad19d58ee4d33
 				}
 			});
 
@@ -1539,11 +1489,7 @@ public class RolesManagerImpl implements RolesManager {
 
 		if (perms != null) {
 
-<<<<<<< HEAD
-			HashMultimap<String, ActorActorPerm> candidates = new HashMultimap<String, ActorActorPerm>();
-=======
 			HashMultimap<String, ActorActorPerm> candidates = HashMultimap.create();
->>>>>>> f64013899dcbf66d07ee4966cd2ad19d58ee4d33
 
 			for (ActorPermissions perm : perms) {
 				List<Actor> actors = perm.getActors();
@@ -1740,10 +1686,6 @@ public class RolesManagerImpl implements RolesManager {
 
 	@Override
 	public Set<String> getUserNativeRoles(User user) {
-<<<<<<< HEAD
-=======
-
->>>>>>> f64013899dcbf66d07ee4966cd2ad19d58ee4d33
 		return getAccessController().getAllRolesForUser(user);
 	}
 

@@ -650,9 +650,8 @@ public class ProcessArtifacts {
 
 				if (params.isShowAttachmentStatistics()) {
 					row.addCell(new StringBuilder("<a href=\"javascript:void(0);\" attachment-link=\"")
-							.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId)).append("\" title=\"")
-							.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"")
-							.append(attachmentInfoImage).append("\"></img></a>").toString());
+						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId,params.isShowUserCompany(), params.isShowLastLoginDate())).append("\" title=\"")
+						.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
 				}
 
 				if (params.getAllowPDFSigning() &&
@@ -673,14 +672,8 @@ public class ProcessArtifacts {
 				if (params.isRightsChanger()) {
 					addRightsChangerCell(row, params.getPiId(), taskInstanceId, binaryVariable.getHash(), null, false);
 				}
-				
-				if (params.isShowAttachmentStatistics()) {
-					row.addCell(new StringBuilder("<a href=\"javascript:void(0);\" attachment-link=\"")
-						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId,params.isShowUserCompany(), params.isShowLastLoginDate())).append("\" title=\"")
-						.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
-				}
 			}
-
+			
 			try {
 				if (!ListUtil.isEmpty(rows.getRows())) {
 					return rows.getDocument();
@@ -698,8 +691,14 @@ public class ProcessArtifacts {
 		}
 	}
 
-	private String getAttachmentInfoWindowLink(IWApplicationContext iwac, BinaryVariable binaryVariable,
-			String caseId,Long taskInstanceId,boolean showCompany,boolean showLastLoginDate) {
+	private String getAttachmentInfoWindowLink(
+			IWApplicationContext iwac,
+			BinaryVariable binaryVariable,
+			String caseId,
+			Long taskInstanceId,
+			boolean showCompany,
+			boolean showLastLoginDate
+	) {
 		String hash = String.valueOf(binaryVariable.getHash());
 
 		//	TODO: remove hard-coding!

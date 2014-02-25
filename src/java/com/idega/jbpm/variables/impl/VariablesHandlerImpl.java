@@ -129,7 +129,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 
 				ProcessInstance pi = ti.getProcessInstance();
 				if (pi != null) {
-					ELUtil.getInstance().publishEvent(new VariableCreatedEvent(this, pi.getProcessDefinition().getName(), pi.getId(), vars));
+					ELUtil.getInstance().publishEvent(new VariableCreatedEvent(this, pi.getProcessDefinition().getName(), pi.getId(), ti.getId(), vars));
 				}
 
 				return variables;

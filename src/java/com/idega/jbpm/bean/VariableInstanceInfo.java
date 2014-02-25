@@ -159,14 +159,6 @@ public abstract class VariableInstanceInfo implements Serializable {
 		this.caseId = caseId;
 	}
 
-	public Long getTaskInstanceId() {
-		return taskInstanceId;
-	}
-
-	public void setTaskInstanceId(Long taskInstanceId) {
-		this.taskInstanceId = taskInstanceId;
-	}
-
 	@Override
 	public String toString() {
 		return "Variable " + getName() + ", type " + getType() + ", value: " + getValue() + ", ID: " + getId() + ", task instance ID: " +

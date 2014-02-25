@@ -1547,7 +1547,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 
 			int numberOfColumns = dataSet.length;
-
+			int startValues = 0;
+			
 			Number id = null;
 			String name = null;
 			try {

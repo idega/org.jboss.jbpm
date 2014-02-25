@@ -3,6 +3,9 @@ package com.idega.jbpm.process.business.messages.resolvers;
 import java.util.logging.Level;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.jbpm.JbpmContext;
+import org.jbpm.JbpmException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
