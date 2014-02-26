@@ -33,13 +33,13 @@ public interface ProcessInstanceW {
 
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
 	        Locale locale);
-	
+
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
 	        Locale locale, boolean doShowExternalEntity);
 
 	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
 	        Locale locale);
-	
+
 	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
 	        Locale locale, boolean doShowExternalEntity);
 
@@ -187,4 +187,6 @@ public interface ProcessInstanceW {
 	public abstract User getOwner();
 
 	public boolean doSubmitSharedTask(String taskName, Map<String, Object> variables);
+
+	public List<Long> getIdsOfSubProcesses(Long procInstId);
 }
