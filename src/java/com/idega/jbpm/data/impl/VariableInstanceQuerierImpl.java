@@ -1265,12 +1265,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		boolean byProcDefs = !ListUtil.isEmpty(procDefNames);
 
 		String query = null;
-		int columns = COLUMNS + 5;
+		int columns = COLUMNS + 6;
 		columns = numberOfColumns == null ? (columns + (selectProcessInstanceId ? 1 : 0)) : numberOfColumns;
 		String select = null;
 		if (StringUtil.isEmpty(columnsToSelect)) {
 			select = getSelectPart(STANDARD_COLUMNS + ", " + getSubstring(getStringValueColumn(false)) +
-					", var.LONGVALUE_ as lv, var.DOUBLEVALUE_ as dov, var.DATEVALUE_ as dav, var.BYTEARRAYVALUE_ as bv ", false);
+					", var.LONGVALUE_ as lv, var.DOUBLEVALUE_ as dov, var.DATEVALUE_ as dav, var.BYTEARRAYVALUE_ as bv, var.TASKINSTANCE_ tiid ", false);
 			select = select.concat(selectProcessInstanceId || byProcessInstances ? ", var.PROCESSINSTANCE_ as piid" : CoreConstants.EMPTY);
 		} else
 			select = columnsToSelect;

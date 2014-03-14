@@ -23,6 +23,7 @@ import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.Task;
+import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -967,6 +968,20 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 				Long.class,
 				new Param("piId", piId),
 				new Param("procDefName", procDefName)
+		);
+	}
+
+	@Override
+	public List<Long> getIdsOfFinishedTaskInstancesForTask(Long piId, String taskName) {
+		if (piId == null || StringUtil.isEmpty(taskName)) {
+			return null;
+		}
+
+		return getResultListByInlineQuery(
+				"select ti.id from " + TaskInstance.class.getName() + " ti where ti.processInstance.id = :piId and ti.task.name = :name and ti.end is not null",
+				Long.class,
+				new Param("piId", piId),
+				new Param("name", taskName)
 		);
 	}
 }

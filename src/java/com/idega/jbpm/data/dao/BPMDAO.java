@@ -142,4 +142,7 @@ public interface BPMDAO extends GenericDao {
 	public List<Token> getProcessTokens(Long piId);
 
 	public List<Long> getSubProcInstIdsByParentProcInstIdAndProcDefName(Long piId, String procDefName);
+
+	public List<Long> getIdsOfFinishedTaskInstancesForTask(Long piId, String taskName);
+
 }

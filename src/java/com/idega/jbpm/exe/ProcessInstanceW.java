@@ -31,7 +31,10 @@ public interface ProcessInstanceW {
 	 *         documents.
 	 */
 	public abstract List<TaskInstanceW> getSubmittedTaskInstances();
-	public abstract List<TaskInstanceW> getSubmittedTaskInstances(String name);
+
+	public abstract List<TaskInstanceW> getSubmittedTaskInstances(String taskInstanceName);
+
+	public abstract TaskInstanceW getLastSubmittedTaskInstance(String taskInstanceName);
 
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
 	        Locale locale);
@@ -200,4 +203,8 @@ public interface ProcessInstanceW {
 	public boolean doSubmitTask(String taskName, Map<String, Object> variables);
 
 	public TaskInstanceW getTaskInstance(String taskName);
+	public List<Long> getIdsOfSubProcesses(Long procInstId);
+
+	public Object getValueForTaskInstance(String taskInstanceName, String variable);
+	public Object getValueForTaskInstance(List<TaskInstanceW> submittedTiWs, String variable);
 }
