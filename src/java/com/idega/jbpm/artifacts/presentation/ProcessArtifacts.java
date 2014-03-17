@@ -1698,8 +1698,6 @@ public class ProcessArtifacts {
 
 	@Transactional(readOnly = true)
 	public boolean isTaskSubmitted(Long tiId) {
-		LOGGER.info("Starting method: isTaskSubmitted with tiid: " + tiId);
-
 		try {
 			TaskInstanceW tiW = getBpmFactory().getTaskInstanceW(tiId);
 			if (tiW == null) {
@@ -1733,9 +1731,6 @@ public class ProcessArtifacts {
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while resolving if task by ID " + tiId + " is submitted", e);
-		} finally {
-			LOGGER.info("finished verifying if task by id :" + tiId +
-					" is submitted");
 		}
 
 		return false;
