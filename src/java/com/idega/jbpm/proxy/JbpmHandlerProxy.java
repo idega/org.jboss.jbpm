@@ -331,7 +331,10 @@ public class JbpmHandlerProxy implements ActionHandler, AssignmentHandler,
 						String variable = "#{" + expression.substring(0,endIndex+1);
 
 						String regex = Pattern.quote(variable);
-						script = script.replaceAll(regex, JbpmExpressionEvaluator.evaluate(variable,ectx).toString());
+						Object value = JbpmExpressionEvaluator.evaluate(variable, ectx);
+						if (value != null) {
+							script = script.replaceAll(regex, value.toString());
+						}
 					}
 				}
 				propertyValue = getScriptEvaluator().evaluate(script, ectx);
