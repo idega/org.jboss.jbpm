@@ -376,7 +376,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			}
 
 			if (stream == null) {
-				File tmp = CoreUtil.getFileFromRepository(fileUri.concat("_1.0"));
+				File tmp = CoreUtil.getFileFromRepository(fileUri);
 				if (tmp != null && tmp.exists() && tmp.canRead())
 					stream = new FileInputStream(tmp);
 				else

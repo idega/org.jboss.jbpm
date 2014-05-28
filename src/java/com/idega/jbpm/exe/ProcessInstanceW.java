@@ -135,6 +135,8 @@ public interface ProcessInstanceW {
 
 	public abstract String getProcessDescription();
 
+	public abstract String getProcessOwner();
+
 	/**
 	 * @return definition wrapper this process instance relates to
 	 */

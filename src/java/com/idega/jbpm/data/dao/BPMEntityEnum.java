@@ -108,6 +108,31 @@ public enum BPMEntityEnum {
 			return (Class<T>) org.jbpm.context.exe.TokenVariableMap.class;
 		}
 
+	},
+	
+	ByteArrayInstance (org.jbpm.context.exe.variableinstance.ByteArrayInstance.class.getName()) {
+
+		@Override
+		public Number getEntityVersion(Object entity) {
+			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.context.exe.variableinstance.ByteArrayInstance) entity);
+		}
+
+		@Override
+		public String getVersionQuery(long id) {
+			return "select version_ from jbpm_variableinstance where id_ = " + id;
+		}
+
+		@Override
+		public String getUpdateQuery(long id, int version) {
+			return "update jbpm_variableinstance set version_ = " + version + " where id_ = " + id;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T extends Serializable> Class<T> getEntityType() {
+			return (Class<T>) org.jbpm.context.exe.variableinstance.ByteArrayInstance.class;
+		}
+		
 	};
 
 	private String entityClass;

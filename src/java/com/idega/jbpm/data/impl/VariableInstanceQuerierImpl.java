@@ -979,8 +979,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			);
 		}
 
-		List<Serializable[]> queriedData = getInformationByVariablesNameAndValuesAndProcesses(data, variablesWithoutValues, procDefNames,
-				procInstIds, selectProcessInstanceId, mirrow, strictBinaryVariables);
+		List<Serializable[]> queriedData = getInformationByVariablesNameAndValuesAndProcesses(
+				data,
+				variablesWithoutValues,
+				procDefNames,
+				procInstIds,
+				selectProcessInstanceId,
+				mirrow,
+				strictBinaryVariables
+		);
 		if (ListUtil.isEmpty(queriedData))
 			return Collections.emptyList();
 

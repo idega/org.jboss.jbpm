@@ -131,7 +131,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 			return;
 		}
 
-		setFile(getFileFromRepository(binaryVariable.getIdentifier().concat("_1.0")));
+		setFile(getFileFromRepository(binaryVariable.getIdentifier()));
 		super.writeTo(out);
 	}
 

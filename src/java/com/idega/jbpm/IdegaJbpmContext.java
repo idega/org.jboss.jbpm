@@ -122,7 +122,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 
 		@Override
 		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
-			if (session instanceof SessionImpl) {
+			if (session instanceof SessionImpl && session.isOpen()) {
 				PersistenceContext persistenceContext = ((SessionImpl) session).getPersistenceContext();
 				Map.Entry<Object,EntityEntry>[] entries = persistenceContext.reentrantSafeEntityEntries();
 				if (!ArrayUtil.isEmpty(entries)) {
@@ -168,7 +168,9 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 				}
 			}
 
-			super.flushIfNecessary(session, existingTransaction);
+			if (session.isOpen()) {
+				super.flushIfNecessary(session, existingTransaction);
+			}
 		}
 
 	}

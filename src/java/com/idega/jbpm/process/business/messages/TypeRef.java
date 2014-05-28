@@ -11,6 +11,9 @@ import com.idega.util.CoreConstants;
  */
 public final class TypeRef {
 
+	public static final TypeRef CREATION_DATE = new TypeRef("value", "#{date}"),
+								CREATION_TIME = new TypeRef("value", "#{time}");
+
 	public TypeRef(String handlerType, String ref) {
 		this.handlerType = handlerType;
 		this.ref = ref;
@@ -23,7 +26,7 @@ public final class TypeRef {
 		return handlerType == null ? CoreConstants.EMPTY : handlerType;
 	}
 
-	String getRef() {
+	public String getRef() {
 		return ref == null ? CoreConstants.EMPTY : ref;
 	}
 
