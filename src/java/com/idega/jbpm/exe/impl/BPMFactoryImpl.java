@@ -356,7 +356,20 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Transactional(readOnly = true)
 	private ProcessManager getProcessManagerByProcessInstanceId(JbpmContext context, long processInstanceId) {
+		if (processInstanceId < 0) {
+			LOGGER.warning("Invalid proc. inst. ID: " + processInstanceId);
+		}
+		
 		ProcessInstance processInstance = context.getProcessInstance(processInstanceId);
+		if (processInstance == null) {
+			LOGGER.warning("Proc. inst. was not loaded from context by ID: " + processInstanceId + ", will try to load it from DB");
+			processInstance = getBPMDAO().find(ProcessInstance.class, processInstanceId);
+		}
+		
+		if (processInstance == null) {
+			throw new RuntimeException("Proc. inst. can not be loaded by ID: " + processInstanceId);
+		}
+		
 		long pdId = processInstance.getProcessDefinition().getId();
 		return getProcessManager(pdId);
 	}
