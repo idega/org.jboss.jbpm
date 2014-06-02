@@ -3,6 +3,7 @@ package com.idega.jbpm.identity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
@@ -24,6 +25,7 @@ import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.variables.VariablesResolver;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * <p>
@@ -51,6 +53,8 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 
 	private static final long serialVersionUID = 8955094455268141204L;
 
+	private static final Logger LOGGER = Logger.getLogger(JSONAssignmentHandler.class.getName());
+	
 	@Autowired
 	private BPMFactory bpmFactory;
 
@@ -60,18 +64,41 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 
 	@Override
 	public void assign(Assignable assignable, ExecutionContext executionContext) {
-		if (!(assignable instanceof TaskInstance))
+		if (!(assignable instanceof TaskInstance)) {
 			throw new IllegalArgumentException("Only TaskInstance is accepted for assignable");
-
+		}
+		
 		this.executionContext = executionContext;
 		String exp = getExpression();
-		if (StringUtil.isEmpty(exp))
+		if (StringUtil.isEmpty(exp)) {
 			return;
+		}
 
 		TaskInstance taskInstance = (TaskInstance) assignable;
+		long tiId = taskInstance.getId();
+		taskInstance = executionContext.getJbpmContext().getTaskInstance(tiId);
+		if (taskInstance == null) {
+			throw new IllegalArgumentException("TaskInstance (ID: " + tiId + ") is not initialized!");
+		}
+		
 		long piId = taskInstance.getProcessInstance().getId();
-		ProcessManager pm = getBpmFactory().getProcessManagerByProcessInstanceId(piId);
-		TaskInstanceW tiw = pm.getTaskInstance(taskInstance.getId());
+		ProcessManager pm = null;
+		try {
+			pm = getBpmFactory().getProcessManager(executionContext.getProcessDefinition().getName());
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting process manager by proc. def. name. Task inst. ID: " + tiId, e);
+		}
+		if (pm == null) {
+			try {
+				pm = getBpmFactory().getProcessManagerByTaskInstanceId(tiId);
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Error getting process manager by task inst. ID: " + tiId, e);
+			}
+		}
+		if (pm == null) {
+			throw new RuntimeException("Process manager can not be loaded. Task inst. ID: " + tiId);
+		}
+		TaskInstanceW tiw = pm.getTaskInstance(tiId);
 
 		TaskAssignment ta = JSONExpHandler.resolveRolesFromJSONExpression(exp, executionContext);
 		List<Role> roles = ta.getRoles();
@@ -185,6 +212,9 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	}
 
 	BPMFactory getBpmFactory() {
+		if (bpmFactory == null) {
+			ELUtil.getInstance().autowire(this);
+		}
 		return bpmFactory;
 	}
 
