@@ -28,18 +28,15 @@ public class TaskInstanceViewBindHandler implements ActionHandler {
 	private BPMFactory bpmFactory;
 
 	public void execute(ExecutionContext ectx) throws Exception {
-
 		TaskInstance ti = ectx.getTaskInstance();
-
-		Task startTask = ti.getTaskMgmtInstance().getTaskMgmtDefinition()
-				.getStartTask();
-
-		if (!ti.getTask().equals(startTask)) {
+		Task startTask = ti.getTaskMgmtInstance().getTaskMgmtDefinition().getStartTask();
+		Task task = ti.getTask();
+		if (!task.equals(startTask)) {
 
 			// we are not binding start task instance, because it is already
 			// bound in the loadInitView of processDefinitionW
 
-			getBpmFactory().takeViews(ti.getId());
+			getBpmFactory().takeViews(ectx.getJbpmContext(), task, ti);
 		}
 	}
 
