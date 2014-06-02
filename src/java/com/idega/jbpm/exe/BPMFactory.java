@@ -6,6 +6,8 @@ import java.util.List;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.jbpm.graph.exe.ProcessInstance;
+import org.jbpm.taskmgmt.def.Task;
+import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.BPMUserFactory;
@@ -89,6 +91,7 @@ public interface BPMFactory {
 	 * @param taskInstanceId
 	 */
 	public abstract void takeViews(final long taskInstanceId);
+	public abstract void takeViews(JbpmContext context, Task task, TaskInstance ti);
 
 	public abstract RolesManager getRolesManager();
 
