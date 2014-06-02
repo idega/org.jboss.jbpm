@@ -259,7 +259,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
 				JSONUtil json = getBinVarJSONConverter();
 
-				Collection<String> binVarsInJSON = null;
+				Collection<Object> binVarsInJSON = null;
 				if (val instanceof String) {
 					try {
 						String jsonValue = (String) val;
@@ -275,32 +275,36 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 					}
 				} else {
 					@SuppressWarnings("unchecked")
-					Collection<String> f = (Collection<String>) val;
+					Collection<Object> f = (Collection<Object>) val;
 					binVarsInJSON = f;
 				}
 
 				if (ListUtil.isEmpty(binVarsInJSON))
 					return binaryVars;
 
-				for (String binVarJSON : binVarsInJSON) {
-					try {
-						BinaryVariable binaryVariable = (BinaryVariable) json.convertToObject(binVarJSON);
-
-						if (binaryVariable != null) {
-							if (tiId != null) {
-								if (binaryVariable.getTaskInstanceId() == tiId.longValue()) {
-									binaryVars.add(binaryVariable);
-								}
-							} else {
+				for (Object binVarJSON: binVarsInJSON) {
+					BinaryVariable binaryVariable = null;
+					if (binVarJSON instanceof String) {
+						try {
+							binaryVariable = (BinaryVariable) json.convertToObject((String) binVarJSON);
+						} catch (StreamException e) {
+							LOGGER.log(Level.WARNING, "Exception while parsing binary variable json=" + binVarJSON);
+						}
+					} else if (binVarJSON instanceof BinaryVariable) {
+						binaryVariable = (BinaryVariable) binVarJSON;
+					}
+					
+					if (binaryVariable != null) {
+						if (tiId != null) {
+							if (binaryVariable.getTaskInstanceId() == tiId.longValue()) {
 								binaryVars.add(binaryVariable);
 							}
 						} else {
-							LOGGER.log(Level.WARNING, "Null returned from json.convertToObject by json="+ binVarJSON+ ". All json expression = "+
-									binVarsInJSON);
+							binaryVars.add(binaryVariable);
 						}
-
-					} catch (StreamException e) {
-						LOGGER.log(Level.WARNING, "Exception while parsing binary variable json=" + binVarJSON);
+					} else {
+						LOGGER.log(Level.WARNING, "Null returned from json.convertToObject by json="+ binVarJSON+ ". All json expression = "+
+								binVarsInJSON);
 					}
 				}
 			}
