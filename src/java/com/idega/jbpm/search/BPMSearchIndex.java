@@ -18,13 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.core.business.DefaultSpringBean;
 import com.idega.data.SimpleQuerier;
-import com.idega.hibernate.HibernateUtil;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.Variable;
 import com.idega.jbpm.data.VariableBytes;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
+import com.idega.util.DBUtil;
 import com.idega.util.ListUtil;
 
 public class BPMSearchIndex extends DefaultSpringBean {
@@ -75,7 +75,7 @@ public class BPMSearchIndex extends DefaultSpringBean {
 				getLogger().warning("Variable can not be found by ID: " + id);
 				return;
 			}
-			var = HibernateUtil.initializeAndUnproxy(var);
+			var = DBUtil.getInstance().initializeAndUnproxy(var);
 			if (var == null) {
 				getLogger().warning("Object became null after initialization and un-proxying. Variable ID: " + id);
 				return;

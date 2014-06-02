@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.core.persistence.Param;
-import com.idega.hibernate.HibernateUtil;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.exe.BPMFactory;
@@ -26,6 +25,7 @@ import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.exe.TaskMgmtInstanceW;
+import com.idega.util.DBUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -118,10 +118,10 @@ public class TaskMgmtInstanceDefaultW implements TaskMgmtInstanceW {
 		}
 
 		Node node = token.getNode();
-		node = HibernateUtil.initializeAndUnproxy(node);
+		node = DBUtil.getInstance().initializeAndUnproxy(node);
 		if (!(node instanceof TaskNode)) {
 			Token parent = token.getParent();
-			parent = HibernateUtil.initializeAndUnproxy(parent);
+			parent = DBUtil.getInstance().initializeAndUnproxy(parent);
 			return getTaskNode(context, parent.getId());
 		}
 

@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.idega.block.process.variables.Variable;
-import com.idega.hibernate.HibernateUtil;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
@@ -39,6 +38,7 @@ import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.jbpm.variables.VariablesManager;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
+import com.idega.util.DBUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.expression.ELUtil;
@@ -166,7 +166,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 						if (token == null) {
 							LOGGER.warning("Token is null for task instance: " + taskInstanceId);
 						} else {
-							token = HibernateUtil.initializeAndUnproxy(token);
+							token = DBUtil.getInstance().initializeAndUnproxy(token);
 							vars = bpmFactory.getTaskInstanceW(taskInstanceId).getVariables(token);
 						}
 					} catch (Throwable e) {

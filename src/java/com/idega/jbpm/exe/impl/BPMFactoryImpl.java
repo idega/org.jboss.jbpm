@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.data.SimpleQuerier;
-import com.idega.hibernate.HibernateUtil;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.ProcessManagerBind;
@@ -46,6 +45,7 @@ import com.idega.jbpm.view.ViewFactory;
 import com.idega.jbpm.view.ViewSubmission;
 import com.idega.jbpm.view.ViewSubmissionImpl;
 import com.idega.util.ArrayUtil;
+import com.idega.util.DBUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
@@ -106,6 +106,13 @@ public class BPMFactoryImpl implements BPMFactory {
 		}
 	}
 
+	public void takeViews(JbpmContext context, Task task, TaskInstance ti) {
+		List<View> views = getViewsByTask(task.getId(), false);
+		for (View view: views) {
+			takeView(view, ti);
+		}
+	}
+	
 	@Override
 	@Transactional(readOnly = false)
 	public void takeViews(final long taskInstanceId) {
@@ -115,7 +122,7 @@ public class BPMFactoryImpl implements BPMFactory {
 			public Void doInJbpm(JbpmContext context) throws JbpmException {
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 				List<View> views = getViewsByTask(ti.getTask().getId(), false);
-				for (View view : views) {
+				for (View view: views) {
 					takeView(view, ti);
 				}
 
@@ -499,9 +506,9 @@ public class BPMFactoryImpl implements BPMFactory {
 			@Override
 			public Long doInJbpm(JbpmContext context) throws JbpmException {
 				ProcessInstance pi = context.getProcessInstance(piId);
-				ProcessDefinition pd = HibernateUtil.initializeAndUnproxy(pi.getProcessDefinition());
-				TaskMgmtDefinition taskDef = HibernateUtil.initializeAndUnproxy(pd.getTaskMgmtDefinition());
-				Task startTask = HibernateUtil.initializeAndUnproxy(taskDef.getStartTask());
+				ProcessDefinition pd = DBUtil.getInstance().initializeAndUnproxy(pi.getProcessDefinition());
+				TaskMgmtDefinition taskDef = DBUtil.getInstance().initializeAndUnproxy(pd.getTaskMgmtDefinition());
+				Task startTask = DBUtil.getInstance().initializeAndUnproxy(taskDef.getStartTask());
 				long startTaskId = startTask.getId();
 				return startTaskId;
 			}
