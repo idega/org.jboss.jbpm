@@ -2065,39 +2065,47 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	@Override
 	@Transactional
 	public void doIndexVariables(Long piId) {
-		if (piId == null) {
-			getLogger().warning("Process instance ID is not provided");
-			return;
-		}
-
-		final List<Variable> variables = getResultList(
-				Variable.QUERY_GET_BY_PROC_INST,
-				Variable.class,
-				new Param(Variable.PARAM_PROC_INST_ID, piId)
-		);
-		if (ListUtil.isEmpty(variables)) {
-			getLogger().warning("Unable to index variables for proc. inst. " + piId + ": no variables found");
-			return;
-		}
-
-		getBpmContext().execute(new JbpmCallback<Boolean>() {
-
-			@Override
-			public Boolean doInJbpm(JbpmContext context) throws JbpmException {
-				FullTextSession indexer = org.hibernate.search.Search.getFullTextSession(context.getSession());
-				Transaction tx = indexer.beginTransaction();
-				for (Variable variable: variables) {
-					if (variable.getValue() == null)
-						continue;
-
-					Object var = indexer.load(Variable.class, variable.getId());
-					indexer.index(var);
-				}
-				tx.commit();
-
-				return true;
+		try {
+			if (!IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm_index_vars_dynamically", Boolean.TRUE)) {
+				return;
 			}
-		});
+			
+			if (piId == null) {
+				getLogger().warning("Process instance ID is not provided");
+				return;
+			}
+	
+			final List<Variable> variables = getResultList(
+					Variable.QUERY_GET_BY_PROC_INST,
+					Variable.class,
+					new Param(Variable.PARAM_PROC_INST_ID, piId)
+			);
+			if (ListUtil.isEmpty(variables)) {
+				getLogger().warning("Unable to index variables for proc. inst. " + piId + ": no variables found");
+				return;
+			}
+	
+			getBpmContext().execute(new JbpmCallback<Boolean>() {
+	
+				@Override
+				public Boolean doInJbpm(JbpmContext context) throws JbpmException {
+					FullTextSession indexer = org.hibernate.search.Search.getFullTextSession(context.getSession());
+					Transaction tx = indexer.beginTransaction();
+					for (Variable variable: variables) {
+						if (variable.getValue() == null)
+							continue;
+	
+						Object var = indexer.load(Variable.class, variable.getId());
+						indexer.index(var);
+					}
+					tx.commit();
+	
+					return true;
+				}
+			});
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error indexing new variables for proc. inst. by ID: " + piId, e);
+		}
 	}
 
 	@Override
