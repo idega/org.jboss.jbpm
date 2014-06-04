@@ -15,6 +15,7 @@ import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessConstants;
 import com.idega.jbpm.exe.ProcessDefinitionW;
+import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.view.View;
 import com.idega.presentation.IWBaseComponent;
@@ -72,7 +73,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		if (!StringUtil.isEmpty(processName)) {
 			viewer = loadViewerFromProcessName(context, processName);
 		} else if (processDefinitionId != null) {
-			viewer = loadViewerFromDefinition(context, processDefinitionId);
+			viewer = loadViewerFromDefinition(context, processDefinitionId, IWContext.getIWContext(context).getApplicationSettings().getBoolean("xform_load_latest", Boolean.TRUE));
 		} else if (taskInstanceId != null) {
 			viewer = loadViewerFromTaskInstance(context, taskInstanceId);
 		}
@@ -86,7 +87,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		}
 	}
 
-	private UIComponent loadViewerFromDefinition(FacesContext context, Long processDefinitionId) {
+	private UIComponent loadViewerFromDefinition(FacesContext context, Long processDefinitionId, boolean checkVersion) {
 		final IWContext iwc = IWContext.getIWContext(context);
 		final Integer initiatorId;
 
@@ -96,8 +97,20 @@ public class BPMTaskViewer extends IWBaseComponent {
 			initiatorId = null;
 		}
 
-		ProcessDefinitionW procDef = getBpmFactory().getProcessManager(processDefinitionId).getProcessDefinition(processDefinitionId);
+		ProcessManager pm = getBpmFactory().getProcessManager(processDefinitionId);
+		ProcessDefinitionW procDef = pm.getProcessDefinition(processDefinitionId);
 		setPageTitle(procDef.getProcessName(iwc.getCurrentLocale()));
+
+		if (checkVersion) {
+			ProcessDefinitionW latestProcDef = pm.getProcessDefinition(procDef.getProcessDefinition().getName());
+			Long latestProcDefId = latestProcDef.getProcessDefinitionId();
+			if (latestProcDefId.longValue() != processDefinitionId.longValue()) {
+				setProcessDefinitionId(latestProcDefId);
+				getLogger().info("Provided proc. def. ID (" + processDefinitionId + ") is not the latest version (" + latestProcDefId + "), will load latest version");
+				return loadViewerFromDefinition(context, latestProcDefId, false);
+			}
+		}
+
 		View initView = procDef.loadInitView(initiatorId);
 		return initView.getViewForDisplay();
 	}
@@ -232,4 +245,5 @@ public class BPMTaskViewer extends IWBaseComponent {
 	public void setProcessName(String processName) {
 		this.processName = processName;
 	}
+
 }
