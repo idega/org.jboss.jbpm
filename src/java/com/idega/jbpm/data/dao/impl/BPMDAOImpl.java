@@ -33,6 +33,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.idega.block.process.data.CaseBMPBean;
+import com.idega.core.accesscontrol.data.bean.ICRole;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.data.DatastoreInterface;
@@ -79,12 +80,18 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	@Override
 	public ViewTaskBind getViewTaskBind(long taskId, String viewType) {
+		if (viewType.length() > ICRole.ROLE_KEY_MAX_LENGTH) {
+			String tmp = viewType.substring(0, ICRole.ROLE_KEY_MAX_LENGTH);
+			LOGGER.warning("Had to shorten view type param '" + viewType + "' to '" + tmp + "'");
+			viewType = tmp;
+		}
 
 		@SuppressWarnings("unchecked")
 		List<ViewTaskBind> binds = getEntityManager().createNamedQuery(
 		    ViewTaskBind.GET_UNIQUE_BY_TASK_ID_AND_VIEW_TYPE_QUERY_NAME)
-		        .setParameter(ViewTaskBind.taskIdParam, taskId).setParameter(
-		            ViewTaskBind.viewTypeParam, viewType).getResultList();
+		        .setParameter(ViewTaskBind.taskIdParam, taskId)
+		        .setParameter(ViewTaskBind.viewTypeParam, viewType)
+		    .getResultList();
 
 		return binds.isEmpty() ? null : binds.iterator().next();
 	}
