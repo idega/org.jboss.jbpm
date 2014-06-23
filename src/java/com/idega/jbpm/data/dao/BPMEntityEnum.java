@@ -109,7 +109,7 @@ public enum BPMEntityEnum {
 		}
 
 	},
-	
+
 	ByteArrayInstance (org.jbpm.context.exe.variableinstance.ByteArrayInstance.class.getName()) {
 
 		@Override
@@ -132,7 +132,57 @@ public enum BPMEntityEnum {
 		public <T extends Serializable> Class<T> getEntityType() {
 			return (Class<T>) org.jbpm.context.exe.variableinstance.ByteArrayInstance.class;
 		}
-		
+
+	},
+
+	NullInstance (org.jbpm.context.exe.variableinstance.NullInstance.class.getName()) {
+
+		@Override
+		public Number getEntityVersion(Object entity) {
+			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.context.exe.variableinstance.NullInstance) entity);
+		}
+
+		@Override
+		public String getVersionQuery(long id) {
+			return "select version_ from jbpm_variableinstance where id_ = " + id;
+		}
+
+		@Override
+		public String getUpdateQuery(long id, int version) {
+			return "update jbpm_variableinstance set version_ = " + version + " where id_ = " + id;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T extends Serializable> Class<T> getEntityType() {
+			return (Class<T>) org.jbpm.context.exe.variableinstance.NullInstance.class;
+		}
+
+	},
+
+	StringInstance (org.jbpm.context.exe.variableinstance.StringInstance.class.getName()) {
+
+		@Override
+		public Number getEntityVersion(Object entity) {
+			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.context.exe.variableinstance.StringInstance) entity);
+		}
+
+		@Override
+		public String getVersionQuery(long id) {
+			return "select version_ from jbpm_variableinstance where id_ = " + id;
+		}
+
+		@Override
+		public String getUpdateQuery(long id, int version) {
+			return "update jbpm_variableinstance set version_ = " + version + " where id_ = " + id;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T extends Serializable> Class<T> getEntityType() {
+			return (Class<T>) org.jbpm.context.exe.variableinstance.StringInstance.class;
+		}
+
 	};
 
 	private String entityClass;

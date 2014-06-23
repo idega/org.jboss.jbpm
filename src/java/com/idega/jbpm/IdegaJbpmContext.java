@@ -156,8 +156,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 									String updateSQL = bpmEntity.getUpdateQuery(id, ((Number) previousVersion).intValue());
 									try {
 										SimpleQuerier.executeUpdate(updateSQL, false);
-										LOGGER.info("Changed version to " + previousVersion + " for " +
-												bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
+										LOGGER.info("Changed version to " + previousVersion + " for " + bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
 									} catch (SQLException e) {}
 								}
 							}
