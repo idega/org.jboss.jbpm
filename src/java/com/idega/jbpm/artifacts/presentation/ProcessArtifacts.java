@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -668,12 +670,12 @@ public class ProcessArtifacts {
 						row.addCell(CoreConstants.EMPTY);
 					}
 				}
-				
+
 				if (params.isRightsChanger()) {
 					addRightsChangerCell(row, params.getPiId(), taskInstanceId, binaryVariable.getHash(), null, false);
 				}
 			}
-			
+
 			try {
 				if (!ListUtil.isEmpty(rows.getRows())) {
 					return rows.getDocument();
@@ -833,9 +835,7 @@ public class ProcessArtifacts {
 
 		String systemEmail = null;
 		try {
-			systemEmail = IWMainApplication.getDefaultIWApplicationContext()
-			        .getApplicationSettings().getProperty(
-			            CoreConstants.PROP_SYSTEM_ACCOUNT);
+			systemEmail = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_ACCOUNT);
 
 			if (systemEmail != null && systemEmail.indexOf("@") == -1) {
 				String emailHost = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_HOST);
@@ -848,35 +848,43 @@ public class ProcessArtifacts {
 		        .getProcessManagerByProcessInstanceId(processInstanceId)
 		        .getProcessInstance(processInstanceId).getProcessIdentifier();
 
-		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication()
-		        .getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 
 		boolean showUserCompany = params.isShowUserCompany();
+		Map<String, Boolean> addedUsers = new ConcurrentHashMap<String, Boolean>();
 		for (User user : uniqueUsers) {
+			String name = user.getName();
+			String emails = getUserEmails(user.getEmails(), processIdentifier, systemEmail);
+			String key = name.concat(emails);
+			if (addedUsers.containsKey(key)) {
+				continue;
+			} else {
+				addedUsers.put(key, Boolean.TRUE);
+			}
+
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
 
-			row.addCell(user.getName());
+			row.addCell(name);
 
-			if(showUserCompany && getGeneralCompanyBusiness() != null){
+			if (showUserCompany && getGeneralCompanyBusiness() != null) {
 				Collection<GeneralCompany> companies = getGeneralCompanyBusiness().getCompaniesForUser(user);
 				String companyName;
-				if(!ListUtil.isEmpty(companies)){
+				if (!ListUtil.isEmpty(companies)) {
 					GeneralCompany company = companies.iterator().next();
 					companyName = company.getName();
-				}else{
-					companyName = "-";
+				} else {
+					companyName = CoreConstants.MINUS;
 				}
 				row.addCell(companyName);
 			}
-			row.addCell(getUserEmails(user.getEmails(), processIdentifier,
-			    systemEmail));
-			row.addCell(new StringBuilder(getUserPhones(user.getPhones()))
-			        .append(getUserImage(bundle, user)).toString());
+
+			row.addCell(emails);
+
+			row.addCell(new StringBuilder(getUserPhones(user.getPhones())).append(getUserImage(bundle, user)).toString());
 
 			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, processInstanceId, null, null, user
-				        .getPrimaryKey().toString(), false);
+				addRightsChangerCell(row, processInstanceId, null, null, user.getPrimaryKey().toString(), false);
 			}
 		}
 
@@ -958,8 +966,7 @@ public class ProcessArtifacts {
 		        : result;
 	}
 
-	private String getUserEmails(Collection<Email> emails,
-	        String caseIdentifier, String systemEmail) {
+	private String getUserEmails(Collection<Email> emails, String caseIdentifier, String systemEmail) {
 		if (emails == null || emails.isEmpty()) {
 			return CoreConstants.MINUS;
 		}
@@ -968,7 +975,7 @@ public class ProcessArtifacts {
 		String emailValue = null;
 		StringBuilder userEmails = new StringBuilder();
 		boolean addSemicolon = false;
-		for (Email email : emails) {
+		for (Email email: emails) {
 			emailValue = email.getEmailAddress();
 			addSemicolon = false;
 
@@ -976,8 +983,7 @@ public class ProcessArtifacts {
 				userEmails.append(CoreConstants.EMPTY);
 			} else {
 				addSemicolon = true;
-				userEmails.append(getContactEmailFormatted(emailValue,
-				    caseIdentifier, systemEmail));
+				userEmails.append(getContactEmailFormatted(emailValue, caseIdentifier, systemEmail));
 			}
 			if ((emailsCounter + 1) < emails.size() && addSemicolon) {
 				userEmails.append(CoreConstants.SPACE);
@@ -987,8 +993,7 @@ public class ProcessArtifacts {
 		}
 
 		String result = userEmails.toString();
-		return result.equals(CoreConstants.EMPTY) ? CoreConstants.MINUS
-		        : result;
+		return result.equals(CoreConstants.EMPTY) ? CoreConstants.MINUS : result;
 	}
 
 	private String getContactEmailFormatted(String emailAddress,
