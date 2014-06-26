@@ -33,10 +33,10 @@ import com.idega.util.StringUtil;
  * Jbpm action handler, which searches for ic_user by personal id, or email
  * address. If ic_user found, updates missing user data by user personal data
  * provided.
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.11 $
- * 
+ *
  *          Last modified: $Date: 2009/06/08 14:29:25 $ by $Author: valdas $
  */
 @Service("locateUserHandler")
@@ -46,6 +46,7 @@ public class LocateUserHandler implements ActionHandler {
 	private static final long serialVersionUID = -3732028335572353838L;
 	private UserPersonalData userData;
 
+	@Override
 	public void execute(ExecutionContext ectx) throws Exception {
 
 		if (getUserData() != null) {
@@ -133,7 +134,7 @@ public class LocateUserHandler implements ActionHandler {
 			Commune commune;
 
 			if (municipalityName != null) {
-				
+
 				try {
 					commune = userBusiness.getAddressBusiness()
 							.getCommuneHome().findByCommuneName(
@@ -145,9 +146,9 @@ public class LocateUserHandler implements ActionHandler {
 			} else
 				commune = null;
 
-			if (postalCodeStr != null) {			
+			if (postalCodeStr != null) {
 
-				try {	
+				try {
 					postalCode = userBusiness.getAddressBusiness()
 							.getPostalCodeHome()
 							.findByPostalCode(postalCodeStr);
@@ -157,7 +158,7 @@ public class LocateUserHandler implements ActionHandler {
 
 			} else
 				postalCode = null;
-			
+
 			String streetName;
 			String streetNr;
 
@@ -176,7 +177,6 @@ public class LocateUserHandler implements ActionHandler {
 			if (streetName != null && streetNr != null) {
 				// try to find address, by street name and nr
 
-				@SuppressWarnings("unchecked")
 				Collection<Address> allAddresses = usr.getAddresses();
 				Address addrFound = null;
 
@@ -220,7 +220,7 @@ public class LocateUserHandler implements ActionHandler {
 					Integer communeId = commune != null ? (commune.getPrimaryKey() instanceof Integer ? (Integer) commune.getPrimaryKey()
 							: new Integer(commune.getPrimaryKey().toString()))
 							: null;
-							
+
 					if (usr.getUsersMainAddress() == null) {
 						userBusiness
 								.updateUsersMainAddressOrCreateIfDoesNotExist(
@@ -252,7 +252,7 @@ public class LocateUserHandler implements ActionHandler {
 
 	protected UserBusiness getUserBusiness(IWApplicationContext iwac) {
 		try {
-			return (UserBusiness) IBOLookup.getServiceInstance(iwac,
+			return IBOLookup.getServiceInstance(iwac,
 					UserBusiness.class);
 		} catch (IBOLookupException ile) {
 			throw new IBORuntimeException(ile);
