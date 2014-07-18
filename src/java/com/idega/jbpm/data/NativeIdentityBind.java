@@ -18,7 +18,7 @@ import javax.persistence.Table;
 
 /**
  * Used additionally to roles + ic_permit_role. In common use case, the identity type is user.
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.12 $
  *
@@ -39,20 +39,20 @@ public class NativeIdentityBind implements Serializable {
 
 	public static final String TABLE_NAME = "BPM_NATIVE_IDENTITIES";
 	public static final String procIdentityParam = "procIdentity";
-	
+
 	public static final String idsParam = "ids";
 	public static final String deleteByIds = "NativeIdentityBind.deleteByIds";
 	public static final String getByProcIdentity = "NativeIdentityBind.getByProcIdentity";
 	public static final String getByTypesAndProceIdentities = "NativeIdentityBind.getByTypesAndProceIdentities";
-	
+
 	public enum IdentityType {
-		
+
 		USER,
 		BPMUSER,
 		GROUP,
 		ROLE
 	}
-	
+
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="id_")
 	private Long id;
@@ -105,15 +105,20 @@ public class NativeIdentityBind implements Serializable {
 
 	@Override
 	public boolean equals(Object arg0) {
-		
+
 		if(super.equals(arg0))
 			return true;
-		
+
 		if(arg0 == null || !(arg0 instanceof NativeIdentityBind))
 			return false;
-		
+
 		NativeIdentityBind b = (NativeIdentityBind)arg0;
-		
+
 		return getIdentityId() == null || getIdentityType() == null ? false : getIdentityId().equals(b.getIdentityId()) && getIdentityType().equals(b.getIdentityType());
+	}
+
+	@Override
+	public String toString() {
+		return "ID: " + getIdentityId() + ", type: " + getIdentityType() + ", actor: " + getActor();
 	}
 }
