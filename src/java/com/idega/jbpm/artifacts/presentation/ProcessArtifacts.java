@@ -1385,7 +1385,7 @@ public class ProcessArtifacts {
 	}
 
 	public boolean disableAttachmentForAllRoles(Integer fileHash, Long processInstanceId, Long taskInstanceId) {
-		return getBpmFactory().getRolesManager().disableAttachmentForAllRoles(fileHash, processInstanceId, taskInstanceId);
+		return getBpmFactory().getRolesManager().doDisableAttachmentForAllRoles(fileHash, processInstanceId, taskInstanceId);
 	}
 
 	public String takeBPMProcessTask(Long taskInstanceId, boolean reAssign) {

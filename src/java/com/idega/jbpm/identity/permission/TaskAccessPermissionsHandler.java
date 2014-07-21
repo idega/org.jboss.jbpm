@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -221,13 +222,24 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 	}
 
 	@Transactional(readOnly = true)
-	protected PermissionHandleResult checkPermissionsForTaskInstance(final int userId, final TaskInstance taskInstance,
-			final Collection<Access> accesses, final String variableIdentifier) {
-
+	protected PermissionHandleResult checkPermissionsForTaskInstance(
+			final int userId,
+			final TaskInstance taskInstance,
+			final Collection<Access> accesses,
+			final String variableIdentifier
+	) {
 		return getBPMContext().execute(new JbpmCallback<PermissionHandleResult>() {
 
 			@Override
 			public PermissionHandleResult doInJbpm(JbpmContext context) throws JbpmException {
+				try {
+					if (userId == getApplication().getAccessController().getAdministratorUser().getId().intValue()) {
+						return new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+					}
+				} catch (Exception e) {
+					getLogger().log(Level.WARNING, "Error loading super admin", e);
+				}
+
 				Long taskId = taskInstance.getTask().getId();
 				Long taskInstanceId = taskInstance.getId();
 
@@ -244,23 +256,27 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 
 				Set<String> nativeRoles = getRolesManager().getUserNativeRoles(user);
 
-				List<ActorPermissions> userPermissions = bpmDAO.getPermissionsForUser(userId, processName, mainProcessInstanceId, nativeRoles,
-						userGroupsIds);
+				List<ActorPermissions> userPermissions = bpmDAO.getPermissionsForUser(
+						userId,
+						processName,
+						mainProcessInstanceId,
+						nativeRoles,
+						userGroupsIds
+				);
 
 				boolean checkWriteAccess = accesses.contains(Access.write);
 				boolean checkReadAccess = accesses.contains(Access.read);
 
 				Map<String, Boolean[]> accessesForRoles = new HashMap<String, Boolean[]>(10);
 
-				for (ActorPermissions perm : userPermissions) {
+				for (ActorPermissions perm: userPermissions) {
 					String roleName = perm.getRoleName();
 
 					if (taskInstanceId.equals(perm.getTaskInstanceId())) {
 						// permission for task instance
 						if (variableIdentifier != null) {
 							// checking permission for variable
-							if (perm.getCanSeeAttachments() != null && perm.getCanSeeAttachments().booleanValue() &&
-									!StringUtil.isEmpty(perm.getCanSeeAttachmentsOfRoleName())) {
+							if (perm.getCanSeeAttachments() != null && perm.getCanSeeAttachments().booleanValue() && !StringUtil.isEmpty(perm.getCanSeeAttachmentsOfRoleName())) {
 								if (variableIdentifier.equals(perm.getVariableIdentifier())) {
 									putAccess(accessesForRoles, Boolean.TRUE, TI_VAR, perm.getCanSeeAttachmentsOfRoleName());
 									break;
@@ -307,8 +323,7 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 				}
 
 				PermissionHandleResult result = null;
-				for (Iterator<Boolean[]> accessesForRolesIterator = accessesForRoles.values().iterator();
-						(accessesForRolesIterator.hasNext() && result == null);) {
+				for (Iterator<Boolean[]> accessesForRolesIterator = accessesForRoles.values().iterator(); (accessesForRolesIterator.hasNext() && result == null);) {
 					Boolean[] accMtrx = accessesForRolesIterator.next();
 
 					Boolean hasTaskInstanceScopeANDVarAccess = accMtrx[TI_VAR];
