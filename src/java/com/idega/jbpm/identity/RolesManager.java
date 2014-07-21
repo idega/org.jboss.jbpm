@@ -154,5 +154,5 @@ public interface RolesManager {
 	public abstract boolean canSeeComments(Long processInstanceId, User user);
 	public abstract boolean canWriteComments(Long processInstanceId, User user);
 
-	public abstract boolean disableAttachmentForAllRoles(Integer fileHash, Long processInstanceId, Long taskInstanceId);
+	public abstract boolean doDisableAttachmentForAllRoles(Integer fileHash, Long processInstanceId, Long taskInstanceId);
 }
