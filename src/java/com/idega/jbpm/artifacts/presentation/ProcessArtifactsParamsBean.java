@@ -24,7 +24,7 @@ public class ProcessArtifactsParamsBean {
 	private boolean nameFromExternalEntity = false;
 	private boolean showUserCompany = false;
 	private boolean showLastLoginDate = false;
-	
+
 	public Integer getPage() {
 		return page;
 	}
@@ -120,5 +120,9 @@ public class ProcessArtifactsParamsBean {
 	}
 	public void setShowLastLoginDate(boolean showLastLoginDate) {
 		this.showLastLoginDate = showLastLoginDate;
+	}
+	@Override
+	public String toString() {
+		return "Page: " + page + ", rows: " + rows + ", sidx: " + sidx + ", sort: " + sord + ", proc. inst. ID: " + piId + ", task ID: " + taskId + ", identifier: " + identifier + ", case ID: " + caseId;
 	}
 }

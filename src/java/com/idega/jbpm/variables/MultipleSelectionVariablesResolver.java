@@ -231,7 +231,6 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		if (start != -1 && end != -1)
 			return value.substring(start + 1, end);
 
-		getLogger().warning("No brackets found in provided value: " + value);
 		return value;
 	}
 }
