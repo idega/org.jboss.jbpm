@@ -209,4 +209,6 @@ public interface ProcessInstanceW {
 
 	public Object getValueForTaskInstance(String taskInstanceName, String variable);
 	public Object getValueForTaskInstance(List<TaskInstanceW> submittedTiWs, String variable);
+
+	public List<ProcessInstance> getSubProcesses();
 }
