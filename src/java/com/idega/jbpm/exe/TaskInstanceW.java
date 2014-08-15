@@ -143,4 +143,6 @@ public interface TaskInstanceW {
 
 	public Map<String, Object> getVariables(Token token);
 
+	public String getPDFName(Locale locale);
+
 }
