@@ -177,6 +177,8 @@ public class ProcessArtifacts {
 
 		GridEntriesBean entries = new GridEntriesBean(processInstanceId);
 
+		boolean showPDFName = iwc.getIWMainApplication().getSettings().getBoolean("bpm.show_pdf_name_in_list", Boolean.FALSE);
+
 		ProcessManager pm = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId);
 		for (BPMDocument submittedDocument : processDocuments) {
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
@@ -204,11 +206,18 @@ public class ProcessArtifacts {
 
 			if (params.getDownloadDocument()) {
 				if (renderableTask) {
-					row.addCell("<img class=\"downloadCaseAsPdfStyle\" src=\"".concat(pdfUri)
-					.concat("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '").concat(String.valueOf(taskInstanceId))
-					.concat("');\" />"));
+					String html = "<img class=\"downloadCaseAsPdfStyle\" src=\"".concat(pdfUri).concat("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '")
+							.concat(String.valueOf(taskInstanceId)).concat("');\" />");
+					if (showPDFName) {
+						html = "<span>" + taskInstance.getPDFName(userLocale) + ": " + html + "</span>";
+					}
+					row.addCell(html);
 				} else if (pdfView) {
-					row.addCell("<img src=\"".concat(pdfUri).concat("\"></img>"));
+					String html = "<img src=\"".concat(pdfUri).concat("\"></img>");
+					if (showPDFName) {
+						html = "<span>" + taskInstance.getPDFName(userLocale) + ": " + html + "</span>";
+					}
+					row.addCell(html);
 				} else {
 					row.addCell("<span onclick=\"return false;\"></span>");
 				}
