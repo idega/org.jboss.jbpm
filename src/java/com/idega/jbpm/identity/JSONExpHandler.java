@@ -1,11 +1,13 @@
 package com.idega.jbpm.identity;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jbpm.graph.exe.ExecutionContext;
 
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.thoughtworks.xstream.XStream;
@@ -58,9 +60,15 @@ public class JSONExpHandler {
 		xstream.alias(identity, Identity.class);
 		xstream.alias(access, Access.class);
 
-		TaskAssignment assignmentExp = (TaskAssignment) xstream.fromXML(expression);
+		try {
+			return (TaskAssignment) xstream.fromXML(expression);
+		} catch (Exception e) {
+			String message = "Error parsing expression into " + TaskAssignment.class.getName() + ". Expression:\n" + expression;
+			LOGGER.log(Level.WARNING, message, e);
+			CoreUtil.sendExceptionNotification(message, e);
+		}
 
-		return assignmentExp;
+		return null;
 	}
 
 	public static TaskAssignment resolveRightsRolesFromJSONExpression(String expression, ExecutionContext context) {

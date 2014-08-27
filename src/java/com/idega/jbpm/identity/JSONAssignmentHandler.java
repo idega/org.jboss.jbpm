@@ -54,7 +54,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 	private static final long serialVersionUID = 8955094455268141204L;
 
 	private static final Logger LOGGER = Logger.getLogger(JSONAssignmentHandler.class.getName());
-	
+
 	@Autowired
 	private BPMFactory bpmFactory;
 
@@ -67,7 +67,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		if (!(assignable instanceof TaskInstance)) {
 			throw new IllegalArgumentException("Only TaskInstance is accepted for assignable");
 		}
-		
+
 		this.executionContext = executionContext;
 		String exp = getExpression();
 		if (StringUtil.isEmpty(exp)) {
@@ -80,7 +80,7 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		if (taskInstance == null) {
 			throw new IllegalArgumentException("TaskInstance (ID: " + tiId + ") is not initialized!");
 		}
-		
+
 		long piId = taskInstance.getProcessInstance().getId();
 		ProcessManager pm = null;
 		try {
@@ -101,9 +101,14 @@ public class JSONAssignmentHandler extends ExpressionAssignmentHandler {
 		TaskInstanceW tiw = pm.getTaskInstance(tiId);
 
 		TaskAssignment ta = JSONExpHandler.resolveRolesFromJSONExpression(exp, executionContext);
+		if (ta == null) {
+			LOGGER.warning(TaskAssignment.class.getName() + " was not resolved from expression:\n" + exp);
+			return;
+		}
+
 		List<Role> roles = ta.getRoles();
 		if (ListUtil.isEmpty(roles)) {
-			Logger.getLogger(getClass().getName()).warning("No roles for task instance: " + taskInstance.getId());
+			LOGGER.warning("No roles for task instance: " + taskInstance.getId());
 			return;
 		}
 
