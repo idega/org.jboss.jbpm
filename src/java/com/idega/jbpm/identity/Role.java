@@ -7,10 +7,10 @@ import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.RoleScope;
 
 /**
- *   
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.16 $
- * 
+ *
  * Last modified: $Date: 2009/05/25 13:44:27 $ by $Author: valdas $
  */
 public class Role {
@@ -24,7 +24,7 @@ public class Role {
 	private List<Identity> identities;
 	/**
 	 * @deprecated not used anymore
-	 * 
+	 *
 	 */
 	@Deprecated
 	private RoleScope scope;
@@ -34,7 +34,7 @@ public class Role {
 	private String userId;
 	private boolean forTaskInstance = false;
 	private Long processInstanceId;
-	
+
 
 	public List<String> getRolesContacts() {
 		return rolesContacts;
@@ -44,15 +44,11 @@ public class Role {
 		this.rolesContacts = rolesContacts;
 	}
 
-	public Role() {	}
-	
 	public Role(String roleName, Access... accesses) {
-		this();
-		
 		this.roleName = roleName;
 		setAccesses(accesses == null ? null : Arrays.asList(accesses));
 	}
-	
+
 	public String getRoleName() {
 		return roleName;
 	}
@@ -60,7 +56,7 @@ public class Role {
 		this.roleName = roleName;
 	}
 	public List<Access> getAccesses() {
-		
+
 		return accesses;
 	}
 	public void setAccesses(List<Access> accesses) {
@@ -90,20 +86,20 @@ public class Role {
 	public void setScope(RoleScope scope) {
 		this.scope = scope;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return getRoleName().hashCode();
 	}
-	
+
 	@Override
 	public boolean equals(Object arg0) {
-		
+
 		if(super.equals(arg0))
 			return true;
-		
+
 		String roleName = arg0 instanceof String ? (String)arg0 : arg0 instanceof Role ? ((Role)arg0).getRoleName() : null;
-		
+
 		return roleName != null && roleName.equals(getRoleName());
 	}
 
@@ -146,5 +142,5 @@ public class Role {
 	public void setRolesComments(List<String> rolesComments) {
 		this.rolesComments = rolesComments;
 	}
-	
+
 }

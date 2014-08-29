@@ -1,8 +1,9 @@
 package com.idega.jbpm.identity.permission;
 
+
 /**
  * @deprecated no more used, redundant
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.2 $
  *

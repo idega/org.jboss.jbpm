@@ -1343,8 +1343,7 @@ public class RolesManagerImpl implements RolesManager {
 
 				for (Actor actor : actors) {
 
-					Role role = new Role();
-					role.setRoleName(actor.getProcessRoleName());
+					Role role = new Role(actor.getProcessRoleName());
 
 					List<ActorPermissions> perms = actor.getActorPermissions();
 

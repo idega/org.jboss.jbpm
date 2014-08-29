@@ -40,9 +40,7 @@ public class AssignAccountToParticipantHandler implements ActionHandler {
 			                + ", roleName: " + roleName);
 		}
 
-		Role role = new Role();
-		role.setRoleName(roleName);
-//		role.setScope(RoleScope.PI);
+		Role role = new Role(roleName);
 
 		ArrayList<Role> roles = new ArrayList<Role>(1);
 		roles.add(role);

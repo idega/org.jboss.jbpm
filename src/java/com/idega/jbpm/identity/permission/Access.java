@@ -1,7 +1,8 @@
 package com.idega.jbpm.identity.permission;
 
+
 /**
- * 
+ *
  * <p>
  * <b>
  * about contactsCanBeSeen, seeContacts accesses </b> (those two are different):
@@ -13,7 +14,7 @@ package com.idega.jbpm.identity.permission;
  * role is considered to be _not_ able to see those specified contacts
  * </p>
  * </p>
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.8 $
  *
