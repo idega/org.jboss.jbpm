@@ -295,8 +295,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		Map<Integer, VariableInstanceInfo> vars = new HashMap<Integer, VariableInstanceInfo>();
 		if (mirrowData) {
 			List<String> notStringVariables = new ArrayList<String>();
-			for (String name : variablesNames) {
-				if (!name.startsWith(VariableInstanceType.STRING.getPrefix())) {
+			for (String name: variablesNames) {
+				if (!name.startsWith(VariableInstanceType.STRING.getPrefix()) && !ProcessDefinitionW.VARIABLE_MANAGER_ROLE_NAME.equals(name)) {
 					notStringVariables.add(name);
 				}
 			}
@@ -396,7 +396,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private VariableInstanceInfo getEmptyVariable(String name) {
-		if (name.startsWith(VariableInstanceType.STRING.getPrefix()) || name.endsWith("officerIsMeterMaid")) {
+		if (name.startsWith(VariableInstanceType.STRING.getPrefix()) || name.endsWith("officerIsMeterMaid") || ProcessDefinitionW.VARIABLE_MANAGER_ROLE_NAME.equals(name)) {
 			return new VariableStringInstance(name, null);
 		} else if (name.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix()) ||
 					name.startsWith(VariableInstanceType.LIST.getPrefix()) ||
@@ -1555,7 +1555,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 			int numberOfColumns = dataSet.length;
 			int startValues = 0;
-			
+
 			Number id = null;
 			String name = null;
 			try {
@@ -2069,12 +2069,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			if (!IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm_index_vars_dynamically", Boolean.TRUE)) {
 				return;
 			}
-			
+
 			if (piId == null) {
 				getLogger().warning("Process instance ID is not provided");
 				return;
 			}
-	
+
 			final List<Variable> variables = getResultList(
 					Variable.QUERY_GET_BY_PROC_INST,
 					Variable.class,
@@ -2084,9 +2084,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				getLogger().warning("Unable to index variables for proc. inst. " + piId + ": no variables found");
 				return;
 			}
-	
+
 			getBpmContext().execute(new JbpmCallback<Boolean>() {
-	
+
 				@Override
 				public Boolean doInJbpm(JbpmContext context) throws JbpmException {
 					FullTextSession indexer = org.hibernate.search.Search.getFullTextSession(context.getSession());
@@ -2094,12 +2094,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					for (Variable variable: variables) {
 						if (variable.getValue() == null)
 							continue;
-	
+
 						Object var = indexer.load(Variable.class, variable.getId());
 						indexer.index(var);
 					}
 					tx.commit();
-	
+
 					return true;
 				}
 			});
