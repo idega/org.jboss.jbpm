@@ -1662,25 +1662,33 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return variables.values();
 	}
 
-	private VariableInstanceInfo getVariable(Number id, String name, Serializable value, String type,
-			Map<Number, VariableByteArrayInstance> variablesToConvert) {
-
+	private VariableInstanceInfo getVariable(
+			Number id,
+			String name,
+			Serializable value,
+			String type,
+			Map<Number, VariableByteArrayInstance> variablesToConvert
+	) {
 		VariableInstanceInfo variable = null;
 		if (value == null) {
 			variable = new VariableDefaultInstance(name, type);
-		} else if (value instanceof String || VariableInstanceType.STRING.getTypeKeys().contains(type)) {
-			variable = id instanceof Number ? new VariableStringInstance(id.longValue(), name, value) :
-				new VariableStringInstance(name, value);
+
+		} else if (value instanceof String || VariableInstanceType.STRING.getTypeKeys().contains(type) || ProcessDefinitionW.VARIABLE_MANAGER_ROLE_NAME.equals(name)) {
+			variable = id instanceof Number ? new VariableStringInstance(id.longValue(), name, value) : new VariableStringInstance(name, value);
+
 		} else if ((value instanceof Long || value instanceof Number) && VariableInstanceType.LONG.getTypeKeys().contains(type)) {
 			variable = new VariableLongInstance(name, ((Number) value).longValue());
+
 		} else if ((value instanceof Double || value instanceof Number) && VariableInstanceType.DOUBLE.getTypeKeys().contains(type)) {
 			variable = new VariableDoubleInstance(name, ((Number) value).doubleValue());
+
 		} else if (value instanceof Timestamp && VariableInstanceType.DATE.getTypeKeys().contains(type)) {
 			variable = new VariableDateInstance(name, (Timestamp) value);
+
 		} else if (value instanceof Date && VariableInstanceType.DATE.getTypeKeys().contains(type)) {
 			variable = new VariableDateInstance(name, new Timestamp(((Date) value).getTime()));
-		} else if (value instanceof Byte[] || VariableInstanceType.BYTE_ARRAY.getTypeKeys().contains(type) ||
-				VariableInstanceType.OBJ_LIST.getTypeKeys().contains(type)) {
+
+		} else if (value instanceof Byte[] || VariableInstanceType.BYTE_ARRAY.getTypeKeys().contains(type) || VariableInstanceType.OBJ_LIST.getTypeKeys().contains(type)) {
 			VariableByteArrayInstance byteVariable = new VariableByteArrayInstance(name, value);
 			variable = byteVariable;
 
@@ -1694,6 +1702,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 		}
 
+		getLogger().info("Created variable " + variable  + "(class: " + variable.getClass().getName() + ") with ID: " + id + ", name: " + name + ", value: " + value + ", type: " + type);
 		return variable;
 	}
 
