@@ -1702,7 +1702,6 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 		}
 
-		getLogger().info("Created variable " + variable  + "(class: " + variable.getClass().getName() + ") with ID: " + id + ", name: " + name + ", value: " + value + ", type: " + type);
 		return variable;
 	}
 
