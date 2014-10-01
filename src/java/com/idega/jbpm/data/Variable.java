@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -41,6 +42,7 @@ import com.idega.util.expression.ELUtil;
 	@NamedQuery(name=Variable.QUERY_GET_BY_NAMES_AND_IDS, query="from Variable v where v.id in (:" + Variable.PARAM_IDS +
 			") and v.name in (:" + Variable.PARAM_NAMES + ") and v.taskInstance is not null order by v.id desc")
 })
+@Cacheable
 public class Variable implements Serializable {
 
 	private static final long serialVersionUID = -8699501352332532101L;

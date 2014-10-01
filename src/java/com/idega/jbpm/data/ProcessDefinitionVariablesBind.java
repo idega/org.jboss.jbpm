@@ -3,6 +3,7 @@ package com.idega.jbpm.data;
 import java.io.Serializable;
 import java.util.Random;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -21,35 +22,36 @@ import org.hibernate.annotations.Index;
 	@NamedQuery(name=ProcessDefinitionVariablesBind.QUERY_SELECT_BY_PROCESS_DEFINITION_NAMES, query="select pdvb from ProcessDefinitionVariablesBind pdvb " +
 			"where pdvb.processDefinition in (:" + ProcessDefinitionVariablesBind.PARAM_PROC_DEF_NAMES + ")")
 })
+@Cacheable
 public class ProcessDefinitionVariablesBind implements Serializable {
 
 	private static final long serialVersionUID = -917116235662898555L;
 
 	public static final String QUERY_SELECT_ALL = "ProcessDefinitionVariablesBind.getAll";
 	public static final String QUERY_SELECT_BY_PROCESS_DEFINITION_NAMES = "ProcessDefinitionVariablesBind.getByProcessDefinitionNames";
-	
+
 	public static final String PARAM_PROC_DEF_NAMES = "processDefinition_parameter";
-	
+
 	private Integer hashCode;
-	
+
 	public ProcessDefinitionVariablesBind() {
 		Random random = new Random();
 		while (hashCode == null || hashCode < 0)
 			hashCode = random.nextInt();
 	}
-	
+
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	@Column(name="id")
 	private Long id;
-	
+
 	@Index(columnNames={"process_definition_name"}, name="bpm_proc_def_vars_index1")
 	@Column(name="process_definition_name")
 	private String processDefinition;
-	
+
 	@Column(name="variable_name")
 	private String variableName;
-	
+
 	@Column(name="variable_type")
 	private String variableType;
 

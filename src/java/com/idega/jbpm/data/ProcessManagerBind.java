@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,19 +17,23 @@ import javax.persistence.Table;
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.2 $
- * 
+ *
  *          Last modified: $Date: 2008/12/04 10:06:54 $ by $Author: civilis $
  */
 @Entity
 @Table(name = "BPM_PROCESS_MANAGERS")
-@NamedQueries( {
+@NamedQueries(
+	{
 		@NamedQuery(name = ProcessManagerBind.getByProcessName, query = "from ProcessManagerBind pm where pm."
 				+ ProcessManagerBind.processNameProp
 				+ " = :"
 				+ ProcessManagerBind.processNameProp),
 		@NamedQuery(name = ProcessManagerBind.getSubprocessesOneLevel, query = "select subPi from "
 				+ "org.jbpm.graph.exe.ProcessInstance subPi inner join subPi.superProcessToken.processInstance superPi "
-				+ "where superPi.id = :"+ProcessManagerBind.processInstanceIdParam) })
+				+ "where superPi.id = :"+ProcessManagerBind.processInstanceIdParam)
+	}
+)
+@Cacheable
 public class ProcessManagerBind implements Serializable {
 
 	// "select subPi from " +
@@ -39,7 +44,7 @@ public class ProcessManagerBind implements Serializable {
 
 	public static final String getByProcessName = "ProcessManagerBind.getByProcessName";
 	public static final String getSubprocessesOneLevel = "ProcessManagerBind.getSubprocessesOneLevel";
-	
+
 	public static final String processInstanceIdParam = "piId";
 	public static final String caseIdParam = "caseId";
 

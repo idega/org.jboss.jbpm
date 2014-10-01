@@ -2,6 +2,7 @@ package com.idega.jbpm.data;
 
 import java.io.Serializable;
 
+import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,6 +34,7 @@ import javax.persistence.Table;
 			@NamedQuery(name=NativeIdentityBind.getByTypesAndProceIdentities, query="select ni from NativeIdentityBind ni, com.idega.jbpm.data.Actor prni where ni."+NativeIdentityBind.actorProperty+" = prni and ni."+NativeIdentityBind.identityTypeProperty+" = :"+NativeIdentityBind.identityTypeProperty+" and prni."+Actor.actorIdProperty+" in (:"+Actor.actorIdProperty+")")
 		}
 )
+@Cacheable
 public class NativeIdentityBind implements Serializable {
 
 	private static final long serialVersionUID = 4739344819567695492L;
