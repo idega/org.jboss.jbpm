@@ -2,6 +2,8 @@ package com.idega.jbpm.data;
 
 
 import java.io.Serializable;
+
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -20,19 +22,20 @@ import javax.persistence.Table;
 @NamedQueries({
 	@NamedQuery(name=AutoloadedProcessDefinition.QUERY_SELECT_ALL, query="from AutoloadedProcessDefinition")
 })
+@Cacheable
 public class AutoloadedProcessDefinition implements Serializable {
-	
+
 	private static final long serialVersionUID = -5964009380377412821L;
 
 	public static final String QUERY_SELECT_ALL = "AutoloadedProcessDefinition.getAll";
-	
+
 	@Id
 	@Column(name="process_definition_name")
     private String processDefinitionName;
-	
+
 	@Column(name="autoloaded_version", nullable=false)
 	private Integer autoloadedVersion;
-	
+
 	@Column(name="is_autodeploy_permitted", nullable=false)
 	private Boolean autodeployPermitted;
 
@@ -55,7 +58,7 @@ public class AutoloadedProcessDefinition implements Serializable {
 	public Boolean getAutodeployPermitted() {
 		return autodeployPermitted != null && autodeployPermitted;
 	}
-	
+
 	public void setAutodeployPermitted(Boolean autodeployPermitted) {
 		this.autodeployPermitted = autodeployPermitted;
 	}

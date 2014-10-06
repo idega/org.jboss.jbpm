@@ -1,6 +1,7 @@
 package com.idega.jbpm.variables.impl;
 
 import com.idega.repository.bean.RepositoryItem;
+import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -20,7 +21,11 @@ public class WebdavBinaryVariableImpl extends BinaryVariableImpl {
 	public WebdavBinaryVariableImpl(RepositoryItem webdavResource) {
 		this.webdavResource = webdavResource;
 		setStorageType(BinaryVariablesHandlerImpl.STORAGE_TYPE);
-		setIdentifier(webdavResource.getPath());
+		String path = webdavResource.getPath();
+		if (path != null && !path.startsWith(CoreConstants.WEBDAV_SERVLET_URI)) {
+			path = CoreConstants.WEBDAV_SERVLET_URI.concat(path);
+		}
+		setIdentifier(path);
 	}
 
 	@Override

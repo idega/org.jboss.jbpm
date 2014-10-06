@@ -209,13 +209,14 @@ public class ProcessArtifacts {
 					String html = "<img class=\"downloadCaseAsPdfStyle\" src=\"".concat(pdfUri).concat("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '")
 							.concat(String.valueOf(taskInstanceId)).concat("');\" />");
 					if (showPDFName) {
-						html = "<span>" + taskInstance.getPDFName(userLocale) + ": " + html + "</span>";
+						html = "<a href=\"javascript:void(0)\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '".concat(String.valueOf(taskInstanceId)).concat("');\">") +
+								html + "<span style=\"padding-left: 5px;\">" + taskInstance.getPDFName(userLocale) + "</span></a>";
 					}
 					row.addCell(html);
 				} else if (pdfView) {
 					String html = "<img src=\"".concat(pdfUri).concat("\"></img>");
 					if (showPDFName) {
-						html = "<span>" + taskInstance.getPDFName(userLocale) + ": " + html + "</span>";
+						html = "<a href=\"javascript:void(0)\"><img src=\"" + pdfUri + "\"><span style=\"padding-left: 5px;\" />" + taskInstance.getPDFName(userLocale) + "</span></a>";
 					}
 					row.addCell(html);
 				} else {
@@ -265,8 +266,9 @@ public class ProcessArtifacts {
 			view.setSubmitted(taskInstance.isSubmitted());
 
 			component = view.getViewForDisplay();
-			if (component instanceof PDFRenderedComponent)
+			if (component instanceof PDFRenderedComponent) {
 				return !((PDFRenderedComponent) component).isPdfViewer();
+			}
 
 			return view.hasViewForDisplay();
 		} catch(Exception e) {}

@@ -2,6 +2,7 @@ package com.idega.jbpm.data;
 
 import java.io.Serializable;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -24,6 +25,7 @@ import org.hibernate.search.annotations.Indexed;
 					+ "AND vb.bytes IS NOT NULL "
 					+ "ORDER BY vb.index")
 })
+@Cacheable
 public class VariableBytes implements Serializable {
 
 	private static final long serialVersionUID = -5044002250556419438L;

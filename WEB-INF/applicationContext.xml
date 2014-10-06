@@ -41,6 +41,7 @@
     
     <!-- Configure MBeans for exposure over JMX -->
 	<bean id="hibernateStatisticsMBean" class="org.hibernate.jmx.StatisticsService">
+		<property name="statisticsEnabled" value="true"/>
 	    <property name="sessionFactory" value="#{entityManagerFactory.sessionFactory}" />
 	</bean>
 

@@ -167,14 +167,19 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	public static VariableInstanceInfo getDefaultVariable(String name) {
 		VariableInstanceInfo info = new VariableInstanceInfo() {
+
 			private static final long serialVersionUID = 4538526463690356958L;
+
+			private Serializable value = null;
 
 			@Override
 			public <T extends Serializable> void setValue(T value) {
+				this.value = value;
 			}
+			@SuppressWarnings("unchecked")
 			@Override
 			public <T extends Serializable> T getValue() {
-				return null;
+				return (T) value;
 			}
 		};
 		info.setName(name);
