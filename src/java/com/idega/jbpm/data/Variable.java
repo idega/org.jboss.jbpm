@@ -21,7 +21,6 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 
-import com.idega.core.persistence.Param;
 import com.idega.jbpm.bean.VariableByteArrayInstance;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.util.ListUtil;
@@ -185,11 +184,8 @@ public class Variable implements Serializable {
 				return (T) realObject;
 
 			BPMDAO bpmDAO = ELUtil.getInstance().getBean("bpmBindsDAO");
-			List<VariableBytes> varBytes = bpmDAO.getResultListByInlineQuery(
-					"from " + VariableBytes.class.getName() + " vb where vb.processFile = :processFile order by vb.index",
-					VariableBytes.class,
-					new Param("processFile", byteArrayValue)
-			);
+			List<VariableBytes> varBytes = bpmDAO
+					.findAllVariableBytesById(byteArrayValue);
 			if (ListUtil.isEmpty(varBytes)) {
 				bytesValue = new ArrayList<byte[]>(0);
 				return null;
