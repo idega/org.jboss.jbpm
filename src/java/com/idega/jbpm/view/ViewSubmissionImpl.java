@@ -5,11 +5,12 @@ import java.util.Map;
 public class ViewSubmissionImpl implements ViewSubmission {
 
 	private Map<String, Object> variables;
-	private Long taskInstanceId;
-	private Long processDefinitionId;
+
+	private Long taskInstanceId, piId, processDefinitionId;
+
 	private Map<String, String> parameters;
-	private String viewId;
-	private String viewType;
+
+	private String viewId, viewType;
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -71,4 +72,15 @@ public class ViewSubmissionImpl implements ViewSubmission {
 	public void setViewType(String viewType) {
 		this.viewType = viewType;
 	}
+
+	@Override
+	public void setProcessInstanceId(Long piId) {
+		this.piId = piId;
+	}
+
+	@Override
+	public Long getProcessInstanceId() {
+		return piId;
+	}
+
 }

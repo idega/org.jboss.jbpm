@@ -30,4 +30,9 @@ public interface ViewSubmission {
 	public abstract String getViewType();
 
 	public abstract void setViewType(String viewType);
+
+	public void setProcessInstanceId(Long piId);
+
+	public Long getProcessInstanceId();
+
 }

@@ -17,6 +17,7 @@ public interface VariablesHandler {
 
 	public abstract void submitVariables(Map<String, Object> variables, long taskInstanceId, boolean validate);
 	public abstract void submitVariables(JbpmContext context, Map<String, Object> variables, long taskInstanceId, boolean validate);
+	public abstract void submitVariables(JbpmContext context, Map<String, Object> variables, long taskInstanceId, Long processInstanceId, boolean validate);
 
 	public abstract Map<String, Object> submitVariablesExplicitly(Map<String, Object> variables, long taskInstanceId);
 

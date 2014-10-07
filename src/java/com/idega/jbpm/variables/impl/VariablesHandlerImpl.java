@@ -17,6 +17,7 @@ import org.jbpm.context.exe.ContextInstance;
 import org.jbpm.context.exe.VariableInstance;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
+import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.def.TaskController;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -283,24 +284,34 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	}
 
 	@Override
-	@Transactional(readOnly = false)
 	public void submitVariables(JbpmContext context, Map<String, Object> variables, long taskInstanceId, boolean validate) {
+		submitVariables(context, variables, taskInstanceId, null, validate);
+	}
+
+	@Override
+	@Transactional(readOnly = false)
+	public void submitVariables(JbpmContext context, Map<String, Object> variables, long taskInstanceId, Long piId, boolean validate) {
 		try {
 			TaskInstance ti = context.getTaskInstance(taskInstanceId);
-			if (ti.hasEnded())
+			if (ti.hasEnded()) {
 				throw new TaskInstanceVariablesException("Task instance has already ended");
+			}
 
-			TaskController tiController = ti.getTask().getTaskController();
+			Task task = ti.getTask();
+			TaskController tiController = task.getTaskController();
 
-			if (tiController == null)
+			if (tiController == null) {
+				LOGGER.warning("No controller is assigned for task: " + task.getId() + ", task instance ID: " + ti.getId() + " - can not submit variables");
 				// this occurs when no controller specified for the task
 				return;
+			}
 
 			@SuppressWarnings("unchecked")
 			List<VariableAccess> variableAccesses = tiController.getVariableAccesses();
 
-			if (variables == null)
+			if (variables == null) {
 				variables = new HashMap<String, Object>();
+			}
 			Set<String> undeclaredVariables = MapUtil.isEmpty(variables) ? new HashSet<String>() : new HashSet<String>(variables.keySet());
 
 			for (VariableAccess variableAccess: variableAccesses) {
@@ -331,7 +342,9 @@ public class VariablesHandlerImpl implements VariablesHandler {
 
 			setVariables(ti, variablesToSubmit);
 
-			doManageVariables(ti.getProcessInstance().getId(), ti.getId(), variables);
+			ProcessInstance pi = piId == null ? ti.getProcessInstance() : null;
+			Long piIdToManage = piId == null ? pi == null ? null : pi.getId() : piId;
+			doManageVariables(piIdToManage, ti.getId(), variables);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error submitting variables " + variables + " for task instance: " + taskInstanceId, e);
 		}
