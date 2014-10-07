@@ -1,6 +1,7 @@
 package com.idega.jbpm.data.dao.impl;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,6 +52,7 @@ import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.Variable;
+import com.idega.jbpm.data.VariableBytes;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.identity.Role;
@@ -990,5 +992,52 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 				new Param("piId", piId),
 				new Param("name", taskName)
 		);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.dao.BPMDAO#findAllVariableBytesById(java.lang.Long)
+	 */
+	@Override
+	public List<VariableBytes> findAllVariableBytesById(Long id) {
+		if (id != null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("SELECT * FROM JBPM_BYTEBLOCK jb ")
+			.append("WHERE jb.BYTES_ IS NOT NULL ")
+			.append("AND jb.PROCESSFILE_ = ")
+			.append(id);
+
+			List<Serializable[]> rows = null;
+			try {
+				rows = SimpleQuerier.executeQuery(sb.toString(), 3);
+			} catch (Exception e) {
+				getLogger().log(Level.WARNING, 
+						"Failed to get VariableBytes by id: '" + id + 
+						"' cause of: ", e);
+			}
+
+			if (!ListUtil.isEmpty(rows)) {
+				List<VariableBytes> result = new ArrayList<VariableBytes>(rows.size());
+				for (Serializable[] row : rows) {
+					if (!(row[0] instanceof BigDecimal) || !(row[2] instanceof BigDecimal)) {
+						continue;
+					}
+					
+					byte[] bytes = (byte[]) row[1];
+					if (bytes == null || bytes.length < 1) {
+						continue;
+					}
+
+					Long processFile = ((BigDecimal) row[0]).longValue();
+					Integer index = ((BigDecimal) row[2]).intValue();
+
+					result.add(new VariableBytes(processFile, bytes, index));
+				}
+
+				return result;
+			}
+		}
+
+		return Collections.emptyList();
 	}
 }

@@ -1,5 +1,6 @@
 package com.idega.jbpm.data.dao;
 
+import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +19,7 @@ import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.data.NativeIdentityBind.IdentityType;
 import com.idega.jbpm.data.ProcessManagerBind;
 import com.idega.jbpm.data.Variable;
+import com.idega.jbpm.data.VariableBytes;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.identity.Role;
 import com.idega.user.data.User;
@@ -144,5 +146,18 @@ public interface BPMDAO extends GenericDao {
 	public List<Long> getSubProcInstIdsByParentProcInstIdAndProcDefName(Long piId, String procDefName);
 
 	public List<Long> getIdsOfFinishedTaskInstancesForTask(Long piId, String taskName);
+
+	/**
+	 * 
+	 * <p>Special method for getting {@link VariableBytes}. Hibernate does not
+	 * fit here because oracle.jdbc.driver.OracleResultSetImpl does not have 
+	 * implementation of {@link ResultSet#getBlob(int)}. This method necessary 
+	 * for systems working with ORACLE database.</p>
+	 * @param id is {@link VariableBytes#getProcessFile()}, 
+	 * not <code>null</code>;
+	 * @return entities by criteria or <code>null</code> on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public List<VariableBytes> findAllVariableBytesById(Long id);
 
 }
