@@ -1011,8 +1011,8 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			try {
 				rows = SimpleQuerier.executeQuery(sb.toString(), 3);
 			} catch (Exception e) {
-				getLogger().log(Level.WARNING, 
-						"Failed to get VariableBytes by id: '" + id + 
+				getLogger().log(Level.WARNING,
+						"Failed to get VariableBytes by id: '" + id +
 						"' cause of: ", e);
 			}
 
@@ -1022,7 +1022,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 					if (!(row[0] instanceof BigDecimal) || !(row[2] instanceof BigDecimal)) {
 						continue;
 					}
-					
+
 					byte[] bytes = (byte[]) row[1];
 					if (bytes == null || bytes.length < 1) {
 						continue;
@@ -1039,5 +1039,14 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		}
 
 		return Collections.emptyList();
+	}
+
+	@Override
+	public List<Long> getTaskInstancesIdsByTokenId(Long tokenId) {
+		if (tokenId == null) {
+			return null;
+		}
+
+		return getResultListByInlineQuery("select ti.id from " + TaskInstance.class.getName() + " ti where ti.token.id = :tokenId", Long.class, new Param("tokenId", tokenId));
 	}
 }
