@@ -606,8 +606,9 @@ public class ProcessArtifacts {
 			}
 
 			Long taskInstanceId = params.getTaskId();
-			if (taskInstanceId == null)
+			if (taskInstanceId == null) {
 				return null;
+			}
 
 			TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
 
@@ -629,7 +630,8 @@ public class ProcessArtifacts {
 			String image = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
 			String errorMessage = iwrb.getLocalizedString(
 			    "unable_to_sign_attachment",
-			    "Sorry, unable to sign selected attachment");
+			    "Sorry, unable to sign selected attachment"
+			);
 
 			String attachmentWindowLabel = null;
 			String attachmentInfoImage = null;
@@ -644,8 +646,9 @@ public class ProcessArtifacts {
 			}
 
 			for (BinaryVariable binaryVariable: binaryVariables) {
-				if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true))
+				if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
 					continue;
+				}
 
 				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 				rows.addRow(row);
@@ -655,8 +658,7 @@ public class ProcessArtifacts {
 				row.addCell(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
 
 				String fileName = binaryVariable.getFileName();
-				row.addCell(new StringBuilder("<a href=\"javascript:void(0)\" rel=\"").append(fileName).append("\">").append(fileName).append("</a>")
-						.toString());
+				row.addCell(new StringBuilder("<a href=\"javascript:void(0)\" rel=\"").append(fileName).append("\">").append(fileName).append("</a>").toString());
 
 				Long fileSize = binaryVariable.getContentLength();
 				row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
@@ -688,11 +690,11 @@ public class ProcessArtifacts {
 			}
 
 			try {
-				if (!ListUtil.isEmpty(rows.getRows())) {
-					return rows.getDocument();
-				} else {
+				if (ListUtil.isEmpty(rows.getRows())) {
 					return null;
 				}
+
+				return rows.getDocument();
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Exception while parsing rows of attachments. Params: " + params, e);
 				return null;
