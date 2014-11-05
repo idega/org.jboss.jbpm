@@ -93,14 +93,15 @@ public class VariablesHandlerImpl implements VariablesHandler {
 	@Override
 	@Transactional(readOnly = false)
 	public Map<String, Object> submitVariablesExplicitly(final Map<String, Object> originalVariables, final long taskInstanceId) {
-		if (MapUtil.isEmpty(originalVariables))
+		if (MapUtil.isEmpty(originalVariables)) {
 			return null;
+		}
 
 		return getIdegaJbpmContext().execute(new JbpmCallback<Map<String, Object>>() {
 
 			@Override
 			public Map<String, Object> doInJbpm(JbpmContext context) throws JbpmException {
-				final Map<String, Object> variables = getBinaryVariablesHandler().storeBinaryVariables(taskInstanceId, originalVariables);
+				Map<String, Object> variables = getBinaryVariablesHandler().storeBinaryVariables(taskInstanceId, originalVariables);
 
 				TaskInstance ti = context.getTaskInstance(taskInstanceId);
 				Token taskInstanceToken = ti.getToken();
@@ -207,7 +208,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 						if (variableAccess.isWritable() && !variableAccess.isReadable()) {
 							// we don't want to show non readable variable, this is backward compatibility, for task instances, that were created
 							// with wrong process definition
-							LOGGER.info("Variable '" + varName + "' is writable but not readable for task instance ID: " + ti.getId());
+							LOGGER.info("Variable '" + varName + "' is writable but not readable for task instance ID: " + ti.getId() + ", removing it from variables list");
 							variables.remove(variableAccess.getVariableName());
 						}
 					}

@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.HttpURL;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +25,13 @@ import org.springframework.stereotype.Service;
 import com.idega.block.process.variables.Variable;
 import com.idega.block.process.variables.VariableDataType;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
+import com.idega.core.business.DefaultSpringBean;
 import com.idega.core.file.util.FileInfo;
 import com.idega.core.file.util.FileURIHandler;
 import com.idega.core.file.util.FileURIHandlerFactory;
+import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.utils.JSONUtil;
 import com.idega.jbpm.variables.BinaryVariable;
@@ -44,6 +46,7 @@ import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
 import com.idega.util.StringHandler;
+import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.expression.ELUtil;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
@@ -55,9 +58,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
  */
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
-
-	private static final Logger LOGGER = Logger.getLogger(BinaryVariablesHandlerImpl.class.getName());
+public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements BinaryVariablesHandler {
 
 	public static final String BPM_UPLOADED_FILES_PATH = JBPMConstants.BPM_PATH + "/attachments/";
 	public static final String STORAGE_TYPE = CoreConstants.REPOSITORY;
@@ -78,31 +79,35 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		JSONUtil json = getBinVarJSONConverter();
 		for (Entry<String, Object> entry: newVars.entrySet()) {
 			Object val = entry.getValue();
-			if (val == null)
+			if (val == null) {
 				continue;
+			}
 
 			String key = entry.getKey();
 			Variable variable = Variable.parseDefaultStringRepresentation(key);
-			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES
-					&& val instanceof Collection<?>) {
+			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
+				if (val instanceof Collection<?>) {
+					@SuppressWarnings("unchecked")
+					Collection<BinaryVariable> binVars = (Collection<BinaryVariable>) val;
+					List<String> binaryVariables = new ArrayList<String>(binVars.size());
 
-				@SuppressWarnings("unchecked")
-				Collection<BinaryVariable> binVars = (Collection<BinaryVariable>) val;
-				List<String> binaryVariables = new ArrayList<String>(binVars.size());
+					for (BinaryVariable binVar: binVars) {
+						binVar.setTaskInstanceId(taskInstanceId);
+						binVar.setVariable(variable);
 
-				for (BinaryVariable binVar: binVars) {
-					binVar.setTaskInstanceId(taskInstanceId);
-					binVar.setVariable(variable);
+						if (!binVar.isPersisted()) {
+							binVar.persist();
+						}
 
-					if (!binVar.isPersisted())
-						binVar.persist();
+						String jsonString = json.convertToJSON(binVar);
+						binaryVariables.add(jsonString);
+					}
 
-					String jsonString = json.convertToJSON(binVar);
-					binaryVariables.add(jsonString);
+					String binVarArrayJSON = json.convertToJSON(binaryVariables);
+					entry.setValue(binVarArrayJSON);
+				} else {
+					getLogger().warning("Do not know how to handle value " + val + " (class: " + val.getClass().getName() + "). Task inst. ID: " + taskInstanceId);
 				}
-
-				String binVarArrayJSON = json.convertToJSON(binaryVariables);
-				entry.setValue(binVarArrayJSON);
 			}
 		}
 
@@ -198,7 +203,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				binaryVariable.setDescription(fileName);
 		} catch (Exception e) {
 			String message = "Exception while storing binary variable. Path: " + path;
-			LOGGER.log(Level.SEVERE, message, e);
+			getLogger().log(Level.SEVERE, message, e);
 			throw new RuntimeException(message, e);
 		}
 	}
@@ -209,7 +214,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			FileUtil.streamToFile(stream, tmp);
 			CoreUtil.sendExceptionNotification("Unable to upload file: " + path.concat(name), error, tmp.exists() ? new File[] {tmp} : null);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error while sending notification about upload failure to " + path + " of " + name, e);
+			getLogger().log(Level.WARNING, "Error while sending notification about upload failure to " + path + " of " + name, e);
 		} finally {
 			IOUtil.close(stream);
 		}
@@ -245,66 +250,110 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		return resolveBinaryVariablesAsList(null, variables);
 	}
 
+	@Autowired
+	private BPMDAO bpmDAO;
+	private BPMDAO getBPMDAO() {
+		if (bpmDAO == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+		return bpmDAO;
+	}
+
+	private List<BinaryVariable> getVariables(String name, Object val, Long tiId) {
+		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
+		JSONUtil json = getBinVarJSONConverter();
+
+		Collection<Object> binVarsInJSON = null;
+		if (val instanceof String) {
+			try {
+				String jsonValue = (String) val;
+				if (jsonValue.startsWith(CoreConstants.CURLY_BRACKET_LEFT)) {
+					binVarsInJSON = json.convertToObject(jsonValue);
+				} else {
+					getLogger().warning("Value '" + val + "' of variable " + name + " is not JSON format, ignorring");
+				}
+			} catch (Exception e) {
+				String message = "Error converting '" + val + "' with " + json.getClass().getName() + " into the object (Collection.class)";
+				getLogger().log(Level.WARNING, message, e);
+				CoreUtil.sendExceptionNotification(message, e);
+			}
+		} else {
+			@SuppressWarnings("unchecked")
+			Collection<Object> f = (Collection<Object>) val;
+			binVarsInJSON = f;
+		}
+
+		if (ListUtil.isEmpty(binVarsInJSON)) {
+			return binaryVars;
+		}
+
+		for (Object binVarJSON: binVarsInJSON) {
+			BinaryVariable binaryVariable = null;
+			if (binVarJSON instanceof String) {
+				try {
+					binaryVariable = (BinaryVariable) json.convertToObject((String) binVarJSON);
+				} catch (StreamException e) {
+					getLogger().log(Level.WARNING, "Exception while parsing binary variable json=" + binVarJSON);
+				}
+			} else if (binVarJSON instanceof BinaryVariable) {
+				binaryVariable = (BinaryVariable) binVarJSON;
+			}
+
+			if (binaryVariable != null) {
+				if (tiId != null) {
+					if (binaryVariable.getTaskInstanceId() == tiId.longValue()) {
+						binaryVars.add(binaryVariable);
+					}
+				} else {
+					binaryVars.add(binaryVariable);
+				}
+			} else {
+				getLogger().log(Level.WARNING, "Null returned from json.convertToObject by json="+ binVarJSON+ ". All json expression = "+ binVarsInJSON);
+			}
+		}
+
+		return binaryVars;
+	}
+
 	@Override
 	public List<BinaryVariable> resolveBinaryVariablesAsList(Long tiId, Map<String, Object> variables) {
 		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
+		Map<String, Boolean> addedVars = new HashMap<String, Boolean>();
 
-		for (Entry<String, Object> entry : variables.entrySet()) {
-			Object val = entry.getValue();
-
-			if (val == null)
-				continue;
-
-			Variable variable = Variable.parseDefaultStringRepresentation(entry.getKey());
-			if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
-				JSONUtil json = getBinVarJSONConverter();
-
-				Collection<Object> binVarsInJSON = null;
-				if (val instanceof String) {
-					try {
-						String jsonValue = (String) val;
-						if (jsonValue.startsWith(CoreConstants.CURLY_BRACKET_LEFT)) {
-							binVarsInJSON = json.convertToObject(jsonValue);
-						} else {
-							LOGGER.warning("Value '" + val + "' of variable " + entry + " is not JSON format, ignorring");
-						}
-					} catch (Exception e) {
-						String message = "Error converting '" + val + "' with " + json.getClass().getName() + " into the object (Collection.class)";
-						LOGGER.log(Level.WARNING, message, e);
-						CoreUtil.sendExceptionNotification(message, e);
-					}
-				} else {
-					@SuppressWarnings("unchecked")
-					Collection<Object> f = (Collection<Object>) val;
-					binVarsInJSON = f;
+		if (!MapUtil.isEmpty(variables)) {
+			for (Entry<String, Object> entry: variables.entrySet()) {
+				Object val = entry.getValue();
+				if (val == null) {
+					continue;
 				}
 
-				if (ListUtil.isEmpty(binVarsInJSON))
-					return binaryVars;
-
-				for (Object binVarJSON: binVarsInJSON) {
-					BinaryVariable binaryVariable = null;
-					if (binVarJSON instanceof String) {
-						try {
-							binaryVariable = (BinaryVariable) json.convertToObject((String) binVarJSON);
-						} catch (StreamException e) {
-							LOGGER.log(Level.WARNING, "Exception while parsing binary variable json=" + binVarJSON);
-						}
-					} else if (binVarJSON instanceof BinaryVariable) {
-						binaryVariable = (BinaryVariable) binVarJSON;
+				Variable variable = Variable.parseDefaultStringRepresentation(entry.getKey());
+				if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
+					List<BinaryVariable> tmp = getVariables(entry.getKey(), val, tiId);
+					if (!ListUtil.isEmpty(tmp)) {
+						addedVars.put(entry.getKey(), Boolean.TRUE);
+						binaryVars.addAll(tmp);
 					}
-					
-					if (binaryVariable != null) {
-						if (tiId != null) {
-							if (binaryVariable.getTaskInstanceId() == tiId.longValue()) {
-								binaryVars.add(binaryVariable);
-							}
-						} else {
-							binaryVars.add(binaryVariable);
-						}
-					} else {
-						LOGGER.log(Level.WARNING, "Null returned from json.convertToObject by json="+ binVarJSON+ ". All json expression = "+
-								binVarsInJSON);
+				}
+			}
+		}
+
+		if (getApplication().getSettings().getBoolean("bpm.bin_vars_load_for_task", Boolean.FALSE)) {
+			List<com.idega.jbpm.data.Variable> vars = getBPMDAO().getResultListByInlineQuery(
+					"select v from " + com.idega.jbpm.data.Variable.class.getName() + " v where v.taskInstance = :tiId and v.classType = 'S' and v.name like 'file%'",
+					com.idega.jbpm.data.Variable.class,
+					new Param("tiId", tiId)
+			);
+			if (!ListUtil.isEmpty(vars)) {
+				for (com.idega.jbpm.data.Variable var: vars) {
+					if (addedVars.containsKey(var.getName())) {
+						continue;
+					}
+
+					List<BinaryVariable> tmp = getVariables(var.getName(), var.getValue(), tiId);
+					if (!ListUtil.isEmpty(tmp)) {
+						addedVars.put(var.getName(), Boolean.TRUE);
+						binaryVars.addAll(tmp);
 					}
 				}
 			}
@@ -321,7 +370,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 		try {
 			return URLDecoder.decode(uri, CoreConstants.ENCODING_UTF8);
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.log(Level.WARNING, "Error while decoding: " + uri, e);
+			getLogger().log(Level.WARNING, "Error while decoding: " + uri, e);
 		}
 
 		return null;
@@ -342,17 +391,17 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				String decodedFileUri = getDecodedUri(fileUri);
 				stream = repository.getInputStreamAsRoot(decodedFileUri);
 				if (stream == null) {
-					LOGGER.warning("Input stream can not be opened to: " + fileUri + " nor to decoded path: " + decodedFileUri +
+					getLogger().warning("Input stream can not be opened to: " + fileUri + " nor to decoded path: " + decodedFileUri +
 							". Will try to retrieve resource via HTTP(S)");
 
 					RepositoryItem res = null;
 					try {
 						res = repository.getRepositoryItemAsRootUser(fileUri);
 					} catch (Exception e) {
-						LOGGER.log(Level.WARNING, "Error getting resource via HTTP: " + fileUri, e);
+						getLogger().log(Level.WARNING, "Error getting resource via HTTP: " + fileUri, e);
 					}
 					if (res == null || !res.exists()) {
-						LOGGER.warning("Unable to load resource '" + fileUri + "' from repository via HTTP");
+						getLogger().warning("Unable to load resource '" + fileUri + "' from repository via HTTP");
 					} else {
 						stream = repository.getInputStreamAsRoot(res.getPath());
 					}
@@ -361,19 +410,19 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			if (stream == null) {
 				RepositoryItem attachment = getResource(variable, repository);
 				if (attachment == null) {
-					LOGGER.warning("Unable to get persistent object for " + fileUri);
+					getLogger().warning("Unable to get persistent object for " + fileUri);
 				} else {
-					LOGGER.info("Resolved persistent object for resource: " + fileUri);
+					getLogger().info("Resolved persistent object for resource: " + fileUri);
 					try {
 						stream = attachment.getInputStream();
 					} catch (Exception e) {
-						LOGGER.log(Level.WARNING, "Error getting input stream for: " + attachment.getPath(), e);
+						getLogger().log(Level.WARNING, "Error getting input stream for: " + attachment.getPath(), e);
 					}
 					if (stream == null) {
 						try {
 							stream = repository.getInputStreamAsRoot(attachment.getPath());
 						} catch (Exception e) {
-							LOGGER.log(Level.WARNING, "Error getting input stream for: " + attachment.getPath(), e);
+							getLogger().log(Level.WARNING, "Error getting input stream for: " + attachment.getPath(), e);
 						}
 					}
 				}
@@ -384,7 +433,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				if (tmp != null && tmp.exists() && tmp.canRead())
 					stream = new FileInputStream(tmp);
 				else
-					LOGGER.warning("Unable to get file " + fileUri + " from files system. " + tmp == null ?
+					getLogger().warning("Unable to get file " + fileUri + " from files system. " + tmp == null ?
 							"It (" + fileUri + ") does not exist" :
 							"It (" + tmp + ") either does not exist (" +!tmp.exists() + " or is not readable (" + !tmp.canRead() + "))");
 			}
@@ -393,17 +442,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				stream = getFromURL(repository, fileUri);
 
 			if (stream == null)
-				LOGGER.severe("Unable to get input stream for resource: " + fileUri);
+				getLogger().severe("Unable to get input stream for resource: " + fileUri);
 			return stream;
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
+			getLogger().log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
 			return null;
 		}
-	}
-
-	private RepositoryService getRepositoryService() {
-		RepositoryService repository = ELUtil.getInstance().getBean(RepositoryService.BEAN_NAME);
-		return repository;
 	}
 
 	private InputStream getFromURL(RepositoryService repository, String fileUri) {
@@ -421,13 +465,13 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			URL url = new URL(link);
 			return url.openStream();
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error getting input stream via URL: " + link, e);
+			getLogger().log(Level.SEVERE, "Error getting input stream via URL: " + link, e);
 		}
 		return null;
 	}
 
 	private RepositoryItem getResource(BinaryVariable variable, RepositoryService repository) {
-		LOGGER.warning("No resource found for path provided: " + variable.getIdentifier() + ". Will try to remove non-Latin letters to resolve the resource");
+		getLogger().warning("No resource found for path provided: " + variable.getIdentifier() + ". Will try to remove non-Latin letters to resolve the resource");
 
 		RepositoryItem res = null;
 		try {
@@ -436,12 +480,12 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			String folder = variable.getIdentifier().substring(0, variable.getIdentifier().lastIndexOf(CoreConstants.SLASH));
 			RepositoryItem attachmentFolder = repository.getRepositoryItemAsRootUser(folder);
 			if (attachmentFolder == null || !attachmentFolder.exists()) {
-				LOGGER.warning("Folder '" + folder + "' does not exist!");
+				getLogger().warning("Folder '" + folder + "' does not exist!");
 				return null;
 			}
 			Collection<RepositoryItem> files = attachmentFolder.getChildResources();
 			if (ListUtil.isEmpty(files)) {
-				LOGGER.warning("No files found in the folder: " + folder);
+				getLogger().warning("No files found in the folder: " + folder);
 				return null;
 			}
 
@@ -466,11 +510,11 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 				}
 			}
 			if (!resourceFound) {
-				LOGGER.warning("Unable to find resource '" + variable.getIdentifier() + "' in the folder: " + files);
+				getLogger().warning("Unable to find resource '" + variable.getIdentifier() + "' in the folder: " + files);
 				res = null;
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Unable to resolve resource for: " + variable.getIdentifier(), e);
+			getLogger().log(Level.SEVERE, "Unable to resolve resource for: " + variable.getIdentifier(), e);
 		}
 
 		return res;
@@ -488,7 +532,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 			try {
 				res = repository.getRepositoryItemAsRootUser(variable.getIdentifier());
 			} catch (Exception e) {
-				LOGGER.log(Level.WARNING, "Unable to get persistent object for resource: " + variable.getIdentifier(), e);
+				getLogger().log(Level.WARNING, "Unable to get persistent object for resource: " + variable.getIdentifier(), e);
 			}
 			if (res != null && res.exists())
 				return res;
@@ -497,7 +541,7 @@ public class BinaryVariablesHandlerImpl implements BinaryVariablesHandler {
 
 			return res;
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
+			getLogger().log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
 		}
 
 		return null;
