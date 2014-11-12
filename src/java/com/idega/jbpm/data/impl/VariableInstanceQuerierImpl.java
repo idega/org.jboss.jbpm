@@ -670,14 +670,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
 	private String getColumnAndValueExpression(String columnName, Serializable value, String searchSymbol, boolean flexible) {
-		if (value == null)
+		if (value == null) {
 			return null;
+		}
 
 		StringBuilder expression = new StringBuilder();
 		boolean searchExpression = flexible && !StringUtil.isEmpty(searchSymbol);
 
-		if (!searchExpression)
+		if (!searchExpression) {
 			searchSymbol = CoreConstants.EQ;
+		}
 
 		if (value instanceof String) {
 			expression.append(searchExpression ? " lower(" : CoreConstants.EMPTY)
@@ -1148,8 +1150,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				if (values instanceof Collection<?>	&& (
 						variableName.startsWith(VariableInstanceType.LIST.getPrefix()) ||
 						variableName.startsWith(VariableInstanceType.BYTE_ARRAY.getPrefix()) ||
-						variableName.startsWith(VariableInstanceType.OBJ_LIST.getPrefix()))) {
-
+						variableName.startsWith(VariableInstanceType.OBJ_LIST.getPrefix()))
+				) {
 					//	Binary data, need specific handling
 					Map<Long, BinaryVariableData> binaryData = getDataByVariablesByNameAndValuesAndProcessDefinitions(variableName, procDefNames,
 							queryPart.getValues(), procInstIds);
@@ -1226,8 +1228,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					}
 				} else {
 					//	Single value
-					valuesToSelect.append(getColumnAndValueExpression(currentColumnName, values.get(0), queryPart.getSearchExpression(),
-							queryPart.isFlexible()));
+					valuesToSelect.append(getColumnAndValueExpression(currentColumnName, values.get(0), queryPart.getSearchExpression(), queryPart.isFlexible()));
 				}
 
 				valuesToSelect.append(" and ").append(currentColumnPrefix).append(".name_ = '").append(variableName).append("' ");
