@@ -807,7 +807,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		}
 
 		return getResultListByInlineQuery(
-				"FROM " + ProcessInstance.class.getName() + " pi, " +
+				"SELECT pi FROM " + ProcessInstance.class.getName() + " pi, " +
 				ProcessDefinition.class.getName() + " pd " +
 				"WHERE pi.processDefinition = pd.id " +
 				"AND pd.name = :processDefinitionNames",
