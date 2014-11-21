@@ -81,20 +81,34 @@ public class BPMFactoryImpl implements BPMFactory {
 	@Override
 	@Transactional(readOnly = false)
 	public View takeView(final long taskInstanceId, final boolean submitable, final List<String> preferredTypes) {
-		return getBpmContext().execute(new JbpmCallback<View>() {
+		try {
+			return getBpmContext().execute(new JbpmCallback<View>() {
 
-			@Override
-			public View doInJbpm(JbpmContext context) throws JbpmException {
-				TaskInstance ti = context.getTaskInstance(taskInstanceId);
+				@Override
+				public View doInJbpm(JbpmContext context) throws JbpmException {
+					TaskInstance ti = context.getTaskInstance(taskInstanceId);
+					if (ti == null) {
+						throw new NullPointerException("Unable to get task instance by ID: " + taskInstanceId);
+					}
 
-				View view = getViewByTask(ti.getTask().getId(), submitable, preferredTypes);
-				if (view != null) {
-					takeView(view, ti);
+					Task task = ti.getTask();
+					if (task == null) {
+						throw new NullPointerException("Unable to get task from task instance with ID: " + taskInstanceId);
+					}
+
+					View view = getViewByTask(task.getId(), submitable, preferredTypes);
+					if (view != null) {
+						takeView(view, ti);
+					}
+
+					return view;
 				}
-
-				return view;
-			}
-		});
+			});
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error taking view for task inst. with ID: " + taskInstanceId + ", submitable: " +
+					submitable + ", types: " + preferredTypes, e);
+		}
+		return null;
 	}
 
 	protected void takeView(View view, TaskInstance ti) {
@@ -106,13 +120,14 @@ public class BPMFactoryImpl implements BPMFactory {
 		}
 	}
 
+	@Override
 	public void takeViews(JbpmContext context, Task task, TaskInstance ti) {
 		List<View> views = getViewsByTask(task.getId(), false);
 		for (View view: views) {
 			takeView(view, ti);
 		}
 	}
-	
+
 	@Override
 	@Transactional(readOnly = false)
 	public void takeViews(final long taskInstanceId) {
@@ -366,17 +381,17 @@ public class BPMFactoryImpl implements BPMFactory {
 		if (processInstanceId < 0) {
 			LOGGER.warning("Invalid proc. inst. ID: " + processInstanceId);
 		}
-		
+
 		ProcessInstance processInstance = context.getProcessInstance(processInstanceId);
 		if (processInstance == null) {
 			LOGGER.warning("Proc. inst. was not loaded from context by ID: " + processInstanceId + ", will try to load it from DB");
 			processInstance = getBPMDAO().find(ProcessInstance.class, processInstanceId);
 		}
-		
+
 		if (processInstance == null) {
 			throw new RuntimeException("Proc. inst. can not be loaded by ID: " + processInstanceId);
 		}
-		
+
 		long pdId = processInstance.getProcessDefinition().getId();
 		return getProcessManager(pdId);
 	}
