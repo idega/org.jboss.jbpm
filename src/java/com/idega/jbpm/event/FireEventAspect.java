@@ -59,12 +59,14 @@ public class FireEventAspect {
 					@Override
 					public Void doInJbpm(JbpmContext context) throws JbpmException {
 						TaskInstance taskInstance = context.getTaskInstance(((TaskInstanceW) jpThis).getTaskInstanceId());
-						Task startTask = taskInstance.getTaskMgmtInstance().getTaskMgmtDefinition().getStartTask();
+						if (taskInstance != null) {
+							Task startTask = taskInstance.getTaskMgmtInstance().getTaskMgmtDefinition().getStartTask();
 
-						if (!taskInstance.getTask().equals(startTask)) {
-							//	Firing event only for task submit for non start task submit
-							final Token tkn = taskInstance.getToken();
-							fireEvent(tkn, context);
+							if (!taskInstance.getTask().equals(startTask)) {
+								//	Firing event only for task submit for non start task submit
+								final Token tkn = taskInstance.getToken();
+								fireEvent(tkn, context);
+							}
 						}
 						return null;
 					}

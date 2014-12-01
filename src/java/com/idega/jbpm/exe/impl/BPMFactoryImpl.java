@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.data.SimpleQuerier;
+import com.idega.hibernate.HibernateUtil;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.ProcessManagerBind;
@@ -87,13 +88,27 @@ public class BPMFactoryImpl implements BPMFactory {
 				@Override
 				public View doInJbpm(JbpmContext context) throws JbpmException {
 					TaskInstance ti = context.getTaskInstance(taskInstanceId);
+					boolean initialize = false;
 					if (ti == null) {
-						throw new NullPointerException("Unable to get task instance by ID: " + taskInstanceId);
+						ti = getBPMDAO().getSingleResultByInlineQuery(
+								"from " + TaskInstance.class.getName() + " ti where ti.id = " + taskInstanceId,
+								TaskInstance.class
+						);
+						initialize = ti != null;
+					}
+					if (ti == null) {
+						LOGGER.warning("Unable to get task instance by ID: " + taskInstanceId);
+						return null;
 					}
 
 					Task task = ti.getTask();
 					if (task == null) {
-						throw new NullPointerException("Unable to get task from task instance with ID: " + taskInstanceId);
+						LOGGER.warning("Unable to get task from task instance with ID: " + taskInstanceId);
+						return null;
+					}
+
+					if (initialize) {
+						task = HibernateUtil.getInstance().initializeAndUnproxy(task);
 					}
 
 					View view = getViewByTask(task.getId(), submitable, preferredTypes);
@@ -148,46 +163,37 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	@Transactional(readOnly = true)
-	public View getViewByTask(long taskId, boolean submitable,
-	        List<String> preferredTypes) {
-
+	public View getViewByTask(long taskId, boolean submitable, List<String> preferredTypes) {
 		List<ViewTaskBind> binds = getBPMDAO().getViewTaskBindsByTaskId(taskId);
 
 		if (binds == null || binds.isEmpty()) {
-			Logger.getLogger(BPMFactory.class.getName()).log(Level.WARNING,
-			    "No view task bindings resolved for task. Task id: " + taskId);
+			LOGGER.warning("No view task bindings resolved for task. Task id: " + taskId);
 			return null;
 		}
 
-		ViewTaskBind viewTaskBind = getPreferredViewTaskBind(binds,
-		    preferredTypes);
+		ViewTaskBind viewTaskBind = getPreferredViewTaskBind(binds, preferredTypes);
 		String viewType = viewTaskBind.getViewType();
 
 		ViewFactory viewFactory = getViewFactory(viewType);
-		return viewFactory
-		        .getView(viewTaskBind.getViewIdentifier(), submitable);
+		return viewFactory.getView(viewTaskBind.getViewIdentifier(), submitable);
 	}
 
 	@Transactional(readOnly = true)
 	public List<View> getViewsByTask(long taskId, boolean submitable) {
-
 		List<ViewTaskBind> binds = getBPMDAO().getViewTaskBindsByTaskId(taskId);
 
 		if (ListUtil.isEmpty(binds)) {
-			Logger.getLogger(BPMFactory.class.getName()).log(Level.WARNING,
-			    "No view task bindings resolved for task. Task id: " + taskId);
+			LOGGER.warning("No view task bindings resolved for task. Task id: " + taskId);
 			return Collections.emptyList();
 		}
 
 		ArrayList<View> views = new ArrayList<View>(binds.size());
 
 		for (ViewTaskBind viewTaskBind : binds) {
-
 			String viewType = viewTaskBind.getViewType();
 
 			ViewFactory viewFactory = getViewFactory(viewType);
-			View view = viewFactory.getView(viewTaskBind.getViewIdentifier(),
-			    submitable);
+			View view = viewFactory.getView(viewTaskBind.getViewIdentifier(), submitable);
 
 			views.add(view);
 		}

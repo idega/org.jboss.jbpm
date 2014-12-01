@@ -39,14 +39,12 @@ public interface ProcessInstanceW {
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
 	        Locale locale);
 
-	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
-	        Locale locale, boolean doShowExternalEntity);
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable);
 
 	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
 	        Locale locale);
 
-	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
-	        Locale locale, boolean doShowExternalEntity);
+	public abstract List<BPMDocument> getTaskDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity);
 
 	/**
 	 * @param rootToken

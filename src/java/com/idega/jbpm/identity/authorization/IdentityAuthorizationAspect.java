@@ -1,5 +1,6 @@
 package com.idega.jbpm.identity.authorization;
 
+import java.security.AccessControlException;
 import java.security.Permission;
 
 import org.aspectj.lang.JoinPoint;
@@ -63,6 +64,10 @@ public class IdentityAuthorizationAspect {
 			@Override
 			public Void doInJbpm(JbpmContext context) throws JbpmException {
 				TaskInstance taskInstance = tiw.getTaskInstance(context);
+				if (taskInstance == null) {
+					throw new AccessControlException("Task instance (ID: " + tiw.getTaskInstanceId() + ") can not be loaded");
+				}
+
 				Permission permission;
 				if (taskInstance.hasEnded()) {
 					permission = getPermissionsFactory().getTaskInstanceViewPermission(false, taskInstance);
