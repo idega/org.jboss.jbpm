@@ -408,6 +408,8 @@ public class ProcessArtifacts {
 	}
 
 	public GridEntriesBean getProcessDocumentsList(ProcessArtifactsParamsBean params) {
+		long start = System.currentTimeMillis();
+		try {
 		Long processInstanceId = params.getPiId();
 
 		if (processInstanceId == null || processInstanceId < 0) {
@@ -437,9 +439,14 @@ public class ProcessArtifacts {
 		Collection<BPMDocument> processDocuments = pi.getSubmittedDocumentsForUser(loggedInUser, userLocale, params.isNameFromExternalEntity(), params.getAllowPDFSigning());
 
 		return getDocumentsListDocument(iwc, processDocuments, processInstanceId, params);
+		} finally {
+			LOGGER.info("DOCUMENTS DOCUMENTS DOCUMENTS: it took " + (System.currentTimeMillis() - start) + " ms to get documents for params: " + params);	//	TODO
+		}
 	}
 
 	public Document getProcessTasksList(ProcessArtifactsParamsBean params) {
+		long start = System.currentTimeMillis();
+		try {
 		Long processInstanceId = params.getPiId();
 
 		if (processInstanceId == null || processInstanceId < 0)
@@ -547,6 +554,9 @@ public class ProcessArtifacts {
 			LOGGER.log(Level.SEVERE, "Exception while parsing rows: " + rows, e);
 			return null;
 		}
+		} finally {
+			LOGGER.info("TASKS TASKS TASKS: it took " + (System.currentTimeMillis() - start) + " ms to get tasks for params: " + params);	//	TODO
+		}
 	}
 
 	private void addMessageIfNoContentExists(ProcessArtifactsListRows rows,
@@ -598,6 +608,8 @@ public class ProcessArtifacts {
 	private ReentrantLock lock = new ReentrantLock();
 
 	public Document getTaskAttachments(ProcessArtifactsParamsBean params) {
+		long start = System.currentTimeMillis();
+		try {
 		lock.lock();
 		try {
 			if (params == null) {
@@ -707,6 +719,9 @@ public class ProcessArtifacts {
 				lock.unlock();
 			}
 		}
+		} finally {
+			LOGGER.info("ATTACHMENTS ATTACHMENTS ATTACHMENTS: it took " + (System.currentTimeMillis() - start) + " ms to get attachments for params: " + params);	//	TODO
+		}
 	}
 
 	private String getAttachmentInfoWindowLink(
@@ -769,6 +784,8 @@ public class ProcessArtifacts {
 	}
 
 	public Document getProcessEmailsList(ProcessArtifactsParamsBean params) {
+		long start = System.currentTimeMillis();
+		try {
 		Long processInstanceId = params.getPiId();
 
 		if (processInstanceId == null || processInstanceId < 0)
@@ -793,8 +810,12 @@ public class ProcessArtifacts {
 				LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
 				return null;
 			}
-		} else
+		} else {
 			return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger(), loggedInUser);
+		}
+		} finally {
+			LOGGER.info("EMAILS EMAILS EMAILS: it took " + (System.currentTimeMillis() - start) + " ms to get emails for params: " + params);	//	TODO
+		}
 	}
 
 	public Collection<User> getUsersConnectedToProces(ProcessInstanceW piW) {
@@ -806,6 +827,8 @@ public class ProcessArtifacts {
 	}
 
 	public Document getProcessContactsList(ProcessArtifactsParamsBean params) {
+		long start = System.currentTimeMillis();
+		try {
 		if (params == null) {
 			return null;
 		}
@@ -911,6 +934,9 @@ public class ProcessArtifacts {
 		}
 
 		return null;
+		} finally {
+			LOGGER.info("CONTACTS CONTACTS CONTACTS: it took " + (System.currentTimeMillis() - start) + " ms to get contacts for params: " + params);	//	TODO
+		}
 	}
 
 	private String getUserImage(IWBundle bundle, User user) {
@@ -1802,4 +1828,5 @@ public class ProcessArtifacts {
 
 		return setting.getBoolean("do_show_suggestion_for_saving", Boolean.FALSE);
 	}
+
 }

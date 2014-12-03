@@ -120,6 +120,7 @@ public interface TaskInstanceW {
 	 */
 	public abstract void setProcessManager(ProcessManager processManager);
 
+	public abstract ProcessInstanceW getProcessInstanceW(JbpmContext context);
 	public abstract ProcessInstanceW getProcessInstanceW();
 
 	public void setTaskPermissionsForActors(
