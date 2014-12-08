@@ -18,8 +18,10 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 
 import com.idega.jbpm.bean.VariableByteArrayInstance;
@@ -94,6 +96,7 @@ public class Variable implements Serializable {
 
 	@Column(name = "DATEVALUE_")
 	@Field(store=Store.YES)
+	@DateBridge(resolution=Resolution.MILLISECOND)
 	private Timestamp dateValue;
 
 	@Column(name = "BYTEARRAYVALUE_")
