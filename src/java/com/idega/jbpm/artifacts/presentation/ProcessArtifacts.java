@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -100,6 +101,7 @@ import com.idega.util.SendMail;
 import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
+import com.idega.util.WebUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
@@ -143,6 +145,22 @@ public class ProcessArtifacts {
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
 
+	@Autowired
+	private WebUtil webUtil = null;
+
+	protected WebUtil getWebUtil() {
+		if (this.webUtil == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+
+		return this.webUtil;
+	}
+
+	protected String localize(String key, String value) {
+		return getWebUtil().getLocalizedString(
+				IWBundleStarter.IW_BUNDLE_IDENTIFIER, key, value);
+	}
+
 	private GeneralCompanyBusiness getGeneralCompanyBusiness() {
 		if (generalCompanyBusiness == null) {
 			try {
@@ -154,6 +172,24 @@ public class ProcessArtifacts {
 		return generalCompanyBusiness;
 	}
 
+	protected List<AdvancedProperty> getSorted(List<AdvancedProperty> list) {
+		Collections.sort(list, new Comparator<AdvancedProperty>() {
+
+			@Override
+			public int compare(AdvancedProperty o1, AdvancedProperty o2) {
+				if (o1 == null) {
+					return -1;
+				} else if (o2 == null) {
+					return 1;
+				} else {
+					return o1.getValue().compareTo(o2.getValue());
+				}
+			}
+		});
+
+		return list;
+	}
+	
 	private GridEntriesBean getDocumentsListDocument(
 			IWContext iwc,
 			Collection<BPMDocument> processDocuments,
@@ -1647,15 +1683,10 @@ public class ProcessArtifacts {
 		if (iwc == null) {
 			return null;
 		}
-
-		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-		AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, iwrb.getLocalizedString("bpm.selectCaseHandler", "Select handler"));
-		allHandlers.add(ap);
-
+		
 		for (User handler: handlers) {
 			String pk = String.valueOf(handler.getPrimaryKey());
-			ap = new AdvancedProperty(pk, handler.getName());
+			AdvancedProperty ap = new AdvancedProperty(pk, handler.getName());
 			if (pk.equals(assignedCaseHandlerIdStr)) {
 				ap.setSelected(true);
 			}
@@ -1663,6 +1694,11 @@ public class ProcessArtifacts {
 			allHandlers.add(ap);
 		}
 
+		allHandlers = getSorted(allHandlers);
+
+		AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, 
+				localize("bpm.selectCaseHandler", "Select handler"));
+		allHandlers.add(0, ap);
 		return allHandlers;
 	}
 
