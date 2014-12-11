@@ -1657,7 +1657,9 @@ public class ProcessArtifacts {
 		sender.start();
 	}
 
-	public List<AdvancedProperty> getAllHandlerUsers(Long processInstanceId) {
+	public List<AdvancedProperty> getAllHandlerUsers(
+			Long processInstanceId, 
+			List<String> excludedUserIds) {
 		if (processInstanceId == null || processInstanceId < 0) {
 			return Collections.emptyList();
 		}
@@ -1683,15 +1685,19 @@ public class ProcessArtifacts {
 		if (iwc == null) {
 			return null;
 		}
-		
+
 		for (User handler: handlers) {
 			String pk = String.valueOf(handler.getPrimaryKey());
-			AdvancedProperty ap = new AdvancedProperty(pk, handler.getName());
-			if (pk.equals(assignedCaseHandlerIdStr)) {
-				ap.setSelected(true);
-			}
+			if (ListUtil.isEmpty(excludedUserIds) || !excludedUserIds.contains(pk)) {
+				AdvancedProperty ap = new AdvancedProperty(pk, handler.getName());
+				if (pk.equals(assignedCaseHandlerIdStr)) {
+					ap.setSelected(true);
+				}
 
-			allHandlers.add(ap);
+				allHandlers.add(ap);
+			} else {
+				LOGGER.info("Handler by name: '" + handler.getName() + "' is removed from the list!");
+			}
 		}
 
 		allHandlers = getSorted(allHandlers);
@@ -1700,6 +1706,10 @@ public class ProcessArtifacts {
 				localize("bpm.selectCaseHandler", "Select handler"));
 		allHandlers.add(0, ap);
 		return allHandlers;
+	}
+
+	public List<AdvancedProperty> getAllHandlerUsers(Long processInstanceId) {
+		return getAllHandlerUsers(processInstanceId, null);
 	}
 
 	private String getAssignedToYouLocalizedString(IWResourceBundle iwrb) {
