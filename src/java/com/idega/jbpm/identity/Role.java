@@ -44,7 +44,13 @@ public class Role {
 		this.rolesContacts = rolesContacts;
 	}
 
+	public Role() {
+		super();
+	}
+
 	public Role(String roleName, Access... accesses) {
+		this();
+
 		this.roleName = roleName;
 		setAccesses(accesses == null ? null : Arrays.asList(accesses));
 	}
