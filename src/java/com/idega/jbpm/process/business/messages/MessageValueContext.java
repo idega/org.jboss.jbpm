@@ -17,6 +17,7 @@ public class MessageValueContext {
 	public static final TypeRef tokenBean = new TypeRef("bean", "token");
 	public static final TypeRef piwBean = new TypeRef("bean", "piw");
 	public static final TypeRef iwcBean = new TypeRef("bean", "iwc");
+	public static final TypeRef caseBean = new TypeRef("bean", "case");
 
 	private final HashMap<TypeRef, Object> ctx;
 
@@ -56,9 +57,7 @@ public class MessageValueContext {
 	}
 
 	public Map<String, Object> getScriptInputMap(String typeQualifier) {
-
-		HashMap<String, Object> scriptInputs = new HashMap<String, Object>(ctx
-		        .size());
+		HashMap<String, Object> scriptInputs = new HashMap<String, Object>(ctx .size());
 
 		for (Entry<TypeRef, Object> entry : ctx.entrySet()) {
 
