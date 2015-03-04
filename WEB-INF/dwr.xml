@@ -26,6 +26,7 @@
             <include method="isTaskSubmitted" />
             <include method="doShowSuggestionForSaving" />
             <include method="getHomepageLinkAndLocalizedString" />
+            <include method="getVariableValue" />
         </create>
         
         <convert converter="bean" match="com.idega.jbpm.artifacts.presentation.GridEntriesBean">

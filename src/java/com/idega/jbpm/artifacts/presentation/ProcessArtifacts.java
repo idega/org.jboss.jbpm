@@ -189,7 +189,7 @@ public class ProcessArtifacts {
 
 		return list;
 	}
-	
+
 	private GridEntriesBean getDocumentsListDocument(
 			IWContext iwc,
 			Collection<BPMDocument> processDocuments,
@@ -1658,7 +1658,7 @@ public class ProcessArtifacts {
 	}
 
 	public List<AdvancedProperty> getAllHandlerUsers(
-			Long processInstanceId, 
+			Long processInstanceId,
 			List<String> excludedUserIds) {
 		if (processInstanceId == null || processInstanceId < 0) {
 			return Collections.emptyList();
@@ -1702,7 +1702,7 @@ public class ProcessArtifacts {
 
 		allHandlers = getSorted(allHandlers);
 
-		AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY, 
+		AdvancedProperty ap = new AdvancedProperty(CoreConstants.EMPTY,
 				localize("bpm.selectCaseHandler", "Select handler"));
 		allHandlers.add(0, ap);
 		return allHandlers;
@@ -1873,6 +1873,36 @@ public class ProcessArtifacts {
 		}
 
 		return setting.getBoolean("do_show_suggestion_for_saving", Boolean.FALSE);
+	}
+
+	public String getVariableValue(Long tiId, String variableName) {
+		if (tiId == null || StringUtil.isEmpty(variableName)) {
+			return null;
+		}
+
+		IWContext iwc = getIWContext(true);
+		if (iwc == null) {
+			return null;
+		}
+
+		TaskInstanceW tiW = null;
+
+		Object variable = null;
+		try {
+			tiW = getBpmFactory().getProcessManagerByTaskInstanceId(tiId).getTaskInstance(tiId);
+			variable = tiW.getVariable(variableName);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting value for variable " + variableName + " and task instance " + tiId, e);
+		}
+
+		if ((variable == null || StringUtil.isEmpty(variable.toString())) && tiW != null) {
+			Collection<VariableInstanceInfo> vars = getVariablesQuerier().getVariableByProcessInstanceIdAndVariableName(tiW.getProcessInstanceW().getProcessInstanceId(), variableName);
+			if (!ListUtil.isEmpty(vars)) {
+				return vars.iterator().next().getValue();
+			}
+		}
+
+		return variable == null ? null : variable.toString();
 	}
 
 }
