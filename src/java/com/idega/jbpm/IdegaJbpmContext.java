@@ -25,6 +25,7 @@ import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.data.SimpleQuerier;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.dao.BPMEntityEnum;
 import com.idega.util.ArrayUtil;
 import com.idega.util.StringHandler;
@@ -149,6 +150,16 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 								continue;
 							}
 
+							boolean checkVersion = true;
+							boolean readOnly = session.isReadOnly(entity);
+							if (readOnly) {
+								checkVersion = doCheckVersionForReadOnly();
+							}
+							LOGGER.info("Read only for " + entity + " (" + entity.getClass().getName() + "): " + readOnly);
+							if (!checkVersion) {
+								continue;
+							}
+
 							Number versionInDB = bpmEntity.getVersionFromDatabase(id);
 							if (versionInDB instanceof Number) {
 								Object previousVersion = entityEntry.getVersion();
@@ -172,6 +183,13 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			}
 		}
 
+		private Boolean checkVersion = null;
+		private Boolean doCheckVersionForReadOnly() {
+			if (checkVersion == null) {
+				checkVersion = IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm_check_version_for_read", true);
+			}
+			return checkVersion;
+		}
 	}
 
 	@Override
