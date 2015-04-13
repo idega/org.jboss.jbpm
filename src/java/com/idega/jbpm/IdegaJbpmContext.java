@@ -124,55 +124,56 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 		@Override
 		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
 			if (session instanceof SessionImpl && session.isOpen()) {
-				PersistenceContext persistenceContext = ((SessionImpl) session).getPersistenceContext();
-				Map.Entry<Object,EntityEntry>[] entries = persistenceContext.reentrantSafeEntityEntries();
-				if (!ArrayUtil.isEmpty(entries)) {
-					for (Map.Entry<?, EntityEntry> entry: entries) {
-						EntityEntry entityEntry = entry.getValue();
-						if (entityEntry == null) {
-							continue;
-						}
-
-						BPMEntityEnum bpmEntity = BPMEntityEnum.getEnum(entityEntry.getEntityName());
-						if (bpmEntity == null) {
-							continue;
-						}
-
-						try {
-							String entryId = entityEntry.getId().toString();
-							if (!StringHandler.isNumeric(entryId)) {
+				if (doCheckVersion()) {
+					PersistenceContext persistenceContext = ((SessionImpl) session).getPersistenceContext();
+					Map.Entry<Object,EntityEntry>[] entries = persistenceContext.reentrantSafeEntityEntries();
+					if (!ArrayUtil.isEmpty(entries)) {
+						for (Map.Entry<?, EntityEntry> entry: entries) {
+							EntityEntry entityEntry = entry.getValue();
+							if (entityEntry == null) {
 								continue;
 							}
 
-							Long id = Long.valueOf(entityEntry.getId().toString());
-							Object entity = session.get(Class.forName(bpmEntity.getEntityClass()), id);
-							if (entity == null) {
+							BPMEntityEnum bpmEntity = BPMEntityEnum.getEnum(entityEntry.getEntityName());
+							if (bpmEntity == null) {
 								continue;
 							}
 
-							boolean checkVersion = true;
-							boolean readOnly = session.isReadOnly(entity);
-							if (readOnly) {
-								checkVersion = doCheckVersionForReadOnly();
-							}
-							LOGGER.info("Read only for " + entity + " (" + entity.getClass().getName() + "): " + readOnly);
-							if (!checkVersion) {
-								continue;
-							}
-
-							Number versionInDB = bpmEntity.getVersionFromDatabase(id);
-							if (versionInDB instanceof Number) {
-								Object previousVersion = entityEntry.getVersion();
-								if (previousVersion instanceof Number && versionInDB.intValue() != ((Number) previousVersion).intValue()) {
-									String updateSQL = bpmEntity.getUpdateQuery(id, ((Number) previousVersion).intValue());
-									try {
-										SimpleQuerier.executeUpdate(updateSQL, false);
-										LOGGER.info("Changed version to " + previousVersion + " for " + bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
-									} catch (SQLException e) {}
+							try {
+								String entryId = entityEntry.getId().toString();
+								if (!StringHandler.isNumeric(entryId)) {
+									continue;
 								}
+
+								Long id = Long.valueOf(entityEntry.getId().toString());
+								Object entity = session.get(Class.forName(bpmEntity.getEntityClass()), id);
+								if (entity == null) {
+									continue;
+								}
+
+								boolean checkVersion = true;
+								boolean readOnly = session.isReadOnly(entity);
+								if (readOnly) {
+									checkVersion = doCheckVersionForReadOnly();
+								}
+								if (!checkVersion) {
+									continue;
+								}
+
+								Number versionInDB = bpmEntity.getVersionFromDatabase(id);
+								if (versionInDB instanceof Number) {
+									Object previousVersion = entityEntry.getVersion();
+									if (previousVersion instanceof Number && versionInDB.intValue() != ((Number) previousVersion).intValue()) {
+										String updateSQL = bpmEntity.getUpdateQuery(id, ((Number) previousVersion).intValue());
+										try {
+											SimpleQuerier.executeUpdate(updateSQL, false);
+											LOGGER.info("Changed version to " + previousVersion + " for " + bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
+										} catch (SQLException e) {}
+									}
+								}
+							} catch (Exception e) {
+								LOGGER.log(Level.WARNING, "Error changing version for " + bpmEntity, e);
 							}
-						} catch (Exception e) {
-							LOGGER.log(Level.WARNING, "Error changing version for " + bpmEntity, e);
 						}
 					}
 				}
@@ -181,6 +182,14 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			if (session.isOpen()) {
 				super.flushIfNecessary(session, existingTransaction);
 			}
+		}
+
+		private Boolean versionCheckEnabled = null;
+		private Boolean doCheckVersion() {
+			if (versionCheckEnabled == null) {
+				versionCheckEnabled = IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm_check_entity_version", true);
+			}
+			return versionCheckEnabled;
 		}
 
 		private Boolean checkVersion = null;
