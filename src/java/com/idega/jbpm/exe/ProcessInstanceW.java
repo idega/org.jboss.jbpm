@@ -204,6 +204,7 @@ public interface ProcessInstanceW {
 	public List<Long> getIdsOfSubProcesses(Long procInstId);
 
 	public Object getValueForTaskInstance(String taskInstanceName, String variable);
+	public <T> Map<String, T> getValuesForTaskInstance(String taskInstanceName, List<String> variables);
 	public Object getValueForTaskInstance(List<TaskInstanceW> submittedTiWs, String variable);
 
 	public List<ProcessInstance> getSubProcesses();
