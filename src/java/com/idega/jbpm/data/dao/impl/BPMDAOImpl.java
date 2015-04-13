@@ -325,14 +325,17 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		List<ProcessInstance> subprocesses = null;
 
 		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("load_bpm_subproc_by_hib", Boolean.TRUE)) {
-			getResultList(ProcessManagerBind.getSubprocessesOneLevel, ProcessInstance.class,
-					new Param(ProcessManagerBind.processInstanceIdParam, parentProcessInstanceId));
-			if (!ListUtil.isEmpty(subprocesses))
+			subprocesses = getResultList(
+					ProcessManagerBind.getSubprocessesOneLevel,
+					ProcessInstance.class,
+					new Param(ProcessManagerBind.processInstanceIdParam, parentProcessInstanceId)
+			);
+			if (!ListUtil.isEmpty(subprocesses)) {
 				return subprocesses;
+			}
 		}
 
-		String query = "select p.id_ from jbpm_processinstance p, jbpm_token t where t.id_ = p.SUPERPROCESSTOKEN_ and t.PROCESSINSTANCE_ = " +
-				parentProcessInstanceId;
+		String query = "select p.id_ from jbpm_processinstance p, jbpm_token t where t.id_ = p.SUPERPROCESSTOKEN_ and t.PROCESSINSTANCE_ = " + parentProcessInstanceId;
 		List<Serializable[]> results = null;
 		try {
 			results = SimpleQuerier.executeQuery(query, 1);
@@ -355,8 +358,11 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			return Collections.emptyList();
 
 		query = "from " + org.jbpm.graph.exe.ProcessInstance.class.getName() + " p where p.id in (:" + ProcessManagerBind.processInstanceIdParam + ")";
-		subprocesses = getResultListByInlineQuery(query, ProcessInstance.class,
-				new Param(ProcessManagerBind.processInstanceIdParam, new ArrayList<Long>(piIds.keySet())));
+		subprocesses = getResultListByInlineQuery(
+				query,
+				ProcessInstance.class,
+				new Param(ProcessManagerBind.processInstanceIdParam,new ArrayList<Long>(piIds.keySet()))
+		);
 
 		return subprocesses;
 	}
