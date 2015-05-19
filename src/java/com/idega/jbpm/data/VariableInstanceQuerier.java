@@ -82,7 +82,11 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * or {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
-	public Collection<VariableInstanceInfo> getVariables(List<String> procDefNames, List<String> variableNames, boolean checkTaskInstance);
+	public Collection<VariableInstanceInfo> getVariables(
+			List<String> procDefNames, 
+			List<String> variableNames, 
+			boolean checkTaskInstance);
+
 
 	/**
 	 *
@@ -101,6 +105,29 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
 	public List<VariableInstanceInfo> getVariables(
+			Collection<String> variableNames,
+			Collection<ProcessInstance> processInstances,
+			boolean checkTaskInstance,
+			boolean addEmptyVars,
+			boolean mirrowData);
+
+	/**
+	 *
+	 * <p>Selects {@link VariableInstance}s from jBPM data source.</p>
+	 * @param variableNames is {@link Collection} of {@link VariableInstance#getName()}
+	 * to search values for, not <code>null</code>;
+	 * @param processInstances to get variables for, not <code>null</code>;
+	 * @param checkTaskInstance - tells if {@link TaskInstance}s should be
+	 * selected too;
+	 * @param addEmptyVars tells if empty {@link VariableInstanceInfo}s
+	 * should be created for variable names, which are not found in database.
+	 * They won't have {@link VariableInstanceInfo#getValue()};
+	 * @param mirrowData tells if {@link BPMVariableData} data table should be used;
+	 * @return {@link VariableInstance}s from jBPM data tables or
+	 * {@link Collections#emptyList()} on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public Map<String, VariableInstanceInfo> getSortedVariables(
 			Collection<String> variableNames,
 			Collection<ProcessInstance> processInstances,
 			boolean checkTaskInstance,

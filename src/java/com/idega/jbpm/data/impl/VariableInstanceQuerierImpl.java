@@ -395,6 +395,29 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return new ArrayList<VariableInstanceInfo>(variableInstances);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.idega.jbpm.data.VariableInstanceQuerier#getSortedVariables(java.util.Collection, java.util.Collection, boolean, boolean, boolean)
+	 */
+	@Override
+	public Map<String, VariableInstanceInfo> getSortedVariables(
+			Collection<String> variableNames,
+			Collection<ProcessInstance> processInstances,
+			boolean checkTaskInstance, 
+			boolean addEmptyVars, 
+			boolean mirrowData) {
+		Map<String, VariableInstanceInfo> map = new HashMap<String, VariableInstanceInfo>();
+		
+		List<VariableInstanceInfo> unsortedVariables = getVariables(
+				variableNames, processInstances, checkTaskInstance, 
+				addEmptyVars, mirrowData);
+		for (VariableInstanceInfo unsortedVariable : unsortedVariables) {
+			map.put(unsortedVariable.getName(), unsortedVariable);
+		}
+
+		return map;
+	}
+
 	private VariableInstanceInfo getEmptyVariable(String name) {
 		if (name.startsWith(VariableInstanceType.STRING.getPrefix()) || name.endsWith("officerIsMeterMaid") || ProcessDefinitionW.VARIABLE_MANAGER_ROLE_NAME.equals(name)) {
 			return new VariableStringInstance(name, null);
