@@ -2781,12 +2781,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return data;
 		} finally {
 			if (CoreUtil.isSQLMeasurementOn()) {
-				long duration = System.currentTimeMillis() - start;
-				if (duration >= 1000) {
-					getLogger().info("******* " +  (lucene? "LUCENE" : "HIBERNATE") + ": it took " + duration + " ms to query for variable name(s): " +
-							names + ", query: '" + queryData + "', proc. inst. IDs: " + procInstIds + ", task inst. IDs: " + taskInstIds +
-							" and var. inst. IDs: " + varIds);
-				}
+				CoreUtil.doDebugSQL(start, System.currentTimeMillis(), (lucene? "LUCENE" : "HIBERNATE") + ": query for variable name(s): " +
+						names + ", proc. inst. IDs: " + procInstIds + ", task inst. IDs: " + taskInstIds + " and var. inst. IDs: " + varIds + ". Query: " + queryData);
 			}
 		}
 	}
@@ -2856,12 +2852,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			});
 		} finally {
 			if (CoreUtil.isSQLMeasurementOn()) {
-				long duration = System.currentTimeMillis() - start;
-				if (duration >= 1000) {
-					getLogger().info("******* " +  (lucene? "LUCENE" : "HIBERNATE") + ": it took " + duration +
-							" ms to query for proc. instance IDs by variable name(s): " + names + ", query: '" + queryData + "', proc. inst. IDs: " +
-							procInstIds + ", task inst. IDs: " + taskInstIds + " and var. inst. IDs: " + varIds);
-				}
+				CoreUtil.doDebugSQL(start, System.currentTimeMillis(), (lucene? "LUCENE" : "HIBERNATE") + ": query for proc. instance IDs by variable name(s): " + names + ", proc. inst. IDs: " +
+						procInstIds + ", task inst. IDs: " + taskInstIds + " and var. inst. IDs: " + varIds + ". Query: " + queryData);
 			}
 		}
 	}
