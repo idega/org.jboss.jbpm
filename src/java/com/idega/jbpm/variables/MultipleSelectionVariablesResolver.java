@@ -223,14 +223,6 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 
 	protected String getValueFromBrackets(String value) {
-		if (StringUtil.isEmpty(value))
-			return value;
-
-		int start = value.indexOf(CoreConstants.BRACKET_LEFT);
-		int end = value.indexOf(CoreConstants.BRACKET_RIGHT);
-		if (start != -1 && end != -1)
-			return value.substring(start + 1, end);
-
-		return value;
+		return StringUtil.getValueFromBrackets(value);
 	}
 }
