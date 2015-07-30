@@ -403,13 +403,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	public Map<String, VariableInstanceInfo> getSortedVariables(
 			Collection<String> variableNames,
 			Collection<ProcessInstance> processInstances,
-			boolean checkTaskInstance, 
-			boolean addEmptyVars, 
+			boolean checkTaskInstance,
+			boolean addEmptyVars,
 			boolean mirrowData) {
 		Map<String, VariableInstanceInfo> map = new HashMap<String, VariableInstanceInfo>();
-		
+
 		List<VariableInstanceInfo> unsortedVariables = getVariables(
-				variableNames, processInstances, checkTaskInstance, 
+				variableNames, processInstances, checkTaskInstance,
 				addEmptyVars, mirrowData);
 		for (VariableInstanceInfo unsortedVariable : unsortedVariables) {
 			map.put(unsortedVariable.getName(), unsortedVariable);
@@ -1522,8 +1522,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	private String getKeyForVariable(VariableInstanceInfo var, boolean useValue) {
 		StringBuilder key = new StringBuilder(var.getName()).append(var.getProcessInstanceId());
-		if (useValue)
-			key.append(var.getValue());
+		if (useValue) {
+			Serializable value = var.getValue();
+			key.append(value);
+		}
 		return key.toString();
 	}
 
