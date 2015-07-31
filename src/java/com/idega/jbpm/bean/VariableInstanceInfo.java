@@ -43,7 +43,7 @@ public abstract class VariableInstanceInfo implements Serializable {
 		this(name, value, null);
 	}
 
-	public VariableInstanceInfo(VariableInstanceType type, String name) {
+	public VariableInstanceInfo(String name, VariableInstanceType type) {
 		this(name, null, type);
 	}
 
