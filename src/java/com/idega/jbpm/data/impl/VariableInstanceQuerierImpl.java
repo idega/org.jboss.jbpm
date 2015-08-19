@@ -2075,18 +2075,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	@Override
 	public void onApplicationEvent(final ApplicationEvent event) {
 		if (event instanceof VariableCreatedEvent) {
-			final VariableCreatedEvent variableEvent = (VariableCreatedEvent) event;
+			VariableCreatedEvent variableEvent = (VariableCreatedEvent) event;
 
-			Thread binder = new Thread(new Runnable() {
-				@Override
-				public void run() {
-
-					Map<String, Object> createdVariables = variableEvent.getVariables();
-					bindProcessVariables(variableEvent.getProcessDefinitionName(), variableEvent.getProcessInstanceId(),
-							createdVariables == null ? null : createdVariables.keySet());
-				}
-			});
-			binder.start();
+			Map<String, Object> createdVariables = variableEvent.getVariables();
+			bindProcessVariables(variableEvent.getProcessDefinitionName(), variableEvent.getProcessInstanceId(), createdVariables == null ? null : createdVariables.keySet());
 
 			doIndexVariables(variableEvent.getProcessInstanceId());
 		} else if (event instanceof TaskInstanceSubmitted) {
@@ -2167,13 +2159,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private void bindProcessVariables(String processDefinitionName, Long processInstanceId, Set<String> createdVariables) {
-		bindProcessVariables(processDefinitionName, getAllProcDefVariableBinds(), getVariablesByProcessInstanceId(processInstanceId),
-				createdVariables);
+		bindProcessVariables(processDefinitionName, getAllProcDefVariableBinds(), getVariablesByProcessInstanceId(processInstanceId), createdVariables);
 	}
 
 	@Transactional(readOnly = false)
-	private void bindProcessVariables(String processDefinitionName, List<ProcessDefinitionVariablesBind> currentBinds,
-			Collection<VariableInstanceInfo> currentVariables, Set<String> createdVariables) {
+	private void bindProcessVariables(String processDefinitionName, List<ProcessDefinitionVariablesBind> currentBinds, Collection<VariableInstanceInfo> currentVariables, Set<String> createdVariables) {
 		if (StringUtil.isEmpty(processDefinitionName)) {
 			return;
 		}
@@ -2184,11 +2174,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			if (ListUtil.isEmpty(createdVariables)) {
 				return;
 			}
+
 			for (String variableName: createdVariables) {
 				List<String> types = VariableInstanceType.getVariableTypeKeys(variableName);
 				if (ListUtil.isEmpty(types)) {
 					continue;
 				}
+
 				createProcessDefinitionVariablesBind(currentBinds, processDefinitionName, variableName, types.get(0));
 			}
 		} else {
@@ -2227,8 +2219,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			bind.setVariableType(variableType);
 			persist(bind);
 
-			if (currentBinds == null)
+			if (currentBinds == null) {
 				currentBinds = new ArrayList<ProcessDefinitionVariablesBind>();
+			}
 
 			currentBinds.add(bind);
 			return bind;
