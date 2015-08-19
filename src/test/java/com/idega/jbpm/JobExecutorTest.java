@@ -14,7 +14,6 @@ import org.jbpm.graph.exe.ProcessInstance;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.NotTransactional;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +31,9 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 
 	void deployProcessDefinitions() throws Exception {
 
-		bpmContext.execute(new JbpmCallback() {
+		bpmContext.execute(new JbpmCallback<Object>() {
 
+			@Override
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
 				try {
 					ProcessDefinition simpleProcess = ProcessDefinition
@@ -64,8 +64,9 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 
 	protected void createProcessInstance() {
 
-		bpmContext.execute(new JbpmCallback() {
+		bpmContext.execute(new JbpmCallback<Object>() {
 
+			@Override
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
 				ProcessInstance pi = context.newProcessInstance("bulkMessages");
 				pi.signal();
@@ -75,9 +76,9 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 	}
 
 	@Test
-	@NotTransactional
+	@Transactional(readOnly = true)
 	public void testSpringModulesAreWorkingOk() throws Exception {
-		
+
 		if(true)
 			return;
 
@@ -98,6 +99,7 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 		TimerTask interruptTask = new TimerTask() {
 			Thread testThread = Thread.currentThread();
 
+			@Override
 			public void run() {
 				System.out.println("test " + getName()
 						+ " took too long. going to interrupt...");
@@ -151,8 +153,9 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 	}
 
 	private int getNbrOfJobsAvailable() {
-		Object nbrOfJobsAvailable = bpmContext.execute(new JbpmCallback() {
+		Object nbrOfJobsAvailable = bpmContext.execute(new JbpmCallback<Object>() {
 
+			@Override
 			public Object doInJbpm(JbpmContext context) throws JbpmException {
 				Session session = context.getSession();
 				Number jobs = (Number) session.createQuery(
@@ -170,7 +173,7 @@ public class JobExecutorTest extends IdegaBaseTransactionalTest {
 		if (nbrOfJobsAvailable instanceof java.lang.Integer) {
 			return (java.lang.Integer) nbrOfJobsAvailable;
 		}
-		
+
 		return 0;
 	}
 
