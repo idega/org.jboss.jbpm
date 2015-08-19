@@ -19,64 +19,50 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	private Long id, processInstanceId, taskInstanceId;
 
+	static VariableInstanceType getType(Character type) {
+		return getType(type == null ? null : String.valueOf(type));
+	}
+
+	static VariableInstanceType getType(String type) {
+		if (StringUtil.isEmpty(type)) {
+			LOGGER.warning("Type is not defined!");
+		} else {
+			for (VariableInstanceType varType: VariableInstanceType.ALL_TYPES) {
+				if (varType.getTypeKeys().contains(type)) {
+					return varType;
+				}
+			}
+		}
+
+		LOGGER.warning("Unknown type: " + type + ". Using NULL type");
+		return VariableInstanceType.NULL;
+	}
+
 	public VariableInstanceInfo() {
 		super();
 
 		hash = new Random().nextInt(Integer.MAX_VALUE);
 	}
 
-	public <T extends Serializable> VariableInstanceInfo(Variable variable) {
-		this(variable.getName(), variable.getValue());
+	public <T extends Serializable> VariableInstanceInfo(String name) {
+		this();
 
-		type = getType(variable.getClassType());
+		this.name = name;
+	}
+
+	public <T extends Serializable> VariableInstanceInfo(Variable variable) {
+		this(variable.getName(), variable.getValue(), getType(variable.getClassType()));
 
 		this.id = variable.getId();
 		this.processInstanceId = variable.getProcessInstance();
 		this.taskInstanceId = variable.getTaskInstance();
 	}
 
-	public <T extends Serializable> VariableInstanceInfo(T value) {
-		this(null, value);
-	}
-
-	public <T extends Serializable> VariableInstanceInfo(String name, T value) {
-		this(name, value, null);
-	}
-
-	public VariableInstanceInfo(String name, VariableInstanceType type) {
-		this(name, null, type);
-	}
-
 	public <T extends Serializable> VariableInstanceInfo(String name, T value, VariableInstanceType type) {
-		this();
+		this(name);
 
-		this.name = name;
 		setValue(value);
 		this.type = type;
-	}
-
-	public VariableInstanceInfo(String name, String type) {
-		this();
-		this.name = name;
-		this.type = getType(type);
-	}
-
-	private VariableInstanceType getType(Character type) {
-		return getType(type == null ? null : String.valueOf(type));
-	}
-
-	private VariableInstanceType getType(String type) {
-		if (StringUtil.isEmpty(type)) {
-			LOGGER.warning("Type is not defined for variable: '" + name + "'!");
-		} else {
-			for (VariableInstanceType varType: VariableInstanceType.ALL_TYPES) {
-				if (varType.getTypeKeys().contains(type))
-					return varType;
-			}
-		}
-
-		LOGGER.warning("Unknown type: " + type + " for variable " + name + ". Using NULL type");
-		return VariableInstanceType.NULL;
 	}
 
 	public abstract <T extends Serializable> T getValue();

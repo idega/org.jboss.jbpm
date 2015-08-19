@@ -27,7 +27,9 @@ public class VariableStringInstance extends VariableInstanceInfo {
 	}
 
 	public VariableStringInstance(Long id, String name, Object value) {
-		super(name, VariableInstanceType.STRING);
+		super(name);
+
+		setType(VariableInstanceType.STRING);
 
 		setValue(id, value);
 	}

@@ -28,7 +28,7 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 	private static final Logger LOGGER = Logger.getLogger(VariableByteArrayInstance.class.getName());
 
 	public VariableByteArrayInstance(String name, Object value) {
-		super(name, VariableInstanceType.BYTE_ARRAY);
+		super(name, null, VariableInstanceType.BYTE_ARRAY);
 
 		if (value instanceof Collection<?>) {
 			this.value = (Serializable) value;
