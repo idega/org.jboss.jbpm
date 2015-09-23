@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<div
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core">
+    <h:form
+        id="editorForm">
+        <h:panelGrid
+            columns="2"
+            styleClass="editorTable">
+
+            <h:panelGroup>
+                <h:outputLabel
+                    for="case_identifier"
+                    value="#{localizedStrings['org.jboss.jbpm']['case_identifier']}"/>
+            </h:panelGroup>
+            <h:panelGroup>
+                <h:inputText
+                    id="case_identifier"
+                    value="#{taskCreatorBean.caseIdentifier}"
+                    valueChangeListener="#{taskCreatorBean.caseIdentifierChange}"
+                    onchange="submit();"/>
+            </h:panelGroup>
+
+            <h:panelGroup>
+                <h:outputLabel
+                    for="role_name"
+                    value="#{localizedStrings['org.jboss.jbpm']['role_name']}"/>
+            </h:panelGroup>
+            <h:panelGroup>
+                <h:inputText
+                    id="role_name"
+                    value="#{taskCreatorBean.roleName}"/>
+            </h:panelGroup>
+
+            <h:panelGroup>
+                <h:outputLabel
+                    for="process_instance_id"
+                    value="#{localizedStrings['org.jboss.jbpm']['process_instance_id']}"/>
+            </h:panelGroup>
+            <h:panelGroup>
+                <h:outputText
+                    id="process_instance_id"
+                    value="#{taskCreatorBean.processInstanceId}"/>
+            </h:panelGroup>
+            
+            <h:panelGroup>
+                <h:outputLabel
+                    for="process_definition_name"
+                    value="#{localizedStrings['org.jboss.jbpm']['process_definition_name']}"/>
+            </h:panelGroup>
+            <h:panelGroup>
+                <h:outputText
+                    id="process_definition_name"
+                    value="#{taskCreatorBean.processDefinitionName}"/>
+            </h:panelGroup>
+            
+            <h:panelGroup>
+                <h:outputLabel
+                    for="sub_process_instance_id"
+                    value="#{localizedStrings['org.jboss.jbpm']['sub_process_instance_id']}"/>
+            </h:panelGroup>
+            <h:panelGroup>
+                <h:outputText
+                    id="sub_process_instance_id"
+                    value="#{taskCreatorBean.subProcessInstanceId}"/>
+            </h:panelGroup>
+
+            <h:panelGroup>
+                <h:outputLabel
+                    for="sub_process_definition_name"
+                    value="#{localizedStrings['org.jboss.jbpm']['sub_process_definition_name']}"/>
+            </h:panelGroup>
+            <h:panelGroup>
+                <h:outputText
+                    id="sub_process_definition_name"
+                    value="#{taskCreatorBean.subProcessDefinitionName}"/>
+            </h:panelGroup>
+
+            <h:panelGroup>
+                <h:outputLabel
+                    for="tasks_menu"
+                    value="#{localizedStrings['org.jboss.jbpm']['tasks_menu']}"/>
+            </h:panelGroup>
+            <h:panelGroup>
+                <h:selectOneMenu
+                    id="tasks_menu"
+                    value="#{taskCreatorBean.taskId}">
+                    <f:selectItem
+                        itemLabel="#{localizedStrings['org.jboss.jbpm']['select']}"
+                        noSelectValue="true"/>
+                    <f:selectItems
+                        value="#{taskCreatorBean.unsubmittedSubProcessTasksMap}"/>
+                </h:selectOneMenu>
+            </h:panelGroup>
+        </h:panelGrid>
+        <h:commandButton
+            id="saveButton"
+            value="#{localizedStrings['org.jboss.jbpm']['submit']}"
+            action="#{taskCreatorBean.submit}"/>
+    </h:form>
+</div>
