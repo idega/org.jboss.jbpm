@@ -13,6 +13,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Index;
+
 import com.idega.jbpm.exe.ProcessConstants;
 
 /**
@@ -61,18 +63,22 @@ public class ViewTaskBind implements Serializable {
 
 	public static final String taskIdProp = "taskId";
 	@Column(name="task_id", nullable=true)
+	@Index(columnNames = {"task_id"}, name = "task_id_index")
 	private Long taskId;
 
 	public static final String taskInstanceIdProp = ProcessConstants.TASK_INSTANCE_ID;
 	@Column(name="task_instance_id", nullable=true)
+	@Index(columnNames = {"task_instance_id"}, name = "task_instance_id_index")
 	private Long taskInstanceId;
 
 	public static final String viewIdentifierProp = "viewIdentifier";
 	@Column(name="view_identifier", nullable=false)
+	@Index(columnNames = {"view_identifier"}, name = "view_identifier_index")
 	private String viewIdentifier;
 
 	public static final String viewTypeProp = "viewType";
 	@Column(name="view_type", nullable=false)
+	@Index(columnNames = {"view_type"}, name = "view_type_index")
 	private String viewType;
 
 	public static final String viewOrderProp = "viewOrder";
