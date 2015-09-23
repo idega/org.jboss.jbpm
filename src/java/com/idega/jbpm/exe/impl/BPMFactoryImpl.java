@@ -330,8 +330,14 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	public ProcessInstanceW getProcessInstanceW(long processInstanceId) {
-		return getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
+		ProcessManager manager = getProcessManagerByProcessInstanceId(processInstanceId);
+		if (manager != null) {
+			return manager.getProcessInstance(processInstanceId);
+		}
+
+		return null;
 	}
+
 	@Override
 	public ProcessInstanceW getProcessInstanceW(JbpmContext context, long processInstanceId) {
 		return getProcessManagerByProcessInstanceId(context, processInstanceId).getProcessInstance(processInstanceId);
