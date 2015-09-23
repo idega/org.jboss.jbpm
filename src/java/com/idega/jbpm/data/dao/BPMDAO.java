@@ -100,13 +100,13 @@ public interface BPMDAO extends GenericDao {
 
 	/**
 	 *
-	 * @param processDefinitionName is {@link ProcessDefinition#getName()},
-	 * not <code>null</code>;
-	 * @return all {@link ProcessDefinition}s by given name or
+	 * @param processDefinitionNames is {@link Collection} of 
+	 * {@link ProcessDefinition#getName()}, not <code>null</code>;
+	 * @return all {@link ProcessDefinition}s by given names or
 	 * {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public List<ProcessDefinition> getProcessDefinitions(String processDefinitionName);
+	public List<ProcessDefinition> getProcessDefinitions(Collection<String> processDefinitionNames);
 
 	public List<Long> getProcessDefinitionIdsByName(String procDefName);
 
