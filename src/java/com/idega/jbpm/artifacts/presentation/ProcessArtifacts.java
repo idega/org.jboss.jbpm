@@ -195,8 +195,6 @@ public class ProcessArtifacts {
 			Long processInstanceId,
 			ProcessArtifactsParamsBean params
 	) {
-		final boolean measure = JBPMUtil.isPerformanceMeasurementOn();
-
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
 		int size = processDocuments.size();
