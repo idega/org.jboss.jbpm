@@ -51,8 +51,7 @@ public class IdentityAuthorizationAspect {
 	 */
 
 	@Transactional(readOnly = true)
-	@Before("(" + BPMPointcuts.loadViewAtTaskInstanceW + " || "
-			+ BPMPointcuts.submitAtTaskInstanceW + ")")
+	@Before("(" + BPMPointcuts.loadViewAtTaskInstanceW + " || "+ BPMPointcuts.submitAtTaskInstanceW + ")")
 	public void checkPermissionToTaskInstance(JoinPoint jp) {
 		Object jpThis = jp.getThis();
 
@@ -70,9 +69,9 @@ public class IdentityAuthorizationAspect {
 
 				Permission permission;
 				if (taskInstance.hasEnded()) {
-					permission = getPermissionsFactory().getTaskInstanceViewPermission(false, taskInstance);
+					permission = getPermissionsFactory().getTaskInstanceViewPermission(false, tiw.getTaskInstanceId());
 				} else {
-					permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstance);
+					permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, tiw.getTaskInstanceId());
 				}
 
 				getAuthorizationService().checkPermission(permission);

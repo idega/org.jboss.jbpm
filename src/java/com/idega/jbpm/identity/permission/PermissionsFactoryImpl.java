@@ -29,10 +29,10 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 	public static final String roleAccessPermType = "roleAccess";
 
 	@Override
-	public Permission getTaskInstanceSubmitPermission(Boolean authPooledActorsOnly, TaskInstance taskInstance) {
+	public Permission getTaskInstanceSubmitPermission(Boolean authPooledActorsOnly, Long taskInstanceId) {
 		BPMTypedPermission perm = getTypedPermission(submitTaskParametersPermType);
 		perm.setAttribute(TaskAccessPermissionsHandler.checkOnlyInActorsPoolAtt, authPooledActorsOnly);
-		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstance.getId());
+		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstanceId);
 
 		ArrayList<Access> accesses = new ArrayList<Access>(2);
 		accesses.add(Access.read);
@@ -81,10 +81,10 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 
 	@Override
 	@Transactional(readOnly = true)
-	public Permission getTaskInstanceViewPermission(Boolean authPooledActorsOnly, TaskInstance taskInstance) {
+	public Permission getTaskInstanceViewPermission(Boolean authPooledActorsOnly, Long taskInstanceId) {
 		BPMTypedPermission perm = getTypedPermission(viewTaskInstancePermType);
 		perm.setAttribute(TaskAccessPermissionsHandler.checkOnlyInActorsPoolAtt, authPooledActorsOnly);
-		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstance.getId());
+		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstanceId);
 
 		ArrayList<Access> accesses = new ArrayList<Access>(1);
 		accesses.add(Access.read);

@@ -71,8 +71,9 @@ public class IdentityAuthorizationService implements AuthorizationService {
 	@Override
 	@Transactional(readOnly = true, noRollbackFor = { AccessControlException.class })
 	public void checkPermission(Permission perm) throws AccessControlException {
-		if (!(perm instanceof BPMTypedPermission))
+		if (!(perm instanceof BPMTypedPermission)) {
 			throw new IllegalArgumentException("Expected permission type: " + BPMTypedPermission.class + ", received: " + perm);
+		}
 
 		BPMTypedPermission bpmPerm = (BPMTypedPermission) perm;
 
@@ -88,10 +89,10 @@ public class IdentityAuthorizationService implements AuthorizationService {
 			 }
 		}
 
-
 		BPMTypedHandler handler = getHandlers().get(bpmPerm.getType());
-		if (handler == null)
+		if (handler == null) {
 			throw new AccessControlException("No handler resolved for the permission type=" + bpmPerm.getType());
+		}
 
 		PermissionHandleResult result = handler.handle(perm);
 		if (result.getStatus() == PermissionHandleResultStatus.noAccess) {

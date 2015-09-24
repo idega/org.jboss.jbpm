@@ -7,34 +7,30 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 import com.idega.user.data.User;
 
 /**
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.6 $
- * 
+ *
  *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 public interface PermissionsFactory {
 
-	public abstract Permission getTaskInstanceSubmitPermission(
-			Boolean authPooledActorsOnly, TaskInstance taskInstance);
+	public abstract Permission getTaskInstanceSubmitPermission(Boolean authPooledActorsOnly, Long taskInstanceId);
 
 	public abstract Permission getRightsMgmtPermission(Long processInstanceId);
 
-	public abstract Permission getAccessPermission(Long processInstanceId,
-			Access access);
+	public abstract Permission getAccessPermission(Long processInstanceId, Access access);
 
-	public abstract Permission getAccessPermission(Long processInstanceId,
-			Access access, User user);
+	public abstract Permission getAccessPermission(Long processInstanceId, Access access, User user);
 
-	public abstract Permission getTaskInstanceViewPermission(
-			Boolean authPooledActorsOnly, TaskInstance taskInstance);
+	public abstract Permission getTaskInstanceViewPermission(Boolean authPooledActorsOnly, Long taskInstanceId);
 
 	public abstract Permission getTaskInstanceVariableViewPermission(
 			Boolean authPooledActorsOnly, TaskInstance taskInstance,
 			String variableIdentifier);
 
 	/**
-	 * 
+	 *
 	 * @param processInstanceId
 	 * @param roleName
 	 * @param checkContactsForRole

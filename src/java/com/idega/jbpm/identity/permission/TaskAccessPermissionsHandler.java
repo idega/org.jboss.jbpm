@@ -95,8 +95,9 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 	@Override
 	@Transactional(readOnly = true)
 	public PermissionHandleResult handle(final Permission perm) {
-		if (!(perm instanceof BPMTypedPermission))
+		if (!(perm instanceof BPMTypedPermission)) {
 			throw new IllegalArgumentException("Unsupported permission type=" + perm.getClass().getName());
+		}
 
 		return getBPMContext().execute(new JbpmCallback<PermissionHandleResult>() {
 

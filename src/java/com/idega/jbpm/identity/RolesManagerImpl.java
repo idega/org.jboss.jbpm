@@ -224,7 +224,7 @@ public class RolesManagerImpl implements RolesManager {
 						                + taskInstance.getActorId(),
 						        "User should be taken or assigned of the task first to start working on it");
 
-					Permission permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstance);
+					Permission permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstanceId);
 					getAuthorizationService().checkPermission(permission);
 					return null;
 				}
@@ -268,7 +268,7 @@ public class RolesManagerImpl implements RolesManager {
 						        + taskInstance.getActorId(),
 						        "This task has been assigned already");
 
-					Permission permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstance);
+					Permission permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstanceId);
 					getAuthorizationService().checkPermission(permission);
 					return null;
 				}
