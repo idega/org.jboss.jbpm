@@ -220,11 +220,7 @@ public class ProcessArtifacts {
 		processDocuments.stream().forEach((submittedDocument) -> {
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
 
-			long startTaskInstance = measure ? System.currentTimeMillis() : 0;
 			TaskInstanceW taskInstance = pm.getTaskInstance(taskInstanceId);
-			if (measure) {
-				LOGGER.info("Got task instance w in " + (System.currentTimeMillis() - startTaskInstance) + " ms");
-			}
 
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
@@ -232,17 +228,8 @@ public class ProcessArtifacts {
 			String rowId = taskInstanceId.toString();
 			row.setId(rowId);
 
-			long startHasView = measure ? System.currentTimeMillis() : 0;
 			boolean hasViewUI = submittedDocument.isHasViewUI();
-			if (measure) {
-				LOGGER.info("Resolved if task inst. has view in " + (System.currentTimeMillis() - startHasView) + " ms");
-			}
-
-			long startRenderable = measure ? System.currentTimeMillis() : 0;
 			boolean renderableTask = isTaskRenderable(taskInstance);
-			if (measure) {
-				LOGGER.info("Resolved if task inst. is renderable in " + (System.currentTimeMillis() - startRenderable) + " ms");
-			}
 
 			boolean pdfView = hasViewUI && !renderableTask;
 			if (pdfView) {
@@ -280,7 +267,7 @@ public class ProcessArtifacts {
 			}
 
 			if (params.getAllowPDFSigning()) {
-				if (hasDocumentGeneratedPDF(taskInstanceId) || !submittedDocument.isSignable()) {
+				if (!submittedDocument.isSignable() || hasDocumentGeneratedPDF(taskInstanceId)) {
 					// Sign icon will be in attachments' list (if not signed)
 					row.addCell(CoreConstants.EMPTY);
 				} else if (getSigningHandler() != null && !taskInstance.getProcessInstanceW().hasEnded()) {
@@ -329,7 +316,7 @@ public class ProcessArtifacts {
 			}
 
 			String expectedName = getFileNameForGeneratedPDFFromTaskInstance(taskInstanceId.toString());
-			for (BinaryVariable bv : binaryVariables) {
+			for (BinaryVariable bv: binaryVariables) {
 				if (expectedName.equals(bv.getFileName())) {
 					return true;
 				}
