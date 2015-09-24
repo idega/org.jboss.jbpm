@@ -70,13 +70,12 @@ import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
 import com.idega.jbpm.rights.Right;
 import com.idega.jbpm.signing.SigningHandler;
+import com.idega.jbpm.utils.JBPMUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
-import com.idega.jbpm.view.View;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.Image;
 import com.idega.presentation.Layer;
-import com.idega.presentation.PDFRenderedComponent;
 import com.idega.presentation.Table2;
 import com.idega.presentation.TableBodyRowGroup;
 import com.idega.presentation.TableCell2;
@@ -216,11 +215,10 @@ public class ProcessArtifacts {
 		boolean showPDFName = iwc.getIWMainApplication().getSettings().getBoolean("bpm.show_pdf_name_in_list", Boolean.FALSE);
 
 		ProcessManager pm = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId);
-		for (BPMDocument submittedDocument : processDocuments) {
+		processDocuments.stream().forEach((submittedDocument) -> {
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
 
 			TaskInstanceW taskInstance = pm.getTaskInstance(taskInstanceId);
-			ProcessInstanceW piw = taskInstance.getProcessInstanceW();
 
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
@@ -231,28 +229,33 @@ public class ProcessArtifacts {
 			boolean hasViewUI = submittedDocument.isHasViewUI();
 			boolean renderableTask = isTaskRenderable(taskInstance);
 			boolean pdfView = hasViewUI && !renderableTask;
-			if (pdfView)
+			if (pdfView) {
 				row.setStyleClass("pdfViewableItem");
-
+			}
 			row.addCell(submittedDocument.getDocumentName());
 			row.addCell(submittedDocument.getSubmittedByName());
-			row.addCell(submittedDocument.getEndDate() == null ? CoreConstants.EMPTY
-			                : new IWTimestamp(submittedDocument.getEndDate()).getLocaleDateAndTime(userLocale, IWTimestamp.SHORT, IWTimestamp.SHORT));
+			row.addCell(submittedDocument.getEndDate() == null ? CoreConstants.EMPTY : new IWTimestamp(submittedDocument.getEndDate()).getLocaleDateAndTime(userLocale, IWTimestamp.SHORT, IWTimestamp.SHORT));
 			row.setDateCellIndex(row.getCells().size() - 1);
 
 			if (params.getDownloadDocument()) {
 				if (renderableTask) {
-					String html = "<img class=\"downloadCaseAsPdfStyle\" src=\"".concat(pdfUri).concat("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '")
-							.concat(String.valueOf(taskInstanceId)).concat("');\" />");
+					String html = "<img class=\"downloadCaseAsPdfStyle\" src=\"".concat(pdfUri)
+										.concat("\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '")
+										.concat(String.valueOf(taskInstanceId))
+										.concat("');\" />");
 					if (showPDFName) {
-						html = "<a href=\"javascript:void(0)\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '".concat(String.valueOf(taskInstanceId)).concat("');\">") +
-								html + "<span style=\"padding-left: 5px;\">" + taskInstance.getPDFName(userLocale) + "</span></a>";
+						html = "<a href=\"javascript:void(0)\" onclick=\"CasesBPMAssets.downloadCaseDocument(event, '"
+									.concat(String.valueOf(taskInstanceId)).concat("');\">")
+									.concat(html)
+									.concat("<span style=\"padding-left: 5px;\">")
+									.concat(taskInstance.getPDFName(userLocale))
+									.concat("</span></a>");
 					}
 					row.addCell(html);
 				} else if (pdfView) {
 					String html = "<img src=\"".concat(pdfUri).concat("\"></img>");
 					if (showPDFName) {
-						html = "<a href=\"javascript:void(0)\"><img src=\"" + pdfUri + "\"><span style=\"padding-left: 5px;\" />" + taskInstance.getPDFName(userLocale) + "</span></a>";
+						html = "<a href=\"javascript:void(0)\"><img src=\"".concat(pdfUri).concat("\"><span style=\"padding-left: 5px;\" />").concat(taskInstance.getPDFName(userLocale)).concat("</span></a>");
 					}
 					row.addCell(html);
 				} else {
@@ -264,23 +267,23 @@ public class ProcessArtifacts {
 				if (hasDocumentGeneratedPDF(taskInstanceId) || !submittedDocument.isSignable()) {
 					// Sign icon will be in attachments' list (if not signed)
 					row.addCell(CoreConstants.EMPTY);
-				} else if (getSigningHandler() != null && !piw.hasEnded()) {
-					row.addCell(new StringBuilder(
-					                "<img class=\"signGeneratedFormToPdfStyle\" src=\"")
-					                .append(signPdfUri)
+				} else if (getSigningHandler() != null && !taskInstance.getProcessInstanceW().hasEnded()) {
+					row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
 					                .append("\" onclick=\"CasesBPMAssets.signCaseDocument")
 					                .append(getJavaScriptActionForPDF(iwrb, taskInstanceId, null, message, errorMessage)).append("\" />")
-					                .toString());
+					                .toString()
+					);
 				}
 			}
 
 			// FIXME: don't use client side stuff for validating security constraints, check if rights changer in this method.
-			if (params.isRightsChanger())
+			if (params.isRightsChanger()) {
 				addRightsChangerCell(row, processInstanceId, taskInstanceId, null, null, true);
-
-			if (!hasViewUI)
+			}
+			if (!hasViewUI) {
 				entries.setRowHasViewUI(rowId, false);
-		}
+			}
+		});
 
 		try {
 			entries.setGridEntries(rows.getDocument());
@@ -296,35 +299,18 @@ public class ProcessArtifacts {
 			return false;
 		}
 
-		UIComponent component = null;
-		try {
-			View view = taskInstance.getView();
-			view.setSubmitted(taskInstance.isSubmitted());
-
-			component = view.getViewForDisplay();
-			if (component instanceof PDFRenderedComponent) {
-				return !((PDFRenderedComponent) component).isPdfViewer();
-			}
-
-			return view.hasViewForDisplay();
-		} catch(Exception e) {}
-
-		return false;
+		return taskInstance.isRenderable();
 	}
 
 	private boolean hasDocumentGeneratedPDF(Long taskInstanceId) {
-
 		try {
-			List<BinaryVariable> binaryVariables = getBpmFactory()
-			        .getProcessManagerByTaskInstanceId(taskInstanceId)
-			        .getTaskInstance(taskInstanceId).getAttachments();
+			List<BinaryVariable> binaryVariables = getBpmFactory() .getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId).getAttachments();
 
 			if (ListUtil.isEmpty(binaryVariables)) {
 				return false;
 			}
 
-			String expectedName = getFileNameForGeneratedPDFFromTaskInstance(taskInstanceId
-			        .toString());
+			String expectedName = getFileNameForGeneratedPDFFromTaskInstance(taskInstanceId.toString());
 			for (BinaryVariable bv : binaryVariables) {
 				if (expectedName.equals(bv.getFileName())) {
 					return true;
@@ -337,10 +323,8 @@ public class ProcessArtifacts {
 		return false;
 	}
 
-	public String getFileNameForGeneratedPDFFromTaskInstance(
-	        String taskInstanceId) {
-		return new StringBuilder("Document_").append(taskInstanceId).append(
-		    ".pdf").toString();
+	public String getFileNameForGeneratedPDFFromTaskInstance( String taskInstanceId) {
+		return new StringBuilder("Document_").append(taskInstanceId).append(".pdf").toString();
 	}
 
 	private Document getEmailsListDocument(Collection<BPMEmailDocument> processEmails, Long processInstanceId, boolean rightsChanger, User currentUser) {
@@ -444,159 +428,179 @@ public class ProcessArtifacts {
 	}
 
 	public GridEntriesBean getProcessDocumentsList(ProcessArtifactsParamsBean params) {
-		long start = System.currentTimeMillis();
+		boolean measure = JBPMUtil.isPerformanceMeasurementOn();
+		long start = measure ? System.currentTimeMillis() : 0;
 		try {
-		Long processInstanceId = params.getPiId();
+			Long processInstanceId = params.getPiId();
 
-		if (processInstanceId == null || processInstanceId < 0) {
-			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
-			rows.setTotal(0);
-			rows.setPage(0);
+			if (processInstanceId == null || processInstanceId < 0) {
+				ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+				rows.setTotal(0);
+				rows.setPage(0);
 
-			try {
-				GridEntriesBean entries = new GridEntriesBean();
-				entries.setProcessInstanceId(processInstanceId);
-				entries.setGridEntries(rows.getDocument());
-				return entries;
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Exception while creating empty grid entries", e);
+				try {
+					GridEntriesBean entries = new GridEntriesBean();
+					entries.setProcessInstanceId(processInstanceId);
+					entries.setGridEntries(rows.getDocument());
+					return entries;
+				} catch (Exception e) {
+					LOGGER.log(Level.SEVERE, "Exception while creating empty grid entries", e);
+				}
 			}
-		}
 
-		IWContext iwc = getIWContext(true);
-		if (iwc == null) {
-			return null;
-		}
+			IWContext iwc = getIWContext(true);
+			if (iwc == null) {
+				return null;
+			}
 
-		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
-		Locale userLocale = iwc.getCurrentLocale();
+			User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
+			Locale userLocale = iwc.getCurrentLocale();
 
-		ProcessInstanceW pi = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
-		Collection<BPMDocument> processDocuments = pi.getSubmittedDocumentsForUser(loggedInUser, userLocale, params.isNameFromExternalEntity(), params.getAllowPDFSigning());
+			ProcessInstanceW pi = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
+			long documentsStart = measure ? System.currentTimeMillis() : 0;
+			Collection<BPMDocument> processDocuments = pi.getSubmittedDocumentsForUser(loggedInUser, userLocale, params.isNameFromExternalEntity(), params.getAllowPDFSigning());
+			if (measure) {
+				LOGGER.info("Got process documents (" + processDocuments + ") in " + (System.currentTimeMillis() - documentsStart) + " ms");
+			}
 
-		return getDocumentsListDocument(iwc, processDocuments, processInstanceId, params);
+			long beanStart = measure ? System.currentTimeMillis() : 0;
+			GridEntriesBean bean = getDocumentsListDocument(iwc, processDocuments, processInstanceId, params);
+			if (measure) {
+				LOGGER.info("Got grid bean for documents (" + processDocuments + ") in " + (System.currentTimeMillis() - beanStart) + " ms");
+			}
+			return bean;
 		} finally {
-			LOGGER.info("DOCUMENTS DOCUMENTS DOCUMENTS: it took " + (System.currentTimeMillis() - start) + " ms to get documents for params: " + params);	//	TODO
+			if (measure) {
+				LOGGER.info("DOCUMENTS DOCUMENTS DOCUMENTS: it took " + (System.currentTimeMillis() - start) + " ms to get documents for params: " + params);
+			}
 		}
 	}
 
 	public Document getProcessTasksList(ProcessArtifactsParamsBean params) {
-		long start = System.currentTimeMillis();
+		boolean measure = JBPMUtil.isPerformanceMeasurementOn();
+		long start = measure ? System.currentTimeMillis() : 0;
 		try {
-		Long processInstanceId = params.getPiId();
+			Long processInstanceId = params.getPiId();
 
-		if (processInstanceId == null || processInstanceId < 0)
-			return null;
-
-		IWContext iwc = getIWContext(true);
-		if (iwc == null) {
-			return null;
-		}
-
-		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
-		Locale userLocale = iwc.getCurrentLocale();
-
-		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-
-		Collection<BPMDocument> tasksDocuments = null;
-		try {
-			tasksDocuments = loggedInUser == null ?
-				null :
-				getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getTaskDocumentsForUser(
-						loggedInUser,
-						userLocale,
-						params.isNameFromExternalEntity()
-				);
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +	userLocale, e);
-		}
-		tasksDocuments = tasksDocuments == null ? new ArrayList<BPMDocument>(0) : tasksDocuments;
-
-		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
-
-		int size = tasksDocuments.size();
-		rows.setTotal(size);
-		rows.setPage(size == 0 ? 0 : 1);
-
-		String noOneLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_no_one", "No one");
-		String takeTaskImage = bundle.getVirtualPathWithFileNameString("images/take_task.png");
-		String takeTaskTitle = iwrb.getLocalizedString("cases_bpm.case_take_task", "Take task");
-		boolean allowReAssignTask = false;
-
-		for (BPMDocument taskDocument: tasksDocuments) {
-			boolean disableSelection = false; // this is not used now, and implementation can be different when we finally decide to use it
-
-			Long taskInstanceId = taskDocument.getTaskInstanceId();
-
-			final boolean addTaskAssigment;
-			String assignedToName;
-
-			if (StringUtil.isEmpty(taskDocument.getAssignedToName())) {
-				addTaskAssigment = true; // Because is not assigned yet
-				assignedToName = noOneLocalized;
-			} else {
-				addTaskAssigment = false;
-				assignedToName = taskDocument.getAssignedToName();
+			if (processInstanceId == null || processInstanceId < 0) {
+				return null;
 			}
 
-			if (addTaskAssigment || allowReAssignTask) {
-				String imageId = new StringBuilder("id").append(taskInstanceId).append("_assignTask").toString();
-				StringBuilder assignedToCell = new StringBuilder("<img src=\"").append(takeTaskImage).append("\" title=\"").append(takeTaskTitle).append("\"");
-				assignedToCell.append(" id=\"").append(imageId).append("\"").append(" onclick=\"CasesBPMAssets.takeCurrentProcessTask(event, '")
-					.append(taskInstanceId);
-				assignedToCell.append("', '").append(imageId).append("', ").append(allowReAssignTask).append(");\" />");
-
-				assignedToName = new StringBuilder(assignedToCell.toString()).append(CoreConstants.SPACE).append(assignedToName).toString();
+			IWContext iwc = getIWContext(true);
+			if (iwc == null) {
+				return null;
 			}
 
-			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
-			rows.addRow(row);
+			User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
+			Locale userLocale = iwc.getCurrentLocale();
 
-			row.setOrder(taskDocument.getOrder());
-			row.setId(taskInstanceId.toString());
+			IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+			IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 
-			row.addCell(taskDocument.getDocumentName());
-			row.addCell(taskDocument.getCreateDate() == null ? CoreConstants.EMPTY : new IWTimestamp(taskDocument.getCreateDate()).getLocaleDateAndTime(userLocale,
-			                            IWTimestamp.SHORT, IWTimestamp.SHORT));
-			row.setDateCellIndex(row.getCells().size() - 1);
+			long startDoc = measure ? System.currentTimeMillis() : 0;
+			Collection<BPMDocument> tasksDocuments = null;	//	TODO: improve loading
+			try {
+				tasksDocuments = loggedInUser == null ?
+					null :
+					getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getTaskDocumentsForUser(
+							loggedInUser,
+							userLocale,
+							params.isNameFromExternalEntity()
+					);
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +	userLocale, e);
+			}
+			if (measure) {
+				LOGGER.info("TTTTTTTTTTTTTTTTT got task docs in " + (System.currentTimeMillis() - startDoc) + " ms");
+			}
+			tasksDocuments = tasksDocuments == null ? new ArrayList<BPMDocument>(0) : tasksDocuments;
 
-			// TODO commented for future use. 'Taken by' column isn't shown now
-			// row.addCell(assignedToName);
+			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
-			disableSelection = true;
+			int size = tasksDocuments.size();
+			rows.setTotal(size);
+			rows.setPage(size == 0 ? 0 : 1);
 
-			if (disableSelection) {
-				row.setStyleClass("disabledSelection");
-				row.setDisabledSelection(disableSelection);
+			String noOneLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_no_one", "No one");
+			String takeTaskImage = bundle.getVirtualPathWithFileNameString("images/take_task.png");
+			String takeTaskTitle = iwrb.getLocalizedString("cases_bpm.case_take_task", "Take task");
+			boolean allowReAssignTask = false;
+
+			tasksDocuments.stream().forEach((taskDocument) -> {
+				boolean disableSelection = false; // this is not used now, and implementation can be different when we finally decide to use it
+
+				Long taskInstanceId = taskDocument.getTaskInstanceId();
+
+				final boolean addTaskAssigment;
+				String assignedToName;
+
+				if (StringUtil.isEmpty(taskDocument.getAssignedToName())) {
+					addTaskAssigment = true; // Because is not assigned yet
+					assignedToName = noOneLocalized;
+				} else {
+					addTaskAssigment = false;
+					assignedToName = taskDocument.getAssignedToName();
+				}
+
+				if (addTaskAssigment || allowReAssignTask) {
+					String imageId = new StringBuilder("id").append(taskInstanceId).append("_assignTask").toString();
+					StringBuilder assignedToCell = new StringBuilder("<img src=\"").append(takeTaskImage).append("\" title=\"").append(takeTaskTitle).append("\"");
+					assignedToCell.append(" id=\"").append(imageId).append("\"").append(" onclick=\"CasesBPMAssets.takeCurrentProcessTask(event, '")
+						.append(taskInstanceId);
+					assignedToCell.append("', '").append(imageId).append("', ").append(allowReAssignTask).append(");\" />");
+
+					assignedToName = new StringBuilder(assignedToCell.toString()).append(CoreConstants.SPACE).append(assignedToName).toString();
+				}
+
+				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
+				rows.addRow(row);
+
+				row.setOrder(taskDocument.getOrder());
+				row.setId(taskInstanceId.toString());
+
+				row.addCell(taskDocument.getDocumentName());
+				row.addCell(taskDocument.getCreateDate() == null ?
+						CoreConstants.EMPTY :
+						new IWTimestamp(taskDocument.getCreateDate()).getLocaleDateAndTime(userLocale, IWTimestamp.SHORT, IWTimestamp.SHORT));
+				row.setDateCellIndex(row.getCells().size() - 1);
+
+				// TODO commented for future use. 'Taken by' column isn't shown now
+				// row.addCell(assignedToName);
+
+				disableSelection = true;
+
+				if (disableSelection) {
+					row.setStyleClass("disabledSelection");
+					row.setDisabledSelection(disableSelection);
+				}
+
+				if (params.isRightsChanger()) {
+					addRightsChangerCell(row, processInstanceId, taskInstanceId, null, null, true);
+				}
+			});
+
+			if (ListUtil.isEmpty(rows.getRows())) {
+				int cellsCount = 2;
+				if (params.isRightsChanger()) {
+					cellsCount++;
+				}
+				addMessageIfNoContentExists(rows, iwrb.getLocalizedString("no_tasks_available_currently", "You currently don't have any tasks awaiting"), cellsCount);
 			}
 
-			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, processInstanceId, taskInstanceId, null, null, true);
+			try {
+				return rows.getDocument();
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Exception while parsing rows: " + rows, e);
+				return null;
 			}
-		}
-
-		if (ListUtil.isEmpty(rows.getRows())) {
-			int cellsCount = 2;
-			if (params.isRightsChanger()) {
-				cellsCount++;
-			}
-			addMessageIfNoContentExists(rows, iwrb.getLocalizedString("no_tasks_available_currently", "You currently don't have any tasks awaiting"), cellsCount);
-		}
-
-		try {
-			return rows.getDocument();
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Exception while parsing rows: " + rows, e);
-			return null;
-		}
 		} finally {
-			LOGGER.info("TASKS TASKS TASKS: it took " + (System.currentTimeMillis() - start) + " ms to get tasks for params: " + params);	//	TODO
+			if (measure) {
+				LOGGER.info("TASKS TASKS TASKS: it took " + (System.currentTimeMillis() - start) + " ms to get tasks for params: " + params);
+			}
 		}
 	}
 
-	private void addMessageIfNoContentExists(ProcessArtifactsListRows rows,
-	        String message, int cellsCount) {
+	private void addMessageIfNoContentExists(ProcessArtifactsListRows rows,  String message, int cellsCount) {
 		rows.setTotal(1);
 		rows.setPage(1);
 
@@ -618,7 +622,8 @@ public class ProcessArtifacts {
 	private void addRightsChangerCell(ProcessArtifactsListRow row,
 	        Long processInstanceId, Long taskInstanceId,
 	        Integer variableIdentifier, String userId,
-	        boolean setSameRightsForAttachments) {
+	        boolean setSameRightsForAttachments
+	) {
 
 		final IWBundle bundle = IWMainApplication.getDefaultIWMainApplication()
 		        .getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
@@ -644,119 +649,122 @@ public class ProcessArtifacts {
 	private ReentrantLock lock = new ReentrantLock();
 
 	public Document getTaskAttachments(ProcessArtifactsParamsBean params) {
-		long start = System.currentTimeMillis();
+		boolean measure = JBPMUtil.isPerformanceMeasurementOn();
+		long start = measure ? System.currentTimeMillis() : 0;
 		try {
-		lock.lock();
-		try {
-			if (params == null) {
-				return null;	// This will result in 'closed' row in grid
-			}
-			IWContext iwc = getIWContext(true);
-			if (iwc == null) {
-				return null;
-			}
-
-			Long taskInstanceId = params.getTaskId();
-			if (taskInstanceId == null) {
-				return null;
-			}
-
-			TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
-
-			List<BinaryVariable> binaryVariables = tiw.getAttachments();
-			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
-
-			if (ListUtil.isEmpty(binaryVariables)) {
-				return null;
-			}
-
-			int size = binaryVariables.size();
-			rows.setTotal(size);
-			rows.setPage(size == 0 ? 0 : 1);
-
-			IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-			IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-
-			String message = iwrb.getLocalizedString("signing", "Signing...");
-			String image = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
-			String errorMessage = iwrb.getLocalizedString(
-			    "unable_to_sign_attachment",
-			    "Sorry, unable to sign selected attachment"
-			);
-
-			String attachmentWindowLabel = null;
-			String attachmentInfoImage = null;
-			ProcessInstanceW piw = tiw.getProcessInstanceW();
-			boolean canSeeStatistics = piw.hasRight(Right.processHandler);
-			if (params.isShowAttachmentStatistics()) {
-				params.setShowAttachmentStatistics(canSeeStatistics);
-			}
-			if (params.isShowAttachmentStatistics()) {
-				attachmentWindowLabel = iwrb.getLocalizedString("download_statistics", "Download statistics");
-				attachmentInfoImage = bundle.getVirtualPathWithFileNameString("images/attachment_info.png");
-			}
-
-			for (BinaryVariable binaryVariable: binaryVariables) {
-				if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
-					continue;
-				}
-
-				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
-				rows.addRow(row);
-				row.setId(binaryVariable.getHash().toString());
-
-				String description = binaryVariable.getDescription();
-				row.addCell(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
-
-				String fileName = binaryVariable.getFileName();
-				row.addCell(new StringBuilder("<a href=\"javascript:void(0)\" rel=\"").append(fileName).append("\">").append(fileName).append("</a>").toString());
-
-				Long fileSize = binaryVariable.getContentLength();
-				row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
-
-				if (params.isShowAttachmentStatistics()) {
-					row.addCell(new StringBuilder("<a href=\"javascript:void(0);\" attachment-link=\"")
-						.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId,params.isShowUserCompany(), params.isShowLastLoginDate())).append("\" title=\"")
-						.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
-				}
-
-				if (params.getAllowPDFSigning() &&
-					getSigningHandler() != null &&
-					tiw.isSignable() &&
-					binaryVariable.isSignable() &&
-					!tiw.getProcessInstanceW().hasEnded()
-				) {
-					if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
-						row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
-								.append(getJavaScriptActionForPDF(iwrb, taskInstanceId, binaryVariable.getHash().toString(),message, errorMessage))
-								.append("\" />").toString());
-					} else {
-						row.addCell(CoreConstants.EMPTY);
-					}
-				}
-
-				if (params.isRightsChanger()) {
-					addRightsChangerCell(row, params.getPiId(), taskInstanceId, binaryVariable.getHash(), null, false);
-				}
-			}
-
+			lock.lock();
 			try {
-				if (ListUtil.isEmpty(rows.getRows())) {
+				if (params == null) {
+					return null;	// This will result in 'closed' row in grid
+				}
+				IWContext iwc = getIWContext(true);
+				if (iwc == null) {
 					return null;
 				}
 
-				return rows.getDocument();
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Exception while parsing rows of attachments. Params: " + params, e);
-				return null;
+				Long taskInstanceId = params.getTaskId();
+				if (taskInstanceId == null) {
+					return null;
+				}
+
+				TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
+
+				List<BinaryVariable> binaryVariables = tiw.getAttachments();
+				ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+
+				if (ListUtil.isEmpty(binaryVariables)) {
+					return null;
+				}
+
+				int size = binaryVariables.size();
+				rows.setTotal(size);
+				rows.setPage(size == 0 ? 0 : 1);
+
+				IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+				IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
+
+				String message = iwrb.getLocalizedString("signing", "Signing...");
+				String image = bundle.getVirtualPathWithFileNameString("images/pdf_sign.jpeg");
+				String errorMessage = iwrb.getLocalizedString(
+				    "unable_to_sign_attachment",
+				    "Sorry, unable to sign selected attachment"
+				);
+
+				String attachmentWindowLabel = null;
+				String attachmentInfoImage = null;
+				ProcessInstanceW piw = tiw.getProcessInstanceW();
+				boolean canSeeStatistics = piw.hasRight(Right.processHandler);
+				if (params.isShowAttachmentStatistics()) {
+					params.setShowAttachmentStatistics(canSeeStatistics);
+				}
+				if (params.isShowAttachmentStatistics()) {
+					attachmentWindowLabel = iwrb.getLocalizedString("download_statistics", "Download statistics");
+					attachmentInfoImage = bundle.getVirtualPathWithFileNameString("images/attachment_info.png");
+				}
+
+				for (BinaryVariable binaryVariable: binaryVariables) {
+					if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
+						continue;
+					}
+
+					ProcessArtifactsListRow row = new ProcessArtifactsListRow();
+					rows.addRow(row);
+					row.setId(binaryVariable.getHash().toString());
+
+					String description = binaryVariable.getDescription();
+					row.addCell(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
+
+					String fileName = binaryVariable.getFileName();
+					row.addCell(new StringBuilder("<a href=\"javascript:void(0)\" rel=\"").append(fileName).append("\">").append(fileName).append("</a>").toString());
+
+					Long fileSize = binaryVariable.getContentLength();
+					row.addCell(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
+
+					if (params.isShowAttachmentStatistics()) {
+						row.addCell(new StringBuilder("<a href=\"javascript:void(0);\" attachment-link=\"")
+							.append(getAttachmentInfoWindowLink(iwc, binaryVariable, params.getCaseId(), taskInstanceId,params.isShowUserCompany(), params.isShowLastLoginDate())).append("\" title=\"")
+							.append(attachmentWindowLabel).append("\" class=\"BPMCaseAttachmentStatisticsInfo linkedWithLinker\"><img src=\"").append(attachmentInfoImage).append("\"></img></a>").toString());
+					}
+
+					if (params.getAllowPDFSigning() &&
+						getSigningHandler() != null &&
+						tiw.isSignable() &&
+						binaryVariable.isSignable() &&
+						!tiw.getProcessInstanceW().hasEnded()
+					) {
+						if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
+							row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
+									.append(getJavaScriptActionForPDF(iwrb, taskInstanceId, binaryVariable.getHash().toString(),message, errorMessage))
+									.append("\" />").toString());
+						} else {
+							row.addCell(CoreConstants.EMPTY);
+						}
+					}
+
+					if (params.isRightsChanger()) {
+						addRightsChangerCell(row, params.getPiId(), taskInstanceId, binaryVariable.getHash(), null, false);
+					}
+				}
+
+				try {
+					if (ListUtil.isEmpty(rows.getRows())) {
+						return null;
+					}
+
+					return rows.getDocument();
+				} catch (Exception e) {
+					LOGGER.log(Level.SEVERE, "Exception while parsing rows of attachments. Params: " + params, e);
+					return null;
+				}
+			} finally {
+				if (lock.isLocked()) {
+					lock.unlock();
+				}
 			}
 		} finally {
-			if (lock.isLocked()) {
-				lock.unlock();
+			if (measure) {
+				LOGGER.info("ATTACHMENTS ATTACHMENTS ATTACHMENTS: it took " + (System.currentTimeMillis() - start) + " ms to get attachments for params: " + params);
 			}
-		}
-		} finally {
-			LOGGER.info("ATTACHMENTS ATTACHMENTS ATTACHMENTS: it took " + (System.currentTimeMillis() - start) + " ms to get attachments for params: " + params);	//	TODO
 		}
 	}
 
@@ -820,37 +828,40 @@ public class ProcessArtifacts {
 	}
 
 	public Document getProcessEmailsList(ProcessArtifactsParamsBean params) {
-		long start = System.currentTimeMillis();
+		boolean measure = JBPMUtil.isPerformanceMeasurementOn();
+		long start = measure ? System.currentTimeMillis() : 0;
 		try {
-		Long processInstanceId = params.getPiId();
+			Long processInstanceId = params.getPiId();
 
-		if (processInstanceId == null || processInstanceId < 0)
-			return null;
-
-		User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
-
-		Collection<BPMEmailDocument> processEmails = null;
-		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("load_bpm_emails", Boolean.TRUE)) {
-			ProcessInstanceW piW = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
-			processEmails = piW.getAttachedEmails(loggedInUser);
-		}
-
-		if (ListUtil.isEmpty(processEmails)) {
-			try {
-				ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
-				rows.setTotal(0);
-				rows.setPage(0);
-
-				return rows.getDocument();
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
+			if (processInstanceId == null || processInstanceId < 0)
 				return null;
+
+			User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
+
+			Collection<BPMEmailDocument> processEmails = null;
+			if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("load_bpm_emails", Boolean.TRUE)) {
+				ProcessInstanceW piW = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
+				processEmails = piW.getAttachedEmails(loggedInUser);
 			}
-		} else {
-			return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger(), loggedInUser);
-		}
+
+			if (ListUtil.isEmpty(processEmails)) {
+				try {
+					ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+					rows.setTotal(0);
+					rows.setPage(0);
+
+					return rows.getDocument();
+				} catch (Exception e) {
+					LOGGER.log(Level.SEVERE, "Exception while parsing rows", e);
+					return null;
+				}
+			} else {
+				return getEmailsListDocument(processEmails, processInstanceId, params.isRightsChanger(), loggedInUser);
+			}
 		} finally {
-			LOGGER.info("EMAILS EMAILS EMAILS: it took " + (System.currentTimeMillis() - start) + " ms to get emails for params: " + params);	//	TODO
+			if (measure) {
+				LOGGER.info("EMAILS EMAILS EMAILS: it took " + (System.currentTimeMillis() - start) + " ms to get emails for params: " + params);
+			}
 		}
 	}
 
@@ -863,115 +874,118 @@ public class ProcessArtifacts {
 	}
 
 	public Document getProcessContactsList(ProcessArtifactsParamsBean params) {
-		long start = System.currentTimeMillis();
+		boolean measure = JBPMUtil.isPerformanceMeasurementOn();
+		long start = measure ? System.currentTimeMillis() : 0;
 		try {
-		if (params == null) {
-			return null;
-		}
-
-		Long processInstanceId = params.getPiId();
-		if (processInstanceId == null || processInstanceId < 0) {
-			LOGGER.warning("Failed to get process instance id");
-			return null;
-		}
-
-		ProcessManager processManager = getBpmFactory()
-		        .getProcessManagerByProcessInstanceId(processInstanceId);
-		if (processManager == null) {
-			LOGGER.warning("Failed to get " + ProcessManager.class);
-			return null;
-		}
-
-		ProcessInstanceW piw = processManager.getProcessInstance(processInstanceId);
-		if (piw == null) {
-			LOGGER.warning("Failed to get " + ProcessInstanceW.class);
-			return null;
-		}
-
-		Collection<User> uniqueUsers = null;
-		if (params.isShowOnlyCreatorInContacts()) {
-			User owner = piw.getOwner();
-			if (owner == null) {
-				LOGGER.warning("Owner was not found for process instance: " + piw.getProcessInstanceId());
-			} else {
-				uniqueUsers = Arrays.asList(owner);
-			}
-		} else {
-			uniqueUsers = getUsersConnectedToProces(piw);
-		}
-
-		if (ListUtil.isEmpty(uniqueUsers)) {
-			uniqueUsers = Collections.emptyList();
-		}
-
-		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
-		rows.setTotal(uniqueUsers.size());
-		rows.setPage(uniqueUsers.isEmpty() ? 0 : 1);
-
-		String systemEmail = null;
-		try {
-			systemEmail = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_ACCOUNT);
-
-			if (systemEmail != null && systemEmail.indexOf("@") == -1) {
-				String emailHost = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_HOST);
-				systemEmail = systemEmail + "@" + emailHost.substring(emailHost.indexOf(".") + 1);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		String processIdentifier = getBpmFactory()
-		        .getProcessManagerByProcessInstanceId(processInstanceId)
-		        .getProcessInstance(processInstanceId).getProcessIdentifier();
-
-		IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-
-		boolean showUserCompany = params.isShowUserCompany();
-		Map<String, Boolean> addedUsers = new ConcurrentHashMap<String, Boolean>();
-		for (User user : uniqueUsers) {
-			String name = user.getName();
-			String emails = getUserEmails(user.getEmails(), processIdentifier, systemEmail);
-			String key = name.concat(emails);
-			if (addedUsers.containsKey(key)) {
-				continue;
-			} else {
-				addedUsers.put(key, Boolean.TRUE);
+			if (params == null) {
+				return null;
 			}
 
-			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
-			rows.addRow(row);
+			Long processInstanceId = params.getPiId();
+			if (processInstanceId == null || processInstanceId < 0) {
+				LOGGER.warning("Failed to get process instance id");
+				return null;
+			}
 
-			row.addCell(name);
+			ProcessManager processManager = getBpmFactory()
+			        .getProcessManagerByProcessInstanceId(processInstanceId);
+			if (processManager == null) {
+				LOGGER.warning("Failed to get " + ProcessManager.class);
+				return null;
+			}
 
-			if (showUserCompany && getGeneralCompanyBusiness() != null) {
-				Collection<GeneralCompany> companies = getGeneralCompanyBusiness().getCompaniesForUser(user);
-				String companyName;
-				if (!ListUtil.isEmpty(companies)) {
-					GeneralCompany company = companies.iterator().next();
-					companyName = company.getName();
+			ProcessInstanceW piw = processManager.getProcessInstance(processInstanceId);
+			if (piw == null) {
+				LOGGER.warning("Failed to get " + ProcessInstanceW.class);
+				return null;
+			}
+
+			Collection<User> uniqueUsers = null;
+			if (params.isShowOnlyCreatorInContacts()) {
+				User owner = piw.getOwner();
+				if (owner == null) {
+					LOGGER.warning("Owner was not found for process instance: " + piw.getProcessInstanceId());
 				} else {
-					companyName = CoreConstants.MINUS;
+					uniqueUsers = Arrays.asList(owner);
 				}
-				row.addCell(companyName);
+			} else {
+				uniqueUsers = getUsersConnectedToProces(piw);
 			}
 
-			row.addCell(emails);
-
-			row.addCell(new StringBuilder(getUserPhones(user.getPhones())).append(getUserImage(bundle, user)).toString());
-
-			if (params.isRightsChanger()) {
-				addRightsChangerCell(row, processInstanceId, null, null, user.getPrimaryKey().toString(), false);
+			if (ListUtil.isEmpty(uniqueUsers)) {
+				uniqueUsers = Collections.emptyList();
 			}
-		}
 
-		try {
-			return rows.getDocument();
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Exception parsing rows for contacts", e);
-		}
+			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+			rows.setTotal(uniqueUsers.size());
+			rows.setPage(uniqueUsers.isEmpty() ? 0 : 1);
 
-		return null;
+			String systemEmail = null;
+			try {
+				systemEmail = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_ACCOUNT);
+
+				if (systemEmail != null && systemEmail.indexOf("@") == -1) {
+					String emailHost = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_HOST);
+					systemEmail = systemEmail + "@" + emailHost.substring(emailHost.indexOf(".") + 1);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			String processIdentifier = getBpmFactory()
+			        .getProcessManagerByProcessInstanceId(processInstanceId)
+			        .getProcessInstance(processInstanceId).getProcessIdentifier();
+
+			IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+
+			boolean showUserCompany = params.isShowUserCompany();
+			Map<String, Boolean> addedUsers = new ConcurrentHashMap<String, Boolean>();
+			for (User user : uniqueUsers) {
+				String name = user.getName();
+				String emails = getUserEmails(user.getEmails(), processIdentifier, systemEmail);
+				String key = name.concat(emails);
+				if (addedUsers.containsKey(key)) {
+					continue;
+				} else {
+					addedUsers.put(key, Boolean.TRUE);
+				}
+
+				ProcessArtifactsListRow row = new ProcessArtifactsListRow();
+				rows.addRow(row);
+
+				row.addCell(name);
+
+				if (showUserCompany && getGeneralCompanyBusiness() != null) {
+					Collection<GeneralCompany> companies = getGeneralCompanyBusiness().getCompaniesForUser(user);
+					String companyName;
+					if (!ListUtil.isEmpty(companies)) {
+						GeneralCompany company = companies.iterator().next();
+						companyName = company.getName();
+					} else {
+						companyName = CoreConstants.MINUS;
+					}
+					row.addCell(companyName);
+				}
+
+				row.addCell(emails);
+
+				row.addCell(new StringBuilder(getUserPhones(user.getPhones())).append(getUserImage(bundle, user)).toString());
+
+				if (params.isRightsChanger()) {
+					addRightsChangerCell(row, processInstanceId, null, null, user.getPrimaryKey().toString(), false);
+				}
+			}
+
+			try {
+				return rows.getDocument();
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Exception parsing rows for contacts", e);
+			}
+
+			return null;
 		} finally {
-			LOGGER.info("CONTACTS CONTACTS CONTACTS: it took " + (System.currentTimeMillis() - start) + " ms to get contacts for params: " + params);	//	TODO
+			if (measure) {
+				LOGGER.info("CONTACTS CONTACTS CONTACTS: it took " + (System.currentTimeMillis() - start) + " ms to get contacts for params: " + params);
+			}
 		}
 	}
 
