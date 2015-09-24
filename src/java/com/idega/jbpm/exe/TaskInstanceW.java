@@ -52,7 +52,7 @@ public interface TaskInstanceW {
 	 *
 	 * @return
 	 */
-	public abstract View getView();
+	View getView();
 
 	public abstract Long getTaskInstanceId();
 
@@ -145,5 +145,9 @@ public interface TaskInstanceW {
 	public Map<String, Object> getVariables(Token token);
 
 	public String getPDFName(Locale locale);
+
+	public boolean isRenderable();
+
+	public boolean hasViewForDisplay();
 
 }
