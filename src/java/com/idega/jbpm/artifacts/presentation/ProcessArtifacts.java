@@ -195,6 +195,8 @@ public class ProcessArtifacts {
 			Long processInstanceId,
 			ProcessArtifactsParamsBean params
 	) {
+		final boolean measure = JBPMUtil.isPerformanceMeasurementOn();
+
 		ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
 		int size = processDocuments.size();
@@ -218,7 +220,11 @@ public class ProcessArtifacts {
 		processDocuments.stream().forEach((submittedDocument) -> {
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
 
+			long startTaskInstance = measure ? System.currentTimeMillis() : 0;
 			TaskInstanceW taskInstance = pm.getTaskInstance(taskInstanceId);
+			if (measure) {
+				LOGGER.info("Got task instance w in " + (System.currentTimeMillis() - startTaskInstance) + " ms");
+			}
 
 			ProcessArtifactsListRow row = new ProcessArtifactsListRow();
 			rows.addRow(row);
@@ -226,8 +232,18 @@ public class ProcessArtifacts {
 			String rowId = taskInstanceId.toString();
 			row.setId(rowId);
 
+			long startHasView = measure ? System.currentTimeMillis() : 0;
 			boolean hasViewUI = submittedDocument.isHasViewUI();
+			if (measure) {
+				LOGGER.info("Resolved if task inst. has view in " + (System.currentTimeMillis() - startHasView) + " ms");
+			}
+
+			long startRenderable = measure ? System.currentTimeMillis() : 0;
 			boolean renderableTask = isTaskRenderable(taskInstance);
+			if (measure) {
+				LOGGER.info("Resolved if task inst. is renderable in " + (System.currentTimeMillis() - startRenderable) + " ms");
+			}
+
 			boolean pdfView = hasViewUI && !renderableTask;
 			if (pdfView) {
 				row.setStyleClass("pdfViewableItem");
@@ -303,8 +319,10 @@ public class ProcessArtifacts {
 	}
 
 	private boolean hasDocumentGeneratedPDF(Long taskInstanceId) {
+		boolean measure = JBPMUtil.isPerformanceMeasurementOn();
+		long start = measure ? System.currentTimeMillis() : 0;
 		try {
-			List<BinaryVariable> binaryVariables = getBpmFactory() .getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId).getAttachments();
+			List<BinaryVariable> binaryVariables = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId).getAttachments();
 
 			if (ListUtil.isEmpty(binaryVariables)) {
 				return false;
@@ -318,6 +336,10 @@ public class ProcessArtifacts {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			if (measure) {
+				LOGGER.info("Resolved if task instance has rendered PDF doc in " + (System.currentTimeMillis() - start) + " ms");
+			}
 		}
 
 		return false;
