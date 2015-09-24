@@ -30,4 +30,21 @@ version="1.2">
       </idegaweb-info>
     </component-extension>
   </component>
+
+    <managed-bean>
+        <managed-bean-name>taskCreatorBean</managed-bean-name>
+        <managed-bean-class>com.idega.jbpm.presentation.beans.JBPMTaskCreatorBean</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+    </managed-bean>
+  
+    <component>
+        <component-type>jBPM Task creator</component-type>
+        <component-class>com.idega.jbpm.presentation.JBPMTaskCreator</component-class>
+        <component-extension>
+            <idegaweb-info>
+                <builder-visible>true</builder-visible>
+                <object-type>jsf.uicomponent</object-type>
+            </idegaweb-info>
+        </component-extension>
+    </component>
 </faces-config>

@@ -847,16 +847,19 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	 * @see com.idega.jbpm.data.dao.BPMDAO#getProcessDefinitions(java.lang.String)
 	 */
 	@Override
-	public List<ProcessDefinition> getProcessDefinitions(String processDefinitionName) {
-		if (StringUtil.isEmpty(processDefinitionName)) {
-			return Collections.emptyList();
+	public List<ProcessDefinition> getProcessDefinitions(Collection<String> processDefinitionNames) {
+		if (!ListUtil.isEmpty(processDefinitionNames)) {
+			StringBuilder query = new StringBuilder();
+			query.append("FROM ").append(ProcessDefinition.class.getName()).append(" pd ");
+			query.append("WHERE pd.name IN (:procDefNames)");
+
+			return getResultListByInlineQuery(
+					query.toString(),
+					ProcessDefinition.class,
+					new Param("procDefNames", processDefinitionNames));
 		}
 
-		return getResultListByInlineQuery(
-				"FROM " + ProcessDefinition.class.getName() + " pd " +
-						"WHERE pd.name = :procDefName",
-				ProcessDefinition.class,
-				new Param("procDefName", processDefinitionName));
+		return Collections.emptyList();
 	}
 
 	@Override
