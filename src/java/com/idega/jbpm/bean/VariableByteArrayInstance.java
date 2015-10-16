@@ -13,10 +13,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.idega.data.SimpleQuerier;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
-import com.idega.util.CoreUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.ListUtil;
+import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 
 public class VariableByteArrayInstance extends VariableInstanceInfo {
@@ -47,14 +48,15 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 			input = new ByteArrayInputStream(bytes);
 			objectInput = new ObjectInputStream(input);
 			realValue = objectInput.readObject();
-			if (realValue instanceof Serializable)
+			if (realValue instanceof Serializable) {
 				return (Serializable) realValue;
+			}
 		} catch (Exception e) {
 			String message = "Couldn't deserialize stream (made from bytes: " + (bytes == null ? "not provided" : ("length: " +
 					bytes.length +	", representation: '" + new String(bytes))) + "'). Returning empty String. Variable ID: " + variableId +
 					", process instance ID: " + procInstId;
 			LOGGER.log(Level.WARNING, message, e);
-			CoreUtil.sendExceptionNotification(message, e);
+			return null;
 		} finally {
 			IOUtil.close(objectInput);
 			IOUtil.close(input);
@@ -143,10 +145,27 @@ public class VariableByteArrayInstance extends VariableInstanceInfo {
 
 	public static <T extends Serializable> T getValue(Serializable value, Long variableId, Long procInstId) {
 		if (value instanceof Number) {
+			String byteArrayIdQuery = "select bytearrayvalue_ from jbpm_variableinstance where id_ = " + variableId;
+			String byteArrayId = null;
+			try {
+				String[] values = SimpleQuerier.executeStringQuery(byteArrayIdQuery);
+				if (!ArrayUtil.isEmpty(values)) {
+					byteArrayId = values[0];
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			if (StringHandler.isNumeric(byteArrayId)) {
+				value = Long.valueOf(byteArrayId);
+			}
+
 			String query = "select b.BYTES_ from JBPM_BYTEBLOCK b where b.PROCESSFILE_ = " + value;
 			value = getValue(query, variableId, procInstId);
 		} else if (value instanceof byte[]) {
 			value = getConvertedValue((byte[]) value, variableId, procInstId);
+			if (value == null) {
+				return getValue(variableId, variableId, procInstId);
+			}
 		} else if (value instanceof Blob) {
 			Blob blob = (Blob) value;
 
