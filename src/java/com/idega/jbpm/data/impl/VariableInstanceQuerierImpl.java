@@ -25,6 +25,7 @@ import javax.persistence.PersistenceContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
@@ -2745,7 +2746,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				return query.list();
 			}
 		} finally {
-			if (tx != null && !tx.wasCommitted())
+			if (tx != null && tx.getStatus() == TransactionStatus.COMMITTING)
 				tx.commit();
 		}
 	}

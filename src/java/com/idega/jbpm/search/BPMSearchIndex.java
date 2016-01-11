@@ -11,7 +11,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
-import org.hibernate.search.impl.SimpleIndexingProgressMonitor;
+import org.hibernate.search.batchindexing.impl.SimpleIndexingProgressMonitor;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.springframework.beans.factory.annotation.Autowired;

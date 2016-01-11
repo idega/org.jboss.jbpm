@@ -38,21 +38,22 @@
     
     <bean id="BPMUser" class="com.idega.jbpm.identity.BPMUserImpl" scope="prototype" />
     <bean id="LoggedInBPMUser" class="com.idega.jbpm.identity.BPMUserImpl" scope="session" />
+    <bean id="searchIndex" class="com.idega.jbpm.search.BPMSearchIndex" />
     
     <!-- Configure MBeans for exposure over JMX -->
-	<bean id="hibernateStatisticsMBean" class="org.hibernate.jmx.StatisticsService">
-		<property name="statisticsEnabled" value="true"/>
-	    <property name="sessionFactory" value="#{entityManagerFactory.sessionFactory}" />
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+	     <!-- indicate to first look for a server -->
+	     <property name="locateExistingServerIfPossible" value="true"/>
 	</bean>
-
-    <bean id="searchIndex" class="com.idega.jbpm.search.BPMSearchIndex" />
-
 	<bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
-	  <property name="beans">
-	    <map>
-	      <entry key="beans:name=SearchIndex" value-ref="searchIndex" />
-	      <entry key="Hibernate:application=Statistics" value-ref="hibernateStatisticsMBean" />
-	    </map>
+		<property name="server" ref="mbeanServer"/>
+		<property name="beans">
+		    <map>
+		      <entry key="beans:name=SearchIndex" value-ref="searchIndex" />
+		      <entry key="Hibernate:type=statistics">
+		        <ref bean="hibernateStatisticsFactoryBean"/>
+		      </entry>
+		    </map>
 	  </property>
-	</bean>
+   	</bean>
 </beans>

@@ -182,20 +182,9 @@
       <version>0.1pre</version>
     </dependency>
     <dependency>
-    	<groupId>org.apache.lucene</groupId>
-        <artifactId>lucene-core</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>org.hibernate</groupId>
-        <artifactId>hibernate-search</artifactId>
-        <version>4.3.0.Final</version>
-        <type>jar</type>
-   		<exclusions>
-        	<exclusion>
-            	<groupId>org.apache.lucene</groupId>
-            	<artifactId>lucene-core</artifactId>
-          	</exclusion>
-		</exclusions>
+		<groupId>org.hibernate</groupId>
+		<artifactId>hibernate-search-orm</artifactId>
+		<version>${org.hibernate-hibernate-search-version}</version>
 	</dependency>
   </dependencies>
 </project>
