@@ -2115,18 +2115,23 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 				@Override
 				public Boolean doInJbpm(JbpmContext context) throws JbpmException {
-					FullTextSession indexer = org.hibernate.search.Search.getFullTextSession(context.getSession());
-					Transaction tx = indexer.beginTransaction();
-					for (Variable variable: variables) {
-						if (variable.getValue() == null)
-							continue;
+					try {
+						FullTextSession indexer = org.hibernate.search.Search.getFullTextSession(context.getSession());
+						Transaction tx = indexer.beginTransaction();
+						for (Variable variable: variables) {
+							if (variable.getValue() == null)
+								continue;
 
-						Object var = indexer.load(Variable.class, variable.getId());
-						indexer.index(var);
+							Object var = indexer.load(Variable.class, variable.getId());
+							indexer.index(var);
+						}
+						tx.commit();
+
+						return true;
+					} catch (Exception e) {
+						getLogger().log(Level.WARNING, "Error indexing new variables for proc. inst. by ID: " + piId + ", variables: " + variables, e);
 					}
-					tx.commit();
-
-					return true;
+					return false;
 				}
 			});
 		} catch (Exception e) {
@@ -2480,10 +2485,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				field = "stringValue";
 				valueToMatch = stringValue;
 
-				flexible = MapUtil.isEmpty(flexibleVariables) ? false : flexibleVariables.get(name);
-				if (flexible == null) {
-					flexible = false;
-				}
+				flexible = MapUtil.isEmpty(flexibleVariables) || !flexibleVariables.containsKey(name) ? false : flexibleVariables.get(name);
 				if (flexible) {
 					if (isLikeExpressionEnabled()) {
 						valueToMatch = CoreConstants.STAR + valueToMatch.toString();
