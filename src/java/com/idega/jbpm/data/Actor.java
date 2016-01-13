@@ -24,6 +24,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 
+import com.idega.util.DBUtil;
+
 /**
  * Actor represents the role specified in process definition, some user, or users group. Actor id is
  * the generated identifier, and used in task assignments. Role name might be assigned to
@@ -263,6 +265,10 @@ public class Actor implements Serializable {
 	}
 
 	public List<NativeIdentityBind> getNativeIdentities() {
+		if (!DBUtil.getInstance().isInitialized(nativeIdentities)) {
+			nativeIdentities = DBUtil.getInstance().lazyLoad(nativeIdentities);
+			nativeIdentities = nativeIdentities == null ? new ArrayList<>() : new ArrayList<>(nativeIdentities);
+		}
 		return nativeIdentities;
 	}
 
@@ -298,6 +304,10 @@ public class Actor implements Serializable {
 	}
 
 	public List<ActorPermissions> getActorPermissions() {
+		if (!DBUtil.getInstance().isInitialized(actorPermissions)) {
+			actorPermissions = DBUtil.getInstance().lazyLoad(actorPermissions);
+			actorPermissions = actorPermissions == null ? new ArrayList<>() : new ArrayList<>(actorPermissions);
+		}
 		return actorPermissions;
 	}
 
