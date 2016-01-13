@@ -260,7 +260,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	@Override
 	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(List<String> names, Collection<Long> procIds,
 			boolean checkTaskInstance, boolean addEmptyVars) {
-		return getVariablesByProcessInstanceIdAndVariablesNames(names, procIds, checkTaskInstance, addEmptyVars, true);
+		return getVariablesByProcessInstanceIdAndVariablesNames(names, procIds, checkTaskInstance, addEmptyVars, isDataMirrowed());
 	}
 
 	@Override
