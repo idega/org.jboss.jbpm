@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -200,10 +201,46 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 
 	public String getPresentation(VariableInstanceInfo variable) {
-		if (variable == null || variable.getValue() == null)
+		if (variable == null || variable.getValue() == null) {
 			return CoreConstants.MINUS;
+		}
 
-		return getPresentation(variable.getValue().toString());
+		Object value = variable.getValue();
+		if (value instanceof String) {
+			return getPresentation((String) value);
+		} else if (value instanceof Collection) {
+			Collection<?> values = variable.getValue();
+			return getPresentation(values);
+		} else if (value != null) {
+			return getPresentation(value.toString());
+		}
+
+		return CoreConstants.MINUS;
+	}
+
+	protected String getPresentation(Collection<?> values) {
+		if (ListUtil.isEmpty(values)) {
+			return null;
+		}
+
+		String presentation = CoreConstants.EMPTY;
+		for (Iterator<?> valuesIter = values.iterator(); valuesIter.hasNext();) {
+			Object value = valuesIter.next();
+			if (value == null) {
+				continue;
+			}
+
+			String realValue = getPresentation(value.toString());
+			if (!StringUtil.isEmpty(realValue) && !CoreConstants.MINUS.equals(realValue)) {
+				presentation = presentation.concat(realValue);
+			} else {
+				presentation = presentation.concat(value.toString());
+			}
+			if (valuesIter.hasNext()) {
+				presentation = presentation.concat(CoreConstants.COMMA).concat(CoreConstants.SPACE);
+			}
+		}
+		return presentation;
 	}
 
 	public Collection<VariableInstanceInfo> getFinalSearchResult() {
