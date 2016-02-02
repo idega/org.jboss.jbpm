@@ -1,5 +1,6 @@
 package com.idega.jbpm;
 
+import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.logging.Level;
@@ -11,9 +12,18 @@ import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.action.internal.DelayedPostInsertIdentifier;
+import org.hibernate.collection.internal.AbstractPersistentCollection;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.hibernate.engine.spi.CollectionEntry;
 import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.PersistenceContext;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.internal.SessionImpl;
+import org.hibernate.internal.util.collections.IdentityMap;
+import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.type.CollectionType;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -121,12 +131,62 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			return true;
 		}
 
+		private void doCheckDelayedInstances(SessionImpl session, PersistenceContext persistenceContext) {
+			@SuppressWarnings("unchecked")
+			final Map.Entry<PersistentCollection, CollectionEntry>[] collectionEntries = IdentityMap.concurrentEntries(
+					(Map<PersistentCollection, CollectionEntry>) persistenceContext.getCollectionEntries()
+			);
+			if (ArrayUtil.isEmpty(collectionEntries)) {
+				return;
+			}
+
+			SessionFactory sessionFactory = session.getSessionFactory();
+			for (Map.Entry<PersistentCollection, CollectionEntry> entry: collectionEntries) {
+				PersistentCollection coll = entry.getKey();
+				CollectionEntry ce = entry.getValue();
+
+				if (ce == null) {
+					continue;
+				}
+
+				Serializable key = ce.getCurrentKey();
+				if (key instanceof DelayedPostInsertIdentifier && coll instanceof AbstractPersistentCollection) {
+					LOGGER.info("Need to re-create collection " + coll + ", entry " + ce);
+
+					AbstractPersistentCollection collection = (AbstractPersistentCollection) coll;
+					Object owner = collection.getOwner();
+					session.saveOrUpdate(owner);
+
+					if (sessionFactory instanceof SessionFactoryImpl && session instanceof SessionImplementor) {
+						CollectionPersister persister = ((SessionFactoryImpl) sessionFactory).getCollectionPersister(collection.getRole());
+						CollectionType type = persister.getCollectionType();
+						Serializable newKey = type.getKeyOfOwner(owner, session);
+						ce.setCurrentKey(newKey);
+						ce.afterAction(coll);
+					}
+
+					if (ce.getCurrentKey() instanceof DelayedPostInsertIdentifier) {
+						LOGGER.warning("Still delayed " + coll + ", entry " + ce);
+					}
+				}
+			}
+		}
+
 		@Override
 		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
 			if (session instanceof SessionImpl && session.isOpen()) {
+				PersistenceContext persistenceContext = ((SessionImpl) session).getPersistenceContext();
+
+				if (doCheckDelayedInstance()) {
+					try {
+						doCheckDelayedInstances((SessionImpl) session, persistenceContext);
+					} catch (Exception e) {
+						LOGGER.log(Level.WARNING, "Error checking delayed instances", e);
+					}
+				}
+
 				if (doCheckVersion()) {
-					PersistenceContext persistenceContext = ((SessionImpl) session).getPersistenceContext();
-					Map.Entry<Object,EntityEntry>[] entries = persistenceContext.reentrantSafeEntityEntries();
+					Map.Entry<Object, EntityEntry>[] entries = persistenceContext.reentrantSafeEntityEntries();
 					if (!ArrayUtil.isEmpty(entries)) {
 						for (Map.Entry<?, EntityEntry> entry: entries) {
 							EntityEntry entityEntry = entry.getValue();
@@ -190,6 +250,14 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 				versionCheckEnabled = IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm_check_entity_version", true);
 			}
 			return versionCheckEnabled;
+		}
+
+		private Boolean delayedInstanceCheckEnabled = null;
+		private Boolean doCheckDelayedInstance() {
+			if (delayedInstanceCheckEnabled == null) {
+				delayedInstanceCheckEnabled = IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm_check_delayed_instance", true);
+			}
+			return delayedInstanceCheckEnabled;
 		}
 
 		private Boolean checkVersion = null;
