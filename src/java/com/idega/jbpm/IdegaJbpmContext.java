@@ -2,7 +2,9 @@ package com.idega.jbpm;
 
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,12 +19,15 @@ import org.hibernate.collection.internal.AbstractPersistentCollection;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.CollectionEntry;
 import org.hibernate.engine.spi.EntityEntry;
+import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.PersistenceContext;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.id.IdentifierGeneratorHelper;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.internal.SessionImpl;
 import org.hibernate.internal.util.collections.IdentityMap;
 import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.CollectionType;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.JbpmContext;
@@ -39,6 +44,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.dao.BPMEntityEnum;
 import com.idega.util.ArrayUtil;
 import com.idega.util.StringHandler;
+import com.idega.util.datastructures.map.MapUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -131,53 +137,122 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			return true;
 		}
 
+		private void doCheckEveryInstanceIfDelayed(SessionImpl session, PersistenceContext persistenceContext) {
+			try {
+				@SuppressWarnings("unchecked")
+				Map<Object, Object> entities = persistenceContext.getEntitiesByKey();
+				if (MapUtil.isEmpty(entities)) {
+					return;
+				}
+
+				Set<Object> keys = new HashSet<>(entities.keySet());
+				for (Object key: keys) {
+					Object value = entities.get(key);
+					if (value == null) {
+						continue;
+					}
+
+					if (key instanceof EntityKey) {
+						EntityKey entityKey = (EntityKey) key;
+						Serializable id = entityKey.getIdentifier();
+						if (id instanceof DelayedPostInsertIdentifier) {
+							session.saveOrUpdate(value);
+
+							EntityEntry entityEntry = session.getPersistenceContext().getEntry(value);
+							if (entityEntry != null) {
+								try {
+									EntityPersister ep = entityEntry.getPersister();
+									Serializable newKey = ep.getIdentifierGenerator().generate(session, value);
+									Object[] state = ep.getPropertyValues(value);
+									if (newKey == IdentifierGeneratorHelper.POST_INSERT_INDICATOR) {
+										newKey = ep.insert(state, value, session);
+									} else {
+										ep.insert(newKey, state, value, session);
+									}
+									ep.setIdentifier(value, newKey, session);
+
+									persistenceContext.replaceDelayedEntityIdentityInsertKeys(entityKey, newKey);
+								} catch (Exception e) {
+									LOGGER.log(Level.WARNING, "Error generating new key for " + value + ", old key: " + key, e);
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Error checking delayed identifiers for every instance. Persistence context: " + persistenceContext, e);
+			}
+		}
+
+		private void doCheckCollectionInstancesIfDelayed(SessionImpl session, PersistenceContext persistenceContext) {
+			try {
+				@SuppressWarnings("unchecked")
+				final Map.Entry<PersistentCollection, CollectionEntry>[] collectionEntries = IdentityMap.concurrentEntries(
+						(Map<PersistentCollection, CollectionEntry>) persistenceContext.getCollectionEntries()
+				);
+				if (ArrayUtil.isEmpty(collectionEntries)) {
+					return;
+				}
+
+				SessionFactory sessionFactory = session.getSessionFactory();
+				for (Map.Entry<PersistentCollection, CollectionEntry> entry: collectionEntries) {
+					PersistentCollection coll = entry.getKey();
+					CollectionEntry ce = entry.getValue();
+
+					if (ce == null) {
+						continue;
+					}
+
+					Serializable key = ce.getCurrentKey();
+					if (key instanceof DelayedPostInsertIdentifier && coll instanceof AbstractPersistentCollection) {
+						AbstractPersistentCollection collection = (AbstractPersistentCollection) coll;
+						Object owner = collection.getOwner();
+						session.saveOrUpdate(owner);
+
+						if (sessionFactory instanceof SessionFactoryImpl && session instanceof SessionImplementor) {
+							CollectionPersister persister = null;
+							String role = collection.getRole();
+							if (role != null) {
+								try {
+									SessionFactoryImpl factoryImpl = (SessionFactoryImpl) sessionFactory;
+									persister = factoryImpl.getCollectionPersister(role);
+								} catch (Exception e) {
+									LOGGER.log(Level.WARNING, "Error getting persister for role " + role, e);
+								}
+							}
+
+							if (persister != null) {
+								CollectionType type = persister.getCollectionType();
+								Serializable newKey = type.getKeyOfOwner(owner, session);
+								ce.setCurrentKey(newKey);
+								ce.afterAction(coll);
+							}
+						}
+
+						if (ce.getCurrentKey() instanceof DelayedPostInsertIdentifier) {
+							LOGGER.warning("Still delayed (" + key + ") " + coll);
+						}
+					} else if (key instanceof DelayedPostInsertIdentifier) {
+						LOGGER.info("Do not know how to handle delayed identifier (" + key + ") in " + coll);
+					}
+				}
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Error checking delayed identifiers for collections. Persistence context: " + persistenceContext, e);
+			}
+		}
+
 		private void doCheckDelayedInstances(SessionImpl session, PersistenceContext persistenceContext) {
-			@SuppressWarnings("unchecked")
-			final Map.Entry<PersistentCollection, CollectionEntry>[] collectionEntries = IdentityMap.concurrentEntries(
-					(Map<PersistentCollection, CollectionEntry>) persistenceContext.getCollectionEntries()
-			);
-			if (ArrayUtil.isEmpty(collectionEntries)) {
-				return;
-			}
-
-			SessionFactory sessionFactory = session.getSessionFactory();
-			for (Map.Entry<PersistentCollection, CollectionEntry> entry: collectionEntries) {
-				PersistentCollection coll = entry.getKey();
-				CollectionEntry ce = entry.getValue();
-
-				if (ce == null) {
-					continue;
-				}
-
-				Serializable key = ce.getCurrentKey();
-				if (key instanceof DelayedPostInsertIdentifier && coll instanceof AbstractPersistentCollection) {
-					LOGGER.info("Need to re-create collection " + coll + ", entry " + ce);
-
-					AbstractPersistentCollection collection = (AbstractPersistentCollection) coll;
-					Object owner = collection.getOwner();
-					session.saveOrUpdate(owner);
-
-					if (sessionFactory instanceof SessionFactoryImpl && session instanceof SessionImplementor) {
-						CollectionPersister persister = ((SessionFactoryImpl) sessionFactory).getCollectionPersister(collection.getRole());
-						CollectionType type = persister.getCollectionType();
-						Serializable newKey = type.getKeyOfOwner(owner, session);
-						ce.setCurrentKey(newKey);
-						ce.afterAction(coll);
-					}
-
-					if (ce.getCurrentKey() instanceof DelayedPostInsertIdentifier) {
-						LOGGER.warning("Still delayed " + coll + ", entry " + ce);
-					}
-				}
-			}
+			doCheckCollectionInstancesIfDelayed(session, persistenceContext);
+			doCheckEveryInstanceIfDelayed(session, persistenceContext);
 		}
 
 		@Override
 		protected void flushIfNecessary(Session session, boolean existingTransaction) throws HibernateException {
+			boolean checkDelayed = doCheckDelayedInstance();
 			if (session instanceof SessionImpl && session.isOpen()) {
 				PersistenceContext persistenceContext = ((SessionImpl) session).getPersistenceContext();
 
-				if (doCheckDelayedInstance()) {
+				if (checkDelayed) {
 					try {
 						doCheckDelayedInstances((SessionImpl) session, persistenceContext);
 					} catch (Exception e) {
@@ -240,7 +315,25 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 			}
 
 			if (session.isOpen()) {
-				super.flushIfNecessary(session, existingTransaction);
+				if (checkDelayed && session instanceof SessionImpl) {
+					SessionImpl tmp = ((SessionImpl) session);
+					PersistenceContext persistenceContext = tmp.getPersistenceContext();
+					doCheckDelayedInstances(tmp, persistenceContext);
+				}
+
+				try {
+					super.flushIfNecessary(session, existingTransaction);
+				} catch (Exception e) {
+					if (checkDelayed && session instanceof SessionImpl) {
+						SessionImpl tmp = ((SessionImpl) session);
+						PersistenceContext persistenceContext = tmp.getPersistenceContext();
+						doCheckDelayedInstances(tmp, persistenceContext);
+
+						try {
+							super.flushIfNecessary(session, existingTransaction);
+						} catch (NullPointerException npe) {}
+					}
+				}
 			}
 		}
 
