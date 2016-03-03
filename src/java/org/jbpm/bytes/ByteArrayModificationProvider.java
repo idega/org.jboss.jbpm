@@ -1,4 +1,4 @@
-package org.jbpm.graph.exe;
+package org.jbpm.bytes;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -6,17 +6,17 @@ import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.version.BPMInstanceModificationProvider;
 
-@Service("jbpmTokenVersionUpdater")
+@Service("jbpmByteArrayVersionUpdater")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class JBPMTokenVersionProvider implements BPMInstanceModificationProvider<Token> {
+public class ByteArrayModificationProvider implements BPMInstanceModificationProvider<ByteArray> {
 
 	@Override
-	public Number getVersion(Token token) {
-		return token == null ? null : token.version;
+	public Number getVersion(ByteArray instance) {
+		return null;
 	}
 
 	@Override
-	public void setId(Token instance, Long id) {
+	public void setId(ByteArray instance, Long id) {
 		instance.id = id;
 	}
 

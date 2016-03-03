@@ -1,4 +1,4 @@
-package org.jbpm.graph.exe;
+package org.jbpm.instantiation;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -6,17 +6,17 @@ import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.version.BPMInstanceModificationProvider;
 
-@Service("jbpmTokenVersionUpdater")
+@Service("jbpmDelegationVersionUpdater")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class JBPMTokenVersionProvider implements BPMInstanceModificationProvider<Token> {
+public class DelegationModificationProvider implements BPMInstanceModificationProvider<Delegation> {
 
 	@Override
-	public Number getVersion(Token token) {
-		return token == null ? null : token.version;
+	public Number getVersion(Delegation instance) {
+		return null;
 	}
 
 	@Override
-	public void setId(Token instance, Long id) {
+	public void setId(Delegation instance, Long id) {
 		instance.id = id;
 	}
 

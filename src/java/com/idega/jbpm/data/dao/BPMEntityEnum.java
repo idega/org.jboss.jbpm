@@ -2,9 +2,13 @@ package com.idega.jbpm.data.dao;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.hibernate.Session;
 
 import com.idega.data.SimpleQuerier;
-import com.idega.jbpm.version.BPMInstanceVersionProvider;
+import com.idega.jbpm.version.BPMInstanceModificationProvider;
 import com.idega.util.ArrayUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.expression.ELUtil;
@@ -31,7 +35,7 @@ public enum BPMEntityEnum {
 
 		@Override
 		public Number getEntityVersion(Object entity) {
-			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.graph.exe.Token) entity);
+			return getModificationProvider(getEntityType()).getVersion((org.jbpm.graph.exe.Token) entity);
 		}
 
 	},
@@ -56,7 +60,7 @@ public enum BPMEntityEnum {
 
 		@Override
 		public Number getEntityVersion(Object entity) {
-			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.taskmgmt.exe.TaskInstance) entity);
+			return getModificationProvider(getEntityType()).getVersion((org.jbpm.taskmgmt.exe.TaskInstance) entity);
 		}
 
 	},
@@ -81,7 +85,7 @@ public enum BPMEntityEnum {
 
 		@Override
 		public Number getEntityVersion(Object entity) {
-			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.taskmgmt.exe.TaskMgmtInstance) entity);
+			return getModificationProvider(getEntityType()).getVersion((org.jbpm.taskmgmt.exe.TaskMgmtInstance) entity);
 		}
 	},
 
@@ -89,7 +93,7 @@ public enum BPMEntityEnum {
 
 		@Override
 		public Number getEntityVersion(Object entity) {
-			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.context.exe.TokenVariableMap) entity);
+			return getModificationProvider(getEntityType()).getVersion((org.jbpm.context.exe.TokenVariableMap) entity);
 		}
 
 		@Override
@@ -114,7 +118,7 @@ public enum BPMEntityEnum {
 
 		@Override
 		public Number getEntityVersion(Object entity) {
-			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.context.exe.variableinstance.ByteArrayInstance) entity);
+			return getModificationProvider(getEntityType()).getVersion((org.jbpm.context.exe.variableinstance.ByteArrayInstance) entity);
 		}
 
 		@Override
@@ -139,7 +143,7 @@ public enum BPMEntityEnum {
 
 		@Override
 		public Number getEntityVersion(Object entity) {
-			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.context.exe.variableinstance.NullInstance) entity);
+			return getModificationProvider(getEntityType()).getVersion((org.jbpm.context.exe.variableinstance.NullInstance) entity);
 		}
 
 		@Override
@@ -164,7 +168,7 @@ public enum BPMEntityEnum {
 
 		@Override
 		public Number getEntityVersion(Object entity) {
-			return getVersionUpdater(getEntityType()).getVersion((org.jbpm.context.exe.variableinstance.StringInstance) entity);
+			return getModificationProvider(getEntityType()).getVersion((org.jbpm.context.exe.variableinstance.StringInstance) entity);
 		}
 
 		@Override
@@ -183,6 +187,81 @@ public enum BPMEntityEnum {
 			return (Class<T>) org.jbpm.context.exe.variableinstance.StringInstance.class;
 		}
 
+	},
+
+	ByteArray (org.jbpm.bytes.ByteArray.class.getName()) {
+
+		@Override
+		public Number getEntityVersion(Object entity) {
+			return null;
+		}
+
+		@Override
+		public String getVersionQuery(long id) {
+			return null;
+		}
+
+		@Override
+		public String getUpdateQuery(long id, int version) {
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T extends Serializable> Class<T> getEntityType() {
+			return (Class<T>) org.jbpm.bytes.ByteArray.class;
+		}
+
+	},
+
+	Event (org.jbpm.graph.def.Event.class.getName()) {
+
+		@Override
+		public Number getEntityVersion(Object entity) {
+			return null;
+		}
+
+		@Override
+		public String getVersionQuery(long id) {
+			return null;
+		}
+
+		@Override
+		public String getUpdateQuery(long id, int version) {
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T extends Serializable> Class<T> getEntityType() {
+			return (Class<T>) org.jbpm.graph.def.Event.class;
+		}
+
+	},
+
+	Delegation (org.jbpm.instantiation.Delegation.class.getName()) {
+
+		@Override
+		public Number getEntityVersion(Object entity) {
+			return null;
+		}
+
+		@Override
+		public String getVersionQuery(long id) {
+			return null;
+		}
+
+		@Override
+		public String getUpdateQuery(long id, int version) {
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T extends Serializable> Class<T> getEntityType() {
+			return (Class<T>) org.jbpm.instantiation.Delegation.class;
+		}
+
 	};
 
 	private String entityClass;
@@ -191,9 +270,9 @@ public enum BPMEntityEnum {
 		this.entityClass = entityClass;
 	}
 
-	private static <T extends Serializable> BPMInstanceVersionProvider<T> getVersionUpdater(Class<T> type) {
+	private static <T extends Serializable> BPMInstanceModificationProvider<T> getModificationProvider(Class<T> type) {
 		try {
-			BPMInstanceVersionProvider<T> updater = ELUtil.getInstance().getBean("jbpm" + type.getSimpleName() + "VersionUpdater");
+			BPMInstanceModificationProvider<T> updater = ELUtil.getInstance().getBean("jbpm" + type.getSimpleName() + "VersionUpdater");
 			return updater;
 		} catch (Exception e) {}
 		return null;
@@ -207,6 +286,10 @@ public enum BPMEntityEnum {
 
 	public Number getVersionFromDatabase(Long id) {
 		String versionQuery = getVersionQuery(id);
+		if (versionQuery == null) {
+			return null;
+		}
+
 		try {
 			List<Serializable[]> results = SimpleQuerier.executeQuery(versionQuery, 1);
 			if (!ListUtil.isEmpty(results)) {
@@ -221,6 +304,29 @@ public enum BPMEntityEnum {
 		}
 		return null;
 	}
+
+	public <T extends Serializable> void setId(Long id, Session session, T object) {
+		try {
+			@SuppressWarnings("unchecked")
+			Class<T> type = (Class<T>) object.getClass();
+			BPMInstanceModificationProvider<T> updater = getModificationProvider(type);
+			if (updater == null) {
+				updater = getModificationProvider(getEntityType());
+			}
+			if (updater == null) {
+				LOGGER.warning("Failed to find instance of " + BPMInstanceModificationProvider.class.getName() + " for type " + type.getName());
+			} else {
+				updater.setId(object, id);
+				if (session.get(type, id) == null) {
+					session.saveOrUpdate(object);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error setting ID (" + id + ") for " + object, e);
+		}
+	}
+
+	private static final Logger LOGGER = Logger.getLogger(BPMEntityEnum.class.getName());
 
 	public abstract String getVersionQuery(long id);
 	public abstract String getUpdateQuery(long id, int version);

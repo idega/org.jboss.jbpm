@@ -4,15 +4,20 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import com.idega.jbpm.version.BPMInstanceVersionProvider;
+import com.idega.jbpm.version.BPMInstanceModificationProvider;
 
 @Service("jbpmTokenVariableMapVersionUpdater")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class TokenVariableMapVersionProvider implements BPMInstanceVersionProvider<TokenVariableMap> {
+public class TokenVariableMapVersionProvider implements BPMInstanceModificationProvider<TokenVariableMap> {
 
 	@Override
 	public Number getVersion(TokenVariableMap instance) {
 		return instance == null ? null : instance.version;
+	}
+
+	@Override
+	public void setId(TokenVariableMap instance, Long id) {
+		instance.id = id;
 	}
 
 }
