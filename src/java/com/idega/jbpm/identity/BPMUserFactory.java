@@ -10,20 +10,22 @@ import com.idega.user.data.User;
  * @version $Revision: 1.12 $ Last modified: $Date: 2009/02/13 17:27:47 $ by $Author: civilis $
  */
 public interface BPMUserFactory {
-	
+
 	public abstract BPMUser createBPMUser(UserPersonalData upd, Role role,
 	        Long processInstanceId);
-	
+
 	/**
 	 * @return currently logged in user's bpm user. BPMUser is in session scope
 	 */
 	public abstract BPMUser getCurrentBPMUser();
-	
+
+	public void setCurrentUser(User user);
+
 	/**
 	 * @return bpm user and sets the usr as the related real user. BPMUser is in session scope
 	 */
 	public abstract BPMUser getLoggedInBPMUser(String bpmUserUUID, User usr);
-	
+
 	/**
 	 * @param iwc
 	 * @param bpmUserUUID
@@ -34,7 +36,7 @@ public interface BPMUserFactory {
 	 */
 	public abstract BPMUser getLoggedInBPMUser(IWContext iwc,
 	        String bpmUserUUID, User usr);
-	
+
 	/**
 	 * @param bpmUserPK
 	 *            user entity bean primary key of bpm user optional, if it is null, then it is
@@ -42,10 +44,10 @@ public interface BPMUserFactory {
 	 * @return bpm user in prototype scope
 	 */
 	public abstract BPMUser getBPMUser(Integer bpmUserPK);
-	
+
 	/**
 	 * checks if realUsr is associated with bpmUsr.
-	 * 
+	 *
 	 * @param realUsr
 	 * @param bpmUsr
 	 * @param autoAssociate
@@ -54,6 +56,6 @@ public interface BPMUserFactory {
 	 */
 	public abstract boolean isAssociated(User realUsr, User bpmUsr,
 	        boolean autoAssociate);
-	
+
 	public abstract List<Integer> getAllHandlersForProcess(String processDefinitionName);
 }

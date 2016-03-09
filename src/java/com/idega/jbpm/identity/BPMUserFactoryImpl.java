@@ -199,12 +199,29 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 	public abstract BPMUserImpl createBPMUser();
 	public abstract BPMUserImpl createLoggedInBPMUser();
 
+	private BPMUser currentBPMUser;
+
 	/**
 	 * @return currently logged in user's bpm user. BPMUser is in session scope
 	 */
 	@Override
 	public BPMUser getCurrentBPMUser() {
-		return getLoggedInBPMUser(null, null);
+		if (currentBPMUser == null) {
+			return getLoggedInBPMUser(null, null);
+		}
+
+		return currentBPMUser;
+	}
+
+	@Override
+	public void setCurrentUser(User user) {
+		if (user == null) {
+			this.currentBPMUser = null;
+			return;
+		}
+
+		BPMUser bpmUser = getBPMUser(Integer.valueOf(user.getId()), null, false);
+		this.currentBPMUser = bpmUser;
 	}
 
 	/**
