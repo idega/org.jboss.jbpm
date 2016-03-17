@@ -14,11 +14,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.ejb.FinderException;
 import javax.faces.component.UIComponent;
 import javax.mail.MessagingException;
 
@@ -47,6 +49,7 @@ import com.idega.core.company.bean.GeneralCompany;
 import com.idega.core.contact.data.Email;
 import com.idega.core.contact.data.Phone;
 import com.idega.idegaweb.IWApplicationContext;
+import com.idega.idegaweb.IWApplicationContextFactory;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
@@ -141,6 +144,9 @@ public class ProcessArtifacts {
 	@Autowired(required = false)
 	private GeneralCompanyBusiness generalCompanyBusiness;
 
+	@Autowired
+	private RolesManager roleManager;
+	
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
 
@@ -189,6 +195,57 @@ public class ProcessArtifacts {
 		return list;
 	}
 
+	public UserBusiness getUserBiz() throws IBOLookupException {
+		UserBusiness business = (UserBusiness) IBOLookup.getServiceInstance(
+				IWApplicationContextFactory.getCurrentIWApplicationContext(), UserBusiness.class);
+		return business;
+	}
+	
+	private Boolean isVisibleToOtherRoles(Long taskInstanceId, Long processInstanceId){
+		Collection<Role> roles;
+		Collection<Role> userRoles;
+
+		if ((taskInstanceId != null) && (processInstanceId!=null)){
+
+			// TODO: add method to taskInstanceW and get permissions from there
+			TaskInstanceW tiw = getBpmFactory()
+			        .getProcessManagerByTaskInstanceId(taskInstanceId)
+			        .getTaskInstance(taskInstanceId);
+
+				roles = tiw.getRolesPermissions();
+				com.idega.user.data.User user = null;
+				try {
+					user = getUserBiz().getUserHome().findByPrimaryKey(IWContext.getCurrentInstance().getLoggedInUser().getId());
+				} catch (Exception e) {
+					return Boolean.TRUE;					
+				}
+				user.getPreferredRole();
+			if (user == null) return Boolean.TRUE;
+			userRoles = getRoleManager().getUserRoles(processInstanceId, user);
+			Set<String> nativeRoles = getRoleManager().getUserNativeRoles(user);
+
+			if (ListUtil.isEmpty(roles)) {
+				return Boolean.FALSE;
+			} else {
+	
+				for (Role role : roles) {
+					String roleName = role.getRoleName();
+						if(role.getAccesses() != null && role.getAccesses().contains(Access.read)){
+							Boolean userHasThisRole = Boolean.FALSE;
+							for (Role userRole : userRoles){
+								if (userRole.getRoleName().equals(roleName)) userHasThisRole = Boolean.TRUE;
+							}
+							for (String userRole: nativeRoles){
+								if (userRole.equals(roleName)) userHasThisRole = Boolean.TRUE;
+							}
+							if (userHasThisRole.equals(Boolean.FALSE)) return Boolean.TRUE;
+						}
+				}
+			}
+		}
+		return Boolean.FALSE;
+	}
+	
 	private GridEntriesBean getDocumentsListDocument(
 			IWContext iwc,
 			Collection<BPMDocument> processDocuments,
@@ -233,6 +290,7 @@ public class ProcessArtifacts {
 			if (pdfView) {
 				row.setStyleClass("pdfViewableItem");
 			}
+			row.setStyleClass(isVisibleToOtherRoles(taskInstanceId, processInstanceId)?"public_task":"private_task");
 			row.addCell(submittedDocument.getDocumentName());
 			row.addCell(submittedDocument.getSubmittedByName());
 			row.addCell(submittedDocument.getEndDate() == null ? CoreConstants.EMPTY : new IWTimestamp(submittedDocument.getEndDate()).getLocaleDateAndTime(userLocale, IWTimestamp.SHORT, IWTimestamp.SHORT));
@@ -522,6 +580,8 @@ public class ProcessArtifacts {
 			}
 			tasksDocuments = tasksDocuments == null ? new ArrayList<BPMDocument>(0) : tasksDocuments;
 
+			Collections.sort((List<BPMDocument>) tasksDocuments, (c1, c2) -> ((BPMDocument) c2).getDocumentName().compareTo(((BPMDocument) c1).getDocumentName()));
+			
 			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
 			int size = tasksDocuments.size();
@@ -1924,6 +1984,15 @@ public class ProcessArtifacts {
 		}
 
 		return variable == null ? null : variable.toString();
+	}
+
+	public RolesManager getRoleManager() {
+		if (roleManager == null) ELUtil.getInstance().autowire(this);
+		return roleManager;
+	}
+
+	public void setRoleManager(RolesManager roleManager) {
+		this.roleManager = roleManager;
 	}
 
 }
