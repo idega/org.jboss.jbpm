@@ -291,10 +291,16 @@ public class ProcessArtifacts {
 			boolean renderableTask = isTaskRenderable(taskInstance);
 
 			boolean pdfView = hasViewUI && !renderableTask;
+			String styleClass = CoreConstants.EMPTY;
 			if (pdfView) {
-				row.setStyleClass("pdfViewableItem");
+				styleClass = "pdfViewableItem";
 			}
-			row.setStyleClass(isVisibleToOtherRoles(taskInstanceId, processInstanceId) ? "public_task" : "private_task");
+			styleClass = (StringUtil.isEmpty(styleClass) ? styleClass : styleClass.concat(CoreConstants.SPACE)).concat(
+					isVisibleToOtherRoles(taskInstanceId, processInstanceId) ?
+							"public_task" : "private_task"
+			);
+			row.setStyleClass(styleClass);
+
 			row.addCell(submittedDocument.getDocumentName());
 			row.addCell(submittedDocument.getSubmittedByName());
 			row.addCell(submittedDocument.getEndDate() == null ? CoreConstants.EMPTY : new IWTimestamp(submittedDocument.getEndDate()).getLocaleDateAndTime(userLocale, IWTimestamp.SHORT, IWTimestamp.SHORT));
