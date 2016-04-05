@@ -418,17 +418,18 @@ public class RolesManagerImpl implements RolesManager {
 				} else {
 
 					try {
-
-						for (NativeIdentityBind identity : actor
-						        .getNativeIdentities()) {
+						for (NativeIdentityBind identity: actor.getNativeIdentities()) {
 
 							if (identity.getIdentityType() == IdentityType.USER) {
-
-								User user = userBusiness.getUser(new Integer(
-								        identity.getIdentityId()));
-								allUsers.put(user.getPrimaryKey().toString(),
-								    user);
-
+								User user = null;
+								try {
+									user = userBusiness.getUser(new Integer(identity.getIdentityId()));
+								} catch (Exception e) {
+									logger.log(Level.WARNING, "Error getting user by ID " + identity.getIdentityId(), e);
+								}
+								if (user != null) {
+									allUsers.put(user.getPrimaryKey().toString(),  user);
+								}
 							} else if (identity.getIdentityType() == IdentityType.GROUP) {
 								Collection<User> groupUsers = userBusiness.getUsersInGroup(new Integer(identity.getIdentityId()));
 								for (User user : groupUsers)
