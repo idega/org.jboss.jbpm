@@ -21,6 +21,7 @@ import com.idega.jbpm.view.View;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.Page;
+import com.idega.util.CoreConstants;
 import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
@@ -87,6 +88,26 @@ public class BPMTaskViewer extends IWBaseComponent {
 		}
 	}
 
+	private UIComponent getView(IWContext iwc, ProcessDefinitionW procDef, Integer initiatorId) {
+		if (!procDef.isAvailable(iwc)) {
+			String url = procDef.getNotAvailableLink(iwc);
+			if (StringUtil.isEmpty(url)) {
+				url = CoreConstants.PAGES_URI_PREFIX;
+				getLogger().warning("Proc. def. " + procDef.getProcessDefinitionId() + " is not available, but redirect URL is not available! Redirecting to default location: " + CoreConstants.PAGES_URI_PREFIX);
+			} else {
+				getLogger().info("Proc. def. " + procDef.getProcessDefinitionId() + " is not available. Redirecting to " + url);
+			}
+
+			iwc.sendRedirect(url);
+			return null;
+		}
+
+		setPageTitle(procDef.getProcessName(iwc.getCurrentLocale()));
+
+		View initView = procDef.loadInitView(initiatorId);
+		return initView.getViewForDisplay();
+	}
+
 	private UIComponent loadViewerFromDefinition(FacesContext context, Long processDefinitionId, boolean checkVersion) {
 		final IWContext iwc = IWContext.getIWContext(context);
 		final Integer initiatorId;
@@ -99,7 +120,6 @@ public class BPMTaskViewer extends IWBaseComponent {
 
 		ProcessManager pm = getBpmFactory().getProcessManager(processDefinitionId);
 		ProcessDefinitionW procDef = pm.getProcessDefinition(processDefinitionId);
-		setPageTitle(procDef.getProcessName(iwc.getCurrentLocale()));
 
 		if (checkVersion) {
 			ProcessDefinitionW latestProcDef = pm.getProcessDefinition(procDef.getProcessDefinition().getName());
@@ -111,8 +131,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 			}
 		}
 
-		View initView = procDef.loadInitView(initiatorId);
-		return initView.getViewForDisplay();
+		return getView(iwc, procDef, initiatorId);
 	}
 
 	private void setPageTitle(String title) {
@@ -139,9 +158,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		}
 
 		ProcessDefinitionW procDef = getBpmFactory().getProcessManager(processName).getProcessDefinition(processName);
-		setPageTitle(procDef.getProcessName(iwc.getCurrentLocale()));
-		View initView = procDef.loadInitView(initiatorId);
-		return initView.getViewForDisplay();
+		return getView(iwc, procDef, initiatorId);
 	}
 
 	private UIComponent loadViewerFromTaskInstance(FacesContext context, Long taskInstanceId) {
