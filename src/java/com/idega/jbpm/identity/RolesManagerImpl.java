@@ -451,9 +451,10 @@ public class RolesManagerImpl implements RolesManager {
 			try {
 				for (Group group : allGroups) {
 					Collection<User> users = userBusiness.getUsersInGroup(group);
-
-					for (User user : users) {
-						allUsers.put(user.getPrimaryKey().toString(), user);
+					if (!ListUtil.isEmpty(users)) {
+						for (User user : users) {
+							allUsers.put(user.getPrimaryKey().toString(), user);
+						}
 					}
 				}
 
