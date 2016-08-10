@@ -12,6 +12,7 @@ import com.idega.block.process.variables.Variable;
 import com.idega.core.accesscontrol.data.ICRole;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewSubmission;
+import com.idega.presentation.IWContext;
 import com.idega.user.data.Group;
 import com.idega.user.data.User;
 
@@ -44,8 +45,7 @@ public interface ProcessDefinitionW {
 	public abstract ProcessDefinition getProcessDefinition();
 	public abstract ProcessDefinition getProcessDefinition(JbpmContext context);
 
-	public abstract void setRolesCanStartProcess(List<String> roles,
-			Object context);
+	public abstract void setRolesCanStartProcess(List<String> roles, Object context);
 
 	public abstract List<String> getRolesCanStartProcess(Object context);
 
@@ -69,4 +69,9 @@ public interface ProcessDefinitionW {
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
 	public boolean hasManagerRole(User user);
+
+	public boolean isAvailable(IWContext iwc);
+
+	public String getNotAvailableLink(IWContext iwc);
+
 }
