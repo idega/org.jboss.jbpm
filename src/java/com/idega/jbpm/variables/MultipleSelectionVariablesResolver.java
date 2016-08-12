@@ -124,7 +124,10 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		try {
 			obj = getJSONUtil().convertToObject(value);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error converting JSON string to object: " + value, e);
+			getLogger().log(Level.WARNING, "Error converting JSON string ('" + value + "') to object", e);
+			if (!StringUtil.isEmpty(value)) {
+				return new AdvancedProperty(value, value);
+			}
 		}
 		if (obj instanceof Map) {
 			Object id = ((Map<?, ?>) obj).get(getIdKey());
