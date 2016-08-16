@@ -119,21 +119,34 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		return results;
 	}
 
-	protected AdvancedProperty getValueFromString(String value) {
-		Object obj = null;
+	private Object getParsedFromJSON(String value) {
 		try {
-			obj = getJSONUtil().convertToObject(value);
-		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error converting JSON string to object: " + value, e);
+			if (StringUtil.isEmpty(value)) {
+				return null;
+			}
+
+			if (value.startsWith(CoreConstants.CURLY_BRACKET_LEFT)) {
+				return getJSONUtil().convertToObject(value);
+			}
+		} catch (Throwable e) {
+			getLogger().log(Level.WARNING, "Error converting JSON string ('" + value + "') to object", e);
 		}
+		return value;
+	}
+
+	protected AdvancedProperty getValueFromString(String value) {
+		AdvancedProperty result = null;
+		Object obj = getParsedFromJSON(value);
 		if (obj instanceof Map) {
 			Object id = ((Map<?, ?>) obj).get(getIdKey());
 			if (id instanceof String && !StringUtil.isEmpty((String) id)) {
 				Object realValue = ((Map<?, ?>) obj).get(getValueKey());
-				return new AdvancedProperty((String) id, (String) realValue);
+				result = new AdvancedProperty((String) id, (String) realValue);
 			}
+		} else if (obj instanceof String) {
+			result = new AdvancedProperty((String) obj, (String) obj);
 		}
-		return null;
+		return result;
 	}
 
 	public String getIdKey() {
