@@ -1462,10 +1462,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private List<Serializable[]> getDataByQuery(String query, int columns) {
+		boolean measure = CoreUtil.isSQLMeasurementOn();
+		long start = measure ? System.currentTimeMillis() : 0;
 		try {
 			return SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'", e);
+		} finally {
+			if (measure) {
+				CoreUtil.doDebugSQL(start, System.currentTimeMillis(), query);
+			}
 		}
 		return null;
 	}
