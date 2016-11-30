@@ -615,6 +615,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			CoreUtil.sendExceptionNotification(message, e);
 		}
 		if (ListUtil.isEmpty(variables)) {
+			getLogger().warning("No variables found by name " + name + " and value " + value + (ListUtil.isEmpty(procInstIds) ? CoreConstants.EMPTY : " and proc. inst. IDs " + procInstIds));
 			return null;
 		}
 
