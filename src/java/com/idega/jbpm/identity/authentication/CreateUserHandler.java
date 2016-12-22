@@ -7,6 +7,7 @@ import javax.faces.context.FacesContext;
 import org.jbpm.graph.def.ActionHandler;
 import org.jbpm.graph.exe.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ public class CreateUserHandler extends DefaultSpringBean implements ActionHandle
 	private UserPersonalData userData;
 
 	@Autowired(required = false)
+	@Qualifier("citizenStandardGroup")
 	private StandardGroup standardGroup;
 
 	private boolean publishEvent = Boolean.TRUE;
