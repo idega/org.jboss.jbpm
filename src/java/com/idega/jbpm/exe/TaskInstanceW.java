@@ -2,6 +2,7 @@ package com.idega.jbpm.exe;
 
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -149,5 +150,13 @@ public interface TaskInstanceW {
 	public boolean isRenderable();
 
 	public boolean hasViewForDisplay();
+
+	public abstract Date getEnd();
+
+	public abstract Date getStart();
+
+	public abstract Date getCreate();
+
+	public abstract String getActorId();
 
 }

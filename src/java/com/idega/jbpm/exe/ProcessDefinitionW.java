@@ -74,4 +74,6 @@ public interface ProcessDefinitionW {
 
 	public String getNotAvailableLink(IWContext iwc);
 
+	public abstract String getName();
+
 }
