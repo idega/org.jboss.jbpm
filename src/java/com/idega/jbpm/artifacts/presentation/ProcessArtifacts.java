@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -24,6 +25,8 @@ import javax.faces.component.UIComponent;
 import javax.mail.MessagingException;
 
 import org.jboss.jbpm.IWBundleStarter;
+import org.jbpm.JbpmContext;
+import org.jbpm.JbpmException;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -54,6 +57,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.BPMContext;
+import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.bean.VariableInstanceInfo;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.exe.BPMDocument;
@@ -63,6 +67,7 @@ import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.ProcessManager;
 import com.idega.jbpm.exe.ProcessWatch;
 import com.idega.jbpm.exe.TaskInstanceW;
+import com.idega.jbpm.exe.impl.BPMDocumentImpl;
 import com.idega.jbpm.identity.BPMUser;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.identity.RolesManager;
@@ -75,6 +80,7 @@ import com.idega.jbpm.signing.SigningHandler;
 import com.idega.jbpm.utils.JBPMUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
+import com.idega.jbpm.view.View;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.Image;
 import com.idega.presentation.Layer;
@@ -582,6 +588,49 @@ public class ProcessArtifacts {
 							userLocale,
 							params.isNameFromExternalEntity()
 					);
+
+				if (!StringUtil.isEmpty(params.getInactiveTasksToShow())){
+					List<TaskInstanceW> tasks = getBpmFactory().getProcessInstanceW(processInstanceId).getAllTaskInstances();
+					StringTokenizer st = new StringTokenizer(params.getInactiveTasksToShow(),";");
+			    	while (st.hasMoreTokens()) {
+			    		String taskName = st.nextToken();
+			    		Boolean skip = Boolean.FALSE;
+			    		for (TaskInstanceW task: tasks) {
+							if (taskName.equals(task.getTaskInstance().getName())) {
+								skip = Boolean.TRUE;
+								break;
+							}
+						}
+			    		if (!skip){
+			    			Long pdId = getBpmFactory().getProcessInstanceW(processInstanceId).getProcessDefinitionW().getProcessDefinitionId();
+			    			org.jbpm.taskmgmt.def.Task task = getIdegaJbpmContext().execute(new JbpmCallback<org.jbpm.taskmgmt.def.Task>() {
+			    				@Override
+			    				public org.jbpm.taskmgmt.def.Task doInJbpm(JbpmContext context) throws JbpmException {
+			    					return context.getGraphSession().getProcessDefinition(pdId).getTaskMgmtDefinition().getTask(taskName);
+			    				}
+			    			});
+			    			if (task!=null){
+			    				View view = getBpmFactory().getViewByTask(task.getId(), true, Arrays.asList("xforms"));
+			    				if (view!= null){
+			    					String name = view.getDisplayName(iwc.getCurrentLocale());
+			    					if (name != null){
+			    						BPMDocument doc = new BPMDocumentImpl();
+			    						doc.setSubmittedByName(name);
+			    						doc.setDocumentName(name);
+			    						if (tasksDocuments!= null){
+			    							tasksDocuments.add(doc);
+			    						} else {
+			    							tasksDocuments = new ArrayList<BPMDocument>();
+			    							tasksDocuments.add(doc);
+			    						}
+			    					}
+			    				}
+			    			}
+			    		}
+
+			    	}
+				}
+
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +	userLocale, e);
 			}
@@ -633,7 +682,10 @@ public class ProcessArtifacts {
 				rows.addRow(row);
 
 				row.setOrder(taskDocument.getOrder());
-				row.setId(taskInstanceId.toString());
+				if (taskInstanceId!=null)
+					row.setId(taskInstanceId.toString());
+				else
+					row.setId("0");
 
 				row.addCell(taskDocument.getDocumentName());
 				row.addCell(taskDocument.getCreateDate() == null ?
