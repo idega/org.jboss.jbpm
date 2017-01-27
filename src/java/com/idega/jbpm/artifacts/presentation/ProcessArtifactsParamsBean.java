@@ -24,6 +24,7 @@ public class ProcessArtifactsParamsBean {
 	private boolean nameFromExternalEntity = false;
 	private boolean showUserCompany = false;
 	private boolean showLastLoginDate = false;
+	private String inactiveTasksToShow;
 
 	public Integer getPage() {
 		return page;
@@ -124,5 +125,11 @@ public class ProcessArtifactsParamsBean {
 	@Override
 	public String toString() {
 		return "Page: " + page + ", rows: " + rows + ", sidx: " + sidx + ", sort: " + sord + ", proc. inst. ID: " + piId + ", task ID: " + taskId + ", identifier: " + identifier + ", case ID: " + caseId;
+	}
+	public String getInactiveTasksToShow() {
+		return inactiveTasksToShow;
+	}
+	public void setInactiveTasksToShow(String tasksToShow) {
+		this.inactiveTasksToShow = tasksToShow;
 	}
 }
