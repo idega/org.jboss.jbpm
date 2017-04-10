@@ -158,11 +158,14 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return null;
 		}
 
-		List<ProcessDefinitionVariablesBind> binds = getResultList(
-		    ProcessDefinitionVariablesBind.QUERY_SELECT_BY_PROCESS_DEFINITION_NAMES,
-		    ProcessDefinitionVariablesBind.class,
-		    new Param(ProcessDefinitionVariablesBind.PARAM_PROC_DEF_NAMES,
-		            Arrays.asList(processDefinitionName)));
+		List<ProcessDefinitionVariablesBind> binds = null;
+		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm_variable_load_from_binds", true)) {
+			binds = getResultList(
+			    ProcessDefinitionVariablesBind.QUERY_SELECT_BY_PROCESS_DEFINITION_NAMES,
+			    ProcessDefinitionVariablesBind.class,
+			    new Param(ProcessDefinitionVariablesBind.PARAM_PROC_DEF_NAMES, Arrays.asList(processDefinitionName))
+			);
+		}
 		if (!ListUtil.isEmpty(binds))
 			return getConvertedBinds(binds);
 
