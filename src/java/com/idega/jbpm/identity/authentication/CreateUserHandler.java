@@ -126,7 +126,7 @@ public class CreateUserHandler extends DefaultSpringBean implements ActionHandle
 //			doesn't check if login already exists, therefore this check needs to be made before calling this
 			usrCreated = userBusiness.createUserWithLogin(firstName, middleName, lastName, upd.getPersonalId(), null, null,
 						gender != null ? new Integer(gender.getPrimaryKey().toString()) : null,
-						dateOfBirth, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null);
+						dateOfBirth, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null, null, upd.getJuridicalPerson());
 		} else {
 			if (upd.getFullName() != null) {
 				usrCreated = userBusiness.createUserByPersonalIDIfDoesNotExist(upd.getFullName(), personalId, gender, dateOfBirth);
@@ -153,6 +153,11 @@ public class CreateUserHandler extends DefaultSpringBean implements ActionHandle
 //		crappy -no datatype pk- handling
 		final Integer usrId = pk instanceof Integer ? (Integer) pk : new Integer(pk.toString());
 		upd.setUserId(usrId);
+
+		if (!StringUtil.isEmpty(upd.getUuid())) {
+			usrCreated.setUniqueId(upd.getUuid());
+			usrCreated.store();
+		}
 
 		if (isPublishEvent())
 			ELUtil.getInstance().publishEvent(new UserCreatedEvent(this, usrCreated));

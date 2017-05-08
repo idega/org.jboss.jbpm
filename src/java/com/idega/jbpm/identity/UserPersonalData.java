@@ -12,14 +12,14 @@ import com.idega.user.data.Gender;
 import com.idega.user.data.GenderHome;
 
 /**
- *  
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.6 $
- * 
+ *
  * Last modified: $Date: 2008/10/09 18:30:13 $ by $Author: civilis $
  */
 public class UserPersonalData implements Serializable {
-	
+
 	private static final long serialVersionUID = -5359330743741377568L;
 	private String userName;
 	private String userPassword;
@@ -36,9 +36,11 @@ public class UserPersonalData implements Serializable {
 	private String genderName;
 	private Boolean hideInContacts;
 	private Boolean createWithLogin;
-	
+	private Boolean juridicalPerson;
+	private String uuid;
+
 	private Integer userId;
-	
+
 	public Integer getUserId() {
 		return userId;
 	}
@@ -136,34 +138,52 @@ public class UserPersonalData implements Serializable {
 		this.genderName = genderName;
 	}
 	public Gender getGender() {
-		
+
 		if(getGenderName() != null && getGenderName().length() != 0) {
-			
+
 			Gender gender;
-	
+
 			try {
 				gender = getGenderHome().findByGenderName(getGenderName());
-				
+
 			} catch (FinderException e) {
 				gender = null;
 			}
-			
+
 			if(gender == null)
 				Logger.getLogger(getClass().getName()).log(Level.WARNING, "No gender found by gender name="+getGenderName());
 			else
 				return gender;
 		}
-		
+
 		return null;
 	}
-	
+
 	public GenderHome getGenderHome() {
-		
+
 		try {
 			return (GenderHome) IDOLookup.getHome(Gender.class);
-			
+
 		} catch (RemoteException rme) {
 			throw new RuntimeException(rme.getMessage());
 		}
 	}
+	public Boolean getJuridicalPerson() {
+		return juridicalPerson;
+	}
+	public void setJuridicalPerson(Boolean juridicalPerson) {
+		this.juridicalPerson = juridicalPerson;
+	}
+	public void setJuridicalPerson(String juridicalPerson) {
+		if (juridicalPerson != null) {
+			this.juridicalPerson = juridicalPerson.toLowerCase().equals("true") ? Boolean.TRUE : Boolean.FALSE ;
+		}
+	}
+	public String getUuid() {
+		return uuid;
+	}
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+
 }

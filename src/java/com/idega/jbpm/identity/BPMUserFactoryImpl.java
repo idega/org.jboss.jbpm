@@ -191,6 +191,10 @@ public abstract class BPMUserFactoryImpl implements BPMUserFactory {
 		if(upd.getHideInContacts())
 			bpmUserAcc.setMetaData(BPMUser.HIDE_IN_CONTACTS, CoreConstants.EMPTY);
 
+		if (!StringUtil.isEmpty(upd.getUuid())) {
+			bpmUserAcc.setUniqueId(upd.getUuid());
+		}
+
 		bpmUserAcc.store();
 
 		return bpmUserAcc;
