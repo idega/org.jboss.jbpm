@@ -995,7 +995,12 @@ public class ProcessArtifacts {
 	}
 
 	public Collection<User> getUsersConnectedToProces(ProcessInstanceW piW) {
-		List<User> usersConnectedToProcess = piW.getUsersConnectedToProcess();
+		List<User> usersConnectedToProcess = null;
+		try {
+			usersConnectedToProcess = piW.getUsersConnectedToProcess();
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting users connectected to process", e);
+		}
 		if (ListUtil.isEmpty(usersConnectedToProcess)) {
 			return Collections.emptyList();
 		}
