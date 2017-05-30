@@ -1,5 +1,6 @@
 package com.idega.jbpm.variables.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -179,7 +180,8 @@ public class VariablesHandlerImpl implements VariablesHandler {
 				Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
 
 				if (!ti.hasEnded()) {
-					List<VariableAccess> accesses = ti.getTask().getTaskController().getVariableAccesses();
+					TaskController taskController = ti.getTask().getTaskController();
+					List<VariableAccess> accesses = taskController == null ? Collections.emptyList() : taskController.getVariableAccesses();
 
 					for (VariableAccess variableAccess: accesses) {
 						String varName = variableAccess.getVariableName();
