@@ -52,6 +52,11 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
+	public List<BPMDocument> getTasks(Long piId) {
+		return getTasks(piId, null, false);
+	}
+
+	@Override
 	public List<BPMDocument> getTasks(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity) {
 		try {
 			if (piId == null || piId < 0) {
@@ -94,10 +99,21 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
+	public List<BPMDocument> getDocuments(Long piId) {
+		return getDocuments(piId, null, false, false);
+	}
+
+	@Override
 	public List<BPMDocument> getDocuments(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning) {
 		return getSubmittedTasks(piId, tasksNamesToReturn, showExternalEntity, allowPDFSigning, BPMDocument.class);
 	}
-	public List<TaskInstanceW> getSubmittedTasks(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning) {
+
+	@Override
+	public List<TaskInstanceW> getSubmittedTasks(Long piId) {
+		return getSubmittedTasks(piId, null, false, false);
+	}
+
+	private List<TaskInstanceW> getSubmittedTasks(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning) {
 		return getSubmittedTasks(piId, tasksNamesToReturn, showExternalEntity, allowPDFSigning, TaskInstanceW.class);
 	}
 
@@ -126,6 +142,17 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			}
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error getting BPM documents for proc. inst. ID: " + piId, e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<BPMDocument> getBPMDocuments(Long piId, List<TaskInstanceW> tiWs, Locale locale) {
+		try {
+			ProcessInstanceW pi = bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId);
+			return pi.getBPMDocuments(tiWs, locale);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting BPM documents for proc. inst. ID: " + piId + " and task instances: " + tiWs, e);
 		}
 		return null;
 	}

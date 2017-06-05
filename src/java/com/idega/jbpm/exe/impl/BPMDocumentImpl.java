@@ -24,6 +24,7 @@ public class BPMDocumentImpl implements BPMDocument {
 	private boolean signable;
 	private boolean hasViewUI = true;
 	private Integer order;
+	private String taskName;
 
 	@Override
 	public String getSubmittedByName() {
@@ -113,4 +114,20 @@ public class BPMDocumentImpl implements BPMDocument {
 	public Integer getOrder() {
 		return order;
 	}
+
+	@Override
+	public String getTaskName() {
+		return taskName;
+	}
+
+	@Override
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+
+	@Override
+	public String toString() {
+		return "ID: " + getTaskInstanceId() + ", name: " + getTaskName();
+	}
+
 }

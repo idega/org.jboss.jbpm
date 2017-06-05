@@ -208,4 +208,7 @@ public interface ProcessInstanceW {
 	public Object getValueForTaskInstance(List<TaskInstanceW> submittedTiWs, String variable);
 
 	public List<ProcessInstance> getSubProcesses();
+
+	public List<BPMDocument> getBPMDocuments(List<TaskInstanceW> tiWs, Locale locale);
+
 }

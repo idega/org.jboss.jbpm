@@ -1,6 +1,7 @@
 package com.idega.jbpm.business;
 
 import java.util.List;
+import java.util.Locale;
 
 import com.idega.jbpm.bean.BPMAttachment;
 import com.idega.jbpm.exe.BPMDocument;
@@ -11,6 +12,7 @@ public interface ProcessAssetsServices {
 
 	public IWContext getIWContext(boolean checkIfLogged);
 
+	public List<BPMDocument> getTasks(Long piId);
 	/**
 	 *
 	 * @param piId - ID of process instance
@@ -20,6 +22,7 @@ public interface ProcessAssetsServices {
 	 */
 	public List<BPMDocument> getTasks(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity);
 
+	public List<BPMDocument> getDocuments(Long piId);
 	/**
 	 *
 	 * @param piId - ID of process instance
@@ -29,6 +32,10 @@ public interface ProcessAssetsServices {
 	 * @return
 	 */
 	public List<BPMDocument> getDocuments(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning);
+
+	public List<TaskInstanceW> getSubmittedTasks(Long piId);
+
+	public List<BPMDocument> getBPMDocuments(Long piId, List<TaskInstanceW> tiWs, Locale locale);
 
 	/**
 	 *
