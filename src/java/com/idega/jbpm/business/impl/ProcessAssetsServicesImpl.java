@@ -12,6 +12,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.core.business.DefaultSpringBean;
+import com.idega.idegaweb.IWMainApplication;
+import com.idega.io.MediaWritable;
+import com.idega.jbpm.artifacts.presentation.AttachmentWriter;
 import com.idega.jbpm.bean.BPMAttachment;
 import com.idega.jbpm.business.ProcessAssetsServices;
 import com.idega.jbpm.exe.BPMDocument;
@@ -25,6 +28,7 @@ import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.URIUtil;
 
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -139,6 +143,9 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 				return null;
 			}
 
+			String mediaServletURI = IWMainApplication.getDefaultIWMainApplication().getMediaServletURI();
+			String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
+
 			List<BPMAttachment> attachments = new ArrayList<>();
 			for (TaskInstanceW tiW: tasks) {
 				List<BinaryVariable> binaryVariables = tiW.getAttachments();
@@ -146,6 +153,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					continue;
 				}
 
+				Long tiId = tiW.getTaskInstanceId();
 				for (BinaryVariable binaryVariable: binaryVariables) {
 					if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
 						continue;
@@ -153,7 +161,9 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 					BPMAttachment attachment = new BPMAttachment();
 					attachments.add(attachment);
-					attachment.setId(binaryVariable.getHash().toString());
+
+					String hash = binaryVariable.getHash().toString();
+					attachment.setId(hash);
 
 					String description = binaryVariable.getDescription();
 					attachment.setDescription(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
@@ -163,6 +173,12 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 					Long fileSize = binaryVariable.getContentLength();
 					attachment.setFileSize(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
+
+					URIUtil uri = new URIUtil(mediaServletURI);
+					uri.setParameter(MediaWritable.PRM_WRITABLE_CLASS, encrytptedURI);
+					uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, tiId.toString());
+					uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash);
+					attachment.setDownloadLink(uri.getUri());
 				}
 			}
 			return attachments;
