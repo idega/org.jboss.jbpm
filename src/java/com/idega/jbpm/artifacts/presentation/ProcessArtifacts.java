@@ -1984,26 +1984,20 @@ public class ProcessArtifacts {
 	public boolean doShowSuggestionForSaving() {
 		IWContext iwc = getIWContext(Boolean.TRUE);
 		if (iwc == null) {
-			LOGGER.log(Level.WARNING, "Unable to get " + IWContext.class +
-					" the functions returns FALSE, which is default value.");
 			return Boolean.FALSE;
 		}
 
 		IWMainApplication iwma = iwc.getIWMainApplication();
 		if (iwma == null) {
-			LOGGER.log(Level.WARNING, "Unable to get " + IWMainApplication.class +
-					" the functions returns FALSE, which is default value.");
 			return Boolean.FALSE;
 		}
 
-		IWMainApplicationSettings setting = iwma.getSettings();
-		if (setting == null) {
-			LOGGER.log(Level.WARNING, "Unable to get " + IWMainApplicationSettings.class +
-					" the functions returns FALSE, which is default value.");
+		IWMainApplicationSettings settings = iwma.getSettings();
+		if (settings == null) {
 			return Boolean.FALSE;
 		}
 
-		return setting.getBoolean("do_show_suggestion_for_saving", Boolean.FALSE);
+		return settings.getBoolean("do_show_suggestion_for_saving", Boolean.FALSE);
 	}
 
 	public String getVariableValue(Long tiId, String variableName) {
