@@ -183,8 +183,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private Collection<VariableInstanceInfo> getVariablesByProcessInstanceId(Long processInstanceId, boolean full, boolean mirrow) {
-		if (processInstanceId == null) {
-			LOGGER.warning("Invalid ID of process instance");
+		return getVariablesByInstanceId(processInstanceId, full, mirrow, false);
+	}
+	private Collection<VariableInstanceInfo> getVariablesByInstanceId(Long id, boolean full, boolean mirrow, boolean taskInstance) {
+		String typeOfId = taskInstance ? "task" : "process";
+		if (id == null) {
+			LOGGER.warning("Invalid ID of " + typeOfId + " instance");
 			return null;
 		}
 
@@ -193,15 +197,19 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		try {
 			String selectColumns = full ? getFullColumns(mirrow, false) : STANDARD_COLUMNS;
 			int columns = full ? FULL_COLUMNS : COLUMNS;
-			query = getQuery(getSelectPart(selectColumns), getFromClause(mirrow), " where var.PROCESSINSTANCE_ = ",
-					String.valueOf(processInstanceId), VAR_DEFAULT_CONDITION, getMirrowTableCondition(mirrow));
+			query = getQuery(getSelectPart(selectColumns), getFromClause(mirrow), " where var." + (taskInstance ? "TASKINSTANCE_" : "PROCESSINSTANCE_") + " = ",
+					String.valueOf(id), VAR_DEFAULT_CONDITION, getMirrowTableCondition(mirrow));
 			data = SimpleQuerier.executeQuery(query, columns);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by process instance: " +
-					processInstanceId, e);
+			LOGGER.log(Level.WARNING, "Error executing query: '" + query + "'. Error getting variable instances by " + typeOfId + " instance: " + id, e);
 		}
 
 		return getConverted(data);
+	}
+
+	@Override
+	public Collection<VariableInstanceInfo> getFullVariablesByTaskInstanceId(Long taskInstanceId) {
+		return getVariablesByInstanceId(taskInstanceId, true, isDataMirrowed(), true);
 	}
 
 	@Override
