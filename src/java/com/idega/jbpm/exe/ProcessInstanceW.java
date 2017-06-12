@@ -36,15 +36,15 @@ public interface ProcessInstanceW {
 
 	public abstract TaskInstanceW getLastSubmittedTaskInstance(String taskInstanceName);
 
-	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user,
-	        Locale locale);
-
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user, Locale locale);
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable);
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable, List<String> tasksNamesToReturn);
 
-	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,
-	        Locale locale);
+	public abstract List<TaskInstanceW> getSubmittedTasksForUser(User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable, List<String> tasksNamesToReturn);
 
+	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,  Locale locale);
 	public abstract List<BPMDocument> getTaskDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity);
+	public abstract List<BPMDocument> getTaskDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity, List<String> tasksNamesToReturn);
 
 	/**
 	 * @param rootToken
@@ -208,4 +208,7 @@ public interface ProcessInstanceW {
 	public Object getValueForTaskInstance(List<TaskInstanceW> submittedTiWs, String variable);
 
 	public List<ProcessInstance> getSubProcesses();
+
+	public List<BPMDocument> getBPMDocuments(List<TaskInstanceW> tiWs, Locale locale);
+
 }

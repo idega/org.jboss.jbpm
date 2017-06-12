@@ -37,4 +37,8 @@ public interface BPMDocument extends Serializable {
 
 	public Integer getOrder();
 	public void setOrder(Integer order);
+
+	public abstract String getTaskName();
+	public abstract void setTaskName(String taskName);
+
 }

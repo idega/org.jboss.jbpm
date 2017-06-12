@@ -59,6 +59,7 @@ import com.idega.idegaweb.IWResourceBundle;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.bean.VariableInstanceInfo;
+import com.idega.jbpm.business.ProcessAssetsServices;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.exe.BPMDocument;
 import com.idega.jbpm.exe.BPMEmailDocument;
@@ -152,11 +153,21 @@ public class ProcessArtifacts {
 	@Autowired
 	private RolesManager roleManager;
 
+	@Autowired
+	private ProcessAssetsServices processAssetsServices;
+
 	public static final String PROCESS_INSTANCE_ID_PARAMETER = "processInstanceIdParameter";
 	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceIdParameter";
 
 	@Autowired
 	private WebUtil webUtil = null;
+
+	private ProcessAssetsServices getProcessAssetsServices() {
+		if (processAssetsServices == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+		return processAssetsServices;
+	}
 
 	protected WebUtil getWebUtil() {
 		if (this.webUtil == null) {
@@ -534,12 +545,13 @@ public class ProcessArtifacts {
 				return null;
 			}
 
-			User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
-			Locale userLocale = iwc.getCurrentLocale();
+			List<BPMDocument> processDocuments = getProcessAssetsServices().getDocuments(processInstanceId, null, params.isNameFromExternalEntity(), params.getAllowPDFSigning());
+			if (ListUtil.isEmpty(processDocuments)) {
+				return null;
+			}
 
-			ProcessInstanceW pi = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId);
 			long documentsStart = measure ? System.currentTimeMillis() : 0;
-			Collection<BPMDocument> processDocuments = pi.getSubmittedDocumentsForUser(loggedInUser, userLocale, params.isNameFromExternalEntity(), params.getAllowPDFSigning());
+
 			if (measure) {
 				LOGGER.info("Got process documents (" + processDocuments + ") in " + (System.currentTimeMillis() - documentsStart) + " ms");
 			}
@@ -562,90 +574,65 @@ public class ProcessArtifacts {
 		long start = measure ? System.currentTimeMillis() : 0;
 		try {
 			Long processInstanceId = params.getPiId();
-
-			if (processInstanceId == null || processInstanceId < 0) {
-				return null;
-			}
+			List<BPMDocument> tasksDocuments = getProcessAssetsServices().getTasks(processInstanceId, null, params.isNameFromExternalEntity());
 
 			IWContext iwc = getIWContext(true);
 			if (iwc == null) {
 				return null;
 			}
 
-			User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
+			if (!StringUtil.isEmpty(params.getInactiveTasksToShow())){
+				List<TaskInstanceW> tasks = getBpmFactory().getProcessInstanceW(processInstanceId).getAllTaskInstances();
+				StringTokenizer st = new StringTokenizer(params.getInactiveTasksToShow(), CoreConstants.SEMICOLON);
+		    	while (st.hasMoreTokens()) {
+		    		String taskName = st.nextToken();
+		    		Boolean skip = Boolean.FALSE;
+		    		for (TaskInstanceW task: tasks) {
+						if (taskName.equals(task.getTaskInstance().getName())) {
+							skip = Boolean.TRUE;
+							break;
+						}
+					}
+		    		if (!skip) {
+		    			Long pdId = getBpmFactory().getProcessInstanceW(processInstanceId).getProcessDefinitionW().getProcessDefinitionId();
+		    			org.jbpm.taskmgmt.def.Task task = getIdegaJbpmContext().execute(new JbpmCallback<org.jbpm.taskmgmt.def.Task>() {
+		    				@Override
+		    				public org.jbpm.taskmgmt.def.Task doInJbpm(JbpmContext context) throws JbpmException {
+		    					return context.getGraphSession().getProcessDefinition(pdId).getTaskMgmtDefinition().getTask(taskName);
+		    				}
+		    			});
+		    			if (task != null) {
+		    				View view = getBpmFactory().getViewByTask(task.getId(), true, Arrays.asList("xforms"));
+		    				if (view!= null) {
+		    					String name = view.getDisplayName(iwc.getCurrentLocale());
+		    					if (name != null) {
+		    						BPMDocument doc = new BPMDocumentImpl();
+		    						doc.setSubmittedByName(name);
+		    						doc.setDocumentName(name);
+		    						if (tasksDocuments != null) {
+		    							tasksDocuments.add(doc);
+		    						} else {
+		    							tasksDocuments = new ArrayList<BPMDocument>();
+		    							tasksDocuments.add(doc);
+		    						}
+		    					}
+		    				}
+		    			}
+		    		}
+		    	}
+			}
+
+			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
+
+			tasksDocuments = tasksDocuments == null ? Collections.emptyList() : tasksDocuments;
+			int size = tasksDocuments.size();
+			rows.setTotal(size);
+			rows.setPage(size == 0 ? 0 : 1);
+
 			Locale userLocale = iwc.getCurrentLocale();
 
 			IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 			IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-
-			long startDoc = measure ? System.currentTimeMillis() : 0;
-			Collection<BPMDocument> tasksDocuments = null;	//	TODO: improve loading
-			try {
-				tasksDocuments = loggedInUser == null ?
-					null :
-					getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId).getProcessInstance(processInstanceId).getTaskDocumentsForUser(
-							loggedInUser,
-							userLocale,
-							params.isNameFromExternalEntity()
-					);
-
-				if (!StringUtil.isEmpty(params.getInactiveTasksToShow())){
-					List<TaskInstanceW> tasks = getBpmFactory().getProcessInstanceW(processInstanceId).getAllTaskInstances();
-					StringTokenizer st = new StringTokenizer(params.getInactiveTasksToShow(),";");
-			    	while (st.hasMoreTokens()) {
-			    		String taskName = st.nextToken();
-			    		Boolean skip = Boolean.FALSE;
-			    		for (TaskInstanceW task: tasks) {
-							if (taskName.equals(task.getTaskInstance().getName())) {
-								skip = Boolean.TRUE;
-								break;
-							}
-						}
-			    		if (!skip){
-			    			Long pdId = getBpmFactory().getProcessInstanceW(processInstanceId).getProcessDefinitionW().getProcessDefinitionId();
-			    			org.jbpm.taskmgmt.def.Task task = getIdegaJbpmContext().execute(new JbpmCallback<org.jbpm.taskmgmt.def.Task>() {
-			    				@Override
-			    				public org.jbpm.taskmgmt.def.Task doInJbpm(JbpmContext context) throws JbpmException {
-			    					return context.getGraphSession().getProcessDefinition(pdId).getTaskMgmtDefinition().getTask(taskName);
-			    				}
-			    			});
-			    			if (task!=null){
-			    				View view = getBpmFactory().getViewByTask(task.getId(), true, Arrays.asList("xforms"));
-			    				if (view!= null){
-			    					String name = view.getDisplayName(iwc.getCurrentLocale());
-			    					if (name != null){
-			    						BPMDocument doc = new BPMDocumentImpl();
-			    						doc.setSubmittedByName(name);
-			    						doc.setDocumentName(name);
-			    						if (tasksDocuments!= null){
-			    							tasksDocuments.add(doc);
-			    						} else {
-			    							tasksDocuments = new ArrayList<BPMDocument>();
-			    							tasksDocuments.add(doc);
-			    						}
-			    					}
-			    				}
-			    			}
-			    		}
-
-			    	}
-				}
-
-			} catch (Exception e) {
-				LOGGER.log(Level.WARNING, "Error getting tasks for process instance: " + processInstanceId + " and user: " + loggedInUser + " using locale: " +	userLocale, e);
-			}
-			if (measure) {
-				LOGGER.info("TTTTTTTTTTTTTTTTT got task docs in " + (System.currentTimeMillis() - startDoc) + " ms");
-			}
-			tasksDocuments = tasksDocuments == null ? new ArrayList<BPMDocument>(0) : tasksDocuments;
-
-			Collections.sort((List<BPMDocument>) tasksDocuments, (c1, c2) -> c2.getDocumentName().compareTo(c1.getDocumentName()));
-
-			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
-
-			int size = tasksDocuments.size();
-			rows.setTotal(size);
-			rows.setPage(size == 0 ? 0 : 1);
 
 			String noOneLocalized = iwrb.getLocalizedString("cases_bpm.case_assigned_to_no_one", "No one");
 			String takeTaskImage = bundle.getVirtualPathWithFileNameString("images/take_task.png");
@@ -995,7 +982,12 @@ public class ProcessArtifacts {
 	}
 
 	public Collection<User> getUsersConnectedToProces(ProcessInstanceW piW) {
-		List<User> usersConnectedToProcess = piW.getUsersConnectedToProcess();
+		List<User> usersConnectedToProcess = null;
+		try {
+			usersConnectedToProcess = piW.getUsersConnectedToProcess();
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Error getting users connectected to process", e);
+		}
 		if (ListUtil.isEmpty(usersConnectedToProcess)) {
 			return Collections.emptyList();
 		}
@@ -1302,11 +1294,7 @@ public class ProcessArtifacts {
 	}
 
 	private IWContext getIWContext(boolean checkIfLogged) {
-		IWContext iwc = CoreUtil.getIWContext();
-		if (iwc == null) {
-			LOGGER.warning("IWContext is unavailable!");
-		}
-		return iwc;
+		return getProcessAssetsServices().getIWContext(checkIfLogged);
 	}
 
 	public String setAccessRightsForProcessResource(String roleName,
@@ -1996,26 +1984,20 @@ public class ProcessArtifacts {
 	public boolean doShowSuggestionForSaving() {
 		IWContext iwc = getIWContext(Boolean.TRUE);
 		if (iwc == null) {
-			LOGGER.log(Level.WARNING, "Unable to get " + IWContext.class +
-					" the functions returns FALSE, which is default value.");
 			return Boolean.FALSE;
 		}
 
 		IWMainApplication iwma = iwc.getIWMainApplication();
 		if (iwma == null) {
-			LOGGER.log(Level.WARNING, "Unable to get " + IWMainApplication.class +
-					" the functions returns FALSE, which is default value.");
 			return Boolean.FALSE;
 		}
 
-		IWMainApplicationSettings setting = iwma.getSettings();
-		if (setting == null) {
-			LOGGER.log(Level.WARNING, "Unable to get " + IWMainApplicationSettings.class +
-					" the functions returns FALSE, which is default value.");
+		IWMainApplicationSettings settings = iwma.getSettings();
+		if (settings == null) {
 			return Boolean.FALSE;
 		}
 
-		return setting.getBoolean("do_show_suggestion_for_saving", Boolean.FALSE);
+		return settings.getBoolean("do_show_suggestion_for_saving", Boolean.FALSE);
 	}
 
 	public String getVariableValue(Long tiId, String variableName) {
