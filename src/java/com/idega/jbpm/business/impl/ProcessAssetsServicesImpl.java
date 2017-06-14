@@ -1,7 +1,9 @@
 package com.idega.jbpm.business.impl;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -208,6 +210,23 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					attachment.setDownloadLink(uri.getUri());
 				}
 			}
+
+			if (!ListUtil.isEmpty(attachments)) {
+				try {
+					Collator collator = Collator.getInstance(getCurrentLocale());
+					Collections.sort(attachments, new Comparator<BPMAttachment>() {
+
+						@Override
+						public int compare(BPMAttachment o1, BPMAttachment o2) {
+							return collator.compare(o1.getFileName(), o2.getFileName());
+						}
+
+					});
+				} catch (Exception e) {
+					getLogger().log(Level.WARNING, "Error sorting attachments by names: " + attachments, e);
+				}
+			}
+
 			return attachments;
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error getting attachments for tasks: " + tasks, e);
