@@ -35,4 +35,6 @@ public interface ViewSubmission {
 
 	public Long getProcessInstanceId();
 
+	public boolean isAllowedToEdit();
+
 }
