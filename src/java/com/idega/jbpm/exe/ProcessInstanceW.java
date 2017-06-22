@@ -12,6 +12,7 @@ import org.jbpm.graph.exe.Token;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.rights.Right;
 import com.idega.jbpm.variables.BinaryVariable;
+import com.idega.jbpm.view.ViewSubmission;
 import com.idega.user.data.User;
 
 /**
@@ -199,6 +200,7 @@ public interface ProcessInstanceW {
 
 	public TaskInstanceW getSubmittedTaskInstance(String taskName, Map<String, Object> variables);
 	public boolean doSubmitTask(String taskName, Map<String, Object> variables);
+	public TaskInstanceW getSubmitedTask(TaskInstanceW task, ViewSubmission view, Map<String, Object> variables);
 
 	public TaskInstanceW getTaskInstance(String taskName);
 	public List<Long> getIdsOfSubProcesses(Long procInstId);

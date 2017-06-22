@@ -304,13 +304,12 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			TaskController tiController = task.getTaskController();
 
 			if (tiController == null) {
-				LOGGER.warning("No controller is assigned for task: " + task.getId() + ", task instance ID: " + ti.getId() + " - can not submit variables");
+				LOGGER.warning("No controller is assigned for task: " + task.getId() + ", task instance ID: " + ti.getId());
 				// this occurs when no controller specified for the task
-				return;
 			}
 
 			@SuppressWarnings("unchecked")
-			List<VariableAccess> variableAccesses = tiController.getVariableAccesses();
+			List<VariableAccess> variableAccesses = tiController == null ? Collections.emptyList() : tiController.getVariableAccesses();
 
 			if (variables == null) {
 				variables = new HashMap<String, Object>();

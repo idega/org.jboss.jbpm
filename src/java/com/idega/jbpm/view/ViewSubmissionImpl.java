@@ -12,6 +12,8 @@ public class ViewSubmissionImpl implements ViewSubmission {
 
 	private String viewId, viewType;
 
+	private boolean allowedToEdit;
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public void populateVariables(Map<String, ? extends Object> variables) {
@@ -81,6 +83,15 @@ public class ViewSubmissionImpl implements ViewSubmission {
 	@Override
 	public Long getProcessInstanceId() {
 		return piId;
+	}
+
+	@Override
+	public boolean isAllowedToEdit() {
+		return allowedToEdit;
+	}
+
+	public void setAllowedToEdit(boolean allowedToEdit) {
+		this.allowedToEdit = allowedToEdit;
 	}
 
 }
