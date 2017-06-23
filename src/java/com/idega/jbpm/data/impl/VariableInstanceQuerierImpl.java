@@ -1730,6 +1730,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			String type,
 			Map<Number, VariableByteArrayInstance> variablesToConvert
 	) {
+		if (StringUtil.isEmpty(type) || VariableInstanceType.NULL.getTypeKeys().contains(type)) {
+			return null;
+		}
+
 		VariableInstanceInfo variable = null;
 		if (value == null) {
 			variable = new VariableDefaultInstance(name, type);
@@ -2363,7 +2367,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		);
 		List<Serializable[]> results = null;
 		try {
-			results = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
+			results = SimpleQuerier.executeQuery(query, FULL_COLUMNS - 1);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
 		}
@@ -3245,6 +3249,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				existingVar = var;
 			}
 
+			if (existingVar == null) {
+				continue;
+			}
+
 			if (variable.getTaskInstance() != null) {
 				if (existingVar.getId() == null)
 					existingVar.setId(variable.getId());
@@ -3418,30 +3426,42 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	@Override
 	public Map<Long, Map<String, VariableInstanceInfo>> getGroupedData(Collection<VariableInstanceInfo> variables) {
-		if (ListUtil.isEmpty(variables))
+		return getGroupedData(variables, false);
+	}
+
+	@Override
+	public Map<Long, Map<String, VariableInstanceInfo>> getGroupedData(Collection<VariableInstanceInfo> variables, boolean byTaskInstance) {
+		if (ListUtil.isEmpty(variables)) {
 			return null;
+		}
 
 		Map<Long, Map<String, VariableInstanceInfo>> data = new LinkedHashMap<Long, Map<String,VariableInstanceInfo>>();
 		for (VariableInstanceInfo var: variables) {
-			Long piId = var.getProcessInstanceId();
-			if (piId == null)
+			Long id = byTaskInstance ? var.getTaskInstanceId() : var.getProcessInstanceId();
+			if (id == null)
 				continue;
 
 			String name = var.getName();
-			if (StringUtil.isEmpty(name))
+			if (StringUtil.isEmpty(name)) {
 				continue;
-
-			Serializable value = var.getValue();
-			if (value == null)
-				continue;
-
-			Map<String, VariableInstanceInfo> procData = data.get(piId);
-			if (procData == null) {
-				procData = new HashMap<String, VariableInstanceInfo>();
-				data.put(piId, procData);
 			}
 
-			procData.put(var.getName(), var);
+			Serializable value = var.getValue();
+			if (value == null) {
+				continue;
+			}
+
+			Map<String, VariableInstanceInfo> groupedData = data.get(id);
+			if (groupedData == null) {
+				groupedData = new HashMap<String, VariableInstanceInfo>();
+				data.put(id, groupedData);
+			}
+
+			if (byTaskInstance && groupedData.containsKey(name)) {
+				continue;
+			}
+
+			groupedData.put(name, var);
 		}
 		return data;
 	}
