@@ -230,7 +230,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 	@Override
 	public Collection<VariableInstanceInfo> getFullVariablesByTaskInstanceIdsAndVariablesNames(List<Long> taskInstanceIds, List<String> names) {
-		return getVariablesByInstancesAndVariablesNames(taskInstanceIds, null, names, isDataMirrowed(), false, true);
+		return getVariablesByInstancesAndVariablesNames(taskInstanceIds, null, names, isDataMirrowed(), false, true, false);
 	}
 
 	@Override
@@ -252,6 +252,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 	@Override
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefAndVariableName(String procDefName, String name) {
+		return getVariablesByProcessDefAndVariableName(procDefName, name, false);
+	}
+	@Override
+	public Collection<VariableInstanceInfo> getVariablesByProcessDefAndVariableName(String procDefName, String name, boolean checkBind) {
 		if (StringUtil.isEmpty(procDefName) || StringUtil.isEmpty(name)) {
 			return null;
 		}
@@ -261,7 +265,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				null,
 				false,
 				true,
-				isDataMirrowed()
+				isDataMirrowed(),
+				checkBind
 		);
 	}
 
@@ -271,7 +276,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	 */
 	@Override
 	public Collection<VariableInstanceInfo> getVariables(List<String> procDefs, List<String> names, boolean checkTaskInstance) {
-		return getVariablesByProcessesAndVariablesNames(names, procDefs, null, checkTaskInstance, Boolean.FALSE, isDataMirrowed());
+		return getVariablesByProcessesAndVariablesNames(names, procDefs, null, checkTaskInstance, Boolean.FALSE, isDataMirrowed(), false);
 	}
 
 	@Override
@@ -293,7 +298,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return null;
 		}
 
-		return getVariablesByProcessesAndVariablesNames(names, null, procIds, checkTaskInstance, addEmptyVars, mirrowData);
+		return getVariablesByProcessesAndVariablesNames(names, null, procIds, checkTaskInstance, addEmptyVars, mirrowData, false);
 	}
 
 	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(
@@ -302,7 +307,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			Collection<Long> procInstIds,
 			boolean checkTaskInstance,
 			boolean addEmptyVars,
-			boolean mirrowData
+			boolean mirrowData,
+			boolean checkBind
 	) {
 		if (ListUtil.isEmpty(variablesNames)) {
 			LOGGER.warning("Variable name(s) unknown");
@@ -327,14 +333,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					procDefNames,
 					stringVariables,
 					mirrowData,
-					checkTaskInstance
+					checkTaskInstance,
+					checkBind
 			);
 			Collection<VariableInstanceInfo> otherVars = getVariablesByProcessesAndVariablesNames(
 					procInstIds,
 					procDefNames,
 					notStringVariables,
 					false,
-					checkTaskInstance
+					checkTaskInstance,
+					checkBind
 			);
 
 			fillMapWithData(vars, variablesNames, stringVars);
@@ -345,7 +353,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					procDefNames,
 					variablesNames,
 					mirrowData,
-					checkTaskInstance
+					checkTaskInstance,
+					checkBind
 			);
 			fillMapWithData(vars, variablesNames, allVars);
 		}
@@ -526,7 +535,17 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			boolean mirrow,
 			boolean checkTaskInstance
 	) {
-		return getVariablesByInstancesAndVariablesNames(procInstIds, procDefNames, variablesNames, mirrow, checkTaskInstance, false);
+		return getVariablesByProcessesAndVariablesNames(procInstIds, procDefNames, variablesNames, mirrow, checkTaskInstance, false);
+	}
+	private Collection<VariableInstanceInfo> getVariablesByProcessesAndVariablesNames(
+			Collection<Long> procInstIds,
+			List<String> procDefNames,
+			List<String> variablesNames,
+			boolean mirrow,
+			boolean checkTaskInstance,
+			boolean checkBind
+	) {
+		return getVariablesByInstancesAndVariablesNames(procInstIds, procDefNames, variablesNames, mirrow, checkTaskInstance, false, checkBind);
 	}
 	private Collection<VariableInstanceInfo> getVariablesByInstancesAndVariablesNames(
 			Collection<Long> instIds,
@@ -534,7 +553,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			List<String> variablesNames,
 			boolean mirrow,
 			boolean checkTaskInstance,
-			boolean taskInstances
+			boolean taskInstances,
+			boolean checkBind
 	) {
 		if (isLuceneQueryingTurnedOn() && ListUtil.isEmpty(procDefNames) && !taskInstances) {
 			return getVariablesCollectionByLucene(variablesNames, procDefNames, ListUtil.isEmpty(instIds) ? null : new ArrayList<Long>(instIds));
@@ -577,12 +597,18 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					byProcInstIds || taskInstances ?
 							CoreConstants.EMPTY :
 							", JBPM_PROCESSINSTANCE pi, JBPM_PROCESSDEFINITION pd ",
+					checkBind ?
+							", BPM_CASES_PROCESSINSTANCES cp " :
+							CoreConstants.EMPTY,
 					" where ",
 					byProcInstIds ?
 							PROC_INST_IDS_EXPRESSION :
 							taskInstances ?
 									TASK_INST_IDS_EXPRESSION :
 									getQueryParameters("pd.name_", procDefNames, true) + " and pd.ID_ = pi.PROCESSDEFINITION_ and pi.ID_ = var.PROCESSINSTANCE_ ",
+					checkBind ?
+							" and pi.id_ = cp.process_instance_id " :
+							CoreConstants.EMPTY,
 					mirrow ?
 							getMirrowTableCondition(true) :
 							CoreConstants.EMPTY,

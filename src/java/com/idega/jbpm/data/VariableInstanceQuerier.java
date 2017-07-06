@@ -73,6 +73,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 	public Map<Long, Map<String, VariableInstanceInfo>> getGroupedData(Collection<VariableInstanceInfo> variables, boolean byTaskInstance);
 
 	public Collection<VariableInstanceInfo> getVariablesByProcessDefAndVariableName(String procDefName, String name);
+	public Collection<VariableInstanceInfo> getVariablesByProcessDefAndVariableName(String procDefName, String name, boolean checkBind);
 
 	/**
 	 *
