@@ -3483,7 +3483,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				data.put(id, groupedData);
 			}
 
-			if (byTaskInstance && groupedData.containsKey(name)) {
+			if (groupedData.containsKey(name)) {
 				continue;
 			}
 
