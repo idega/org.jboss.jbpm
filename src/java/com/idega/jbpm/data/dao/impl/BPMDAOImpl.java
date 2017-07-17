@@ -991,16 +991,61 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	@Override
 	public List<Long> getIdsOfFinishedTaskInstancesForTask(Long piId, String taskName) {
-		if (piId == null || StringUtil.isEmpty(taskName)) {
+		if (piId == null) {
 			return null;
 		}
 
-		return getResultListByInlineQuery(
-				"select ti.id from " + TaskInstance.class.getName() + " ti where ti.processInstance.id = :piId and ti.task.name = :name and ti.end is not null",
-				Long.class,
-				new Param("piId", piId),
+		Map<Long, List<Long>> results = getIdsOfFinishedTaskInstancesForTask(Arrays.asList(piId), taskName);
+		return MapUtil.isEmpty(results) ? null : results.get(piId);
+	}
+
+	@Override
+	public Map<Long, List<Long>> getIdsOfFinishedTaskInstancesForTask(List<Long> procInstIds, String taskName) {
+		if (ListUtil.isEmpty(procInstIds) || StringUtil.isEmpty(taskName)) {
+			return null;
+		}
+
+		List<Object[]> allData = getResultListByInlineQuery(
+				"select ti.processInstance.id, ti.id from " + TaskInstance.class.getName() + " ti where ti.processInstance.id in (:procInstIds) and ti.task.name = :name and ti.end is not null",
+				Object[].class,
+				new Param("procInstIds", procInstIds),
 				new Param("name", taskName)
 		);
+		if (ListUtil.isEmpty(allData)) {
+			return null;
+		}
+
+		Map<Long, List<Long>> results = new HashMap<>();
+		for (Object[] data: allData) {
+			if (ArrayUtil.isEmpty(data) || data.length < 2) {
+				continue;
+			}
+
+			Object tmp = data[0];
+			Long procInstId = null;
+			if (tmp instanceof Number) {
+				procInstId = ((Number) tmp).longValue();
+			}
+			if (procInstId == null) {
+				continue;
+			}
+
+			List<Long> tiIds = results.get(procInstId);
+			if (tiIds == null) {
+				tiIds = new ArrayList<>();
+				results.put(procInstId, tiIds);
+			}
+
+			tmp = data[1];
+			Long tiId = null;
+			if (tmp instanceof Number) {
+				tiId = ((Number) tmp).longValue();
+			}
+			if (tiId != null) {
+				tiIds.add(tiId);
+			}
+		}
+		return results;
 	}
 
 	/*
