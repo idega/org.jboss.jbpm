@@ -100,7 +100,7 @@ public interface BPMDAO extends GenericDao {
 
 	/**
 	 *
-	 * @param processDefinitionNames is {@link Collection} of 
+	 * @param processDefinitionNames is {@link Collection} of
 	 * {@link ProcessDefinition#getName()}, not <code>null</code>;
 	 * @return all {@link ProcessDefinition}s by given names or
 	 * {@link Collections#emptyList()} on failure;
@@ -146,6 +146,8 @@ public interface BPMDAO extends GenericDao {
 	public List<Long> getSubProcInstIdsByParentProcInstIdAndProcDefName(Long piId, String procDefName);
 
 	public List<Long> getIdsOfFinishedTaskInstancesForTask(Long piId, String taskName);
+
+	public Map<Long, List<Long>> getIdsOfFinishedTaskInstancesForTask(List<Long> procInstIds, String taskName);
 
 	/**
 	 *
