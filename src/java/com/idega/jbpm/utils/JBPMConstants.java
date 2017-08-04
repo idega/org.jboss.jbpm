@@ -13,4 +13,6 @@ public class JBPMConstants {
 								OVERWRITE = "overwrite";
 
 	public static final Logger bpmLogger = Logger.getLogger("IdegaBPMLogging");
+
+	public static final String SOURCE = "source";
 }
