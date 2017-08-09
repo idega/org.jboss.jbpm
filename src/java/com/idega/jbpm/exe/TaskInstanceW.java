@@ -149,5 +149,7 @@ public interface TaskInstanceW {
 	public boolean isRenderable();
 
 	public boolean hasViewForDisplay();
+	public BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is,
+			String filesFolder, boolean overwrite, String source);
 
 }

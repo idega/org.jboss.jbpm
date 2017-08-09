@@ -164,4 +164,6 @@ public interface BPMDAO extends GenericDao {
 
 	public List<Long> getTaskInstancesIdsByTokenId(Long tokenId);
 
+	public boolean deleteVariables(List<String> names, Long piId);
+
 }

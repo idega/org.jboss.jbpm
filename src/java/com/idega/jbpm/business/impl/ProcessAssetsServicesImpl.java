@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import com.idega.jbpm.exe.BPMDocument;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.TaskInstanceW;
+import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
@@ -208,6 +210,15 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, tiId.toString());
 					uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash);
 					attachment.setDownloadLink(uri.getUri());
+
+					Map<String, Object> metadata = binaryVariable.getMetadata();
+					if (metadata != null){
+						Object sc  = metadata.get(JBPMConstants.SOURCE);
+						if (sc != null){
+							attachment.setSource(sc.toString());
+						}
+					}
+
 				}
 			}
 

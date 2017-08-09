@@ -6,7 +6,7 @@ public class BPMAttachment implements Serializable {
 
 	private static final long serialVersionUID = 5056538842789014352L;
 
-	private String id, description, fileName, fileSize, downloadLink;
+	private String id, description, fileName, fileSize, downloadLink, source;
 
 	public String getId() {
 		return id;
@@ -46,6 +46,14 @@ public class BPMAttachment implements Serializable {
 
 	public void setDownloadLink(String downloadLink) {
 		this.downloadLink = downloadLink;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 }

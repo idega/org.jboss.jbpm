@@ -777,6 +777,38 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		return getValidVariables(vars);
 	}
 
+	@Override
+	@Transactional(readOnly = false)
+	public boolean deleteVariables(List<String> names, Long piId) {
+		if (ListUtil.isEmpty(names) || piId == null) {
+			getLogger().warning("Names (" + names + ") or proc. inst. ID (" + piId + ") are not provided");
+			return false;
+		}
+
+		try {
+			List<Variable> vars = getResultListByInlineQuery(
+					"from Variable v where v.name in (:" + Variable.PARAM_NAMES + ") and v.processInstance = :" + Variable.PARAM_PROC_INST_ID,
+					Variable.class,
+					new Param(Variable.PARAM_NAMES, names),
+					new Param(Variable.PARAM_PROC_INST_ID, piId)
+			);
+
+			if (ListUtil.isEmpty(vars)) {
+				return true;
+			}
+
+			for (Variable var: vars) {
+				remove(var);
+			}
+
+			return true;
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error deleting variable(s) from proc. inst. ID: " + piId, e);
+		}
+
+		return false;
+	}
+
 	private List<Variable> getValidVariables(List<Variable> vars) {
 		if (ListUtil.isEmpty(vars))
 			return null;
