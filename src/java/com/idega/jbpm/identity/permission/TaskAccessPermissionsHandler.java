@@ -163,7 +163,7 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 					if (!taskInstance.hasEnded() && taskInstance.getActorId() != null && !checkOnlyInActorsPool) {
 						if (!userId.toString().equals(taskInstance.getActorId())) {
 							result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess,
-									"You will not pass. Logged in actor id doesn't match the assigned actor id. Assigned: "
+									"You will not pass. Logged in actor id (" + userId + ") doesn't match the assigned actor id. Assigned: "
 							                + taskInstance.getActorId()
 							                + ", taskInstanceId: "
 							                + taskInstance.getId());
