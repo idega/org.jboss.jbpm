@@ -540,11 +540,6 @@ public class ProcessArtifacts {
 				}
 			}
 
-			IWContext iwc = getIWContext(true);
-			if (iwc == null) {
-				return null;
-			}
-
 			List<BPMDocument> processDocuments = getProcessAssetsServices().getDocuments(processInstanceId, null, params.isNameFromExternalEntity(), params.getAllowPDFSigning());
 			if (ListUtil.isEmpty(processDocuments)) {
 				return null;
@@ -557,6 +552,11 @@ public class ProcessArtifacts {
 			}
 
 			long beanStart = measure ? System.currentTimeMillis() : 0;
+			IWContext iwc = getIWContext(false);
+			if (iwc == null) {
+				return null;
+			}
+			
 			GridEntriesBean bean = getDocumentsListDocument(iwc, processDocuments, processInstanceId, params);
 			if (measure) {
 				LOGGER.info("Got grid bean for documents (" + processDocuments + ") in " + (System.currentTimeMillis() - beanStart) + " ms");
@@ -576,7 +576,7 @@ public class ProcessArtifacts {
 			Long processInstanceId = params.getPiId();
 			List<BPMDocument> tasksDocuments = getProcessAssetsServices().getTasks(processInstanceId, null, params.isNameFromExternalEntity());
 
-			IWContext iwc = getIWContext(true);
+			IWContext iwc = getIWContext(false);
 			if (iwc == null) {
 				return null;
 			}
@@ -773,7 +773,7 @@ public class ProcessArtifacts {
 				if (params == null) {
 					return null;	// This will result in 'closed' row in grid
 				}
-				IWContext iwc = getIWContext(true);
+				IWContext iwc = getIWContext(false);
 				if (iwc == null) {
 					return null;
 				}

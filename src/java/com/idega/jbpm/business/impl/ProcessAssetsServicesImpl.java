@@ -67,7 +67,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 				return null;
 			}
 
-			IWContext iwc = getIWContext(true);
+			IWContext iwc = getIWContext(false);
 			if (iwc == null) {
 				return null;
 			}
@@ -126,7 +126,8 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			if (piId == null) {
 				return null;
 			}
-			IWContext iwc = getIWContext(true);
+
+			IWContext iwc = getIWContext(false);
 			if (iwc == null) {
 				return null;
 			}
