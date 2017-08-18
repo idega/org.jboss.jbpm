@@ -794,6 +794,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			);
 
 			if (ListUtil.isEmpty(vars)) {
+				getLogger().info("No variables found by name(s) " + names + " for proc. inst. with ID " + piId);
 				return true;
 			}
 
