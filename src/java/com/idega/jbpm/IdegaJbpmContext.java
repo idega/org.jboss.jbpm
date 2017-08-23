@@ -419,7 +419,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 									updateVersion = true;
 									previousVersion--;
 									previousVersion = previousVersion < 0 ? 0 : previousVersion;
-									LOGGER.info("Will set version to " + previousVersion + " for " + entity.getClass().getName() + ", ID: " + id);
+									LOGGER.info("Will set version to " + previousVersion + " from " + versionInDB + " for " + entity.getClass().getName() + ", ID: " + id);
 								}
 							}
 
@@ -427,7 +427,7 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 								String updateSQL = bpmEntity.getUpdateQuery(id, previousVersion);
 								try {
 									SimpleQuerier.executeUpdate(updateSQL, false);
-									LOGGER.info("Changed version to " + previousVersion + " for " + bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
+									LOGGER.info("Changed version to " + previousVersion + " from " + versionInDB + " for " + bpmEntity.getEntityClass() + ", ID: " + id + ", class: " + bpmEntity.getEntityClass());
 								} catch (SQLException e) {}
 							}
 						}
