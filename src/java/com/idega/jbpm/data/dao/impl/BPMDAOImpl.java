@@ -748,6 +748,34 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 				new Param("procDefName", procDefName));
 	}
 
+	@Override
+	@Transactional(readOnly = false)
+	public Variable saveVariable(Long procInstId, Long taskInstId, Long tokenId, String name, Serializable value) {
+		if (StringUtil.isEmpty(name) || value == null) {
+			return null;
+		}
+
+		if (procInstId == null && taskInstId == null) {
+			return null;
+		}
+
+		Variable var = new Variable();
+		var.setProcessInstance(procInstId);
+		var.setTaskInstance(taskInstId);
+		var.setToken(tokenId);
+		var.setVersion(0);
+		var.setName(name);
+		var.setValue(value);
+
+		try {
+			persist(var);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error saving variable: " + var, e);
+		}
+
+		return var == null || var.getId() == null ? null : var;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see com.idega.jbpm.data.dao.BPMDAO#getProcessInstances(java.util.List)

@@ -25,6 +25,7 @@ import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 
 import com.idega.jbpm.bean.VariableByteArrayInstance;
+import com.idega.jbpm.bean.VariableInstanceType;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
@@ -110,6 +111,10 @@ public class Variable implements Serializable {
 	@Field(store=Store.YES)
 	private Character classType;
 
+	@Column(name = "VERSION_")
+	@Field(store=Store.YES)
+	private Integer version;
+
 	@Transient
 	private Collection<byte[]> bytesValue;
 	@Transient
@@ -142,19 +147,36 @@ public class Variable implements Serializable {
 	}
 
 	public <T extends Serializable> void setValue(T value) {
+		Character classType = getClassType();
+
+		VariableInstanceType type = null;
 		if (value instanceof String) {
 			stringValue = (String) value;
-		} else if (value instanceof Number && Character.valueOf('L').equals(getClassType())) {
+			type = VariableInstanceType.STRING;
+
+		} else if (value instanceof Number && (classType == null ? true : Character.valueOf('L').equals(classType))) {
 			longValue = ((Number) value).longValue();
-		} else if (value instanceof Double && Character.valueOf('O').equals(getClassType())) {
+			type = VariableInstanceType.LONG;
+
+		} else if (value instanceof Double && (classType == null ? true : Character.valueOf('O').equals(getClassType()))) {
 			doubleValue = ((Number) value).doubleValue();
+			type = VariableInstanceType.DOUBLE;
+
 		} else if (value instanceof Timestamp) {
 			dateValue = (Timestamp) value;
+			type = VariableInstanceType.DATE;
+
 		} else if (Character.valueOf('B').equals(getClassType())) {
 			Logger.getLogger(Variable.class.getName()).info("Set bytes value: " + value +
 					(value == null ? ", unknown type" : ", type: " + value.getClass()));
+			type = VariableInstanceType.BYTE_ARRAY;
+
 		} else {
 			Logger.getLogger(Variable.class.getName()).warning("Do not know how to handle value: " + value);
+		}
+
+		if (classType == null && type != null) {
+			setClassType(Character.valueOf(type.getTypeKeys().get(0).charAt(0)));
 		}
 	}
 
@@ -262,6 +284,14 @@ public class Variable implements Serializable {
 
 	public void setToken(Long token) {
 		this.token = token;
+	}
+
+	public Integer getVersion() {
+		return version;
+	}
+
+	public void setVersion(Integer version) {
+		this.version = version;
 	}
 
 	@Override

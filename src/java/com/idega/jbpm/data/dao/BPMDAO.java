@@ -1,5 +1,6 @@
 package com.idega.jbpm.data.dao;
 
+import java.io.Serializable;
 import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -116,6 +117,8 @@ public interface BPMDAO extends GenericDao {
 	public List<Variable> getVariablesByConditions(List<String> names, List<Long> piIds, List<Long> tiIds, List<Long> viIds);
 	public List<Variable> getVariablesByBytes(List<Long> varBytesIds);
 	public List<Variable> getVariablesByTokens(List<Long> tokensIds);
+
+	public Variable saveVariable(Long procInstId, Long taskInstId, Long tokenId, String name, Serializable value);
 
 	/**
 	 *
