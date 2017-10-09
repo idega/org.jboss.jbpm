@@ -321,6 +321,25 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 
 	@Override
+	public List<ProcessInstance> getRootProcesses(Long procInstId) {
+		if (procInstId == null) {
+			return null;
+		}
+
+		try {
+			return getResultList(
+					ProcessManagerBind.getRootProcessesOneLevel,
+					ProcessInstance.class,
+					new Param(ProcessManagerBind.processInstanceIdParam, procInstId)
+			);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting root processes by proc. inst. ID: " + procInstId, e);
+		}
+
+		return null;
+	}
+
+	@Override
 	public List<ProcessInstance> getSubprocessInstancesOneLevel(long parentProcessInstanceId) {
 		List<ProcessInstance> subprocesses = null;
 

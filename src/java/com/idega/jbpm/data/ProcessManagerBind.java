@@ -30,7 +30,10 @@ import javax.persistence.Table;
 				+ ProcessManagerBind.processNameProp),
 		@NamedQuery(name = ProcessManagerBind.getSubprocessesOneLevel, query = "select subPi from "
 				+ "org.jbpm.graph.exe.ProcessInstance subPi inner join subPi.superProcessToken.processInstance superPi "
-				+ "where superPi.id = :"+ProcessManagerBind.processInstanceIdParam)
+				+ "where superPi.id = :"+ProcessManagerBind.processInstanceIdParam),
+		@NamedQuery(name = ProcessManagerBind.getRootProcessesOneLevel, query = "select superPi from "
+				+ "org.jbpm.graph.exe.ProcessInstance subPi inner join subPi.superProcessToken.processInstance superPi "
+				+ "where subPi.id = :"+ProcessManagerBind.processInstanceIdParam)
 	}
 )
 @Cacheable
@@ -42,8 +45,9 @@ public class ProcessManagerBind implements Serializable {
 	// " where superPi.id = :piId"
 	private static final long serialVersionUID = 1748907927777733985L;
 
-	public static final String getByProcessName = "ProcessManagerBind.getByProcessName";
-	public static final String getSubprocessesOneLevel = "ProcessManagerBind.getSubprocessesOneLevel";
+	public static final String	getByProcessName = "ProcessManagerBind.getByProcessName",
+								getSubprocessesOneLevel = "ProcessManagerBind.getSubprocessesOneLevel",
+								getRootProcessesOneLevel = "ProcessManagerBind.getRootProcessesOneLevel";
 
 	public static final String processInstanceIdParam = "piId";
 	public static final String caseIdParam = "caseId";

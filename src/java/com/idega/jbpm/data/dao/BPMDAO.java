@@ -169,4 +169,6 @@ public interface BPMDAO extends GenericDao {
 
 	public boolean deleteVariables(List<String> names, Long piId);
 
+	public List<ProcessInstance> getRootProcesses(Long procInstId);
+
 }
