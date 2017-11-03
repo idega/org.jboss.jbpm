@@ -1,5 +1,6 @@
 package com.idega.jbpm.variables.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,7 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
@@ -29,11 +29,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.idega.block.process.variables.Variable;
+import com.idega.core.business.DefaultSpringBean;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
+import com.idega.jbpm.bean.VariableInstanceInfo;
+import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.event.VariableCreatedEvent;
 import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.ProcessInstanceW;
+import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.jbpm.variables.VariablesHandler;
@@ -49,18 +54,19 @@ import com.idega.util.expression.ELUtil;
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.20 $ Last modified: $Date: 2009/05/19 13:19:04 $ by $Author: valdas $
  */
-@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Service("bpmVariablesHandler")
 @Transactional(readOnly = true)
-public class VariablesHandlerImpl implements VariablesHandler {
-
-	private static final Logger LOGGER = Logger.getLogger(VariablesHandlerImpl.class.getName());
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+public class VariablesHandlerImpl extends DefaultSpringBean implements VariablesHandler {
 
 	private BPMContext idegaJbpmContext;
 	private BinaryVariablesHandler binaryVariablesHandler;
 
 	@Autowired
 	private BPMFactory bpmFactory;
+
+	@Autowired
+	private VariableInstanceQuerier variableQuerier;
 
 	@Override
 	@Transactional(readOnly = false)
@@ -87,7 +93,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			for (Object bean: beans.values())
 				((VariablesManager) bean).doManageVariables(piId, tiId, variables);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error managing variables (" + variables + ") for process: " + piId + " and task: " + tiId, e);
+			getLogger().log(Level.WARNING, "Error managing variables (" + variables + ") for process: " + piId + " and task: " + tiId, e);
 		}
 	}
 
@@ -118,7 +124,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 						} catch (Exception e) {
 							String message = "Error creating variable " + entry.getKey() + " with value " + entry.getValue() + " for token " +
 									taskInstanceToken + " and task instance: " + taskInstanceId;
-							LOGGER.log(Level.WARNING, message, e);
+							getLogger().log(Level.WARNING, message, e);
 							CoreUtil.sendExceptionNotification(message, e);
 							throw new RuntimeException(message, e);
 						}
@@ -145,6 +151,24 @@ public class VariablesHandlerImpl implements VariablesHandler {
 		ti.setVariables(variables);
 	}
 
+	private Object getVariable(TaskInstance ti, String variableName) {
+		// read - populating from token
+		ContextInstance ci = ti.getContextInstance();
+		if (ci == null) {
+			ProcessInstance pi = ti.getProcessInstance();
+			if (pi != null) {
+				ci = pi.getContextInstance();
+			}
+		}
+		if (ci == null) {
+			getLogger().warning("Unable to get " + ContextInstance.class.getName() + " while trying to load variable '" + variableName + "' for task " + ti);
+			return null;
+		}
+
+		Object variable = ci.getVariable(variableName);
+		return variable;
+	}
+
 	@Override
 	public Map<String, Object> populateVariables(final long taskInstanceId) {
 		return getIdegaJbpmContext().execute(new JbpmCallback<Map<String, Object>>() {
@@ -160,20 +184,20 @@ public class VariablesHandlerImpl implements VariablesHandler {
 					vars = ti.getVariables();
 				} catch (Exception e) {
 					loadByToken = true;
-					LOGGER.log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId, e);
+					getLogger().log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId, e);
 				}
 				if (MapUtil.isEmpty(vars) || loadByToken) {
 					Token token = null;
 					try {
 						token = ti.getToken();
 						if (token == null) {
-							LOGGER.warning("Token is null for task instance: " + taskInstanceId);
+							getLogger().warning("Token is null for task instance: " + taskInstanceId);
 						} else {
 							token = DBUtil.getInstance().initializeAndUnproxy(token);
 							vars = bpmFactory.getTaskInstanceW(taskInstanceId).getVariables(token);
 						}
 					} catch (Throwable e) {
-						LOGGER.log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId + " by token: " + token +
+						getLogger().log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId + " by token: " + token +
 								(token == null ? CoreConstants.EMPTY : token.getId()), e);
 					}
 				}
@@ -189,29 +213,51 @@ public class VariablesHandlerImpl implements VariablesHandler {
 						if (!variables.containsKey(varName)) {
 							// the situation when process definition was changed (using formbuilder for instance) but task instance was created already
 							if (variableAccess.isReadable()) {
-								// read - populating from token
-								ContextInstance ci = ti.getContextInstance();
-								if (ci == null) {
-									ProcessInstance pi = ti.getProcessInstance();
-									if (pi != null)
-										ci = pi.getContextInstance();
+								String variableName = variableAccess.getVariableName();
+								Object variable = getVariable(ti, variableName);
+								if (variable != null) {
+									variables.put(variableName, variable);
 								}
-								if (ci == null) {
-									LOGGER.warning("Unable to get " + ContextInstance.class.getName() + " while trying to load variable '" +
-											variableAccess.getVariableName() + "' for task " + ti);
-									continue;
-								}
-
-								Object variable = ci.getVariable(variableAccess.getVariableName());
-								variables.put(variableAccess.getVariableName(), variable);
 							}
 						}
 
 						if (variableAccess.isWritable() && !variableAccess.isReadable()) {
 							// we don't want to show non readable variable, this is backward compatibility, for task instances, that were created
 							// with wrong process definition
-							LOGGER.info("Variable '" + varName + "' is writable but not readable for task instance ID: " + ti.getId() + ", removing it from variables list");
+							getLogger().info("Variable '" + varName + "' is writable but not readable for task instance ID: " + ti.getId() + ", removing it from variables list");
 							variables.remove(variableAccess.getVariableName());
+						}
+					}
+				}
+
+				if (!MapUtil.isEmpty(variables) && getSettings().getBoolean("bpm.load_vars_from_pi_if_empty", false)) {
+					ProcessInstanceW piW = bpmFactory.getProcessInstanceW(ti.getProcessInstance().getId());
+					TaskInstanceW startTiW = piW.getStartTaskInstance();
+					TaskInstance startTi = context.getTaskInstance(startTiW.getTaskInstanceId());
+					List<String> variablesToLoad = new ArrayList<>();
+					for (String variableName: variables.keySet()) {
+						Object existingValue = variables.get(variableName);
+						if (existingValue != null) {
+							continue;
+						}
+
+						Object variable = getVariable(startTi, variableName);
+						if (variable == null) {
+							variablesToLoad.add(variableName);
+						} else {
+							variables.put(variableName, variable);
+						}
+					}
+					if (!ListUtil.isEmpty(variablesToLoad)) {
+						List<VariableInstanceInfo> varsForTask = variableQuerier.getVariablesByNameAndTaskInstance(variablesToLoad, startTi.getId());
+						if (!ListUtil.isEmpty(varsForTask)) {
+							for (VariableInstanceInfo var: varsForTask) {
+								String name = var.getName();
+								Object value = var.getValue();
+								if (value != null) {
+									variables.put(name, value);
+								}
+							}
 						}
 					}
 				}
@@ -304,7 +350,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			TaskController tiController = task.getTaskController();
 
 			if (tiController == null) {
-				LOGGER.warning("No controller is assigned for task: " + task.getId() + ", task instance ID: " + ti.getId());
+				getLogger().warning("No controller is assigned for task: " + task.getId() + ", task instance ID: " + ti.getId());
 				// this occurs when no controller specified for the task
 			}
 
@@ -327,7 +373,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 						throw new TaskInstanceVariablesException("Required variable (" + variableName + ") not submitted.");
 
 					if (!variableAccess.isWritable() && variables.containsKey(variableName)) {
-						LOGGER.warning("Tried to submit read-only variable (" + variableAccess.getVariableName() + ") for task instance: " +
+						getLogger().warning("Tried to submit read-only variable (" + variableAccess.getVariableName() + ") for task instance: " +
 								taskInstanceId + ", ignoring.");
 						variables.remove(variableName);
 					}
@@ -348,7 +394,7 @@ public class VariablesHandlerImpl implements VariablesHandler {
 			Long piIdToManage = piId == null ? pi == null ? null : pi.getId() : piId;
 			doManageVariables(piIdToManage, ti.getId(), variables);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, "Error submitting variables " + variables + " for task instance: " + taskInstanceId, e);
+			getLogger().log(Level.WARNING, "Error submitting variables " + variables + " for task instance: " + taskInstanceId, e);
 		}
 	}
 }
