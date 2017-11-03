@@ -2385,7 +2385,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return getVariablesCollectionByLucene(null, new ArrayList<String>(names), null, null, Arrays.asList(tiId), null, null, false);
 		}
 
-		String query = getQuery(getSelectPart(STANDARD_COLUMNS), CoreConstants.COMMA, OTHER_VALUES, getFromClause(true, false),
+		String query = getQuery(getSelectPart(STANDARD_COLUMNS), CoreConstants.COMMA.concat(" var.STRINGVALUE_ as sv").concat(CoreConstants.COMMA), OTHER_VALUES, getFromClause(true, false),
 				" where var.taskinstance_ = ",
 				String.valueOf(tiId),
 				" and ",
@@ -2393,7 +2393,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		);
 		List<Serializable[]> results = null;
 		try {
-			results = SimpleQuerier.executeQuery(query, FULL_COLUMNS - 1);
+			results = SimpleQuerier.executeQuery(query, FULL_COLUMNS);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
 		}
