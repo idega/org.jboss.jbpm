@@ -1,5 +1,6 @@
 package com.idega.jbpm.exe;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -38,9 +39,9 @@ public interface ProcessDefinitionW {
 	public abstract View loadInitView(Integer initiatorId);
 	public abstract View loadInitView(Integer initiatorId, String identifier);
 
-	public abstract void setProcessDefinitionId(Long processDefinitionId);
+	public abstract <T extends Serializable> void setProcessDefinitionId(T processDefinitionId);
 
-	public abstract Long getProcessDefinitionId();
+	public abstract <T extends Serializable> T getProcessDefinitionId();
 
 	public abstract ProcessDefinition getProcessDefinition();
 	public abstract ProcessDefinition getProcessDefinition(JbpmContext context);

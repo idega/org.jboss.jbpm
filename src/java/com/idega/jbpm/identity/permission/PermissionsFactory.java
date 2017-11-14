@@ -1,8 +1,7 @@
 package com.idega.jbpm.identity.permission;
 
+import java.io.Serializable;
 import java.security.Permission;
-
-import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.user.data.User;
 
@@ -15,19 +14,17 @@ import com.idega.user.data.User;
  */
 public interface PermissionsFactory {
 
-	public abstract Permission getTaskInstanceSubmitPermission(Boolean authPooledActorsOnly, Long taskInstanceId);
+	public abstract <T extends Serializable> Permission getTaskInstanceSubmitPermission(Boolean authPooledActorsOnly, T taskInstanceId);
 
-	public abstract Permission getRightsMgmtPermission(Long processInstanceId);
+	public abstract <T extends Serializable> Permission getRightsMgmtPermission(T processInstanceId);
 
-	public abstract Permission getAccessPermission(Long processInstanceId, Access access);
+	public abstract <T extends Serializable> Permission getAccessPermission(T processInstanceId, Access access);
 
-	public abstract Permission getAccessPermission(Long processInstanceId, Access access, User user);
+	public abstract <T extends Serializable> Permission getAccessPermission(T processInstanceId, Access access, User user);
 
-	public abstract Permission getTaskInstanceViewPermission(Boolean authPooledActorsOnly, Long taskInstanceId);
+	public abstract <T extends Serializable> Permission getTaskInstanceViewPermission(Boolean authPooledActorsOnly, T taskInstanceId);
 
-	public abstract Permission getTaskInstanceVariableViewPermission(
-			Boolean authPooledActorsOnly, TaskInstance taskInstance,
-			String variableIdentifier);
+	public abstract <T extends Serializable> Permission getTaskInstanceVariableViewPermission( Boolean authPooledActorsOnly, T taskInstanceId, String variableIdentifier);
 
 	/**
 	 *
@@ -38,8 +35,7 @@ public interface PermissionsFactory {
 	 *            set to false, basic falling to role is checked
 	 * @return
 	 */
-	public abstract Permission getRoleAccessPermission(Long processInstanceId,
-			String roleName, Boolean checkContactsForRole);
+	public abstract <T extends Serializable> Permission getRoleAccessPermission(T processInstanceId, String roleName, Boolean checkContactsForRole);
 
 	public abstract BPMTypedPermission getTypedPermission(String name);
 }

@@ -1,10 +1,11 @@
 package com.idega.jbpm.identity.permission;
 
+import java.io.Serializable;
 import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jbpm.taskmgmt.exe.TaskInstance;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +19,7 @@ import com.idega.user.data.User;
  *          Last modified: $Date: 2009/02/13 17:27:48 $ by $Author: civilis $
  */
 @Service
-@Scope("singleton")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class PermissionsFactoryImpl implements PermissionsFactory {
 
 	public static final String genericAccessPermType = "genericAccess";
@@ -29,7 +30,7 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 	public static final String roleAccessPermType = "roleAccess";
 
 	@Override
-	public Permission getTaskInstanceSubmitPermission(Boolean authPooledActorsOnly, Long taskInstanceId) {
+	public <T extends Serializable> Permission getTaskInstanceSubmitPermission(Boolean authPooledActorsOnly, T taskInstanceId) {
 		BPMTypedPermission perm = getTypedPermission(submitTaskParametersPermType);
 		perm.setAttribute(TaskAccessPermissionsHandler.checkOnlyInActorsPoolAtt, authPooledActorsOnly);
 		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstanceId);
@@ -44,7 +45,7 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 	}
 
 	@Override
-	public Permission getRightsMgmtPermission(Long processInstanceId) {
+	public <T extends Serializable> Permission getRightsMgmtPermission(T processInstanceId) {
 
 		BPMTypedPermission perm = getTypedPermission(accessManagementPermType);
 		perm.setAttribute(
@@ -55,7 +56,7 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 	}
 
 	@Override
-	public Permission getAccessPermission(Long processInstanceId, Access access) {
+	public <T extends Serializable> Permission getAccessPermission(T processInstanceId, Access access) {
 
 		BPMTypedPermission perm = getTypedPermission(genericAccessPermType);
 		perm.setAttribute(GenericAccessPermissionsHandler.processInstanceIdAtt,
@@ -65,7 +66,7 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 	}
 
 	@Override
-	public Permission getAccessPermission(Long processInstanceId,
+	public <T extends Serializable> Permission getAccessPermission(T processInstanceId,
 			Access access, User user) {
 
 		BPMTypedPermission perm = getTypedPermission(genericAccessPermType);
@@ -81,7 +82,7 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 
 	@Override
 	@Transactional(readOnly = true)
-	public Permission getTaskInstanceViewPermission(Boolean authPooledActorsOnly, Long taskInstanceId) {
+	public <T extends Serializable> Permission getTaskInstanceViewPermission(Boolean authPooledActorsOnly, T taskInstanceId) {
 		BPMTypedPermission perm = getTypedPermission(viewTaskInstancePermType);
 		perm.setAttribute(TaskAccessPermissionsHandler.checkOnlyInActorsPoolAtt, authPooledActorsOnly);
 		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstanceId);
@@ -95,10 +96,10 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 	}
 
 	@Override
-	public Permission getTaskInstanceVariableViewPermission(Boolean authPooledActorsOnly, TaskInstance taskInstance, String variableIdentifier) {
+	public <T extends Serializable> Permission getTaskInstanceVariableViewPermission(Boolean authPooledActorsOnly, T taskInstanceId, String variableIdentifier) {
 		BPMTypedPermission perm = getTypedPermission(viewTaskInstanceVariablePermType);
 		perm.setAttribute(TaskAccessPermissionsHandler.checkOnlyInActorsPoolAtt, authPooledActorsOnly);
-		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstance.getId());
+		perm.setAttribute(TaskAccessPermissionsHandler.taskInstanceAtt, taskInstanceId);
 		perm.setAttribute(TaskAccessPermissionsHandler.variableIdentifierAtt, variableIdentifier);
 
 		List<Access> accesses = new ArrayList<Access>(1);
@@ -109,7 +110,7 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 	}
 
 	@Override
-	public Permission getRoleAccessPermission(Long processInstanceId,
+	public <T extends Serializable> Permission getRoleAccessPermission(T processInstanceId,
 			String roleName, Boolean checkContactsForRole) {
 
 		BPMTypedPermission perm = getTypedPermission(roleAccessPermType);
@@ -127,4 +128,5 @@ public class PermissionsFactoryImpl implements PermissionsFactory {
 
 		return new BPMTypedPermissionImpl(type, null);
 	}
+
 }
