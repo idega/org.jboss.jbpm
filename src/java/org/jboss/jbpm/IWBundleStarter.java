@@ -39,9 +39,6 @@ public class IWBundleStarter implements IWBundleStartable {
 	public void start(IWBundle starterBundle) {
 		doBuildIndexes(starterBundle.getApplication().getSettings());
 
-		BPMViewManager vm = BPMViewManager.getInstance(starterBundle.getApplication());
-		vm.initializeStandardNodes(starterBundle);
-
 		Thread variablesDataImporter = new Thread(new Runnable() {
 			@Override
 			public void run() {
