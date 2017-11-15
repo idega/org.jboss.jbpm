@@ -1,12 +1,13 @@
 package com.idega.jbpm.view;
 
+import java.io.Serializable;
 import java.util.Map;
 
 public class ViewSubmissionImpl implements ViewSubmission {
 
 	private Map<String, Object> variables;
 
-	private Long taskInstanceId, piId, processDefinitionId;
+	private Serializable taskInstanceId, piId, processDefinitionId;
 
 	private Map<String, String> parameters;
 
@@ -26,12 +27,14 @@ public class ViewSubmissionImpl implements ViewSubmission {
 	}
 
 	@Override
-	public Long getTaskInstanceId() {
-		return taskInstanceId;
+	public <T extends Serializable> T getTaskInstanceId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) taskInstanceId;
+		return result;
 	}
 
 	@Override
-	public void setTaskInstanceId(Long taskInstanceId) {
+	public <T extends Serializable> void setTaskInstanceId(T taskInstanceId) {
 		this.taskInstanceId = taskInstanceId;
 	}
 
@@ -46,12 +49,14 @@ public class ViewSubmissionImpl implements ViewSubmission {
 	}
 
 	@Override
-	public Long getProcessDefinitionId() {
-		return processDefinitionId;
+	public <T extends Serializable> T getProcessDefinitionId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) processDefinitionId;
+		return result;
 	}
 
 	@Override
-	public void setProcessDefinitionId(Long processDefinitionId) {
+	public <T extends Serializable> void setProcessDefinitionId(T processDefinitionId) {
 		this.processDefinitionId = processDefinitionId;
 	}
 
@@ -76,13 +81,15 @@ public class ViewSubmissionImpl implements ViewSubmission {
 	}
 
 	@Override
-	public void setProcessInstanceId(Long piId) {
+	public <T extends Serializable> void setProcessInstanceId(T piId) {
 		this.piId = piId;
 	}
 
 	@Override
-	public Long getProcessInstanceId() {
-		return piId;
+	public <T extends Serializable> T getProcessInstanceId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) piId;
+		return result;
 	}
 
 	@Override

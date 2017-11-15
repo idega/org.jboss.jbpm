@@ -1,5 +1,6 @@
 package com.idega.jbpm.view;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -15,13 +16,13 @@ public interface ViewSubmission {
 
 	public abstract void populateParameters(Map<String, String> parameters);
 
-	public abstract Long getTaskInstanceId();
+	public abstract <T extends Serializable> T getTaskInstanceId();
 
-	public abstract void setTaskInstanceId(Long taskInstanceId);
+	public abstract <T extends Serializable> void setTaskInstanceId(T taskInstanceId);
 
-	public abstract Long getProcessDefinitionId();
+	public abstract <T extends Serializable> T getProcessDefinitionId();
 
-	public abstract void setProcessDefinitionId(Long processDefinitionId);
+	public abstract <T extends Serializable> void setProcessDefinitionId(T processDefinitionId);
 
 	public abstract String getViewId();
 
@@ -31,9 +32,9 @@ public interface ViewSubmission {
 
 	public abstract void setViewType(String viewType);
 
-	public void setProcessInstanceId(Long piId);
+	public <T extends Serializable> void setProcessInstanceId(T piId);
 
-	public Long getProcessInstanceId();
+	public <T extends Serializable> T getProcessInstanceId();
 
 	public boolean isAllowedToEdit();
 
