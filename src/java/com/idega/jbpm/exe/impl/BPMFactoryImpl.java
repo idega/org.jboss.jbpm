@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.ServletContext;
+
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
@@ -23,9 +25,11 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.idega.data.SimpleQuerier;
 import com.idega.hibernate.HibernateUtil;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.JbpmCallback;
 import com.idega.jbpm.data.ProcessManagerBind;
@@ -45,10 +49,13 @@ import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewFactory;
 import com.idega.jbpm.view.ViewSubmission;
 import com.idega.jbpm.view.ViewSubmissionImpl;
+import com.idega.presentation.IWContext;
 import com.idega.util.ArrayUtil;
+import com.idega.util.CoreUtil;
 import com.idega.util.DBUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.datastructures.map.MapUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -77,6 +84,34 @@ public class BPMFactoryImpl implements BPMFactory {
 	@Override
 	public ProcessManager getProcessManager(final long processDefinitionId) {
 		return getProcessManager(getBPMDAO().getProcessDefinitionNameByProcessDefinitionId(processDefinitionId));
+	}
+
+	@Override
+	public <T extends Serializable> ProcessManager getProcessManager(T processDefinitionId) {
+		//	BPM v. 1?
+		if (processDefinitionId instanceof Number) {
+			return getProcessManager(((Number) processDefinitionId).longValue());
+		}
+
+		//	Probably BPM v. 2
+		ServletContext sc = null;
+		IWContext iwc = CoreUtil.getIWContext();
+		sc = iwc == null ? null : iwc.getServletContext();
+		sc = sc == null ? IWMainApplication.getDefaultIWMainApplication().getServletContext() : sc;
+		Map<String, ProcessManager> managers = WebApplicationContextUtils.getWebApplicationContext(sc).getBeansOfType(ProcessManager.class);
+		if (!MapUtil.isEmpty(managers)) {
+			for (ProcessManager manager: managers.values()) {
+				ProcessDefinitionW procDefW = null;
+				try {
+					procDefW = manager.getProcessDefinition(processDefinitionId);
+				} catch (Exception e) {}
+				if (procDefW != null) {
+					return manager;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	@Override

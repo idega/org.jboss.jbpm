@@ -31,6 +31,8 @@ public interface BPMFactory {
 	 */
 	public abstract ProcessManager getProcessManager(long processDefinitionId);
 
+	public abstract <T extends Serializable> ProcessManager getProcessManager(T processDefinitionId);
+
 	/**
 	 * @param processDefinitionId
 	 * @return Process manager bound to latest process definition found by name
