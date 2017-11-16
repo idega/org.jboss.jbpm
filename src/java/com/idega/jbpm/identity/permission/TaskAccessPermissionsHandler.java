@@ -84,12 +84,6 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 		        PermissionsFactoryImpl.viewTaskInstanceVariablePermType };
 	}
 
-	private BPMContext getBpmContext() {
-		if (bpmContext == null)
-			ELUtil.getInstance().autowire(this);
-		return bpmContext;
-	}
-
 	// TODO: just return handleResult object here with status, and message, let
 	// identityAuthorizationService throw exceptions or so
 	@Override
@@ -117,7 +111,13 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 							PermissionsFactoryImpl.viewTaskInstanceVariablePermType.equals(permission.getType()))
 							result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
 						else if (PermissionsFactoryImpl.viewTaskInstancePermType.equals(permission.getType())) {
-							Long taskInstanceId = permission.getAttribute(taskInstanceAtt);
+							Long taskInstanceId = null;
+							Object temp = permission.getAttribute(taskInstanceAtt);
+							if (temp instanceof Number) {
+								taskInstanceId = ((Number) temp).longValue();
+							} else if (temp instanceof TaskInstance) {
+								taskInstanceId = ((TaskInstance) temp).getId();
+							}
 							TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
 							List<Object[]> permissionsForEveryone = null;
 							try {
@@ -155,7 +155,13 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 				}
 
 				if (result == null) {
-					Long taskInstanceId = permission.getAttribute(taskInstanceAtt);
+					Long taskInstanceId = null;
+					Object temp = permission.getAttribute(taskInstanceAtt);
+					if (temp instanceof Number) {
+						taskInstanceId = ((Number) temp).longValue();
+					} else if (temp instanceof TaskInstance) {
+						taskInstanceId = ((TaskInstance) temp).getId();
+					}
 					TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
 
 					Boolean checkOnlyInActorsPool = permission.getAttribute(checkOnlyInActorsPoolAtt);
