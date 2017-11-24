@@ -60,6 +60,8 @@ public interface ProcessDefinitionW {
 
 	public abstract String getProcessName(Locale locale);
 
+	public abstract String getProcessDefinitionName();
+
 	/**
 	 *
 	 * <p>Checks if given {@link User} has cases </p>
