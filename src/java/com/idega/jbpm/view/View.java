@@ -13,9 +13,9 @@ import javax.faces.component.UIComponent;
 public interface View {
 
 	// TODO: create view submission interface with method that are needed only on submit
-	public abstract void setTaskInstanceId(Long taskInstanceId);
+	public abstract <T> void setTaskInstanceId(T taskInstanceId);
 
-	public abstract Long getTaskInstanceId();
+	public abstract <T> T getTaskInstanceId();
 
 	public abstract void setViewId(String viewId);
 
