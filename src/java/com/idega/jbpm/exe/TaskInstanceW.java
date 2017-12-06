@@ -1,7 +1,9 @@
 package com.idega.jbpm.exe;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -54,16 +56,16 @@ public interface TaskInstanceW {
 	 */
 	View getView();
 
-	public abstract Long getTaskInstanceId();
+	public abstract <T extends Serializable> T getTaskInstanceId();
 
-	public abstract void setTaskInstanceId(Long taskInstanceId);
+	public abstract <T extends Serializable> void setTaskInstanceId(T taskInstanceId);
 
 	public abstract void setTaskInstance(TaskInstance taskInstance);
 
 	public abstract String getName(Locale locale);
 
-	public abstract TaskInstance getTaskInstance();
-	public abstract TaskInstance getTaskInstance(JbpmContext context);
+	public abstract <T> T getTaskInstance();
+	public abstract <T> T getTaskInstance(JbpmContext context);
 
 	public abstract void setTaskRolePermissions(Role role, boolean setSameForAttachments, String variableIdentifier);
 
@@ -149,7 +151,10 @@ public interface TaskInstanceW {
 	public boolean isRenderable();
 
 	public boolean hasViewForDisplay();
-	public BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is,
-			String filesFolder, boolean overwrite, String source);
+	public BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is, String filesFolder, boolean overwrite, String source);
+
+	public String getTaskInstanceName();
+
+	public Date getCreate();
 
 }

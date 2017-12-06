@@ -1,5 +1,6 @@
 package com.idega.jbpm.artifacts.presentation;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -556,7 +557,7 @@ public class ProcessArtifacts {
 			if (iwc == null) {
 				return null;
 			}
-			
+
 			GridEntriesBean bean = getDocumentsListDocument(iwc, processDocuments, processInstanceId, params);
 			if (measure) {
 				LOGGER.info("Got grid bean for documents (" + processDocuments + ") in " + (System.currentTimeMillis() - beanStart) + " ms");
@@ -588,7 +589,7 @@ public class ProcessArtifacts {
 		    		String taskName = st.nextToken();
 		    		Boolean skip = Boolean.FALSE;
 		    		for (TaskInstanceW task: tasks) {
-						if (taskName.equals(task.getTaskInstance().getName())) {
+						if (taskName.equals(task.getTaskInstanceName())) {
 							skip = Boolean.TRUE;
 							break;
 						}
@@ -1938,7 +1939,8 @@ public class ProcessArtifacts {
 			}
 
 			for (TaskInstanceW submittedTask: submittedTasks) {
-				if (submittedTask.getTaskInstanceId().longValue() == tiId.longValue())
+				Serializable id = submittedTask.getTaskInstanceId();
+				if (id.toString().equals(tiId.toString()))
 					return true;
 			}
 		} catch (Exception e) {

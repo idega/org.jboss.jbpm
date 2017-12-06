@@ -81,8 +81,7 @@ public class BPMFactoryImpl implements BPMFactory {
 	@Autowired
 	private PermissionsFactory permissionsFactory;
 
-	@Override
-	public ProcessManager getProcessManager(final long processDefinitionId) {
+	private ProcessManager getProcessManager(final long processDefinitionId) {
 		return getProcessManager(getBPMDAO().getProcessDefinitionNameByProcessDefinitionId(processDefinitionId));
 	}
 
@@ -94,11 +93,7 @@ public class BPMFactoryImpl implements BPMFactory {
 		}
 
 		//	Probably BPM v. 2
-		ServletContext sc = null;
-		IWContext iwc = CoreUtil.getIWContext();
-		sc = iwc == null ? null : iwc.getServletContext();
-		sc = sc == null ? IWMainApplication.getDefaultIWMainApplication().getServletContext() : sc;
-		Map<String, ProcessManager> managers = WebApplicationContextUtils.getWebApplicationContext(sc).getBeansOfType(ProcessManager.class);
+		Map<String, ProcessManager> managers = getAllProcessManagers();
 		if (!MapUtil.isEmpty(managers)) {
 			for (ProcessManager manager: managers.values()) {
 				ProcessDefinitionW procDefW = null;
@@ -347,24 +342,43 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	@Transactional(readOnly = true)
-	public ProcessManager getProcessManagerByTaskInstanceId(final long taskInstanceId) {
-		return getBpmContext().execute(new JbpmCallback<ProcessManager>() {
+	public <T extends Serializable> ProcessManager getProcessManagerByTaskInstanceId(T taskInstId) {
+		if (taskInstId instanceof Number) {
+			final Long taskInstanceId = ((Number) taskInstId).longValue();
 
-			@Override
-			public ProcessManager doInJbpm(JbpmContext context) throws JbpmException {
-				TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
-				return getProcessManager(taskInstance.getProcessInstance().getProcessDefinition().getName());
+			return getBpmContext().execute(new JbpmCallback<ProcessManager>() {
+
+				@Override
+				public ProcessManager doInJbpm(JbpmContext context) throws JbpmException {
+					TaskInstance taskInstance = context.getTaskInstance(taskInstanceId);
+					return getProcessManager(taskInstance.getProcessInstance().getProcessDefinition().getName());
+				}
+			});
+		}
+
+		Map<String, ProcessManager> managers = getAllProcessManagers();
+		if (!MapUtil.isEmpty(managers)) {
+			for (ProcessManager manager: managers.values()) {
+				TaskInstanceW taskInstW = null;
+				try {
+					taskInstW = manager.getTaskInstance(taskInstId);
+				} catch (Exception e) {}
+				if (taskInstW != null) {
+					return manager;
+				}
 			}
-		});
+		}
+
+		throw new RuntimeException("Proc. manager can not be loaded by task instance ID: " + taskInstId);
 	}
 
 	@Override
-	public TaskInstanceW getTaskInstanceW(long taskInstanceId) {
+	public <T extends Serializable> TaskInstanceW getTaskInstanceW(T taskInstanceId) {
 		return getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
 	}
 
 	@Override
-	public ProcessInstanceW getProcessInstanceW(long processInstanceId) {
+	public <T extends Serializable> ProcessInstanceW getProcessInstanceW(T processInstanceId) {
 		ProcessManager manager = getProcessManagerByProcessInstanceId(processInstanceId);
 		if (manager != null) {
 			return manager.getProcessInstance(processInstanceId);
@@ -374,7 +388,7 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	@Override
-	public ProcessInstanceW getProcessInstanceW(JbpmContext context, long processInstanceId) {
+	public <T extends Serializable> ProcessInstanceW getProcessInstanceW(JbpmContext context, T processInstanceId) {
 		return getProcessManagerByProcessInstanceId(context, processInstanceId).getProcessInstance(processInstanceId);
 	}
 
@@ -414,7 +428,7 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	@Override
-	public ProcessManager getProcessManagerByProcessInstanceId(final long processInstanceId) {
+	public <T extends Serializable> ProcessManager getProcessManagerByProcessInstanceId(final T processInstanceId) {
 		return getBpmContext().execute(new JbpmCallback<ProcessManager>() {
 			@Override
 			public ProcessManager doInJbpm(JbpmContext context) throws JbpmException {
@@ -423,24 +437,56 @@ public class BPMFactoryImpl implements BPMFactory {
 		});
 	}
 
+	private Map<String, ProcessManager> getAllProcessManagers() {
+		ServletContext sc = null;
+		IWContext iwc = CoreUtil.getIWContext();
+		sc = iwc == null ? null : iwc.getServletContext();
+		sc = sc == null ? IWMainApplication.getDefaultIWMainApplication().getServletContext() : sc;
+		return WebApplicationContextUtils.getWebApplicationContext(sc).getBeansOfType(ProcessManager.class);
+	}
+
 	@Transactional(readOnly = true)
-	private ProcessManager getProcessManagerByProcessInstanceId(JbpmContext context, long processInstanceId) {
-		if (processInstanceId < 0) {
-			LOGGER.warning("Invalid proc. inst. ID: " + processInstanceId);
+	private <T extends Serializable> ProcessManager getProcessManagerByProcessInstanceId(JbpmContext context, T proInstId) {
+		if (proInstId instanceof Number) {
+			Long processInstanceId = ((Number) proInstId).longValue();
+			if (processInstanceId < 0) {
+				LOGGER.warning("Invalid proc. inst. ID: " + processInstanceId);
+			}
+
+			ProcessInstance processInstance = context.getProcessInstance(processInstanceId);
+			if (processInstance == null) {
+				LOGGER.warning("Proc. inst. was not loaded from context by ID: " + processInstanceId + ", will try to load it from DB");
+				processInstance = getBPMDAO().find(ProcessInstance.class, processInstanceId);
+			}
+
+			if (processInstance != null) {
+				long pdId = processInstance.getProcessDefinition().getId();
+				return getProcessManager(pdId);
+			}
 		}
 
-		ProcessInstance processInstance = context.getProcessInstance(processInstanceId);
-		if (processInstance == null) {
-			LOGGER.warning("Proc. inst. was not loaded from context by ID: " + processInstanceId + ", will try to load it from DB");
-			processInstance = getBPMDAO().find(ProcessInstance.class, processInstanceId);
+		Map<String, ProcessManager> managers = getAllProcessManagers();
+		if (!MapUtil.isEmpty(managers)) {
+			for (ProcessManager manager: managers.values()) {
+				ProcessInstanceW procInstW = null;
+				ProcessDefinitionW procDefW = null;
+				try {
+					procInstW = manager.getProcessInstance(proInstId);
+					if (procInstW == null) {
+						continue;
+					}
+
+					procDefW = procInstW.getProcessDefinitionW();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				if (procInstW != null && procDefW != null) {
+					return manager;
+				}
+			}
 		}
 
-		if (processInstance == null) {
-			throw new RuntimeException("Proc. inst. can not be loaded by ID: " + processInstanceId);
-		}
-
-		long pdId = processInstance.getProcessDefinition().getId();
-		return getProcessManager(pdId);
+		throw new RuntimeException("Proc. inst. can not be loaded by ID: " + proInstId);
 	}
 
 	@Override
@@ -540,8 +586,21 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	@Override
+	public <T extends Serializable> T getIdOfStartTaskInstance(T piId) {
+		if (piId instanceof Number) {
+			@SuppressWarnings("unchecked")
+			T id = (T) getIdOfStartTaskInstance(((Number) piId).longValue());
+			return id;
+		}
+
+		ProcessInstanceW piW = getProcessInstanceW(piId);
+		@SuppressWarnings("unchecked")
+		T id  = (T) (piW == null ? null : piW.getIdOfStartTaskInstance());
+		return id;
+	}
+
 	@Transactional(readOnly = true)
-	public Long getIdOfStartTaskInstance(final Long piId) {
+	private Long getIdOfStartTaskInstance(Long piId) {
 		Long id = null;
 		String query = "select t.id_ from jbpm_taskinstance t, jbpm_processinstance p, jbpm_processdefinition d, JBPM_MODULEDEFINITION m " +
 				"where p.id_ = " + piId + " and t.PROCINST_ = p.id_ and p.processdefinition_ = d.id_ and " +

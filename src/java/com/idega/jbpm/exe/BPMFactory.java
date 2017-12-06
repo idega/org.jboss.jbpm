@@ -29,8 +29,6 @@ public interface BPMFactory {
 	 * @param processDefinitionId
 	 * @return Process manager bound to process definition
 	 */
-	public abstract ProcessManager getProcessManager(long processDefinitionId);
-
 	public abstract <T extends Serializable> ProcessManager getProcessManager(T processDefinitionId);
 
 	/**
@@ -43,15 +41,13 @@ public interface BPMFactory {
 	 * @param processInstanceId
 	 * @return Process manager bound to process definition found by processInstanceId
 	 */
-	public abstract ProcessManager getProcessManagerByProcessInstanceId(
-	        long processInstanceId);
+	public abstract <T extends Serializable> ProcessManager getProcessManagerByProcessInstanceId(T processInstanceId);
 
 	/**
 	 * @param taskInstanceId
 	 * @return Process manager bound to process definition found by taskInstanceId
 	 */
-	public abstract ProcessManager getProcessManagerByTaskInstanceId(
-	        long taskInstanceId);
+	public abstract <T extends Serializable> ProcessManager getProcessManagerByTaskInstanceId(T taskInstanceId);
 
 	/**
 	 * use when you don't have neither information (process id, process name and alike), but you
@@ -76,16 +72,13 @@ public interface BPMFactory {
 	 *            - if null, the behavior is the same as calling getView(taskId, submitable)
 	 * @return
 	 */
-	public abstract View getViewByTask(long taskId, boolean submitable,
-	        List<String> preferredTypes);
+	public abstract View getViewByTask(long taskId, boolean submitable, List<String> preferredTypes);
 
 	public abstract View getViewByTaskInstance(long taskInstanceId, boolean submitable, List<String> preferredTypes, String... forcedTypes);
 
-	public abstract View getView(String viewIdentifier, String type,
-	        boolean submitable);
+	public abstract View getView(String viewIdentifier, String type, boolean submitable);
 
-	public abstract View takeView(long taskInstanceId, boolean submitable,
-	        List<String> preferredTypes);
+	public abstract View takeView(long taskInstanceId, boolean submitable, List<String> preferredTypes);
 
 	/**
 	 * takes all views that are bound to the task instance task, if not taken already
@@ -126,15 +119,16 @@ public interface BPMFactory {
 
 	public abstract ProcessInstance getMainProcessInstance(JbpmContext context, final long processInstanceId);
 
-	public abstract TaskInstanceW getTaskInstanceW(long taskInstanceId);
+	public abstract <T extends Serializable> TaskInstanceW getTaskInstanceW(T taskInstanceId);
 
-	public abstract ProcessInstanceW getProcessInstanceW(long processInstanceId);
-	public abstract ProcessInstanceW getProcessInstanceW(JbpmContext context, long processInstanceId);
+	public abstract <T extends Serializable> ProcessInstanceW getProcessInstanceW(T processInstanceId);
+	public abstract <T extends Serializable> ProcessInstanceW getProcessInstanceW(JbpmContext context, T processInstanceId);
 
 	public abstract ProcessDefinitionW getProcessDefinitionW(String processName);
 
-	public Long getIdOfStartTaskInstance(Long piId);
+	public <T extends Serializable> T getIdOfStartTaskInstance(T piId);
 
 	public <T extends Serializable> T getVariable(ExecutionContext ctx, String name);
 	public <T extends Serializable> T getVariable(ExecutionContext ctx, String name, Long piId);
+
 }

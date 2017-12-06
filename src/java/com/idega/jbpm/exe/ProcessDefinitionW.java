@@ -43,8 +43,8 @@ public interface ProcessDefinitionW {
 
 	public abstract <T extends Serializable> T getProcessDefinitionId();
 
-	public abstract ProcessDefinition getProcessDefinition();
-	public abstract ProcessDefinition getProcessDefinition(JbpmContext context);
+	public abstract <T> T getProcessDefinition();
+	public abstract <T> T getProcessDefinition(JbpmContext context);
 
 	public abstract void setRolesCanStartProcess(List<String> roles, Object context);
 

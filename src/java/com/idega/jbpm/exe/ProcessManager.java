@@ -21,9 +21,9 @@ public interface ProcessManager {
 	 */
 	public abstract ProcessDefinitionW getProcessDefinition(String processName);
 
-	public abstract ProcessInstanceW getProcessInstance(long piId);
+	public abstract <T extends Serializable> ProcessInstanceW getProcessInstance(T piId);
 
-	public abstract TaskInstanceW getTaskInstance(long tiId);
+	public abstract <T extends Serializable> TaskInstanceW getTaskInstance(T tiId);
 
 	public abstract TaskInstanceW getTaskInstance(TaskInstance ti);
 

@@ -122,7 +122,7 @@ public class BPMTaskViewer extends IWBaseComponent {
 		ProcessDefinitionW procDef = pm.getProcessDefinition(processDefinitionId);
 
 		if (checkVersion) {
-			ProcessDefinitionW latestProcDef = pm.getProcessDefinition(procDef.getProcessDefinition().getName());
+			ProcessDefinitionW latestProcDef = pm.getProcessDefinition(procDef.getProcessDefinitionName());
 			Long latestProcDefId = latestProcDef.getProcessDefinitionId();
 			if (latestProcDefId.longValue() != processDefinitionId.longValue()) {
 				setProcessDefinitionId(latestProcDefId);

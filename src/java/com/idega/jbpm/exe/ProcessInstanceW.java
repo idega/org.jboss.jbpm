@@ -1,5 +1,6 @@
 package com.idega.jbpm.exe;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -80,14 +81,14 @@ public interface ProcessInstanceW {
 	 *
 	 * @return
 	 */
-	public abstract Long getProcessInstanceId();
+	public abstract <T extends Serializable> T getProcessInstanceId();
 
 	/**
 	 * should be used only in factory methods
 	 *
 	 * @param processInstanceId
 	 */
-	public abstract void setProcessInstanceId(Long processInstanceId);
+	public abstract <T extends Serializable> void setProcessInstanceId(T processInstanceId);
 
 	/**
 	 * assigned handler user id (see assignHandler method)
@@ -122,9 +123,9 @@ public interface ProcessInstanceW {
 	 *
 	 * @return
 	 */
-	public abstract ProcessInstance getProcessInstance();
+	public abstract <T> T getProcessInstance();
 
-	public ProcessInstance getProcessInstance(JbpmContext context);
+	public <T> T getProcessInstance(JbpmContext context);
 
 	/**
 	 * @return human readable identifier, used for distinguishing processes more easily, as well, as
@@ -143,13 +144,6 @@ public interface ProcessInstanceW {
 
 	public ProcessDefinitionW getProcessDefinitionW(JbpmContext context);
 
-	/**
-	 * gets process name - usually the name of the start task view
-	 *
-	 * @param locale
-	 * @return
-	 */
-	// public abstract String getName(Locale locale);
 	/**
 	 * checks if the current logged in user has right against this process instance
 	 *
@@ -173,7 +167,7 @@ public interface ProcessInstanceW {
 
 	public abstract boolean hasEnded();
 
-	public Long getIdOfStartTaskInstance();
+	public <T extends Serializable> T getIdOfStartTaskInstance();
 
 	public abstract TaskInstanceW getStartTaskInstance();
 

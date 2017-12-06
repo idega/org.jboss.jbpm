@@ -10,6 +10,7 @@ import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ExecutionContext;
+import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.exe.TaskInstance;
@@ -115,7 +116,8 @@ public class FireEventAspect {
 	}
 
 	private Boolean fireEvent(final ProcessInstanceW piw, JbpmContext context) {
-		Token tkn = piw.getProcessInstance(context).getRootToken();
+		ProcessInstance pi = piw.getProcessInstance(context);
+		Token tkn = pi.getRootToken();
 		ProcessDefinition pd = tkn.getProcessInstance().getProcessDefinition();
 		return fireEvent(tkn, pd, context);
 	}
