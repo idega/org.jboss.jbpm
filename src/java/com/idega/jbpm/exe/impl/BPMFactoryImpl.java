@@ -360,10 +360,23 @@ public class BPMFactoryImpl implements BPMFactory {
 		if (!MapUtil.isEmpty(managers)) {
 			for (ProcessManager manager: managers.values()) {
 				TaskInstanceW taskInstW = null;
+				ProcessDefinitionW procDefW = null;
 				try {
 					taskInstW = manager.getTaskInstance(taskInstId);
-				} catch (Exception e) {}
-				if (taskInstW != null) {
+					if (taskInstW == null) {
+						continue;
+					}
+
+					ProcessInstanceW piW = taskInstW.getProcessInstanceW();
+					if (piW == null) {
+						continue;
+					}
+
+					procDefW = piW.getProcessDefinitionW();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				if (taskInstW != null && procDefW != null) {
 					return manager;
 				}
 			}
