@@ -1,5 +1,6 @@
 package com.idega.jbpm.exe.impl;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import com.idega.jbpm.exe.BPMDocument;
@@ -15,7 +16,7 @@ public class BPMDocumentImpl implements BPMDocument {
 
 	private static final long serialVersionUID = 2032194549586333444L;
 
-	private Long taskInstanceId;
+	private Serializable taskInstanceId;
 	private String submittedByName;
 	private String assignedToName;
 	private String documentName;
@@ -57,12 +58,14 @@ public class BPMDocumentImpl implements BPMDocument {
 	}
 
 	@Override
-	public Long getTaskInstanceId() {
-		return taskInstanceId;
+	public <T extends Serializable> T getTaskInstanceId() {
+		@SuppressWarnings("unchecked")
+		T  id = (T) taskInstanceId;
+		return id;
 	}
 
 	@Override
-	public void setTaskInstanceId(Long taskInstanceId) {
+	public <T extends Serializable> void setTaskInstanceId(T taskInstanceId) {
 		this.taskInstanceId = taskInstanceId;
 	}
 

@@ -1,5 +1,6 @@
 package com.idega.jbpm.business;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
@@ -12,7 +13,7 @@ public interface ProcessAssetsServices {
 
 	public IWContext getIWContext(boolean checkIfLogged);
 
-	public List<BPMDocument> getTasks(Long piId);
+	public <T extends Serializable> List<BPMDocument> getTasks(T piId);
 	/**
 	 *
 	 * @param piId - ID of process instance
@@ -20,9 +21,9 @@ public interface ProcessAssetsServices {
 	 * @param showExternalEntity - false by default
 	 * @return
 	 */
-	public List<BPMDocument> getTasks(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity);
+	public <T extends Serializable> List<BPMDocument> getTasks(T piId, List<String> tasksNamesToReturn, boolean showExternalEntity);
 
-	public List<BPMDocument> getDocuments(Long piId);
+	public <T extends Serializable> List<BPMDocument> getDocuments(T piId);
 	/**
 	 *
 	 * @param piId - ID of process instance
@@ -31,18 +32,18 @@ public interface ProcessAssetsServices {
 	 * @param allowPDFSigning - false by default
 	 * @return
 	 */
-	public List<BPMDocument> getDocuments(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning);
+	public <T extends Serializable> List<BPMDocument> getDocuments(T piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning);
 
-	public List<TaskInstanceW> getSubmittedTasks(Long piId);
+	public <T extends Serializable> List<TaskInstanceW> getSubmittedTasks(T piId);
 
-	public List<BPMDocument> getBPMDocuments(Long piId, List<TaskInstanceW> tiWs, Locale locale);
+	public <T extends Serializable> List<BPMDocument> getBPMDocuments(T piId, List<TaskInstanceW> tiWs, Locale locale);
 
 	/**
 	 *
 	 * @param piId - ID of process instance
 	 * @return
 	 */
-	public List<BPMAttachment> getAttachments(Long piId);
+	public <T extends Serializable> List<BPMAttachment> getAttachments(T piId);
 
 	/**
 	 *

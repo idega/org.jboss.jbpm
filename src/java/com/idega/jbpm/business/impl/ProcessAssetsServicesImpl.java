@@ -1,5 +1,6 @@
 package com.idega.jbpm.business.impl;
 
+import java.io.Serializable;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,14 +57,14 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
-	public List<BPMDocument> getTasks(Long piId) {
+	public <T extends Serializable> List<BPMDocument> getTasks(T piId) {
 		return getTasks(piId, null, false);
 	}
 
 	@Override
-	public List<BPMDocument> getTasks(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity) {
+	public <T extends Serializable> List<BPMDocument> getTasks(T piId, List<String> tasksNamesToReturn, boolean showExternalEntity) {
 		try {
-			if (piId == null || piId < 0) {
+			if (piId == null || piId == null) {
 				return null;
 			}
 
@@ -103,25 +104,25 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
-	public List<BPMDocument> getDocuments(Long piId) {
+	public <T extends Serializable> List<BPMDocument> getDocuments(T piId) {
 		return getDocuments(piId, null, false, false);
 	}
 
 	@Override
-	public List<BPMDocument> getDocuments(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning) {
+	public <T extends Serializable> List<BPMDocument> getDocuments(T piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning) {
 		return getSubmittedTasks(piId, tasksNamesToReturn, showExternalEntity, allowPDFSigning, BPMDocument.class);
 	}
 
 	@Override
-	public List<TaskInstanceW> getSubmittedTasks(Long piId) {
+	public <T extends Serializable> List<TaskInstanceW> getSubmittedTasks(T piId) {
 		return getSubmittedTasks(piId, null, false, false);
 	}
 
-	private List<TaskInstanceW> getSubmittedTasks(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning) {
+	private <T extends Serializable> List<TaskInstanceW> getSubmittedTasks(T piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning) {
 		return getSubmittedTasks(piId, tasksNamesToReturn, showExternalEntity, allowPDFSigning, TaskInstanceW.class);
 	}
 
-	private <T> List<T> getSubmittedTasks(Long piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning, Class<T> resultType) {
+	private <T extends Serializable, C> List<C> getSubmittedTasks(T piId, List<String> tasksNamesToReturn, boolean showExternalEntity, boolean allowPDFSigning, Class<C> resultType) {
 		try {
 			if (piId == null) {
 				return null;
@@ -138,11 +139,11 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			ProcessInstanceW pi = bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId);
 			if (resultType.getName().equals(BPMDocument.class.getName())) {
 				@SuppressWarnings("unchecked")
-				List<T> results = (List<T>) pi.getSubmittedDocumentsForUser(loggedInUser, userLocale, showExternalEntity, allowPDFSigning, tasksNamesToReturn);
+				List<C> results = (List<C>) pi.getSubmittedDocumentsForUser(loggedInUser, userLocale, showExternalEntity, allowPDFSigning, tasksNamesToReturn);
 				return results;
 			} else if (resultType.getName().equals(TaskInstanceW.class.getName())) {
 				@SuppressWarnings("unchecked")
-				List<T> results = (List<T>) pi.getSubmittedTasksForUser(loggedInUser, userLocale, showExternalEntity, allowPDFSigning, tasksNamesToReturn);
+				List<C> results = (List<C>) pi.getSubmittedTasksForUser(loggedInUser, userLocale, showExternalEntity, allowPDFSigning, tasksNamesToReturn);
 				return results;
 			}
 		} catch (Exception e) {
@@ -152,7 +153,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
-	public List<BPMDocument> getBPMDocuments(Long piId, List<TaskInstanceW> tiWs, Locale locale) {
+	public <T extends Serializable> List<BPMDocument> getBPMDocuments(T piId, List<TaskInstanceW> tiWs, Locale locale) {
 		try {
 			ProcessInstanceW pi = bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId);
 			return pi.getBPMDocuments(tiWs, locale);
@@ -163,7 +164,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
-	public List<BPMAttachment> getAttachments(Long piId) {
+	public <T extends Serializable> List<BPMAttachment> getAttachments(T piId) {
 		List<TaskInstanceW> tasks = getSubmittedTasks(piId, null, false, false);
 		return getAttachments(tasks);
 	}

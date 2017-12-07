@@ -17,9 +17,9 @@ public interface BPMDocument extends Serializable {
 
 	public abstract void setSignable(boolean signable);
 
-	public abstract Long getTaskInstanceId();
+	public abstract <T extends Serializable> T getTaskInstanceId();
 
-	public abstract void setTaskInstanceId(Long taskInstanceId);
+	public abstract <T extends Serializable> void setTaskInstanceId(T taskInstanceId);
 
 	public abstract String getAssignedToName();
 
