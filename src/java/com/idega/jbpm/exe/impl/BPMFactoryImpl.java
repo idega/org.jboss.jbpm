@@ -373,9 +373,7 @@ public class BPMFactoryImpl implements BPMFactory {
 					}
 
 					procDefW = piW.getProcessDefinitionW();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				} catch (Exception e) {}
 				if (taskInstW != null && procDefW != null) {
 					return manager;
 				}
