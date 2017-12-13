@@ -5,6 +5,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import com.idega.jbpm.utils.JSONUtil;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.4 $ Last modified: $Date: 2009/03/30 13:14:48 $ by $Author: civilis $
@@ -47,4 +49,7 @@ public interface BinaryVariablesHandler {
 	public BinaryVariable convertToBinaryVariable(String jsonStr);
 
 	public List<String> convertToBinaryVariablesRepresentation(String jsonStr);
+
+	public JSONUtil getBinVarJSONConverter();
+
 }

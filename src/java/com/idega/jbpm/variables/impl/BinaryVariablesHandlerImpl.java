@@ -555,7 +555,8 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 		this.fileURIHandlerFactory = fileURIHandlerFactory;
 	}
 
-	private JSONUtil getBinVarJSONConverter() {
+	@Override
+	public JSONUtil getBinVarJSONConverter() {
 		Map<String, Class<?>> binVarAliasMap = new HashMap<String, Class<?>>(2);
 		binVarAliasMap.put(BINARY_VARIABLE, BinaryVariableImpl.class);
 		binVarAliasMap.put(VARIABLE, Variable.class);
