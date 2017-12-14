@@ -155,6 +155,8 @@ public interface TaskInstanceW {
 
 	public String getTaskInstanceName();
 
+	public Date getEnd();
+
 	public Date getCreate();
 
 }
