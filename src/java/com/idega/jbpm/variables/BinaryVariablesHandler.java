@@ -52,4 +52,6 @@ public interface BinaryVariablesHandler {
 
 	public JSONUtil getBinVarJSONConverter();
 
+	public List<BinaryVariable> getVariables(String name, Object val, Long tiId);
+
 }

@@ -46,6 +46,7 @@ import com.idega.util.IOUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
 import com.idega.util.StringHandler;
+import com.idega.util.StringUtil;
 import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.expression.ELUtil;
 import com.thoughtworks.xstream.XStream;
@@ -259,8 +260,13 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 		return bpmDAO;
 	}
 
-	private List<BinaryVariable> getVariables(String name, Object val, Long tiId) {
+	@Override
+	public List<BinaryVariable> getVariables(String name, Object val, Long tiId) {
 		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
+		if (StringUtil.isEmpty(name) || val == null) {
+			return binaryVars;
+		}
+
 		JSONUtil json = getBinVarJSONConverter();
 
 		Collection<Object> binVarsInJSON = null;
