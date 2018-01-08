@@ -1,5 +1,6 @@
 package com.idega.jbpm.event;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.springframework.context.ApplicationEvent;
@@ -9,10 +10,10 @@ public class VariableCreatedEvent extends ApplicationEvent {
 	private static final long serialVersionUID = -5977065467292706593L;
 
 	private String processDefinitionName;
-	private Long processInstanceId, taskInstanceId;
+	private Serializable processInstanceId, taskInstanceId;
 	private Map<String, Object> variables;
 
-	public VariableCreatedEvent(Object source, String processDefinitionName, Long processInstanceId, Long taskInstanceId, Map<String, Object> variables) {
+	public VariableCreatedEvent(Object source, String processDefinitionName, Serializable processInstanceId, Serializable taskInstanceId, Map<String, Object> variables) {
 		super(source);
 
 		this.processDefinitionName = processDefinitionName;
@@ -29,12 +30,16 @@ public class VariableCreatedEvent extends ApplicationEvent {
 		return variables;
 	}
 
-	public Long getProcessInstanceId() {
-		return processInstanceId;
+	public <T> T getProcessInstanceId() {
+		@SuppressWarnings("unchecked")
+		T id = (T) processInstanceId;
+		return id;
 	}
 
-	public Long getTaskInstanceId() {
-		return taskInstanceId;
+	public <T> T getTaskInstanceId() {
+		@SuppressWarnings("unchecked")
+		T id = (T) taskInstanceId;
+		return id;
 	}
 
 	public void setTaskInstanceId(Long taskInstanceId) {
