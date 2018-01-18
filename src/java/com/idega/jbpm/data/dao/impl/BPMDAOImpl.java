@@ -1040,7 +1040,7 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 					allUsers.addAll(usersConnectedToProcess);
 				}
 			}
-			return allUsers;
+			return ListUtil.isEmpty(allUsers) ? null : allUsers;
 		}
 		return null;
 	}
