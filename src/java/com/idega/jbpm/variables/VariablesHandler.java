@@ -1,5 +1,6 @@
 package com.idega.jbpm.variables;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -21,9 +22,9 @@ public interface VariablesHandler {
 
 	public abstract Map<String, Object> submitVariablesExplicitly(Map<String, Object> variables, long taskInstanceId);
 
-	public abstract Map<String, Object> populateVariables(long taskInstanceId);
+	public abstract Map<String, Object> populateVariables(Serializable taskInstanceId);
 
-	public abstract List<BinaryVariable> resolveBinaryVariables(long taskInstanceId);
+	public abstract List<BinaryVariable> resolveBinaryVariables(Serializable taskInstanceId);
 
 	public abstract List<BinaryVariable> resolveBinaryVariables(long taskInstanceId, Variable variable);
 

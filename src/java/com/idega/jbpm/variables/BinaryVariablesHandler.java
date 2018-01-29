@@ -1,6 +1,7 @@
 package com.idega.jbpm.variables;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ public interface BinaryVariablesHandler {
 	public abstract Map<String, Object> resolveBinaryVariables(Map<String, Object> variables);
 
 	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Map<String, Object> variables);
-	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Long tiId, Map<String, Object> variables);
+	public abstract List<BinaryVariable> resolveBinaryVariablesAsList(Serializable tiId, Map<String, Object> variables);
 
 	public abstract void persistBinaryVariable(BinaryVariable binaryVariable, final URI fileUri);
 	public void persistBinaryVariable(BinaryVariable binaryVariable, String path, String fileName, Long contentLength, InputStream stream,

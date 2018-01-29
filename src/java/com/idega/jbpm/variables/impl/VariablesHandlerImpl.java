@@ -1,5 +1,6 @@
 package com.idega.jbpm.variables.impl;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.DBUtil;
 import com.idega.util.ListUtil;
+import com.idega.util.StringHandler;
 import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.expression.ELUtil;
 
@@ -170,105 +172,116 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 	}
 
 	@Override
-	public Map<String, Object> populateVariables(final long taskInstanceId) {
-		return getIdegaJbpmContext().execute(new JbpmCallback<Map<String, Object>>() {
+	public Map<String, Object> populateVariables(final Serializable taskInstanceId) {
+		if (taskInstanceId == null) {
+			return null;
+		}
 
-			@SuppressWarnings("unchecked")
-			@Override
-			public Map<String, Object> doInJbpm(JbpmContext context) throws JbpmException {
-				TaskInstance ti = context.getTaskInstance(taskInstanceId);
+		if (taskInstanceId instanceof Long || StringHandler.isNumeric(taskInstanceId.toString())) {
+			final Long tiId = Long.valueOf(taskInstanceId.toString());
 
-				Map<String, Object> vars = null;
-				boolean loadByToken = false;
-				try {
-					vars = ti.getVariables();
-				} catch (Exception e) {
-					loadByToken = true;
-					getLogger().log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId, e);
-				}
-				if (MapUtil.isEmpty(vars) || loadByToken) {
-					Token token = null;
+			return getIdegaJbpmContext().execute(new JbpmCallback<Map<String, Object>>() {
+
+				@SuppressWarnings("unchecked")
+				@Override
+				public Map<String, Object> doInJbpm(JbpmContext context) throws JbpmException {
+					TaskInstance ti = context.getTaskInstance(tiId);
+
+					Map<String, Object> vars = null;
+					boolean loadByToken = false;
 					try {
-						token = ti.getToken();
-						if (token == null) {
-							getLogger().warning("Token is null for task instance: " + taskInstanceId);
-						} else {
-							token = DBUtil.getInstance().initializeAndUnproxy(token);
-							vars = bpmFactory.getTaskInstanceW(taskInstanceId).getVariables(token);
-						}
-					} catch (Throwable e) {
-						getLogger().log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId + " by token: " + token +
-								(token == null ? CoreConstants.EMPTY : token.getId()), e);
+						vars = ti.getVariables();
+					} catch (Exception e) {
+						loadByToken = true;
+						getLogger().log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId, e);
 					}
-				}
-				Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
+					if (MapUtil.isEmpty(vars) || loadByToken) {
+						Token token = null;
+						try {
+							token = ti.getToken();
+							if (token == null) {
+								getLogger().warning("Token is null for task instance: " + taskInstanceId);
+							} else {
+								token = DBUtil.getInstance().initializeAndUnproxy(token);
+								vars = bpmFactory.getTaskInstanceW(taskInstanceId).getVariables(token);
+							}
+						} catch (Throwable e) {
+							getLogger().log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId + " by token: " + token +
+									(token == null ? CoreConstants.EMPTY : token.getId()), e);
+						}
+					}
+					Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
 
-				if (!ti.hasEnded()) {
-					TaskController taskController = ti.getTask().getTaskController();
-					List<VariableAccess> accesses = taskController == null ? Collections.emptyList() : taskController.getVariableAccesses();
+					if (!ti.hasEnded()) {
+						TaskController taskController = ti.getTask().getTaskController();
+						List<VariableAccess> accesses = taskController == null ? Collections.emptyList() : taskController.getVariableAccesses();
 
-					for (VariableAccess variableAccess: accesses) {
-						String varName = variableAccess.getVariableName();
+						for (VariableAccess variableAccess: accesses) {
+							String varName = variableAccess.getVariableName();
 
-						if (!variables.containsKey(varName)) {
-							// the situation when process definition was changed (using formbuilder for instance) but task instance was created already
-							if (variableAccess.isReadable()) {
-								String variableName = variableAccess.getVariableName();
-								Object variable = getVariable(ti, variableName);
-								if (variable != null) {
-									variables.put(variableName, variable);
+							if (!variables.containsKey(varName)) {
+								// the situation when process definition was changed (using formbuilder for instance) but task instance was created already
+								if (variableAccess.isReadable()) {
+									String variableName = variableAccess.getVariableName();
+									Object variable = getVariable(ti, variableName);
+									if (variable != null) {
+										variables.put(variableName, variable);
+									}
 								}
 							}
-						}
 
-						if (variableAccess.isWritable() && !variableAccess.isReadable()) {
-							// we don't want to show non readable variable, this is backward compatibility, for task instances, that were created
-							// with wrong process definition
-							getLogger().info("Variable '" + varName + "' is writable but not readable for task instance ID: " + ti.getId() + ", removing it from variables list");
-							variables.remove(variableAccess.getVariableName());
-						}
-					}
-				}
-
-				if (!MapUtil.isEmpty(variables) && getSettings().getBoolean("bpm.load_vars_from_pi_if_empty", false)) {
-					ProcessInstanceW piW = bpmFactory.getProcessInstanceW(ti.getProcessInstance().getId());
-					TaskInstanceW startTiW = piW.getStartTaskInstance();
-					TaskInstance startTi = context.getTaskInstance(startTiW.getTaskInstanceId());
-					List<String> variablesToLoad = new ArrayList<>();
-					for (String variableName: variables.keySet()) {
-						Object existingValue = variables.get(variableName);
-						if (existingValue != null) {
-							continue;
-						}
-
-						Object variable = getVariable(startTi, variableName);
-						if (variable == null) {
-							variablesToLoad.add(variableName);
-						} else {
-							variables.put(variableName, variable);
-						}
-					}
-					if (!ListUtil.isEmpty(variablesToLoad)) {
-						List<VariableInstanceInfo> varsForTask = variableQuerier.getVariablesByNameAndTaskInstance(variablesToLoad, startTi.getId());
-						if (!ListUtil.isEmpty(varsForTask)) {
-							for (VariableInstanceInfo var: varsForTask) {
-								String name = var.getName();
-								Object value = var.getValue();
-								if (value != null) {
-									variables.put(name, value);
-								}
+							if (variableAccess.isWritable() && !variableAccess.isReadable()) {
+								// we don't want to show non readable variable, this is backward compatibility, for task instances, that were created
+								// with wrong process definition
+								getLogger().info("Variable '" + varName + "' is writable but not readable for task instance ID: " + ti.getId() + ", removing it from variables list");
+								variables.remove(variableAccess.getVariableName());
 							}
 						}
 					}
-				}
 
-				return variables;
-			}
-		});
+					if (!MapUtil.isEmpty(variables) && getSettings().getBoolean("bpm.load_vars_from_pi_if_empty", false)) {
+						ProcessInstanceW piW = bpmFactory.getProcessInstanceW(ti.getProcessInstance().getId());
+						TaskInstanceW startTiW = piW.getStartTaskInstance();
+						TaskInstance startTi = context.getTaskInstance(startTiW.getTaskInstanceId());
+						List<String> variablesToLoad = new ArrayList<>();
+						for (String variableName: variables.keySet()) {
+							Object existingValue = variables.get(variableName);
+							if (existingValue != null) {
+								continue;
+							}
+
+							Object variable = getVariable(startTi, variableName);
+							if (variable == null) {
+								variablesToLoad.add(variableName);
+							} else {
+								variables.put(variableName, variable);
+							}
+						}
+						if (!ListUtil.isEmpty(variablesToLoad)) {
+							List<VariableInstanceInfo> varsForTask = variableQuerier.getVariablesByNameAndTaskInstance(variablesToLoad, startTi.getId());
+							if (!ListUtil.isEmpty(varsForTask)) {
+								for (VariableInstanceInfo var: varsForTask) {
+									String name = var.getName();
+									Object value = var.getValue();
+									if (value != null) {
+										variables.put(name, value);
+									}
+								}
+							}
+						}
+					}
+
+					return variables;
+				}
+			});
+		} else {
+			TaskInstanceW tiW = bpmFactory.getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
+			return tiW.getVariables(null);
+		}
 	}
 
 	@Override
-	public List<BinaryVariable> resolveBinaryVariables(long taskInstanceId) {
+	public List<BinaryVariable> resolveBinaryVariables(Serializable taskInstanceId) {
 		Map<String, Object> variables = populateVariables(taskInstanceId);
 		return getBinaryVariablesHandler().resolveBinaryVariablesAsList(taskInstanceId, variables);
 	}

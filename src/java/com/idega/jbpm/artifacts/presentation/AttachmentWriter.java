@@ -3,6 +3,7 @@ package com.idega.jbpm.artifacts.presentation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,9 +55,9 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 	@Override
 	public void init(HttpServletRequest req, IWContext iwc) {
-		if (iwc.isLoggedOn())
+		if (iwc.isLoggedOn()) {
 			resolveBinaryVariable(iwc);
-		else {
+		} else {
 			BPMUser bpmUser = getBPMUserFactory().getCurrentBPMUser();
 			if (bpmUser == null)
 				LOGGER.warning("User is not logged in! Also, BPM user can not be determined");
@@ -79,11 +80,11 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		String variableHashSR = iwc.getParameter(PARAMETER_VARIABLE_HASH);
 
 		if (taskInstanceIdSR == null || variableHashSR == null) {
-			LOGGER.log(Level.SEVERE, "Tried to download, but params not provided.\nTaskInstanceId: "+taskInstanceIdSR+", variableHash: "+variableHashSR);
+			LOGGER.warning("Tried to download, but params not provided. TaskInstanceId: "+taskInstanceIdSR+", variableHash: "+variableHashSR);
 			return null;
 		}
 
-		Long taskInstanceId = new Long(taskInstanceIdSR);
+		Serializable taskInstanceId = taskInstanceIdSR;
 		Integer variableHash = new Integer(variableHashSR);
 
 		VariablesHandler variablesHandler = getVariablesHandler();
@@ -135,7 +136,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 		super.writeTo(out);
 	}
 
-	protected BinaryVariable getBinVar(VariablesHandler variablesHandler, long taskInstanceId, int binaryVariableHash) {
+	protected BinaryVariable getBinVar(VariablesHandler variablesHandler, Serializable taskInstanceId, int binaryVariableHash) {
 		List<BinaryVariable> variables = variablesHandler.resolveBinaryVariables(taskInstanceId);
 		for (BinaryVariable binaryVariable : variables) {
 			if (binaryVariable.getHash().equals(binaryVariableHash)) {

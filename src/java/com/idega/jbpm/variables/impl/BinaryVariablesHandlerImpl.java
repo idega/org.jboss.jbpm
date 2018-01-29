@@ -3,6 +3,7 @@ package com.idega.jbpm.variables.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
@@ -32,6 +33,8 @@ import com.idega.core.file.util.FileURIHandlerFactory;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.data.dao.BPMDAO;
+import com.idega.jbpm.exe.BPMFactory;
+import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.utils.JSONUtil;
 import com.idega.jbpm.variables.BinaryVariable;
@@ -68,6 +71,9 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 
 	@Autowired
 	private FileURIHandlerFactory fileURIHandlerFactory;
+
+	@Autowired
+	private BPMFactory bpmFactory;
 
 	/**
 	 * stores binary file if needed, converts to binary variable json format, and puts to variables
@@ -322,49 +328,55 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 	}
 
 	@Override
-	public List<BinaryVariable> resolveBinaryVariablesAsList(Long tiId, Map<String, Object> variables) {
+	public List<BinaryVariable> resolveBinaryVariablesAsList(Serializable taskInstanceId, Map<String, Object> variables) {
 		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
-		Map<String, Boolean> addedVars = new HashMap<String, Boolean>();
 
-		if (!MapUtil.isEmpty(variables)) {
-			for (Entry<String, Object> entry: variables.entrySet()) {
-				Object val = entry.getValue();
-				if (val == null) {
-					continue;
-				}
+		if (taskInstanceId instanceof Long || StringHandler.isNumeric(taskInstanceId.toString())) {
+			Long tiId = Long.valueOf(taskInstanceId.toString());
+			Map<String, Boolean> addedVars = new HashMap<String, Boolean>();
 
-				Variable variable = Variable.parseDefaultStringRepresentation(entry.getKey());
-				if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
-					List<BinaryVariable> tmp = getVariables(entry.getKey(), val, tiId);
-					if (!ListUtil.isEmpty(tmp)) {
-						addedVars.put(entry.getKey(), Boolean.TRUE);
-						binaryVars.addAll(tmp);
-					}
-				}
-			}
-		}
-
-		if (getApplication().getSettings().getBoolean("bpm.bin_vars_load_for_task", Boolean.FALSE)) {
-			List<com.idega.jbpm.data.Variable> vars = getBPMDAO().getResultListByInlineQuery(
-					"select v from " + com.idega.jbpm.data.Variable.class.getName() + " v where v.taskInstance = :tiId and v.classType = 'S' and v.name like 'file%'",
-					com.idega.jbpm.data.Variable.class,
-					new Param("tiId", tiId)
-			);
-			if (!ListUtil.isEmpty(vars)) {
-				for (com.idega.jbpm.data.Variable var: vars) {
-					if (addedVars.containsKey(var.getName())) {
+			if (!MapUtil.isEmpty(variables)) {
+				for (Entry<String, Object> entry: variables.entrySet()) {
+					Object val = entry.getValue();
+					if (val == null) {
 						continue;
 					}
 
-					List<BinaryVariable> tmp = getVariables(var.getName(), var.getValue(), tiId);
-					if (!ListUtil.isEmpty(tmp)) {
-						addedVars.put(var.getName(), Boolean.TRUE);
-						binaryVars.addAll(tmp);
+					Variable variable = Variable.parseDefaultStringRepresentation(entry.getKey());
+					if (variable.getDataType() == VariableDataType.FILE || variable.getDataType() == VariableDataType.FILES) {
+						List<BinaryVariable> tmp = getVariables(entry.getKey(), val, tiId);
+						if (!ListUtil.isEmpty(tmp)) {
+							addedVars.put(entry.getKey(), Boolean.TRUE);
+							binaryVars.addAll(tmp);
+						}
 					}
 				}
 			}
-		}
 
+			if (getApplication().getSettings().getBoolean("bpm.bin_vars_load_for_task", Boolean.FALSE)) {
+				List<com.idega.jbpm.data.Variable> vars = getBPMDAO().getResultListByInlineQuery(
+						"select v from " + com.idega.jbpm.data.Variable.class.getName() + " v where v.taskInstance = :tiId and v.classType = 'S' and v.name like 'file%'",
+						com.idega.jbpm.data.Variable.class,
+						new Param("tiId", tiId)
+				);
+				if (!ListUtil.isEmpty(vars)) {
+					for (com.idega.jbpm.data.Variable var: vars) {
+						if (addedVars.containsKey(var.getName())) {
+							continue;
+						}
+
+						List<BinaryVariable> tmp = getVariables(var.getName(), var.getValue(), tiId);
+						if (!ListUtil.isEmpty(tmp)) {
+							addedVars.put(var.getName(), Boolean.TRUE);
+							binaryVars.addAll(tmp);
+						}
+					}
+				}
+			}
+		} else if (taskInstanceId != null) {
+			TaskInstanceW tiW = bpmFactory.getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
+			return tiW.getAttachments();
+		}
 		return binaryVars;
 	}
 
