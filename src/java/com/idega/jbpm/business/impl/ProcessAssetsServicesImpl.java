@@ -2,9 +2,11 @@ package com.idega.jbpm.business.impl;
 
 import java.io.Serializable;
 import java.text.Collator;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -31,6 +33,7 @@ import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
+import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
@@ -179,6 +182,8 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			String mediaServletURI = IWMainApplication.getDefaultIWMainApplication().getMediaServletURI();
 			String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
 
+			Locale locale = getCurrentLocale();
+
 			List<BPMAttachment> attachments = new ArrayList<>();
 			for (TaskInstanceW tiW: tasks) {
 				List<BinaryVariable> binaryVariables = tiW.getAttachments();
@@ -186,7 +191,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					continue;
 				}
 
-				Long tiId = tiW.getTaskInstanceId();
+				Serializable tiId = tiW.getTaskInstanceId();
 				for (BinaryVariable binaryVariable: binaryVariables) {
 					if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
 						continue;
@@ -213,6 +218,11 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash);
 					attachment.setDownloadLink(uri.getUri());
 
+					Date submitted = tiW.getEnd();
+					if (submitted != null) {
+						attachment.setDate(new IWTimestamp(submitted).getLocaleDateAndTime(locale, DateFormat.MEDIUM, DateFormat.MEDIUM));
+					}
+
 					Map<String, Object> metadata = binaryVariable.getMetadata();
 					if (metadata != null){
 						Object sc  = metadata.get(JBPMConstants.SOURCE);
@@ -226,7 +236,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 			if (!ListUtil.isEmpty(attachments)) {
 				try {
-					Collator collator = Collator.getInstance(getCurrentLocale());
+					Collator collator = Collator.getInstance(locale);
 					Collections.sort(attachments, new Comparator<BPMAttachment>() {
 
 						@Override
