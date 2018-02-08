@@ -41,17 +41,21 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	protected Collection<AdvancedProperty> values;
 
+	private Map<Long, Integer> procInstIdsAndCasesIds;
+
 	public abstract Collection<AdvancedProperty> getValues(String procDefId, String variableName);
 
 	protected JSONUtil getJSONUtil() {
-		if (jsonUtil == null)
+		if (jsonUtil == null) {
 			jsonUtil = new JSONUtil();
+		}
 		return jsonUtil;
 	}
 
 	protected String getProcessDefNameByProcessDefId(String procDefId) {
-		if (StringUtil.isEmpty(procDefId))
+		if (StringUtil.isEmpty(procDefId)) {
 			return null;
+		}
 
 		try {
 			return getBpmDAO().getProcessDefinitionNameByProcessDefinitionId(Long.valueOf(procDefId));
@@ -80,15 +84,17 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 
 	public Collection<AdvancedProperty> getBinaryVariablesValues(Collection<VariableInstanceInfo> vars, Collection<?> values) {
-		if (ListUtil.isEmpty(vars))
+		if (ListUtil.isEmpty(vars)) {
 			return null;
+		}
 
 		List<String> addedValues = new ArrayList<String>();
 		Collection<AdvancedProperty> results = new ArrayList<AdvancedProperty>();
 		for (VariableInstanceInfo var: vars) {
 			Serializable value = var.getValue();
-			if (!(value instanceof Collection))
+			if (!(value instanceof Collection)) {
 				continue;
+			}
 
 			Collection<AdvancedProperty> tmp = getValues((Collection<?>) value);
 			if (tmp != null) {
@@ -104,17 +110,20 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 
 	protected Collection<AdvancedProperty> getValues(Collection<?> entries) {
-		if (ListUtil.isEmpty(entries))
+		if (ListUtil.isEmpty(entries)) {
 			return null;
+		}
 
 		Collection<AdvancedProperty> results = new ArrayList<AdvancedProperty>();
 		for (Object entry: entries) {
-			if (entry == null)
+			if (entry == null) {
 				continue;
+			}
 
 			AdvancedProperty prop = getValueFromString(entry.toString());
-			if (prop != null)
+			if (prop != null) {
 				results.add(prop);
+			}
 		}
 		return results;
 	}
@@ -158,15 +167,17 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 
 	public String getPresentation(BPMProcessVariable variable) {
-		if (variable == null || variable.getValue() == null)
+		if (variable == null || variable.getValue() == null) {
 			return CoreConstants.MINUS;
+		}
 
 		return getPresentation(variable.getValue().toString());
 	}
 
 	protected VariableInstanceQuerier getVariablesQuerier() {
-		if (variablesQuerier == null)
+		if (variablesQuerier == null) {
 			ELUtil.getInstance().autowire(this);
+		}
 
 		return variablesQuerier;
 	}
@@ -176,8 +187,9 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 
 	protected BPMDAO getBpmDAO() {
-		if (bpmDAO == null)
+		if (bpmDAO == null) {
 			ELUtil.getInstance().autowire(this);
+		}
 
 		return bpmDAO;
 	}
@@ -187,8 +199,9 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 
 	protected void addEmptyLabel(String bundleIdentifier) {
-		if (values == null)
+		if (values == null) {
 			values = new ArrayList<AdvancedProperty>();
+		}
 
 		values.add(new AdvancedProperty(String.valueOf(-1),
 				getResourceBundle(getBundle(bundleIdentifier)).getLocalizedString(getNoValuesLocalizationKey(), getNoValuesDefaultString())));
@@ -275,4 +288,13 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	protected String getValueFromBrackets(String value) {
 		return StringUtil.getValueFromBrackets(value);
 	}
+
+	public Map<Long, Integer> getProcInstIdsAndCasesIds() {
+		return procInstIdsAndCasesIds;
+	}
+
+	public void setProcInstIdsAndCasesIds(Map<Long, Integer> procInstIdsAndCasesIds) {
+		this.procInstIdsAndCasesIds = procInstIdsAndCasesIds;
+	}
+
 }
