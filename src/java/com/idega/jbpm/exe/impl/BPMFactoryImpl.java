@@ -54,6 +54,7 @@ import com.idega.util.ArrayUtil;
 import com.idega.util.CoreUtil;
 import com.idega.util.DBUtil;
 import com.idega.util.ListUtil;
+import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.idega.util.datastructures.map.MapUtil;
 
@@ -81,15 +82,15 @@ public class BPMFactoryImpl implements BPMFactory {
 	@Autowired
 	private PermissionsFactory permissionsFactory;
 
-	private ProcessManager getProcessManager(final long processDefinitionId) {
+	private ProcessManager getJBPMProcessManager(final long processDefinitionId) {
 		return getProcessManager(getBPMDAO().getProcessDefinitionNameByProcessDefinitionId(processDefinitionId));
 	}
 
 	@Override
 	public <T extends Serializable> ProcessManager getProcessManager(T processDefinitionId) {
 		//	BPM v. 1?
-		if (processDefinitionId instanceof Number) {
-			return getProcessManager(((Number) processDefinitionId).longValue());
+		if (processDefinitionId instanceof Number || (processDefinitionId != null && StringHandler.isNumeric(processDefinitionId.toString()))) {
+			return getJBPMProcessManager(Long.valueOf(processDefinitionId.toString()));
 		}
 
 		//	Probably BPM v. 2
@@ -286,8 +287,9 @@ public class BPMFactoryImpl implements BPMFactory {
 			}
 		}
 
-		if (viewTaskBind == null && !binds.isEmpty())
+		if (viewTaskBind == null && !binds.isEmpty()) {
 			viewTaskBind = binds.get(0);
+		}
 
 		return viewTaskBind;
 	}
@@ -343,8 +345,8 @@ public class BPMFactoryImpl implements BPMFactory {
 	@Override
 	@Transactional(readOnly = true)
 	public <T extends Serializable> ProcessManager getProcessManagerByTaskInstanceId(T taskInstId) {
-		if (taskInstId instanceof Number) {
-			final Long taskInstanceId = ((Number) taskInstId).longValue();
+		if (taskInstId instanceof Number || (taskInstId != null && StringHandler.isNumeric(taskInstId.toString()))) {
+			final Long taskInstanceId = Long.valueOf(taskInstId.toString());
 
 			return getBpmContext().execute(new JbpmCallback<ProcessManager>() {
 
@@ -458,8 +460,8 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Transactional(readOnly = true)
 	private <T extends Serializable> ProcessManager getProcessManagerByProcessInstanceId(JbpmContext context, T proInstId) {
-		if (proInstId instanceof Number) {
-			Long processInstanceId = ((Number) proInstId).longValue();
+		if (proInstId instanceof Number || (proInstId != null && StringHandler.isNumeric(proInstId.toString()))) {
+			Long processInstanceId = Long.valueOf(proInstId.toString());
 			if (processInstanceId < 0) {
 				LOGGER.warning("Invalid proc. inst. ID: " + processInstanceId);
 			}
@@ -472,7 +474,7 @@ public class BPMFactoryImpl implements BPMFactory {
 
 			if (processInstance != null) {
 				long pdId = processInstance.getProcessDefinition().getId();
-				return getProcessManager(pdId);
+				return getJBPMProcessManager(pdId);
 			}
 		}
 
@@ -521,16 +523,18 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	public Map<String, ProcessManager> getProcessManagers() {
 
-		if (processManagers == null)
+		if (processManagers == null) {
 			processManagers = Collections.emptyMap();
+		}
 
 		return processManagers;
 	}
 
 	public Map<String, ViewFactory> getViewFactories() {
 
-		if (viewFactories == null)
+		if (viewFactories == null) {
 			viewFactories = Collections.emptyMap();
+		}
 
 		return viewFactories;
 	}
@@ -577,8 +581,9 @@ public class BPMFactoryImpl implements BPMFactory {
 
 			if (mainProcessInstanceId != null) {
 				mainProcessInstance = context.getProcessInstance(mainProcessInstanceId);
-			} else
+			} else {
 				mainProcessInstance = pi;
+			}
 		}
 
 		return mainProcessInstance;
@@ -596,9 +601,9 @@ public class BPMFactoryImpl implements BPMFactory {
 
 	@Override
 	public <T extends Serializable> T getIdOfStartTaskInstance(T piId) {
-		if (piId instanceof Number) {
+		if (piId instanceof Number || (piId != null && StringHandler.isNumeric(piId.toString()))) {
 			@SuppressWarnings("unchecked")
-			T id = (T) getIdOfStartTaskInstance(((Number) piId).longValue());
+			T id = (T) getIdOfStartTaskInstance(Long.valueOf(piId.toString()));
 			return id;
 		}
 
@@ -620,16 +625,18 @@ public class BPMFactoryImpl implements BPMFactory {
 				Serializable[] data = result.iterator().next();
 				if (!ArrayUtil.isEmpty(data)) {
 					Serializable startId = data[0];
-					if (startId instanceof Number)
+					if (startId instanceof Number) {
 						id = ((Number) startId).longValue();
+					}
 				}
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
 		}
 
-		if (id != null)
+		if (id != null) {
 			return id;
+		}
 
 		Long startTaskId = getBpmContext().execute(new JbpmCallback<Long>() {
 
