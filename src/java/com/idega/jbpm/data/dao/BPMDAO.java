@@ -120,6 +120,8 @@ public interface BPMDAO extends GenericDao {
 
 	public Variable saveVariable(Long procInstId, Long taskInstId, Long tokenId, String name, Serializable value);
 
+	public boolean updateVariable(Long procInstId, String name, Serializable value);
+
 	/**
 	 *
 	 * @param processDefinitionNames is {@link Collection} of

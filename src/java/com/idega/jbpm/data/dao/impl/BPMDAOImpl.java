@@ -190,8 +190,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	@Override
 	public List<Actor> getProcessRoles(Collection<Long> actorIds) {
 
-		if (actorIds == null || actorIds.isEmpty())
+		if (actorIds == null || actorIds.isEmpty()) {
 			throw new IllegalArgumentException("ActorIds should contain values");
+		}
 
 		@SuppressWarnings("unchecked")
 		List<Actor> all = getEntityManager().createNamedQuery(
@@ -244,10 +245,11 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		roleIdentity.setNativeIdentities(nativeIdentities);
 		getEntityManager().merge(roleIdentity);
 
-		if (!nativeIdentitiesToRemove.isEmpty())
+		if (!nativeIdentitiesToRemove.isEmpty()) {
 			getEntityManager().createNamedQuery(NativeIdentityBind.deleteByIds)
 			        .setParameter(NativeIdentityBind.idsParam,
 			            nativeIdentitiesToRemove).executeUpdate();
+		}
 	}
 
 	@Override
@@ -296,8 +298,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	        Collection<Long> processDefinitionsIds, String viewType) {
 
 		if (processDefinitionsIds == null || processDefinitionsIds.isEmpty()
-		        || viewType == null)
+		        || viewType == null) {
 			return new ArrayList<Object[]>(0);
+		}
 
 		@SuppressWarnings("unchecked")
 		List<Object[]> viewsInfos = getEntityManager().createNamedQuery(
@@ -361,20 +364,24 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
 		}
-		if (ListUtil.isEmpty(results))
+		if (ListUtil.isEmpty(results)) {
 			return Collections.emptyList();
+		}
 
 		Map<Long, Boolean> piIds = new HashMap<Long, Boolean>();
 		for (Serializable[] data: results) {
-			if (ArrayUtil.isEmpty(data))
+			if (ArrayUtil.isEmpty(data)) {
 				continue;
+			}
 
 			Serializable id = data[0];
-			if (id instanceof Number)
+			if (id instanceof Number) {
 				piIds.put(((Number) id).longValue(), Boolean.TRUE);
+			}
 		}
-		if (MapUtil.isEmpty(piIds))
+		if (MapUtil.isEmpty(piIds)) {
 			return Collections.emptyList();
+		}
 
 		query = "from " + org.jbpm.graph.exe.ProcessInstance.class.getName() + " p where p.id in (:" + ProcessManagerBind.processInstanceIdParam + ")";
 		subprocesses = getResultListByInlineQuery(
@@ -590,15 +597,18 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	private Map<Long, Map<String, java.util.Date>> getProcInstIdsByDateRangeAndProcDefNamesOrProcInstIdsUsingCases(IWTimestamp from, IWTimestamp to,
 			List<String> procDefNames, List<Long> procInsIds) {
 
-		if (from == null && to == null)
+		if (from == null && to == null) {
 			return null;
+		}
 
 		String fromSnippet = CoreConstants.EMPTY;
-		if (from != null)
+		if (from != null) {
 			fromSnippet = " c." + CaseBMPBean.COLUMN_CREATED + " >= '" + from.getDateString("yyyy-MM-dd HH:mm:ss") + "' and ";
+		}
 		String toSnippet = CoreConstants.EMPTY;
-		if (to != null)
+		if (to != null) {
 			toSnippet = " c." + CaseBMPBean.COLUMN_CREATED + " <= '" + to.getDateString("yyyy-MM-dd HH:mm:ss") + "' and ";
+		}
 
 		String query = "select distinct p.process_instance_id, c." + CaseBMPBean.COLUMN_CREATED + ", pi.end_ from BPM_CASES_PROCESSINSTANCES p, "
 				+ CaseBMPBean.TABLE_NAME + " c, jbpm_processinstance pi ";
@@ -610,8 +620,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); procDefNamesIter.hasNext();) {
 				procDefSnippet = procDefSnippet.concat(CoreConstants.QOUTE_SINGLE_MARK).concat(procDefNamesIter.next())
 						.concat(CoreConstants.QOUTE_SINGLE_MARK);
-				if (procDefNamesIter.hasNext())
+				if (procDefNamesIter.hasNext()) {
 					procDefSnippet = procDefSnippet.concat(CoreConstants.COMMA).concat(CoreConstants.SPACE);
+				}
 			}
 			procDefSnippet += ") and pd.id_ = pi.PROCESSDEFINITION_ ";
 		}
@@ -623,15 +634,17 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			StringBuffer procInstIdsExpression = new StringBuffer();
 			for (Iterator<Long> idsIter = procInsIds.iterator(); idsIter.hasNext();) {
 				procInstIdsExpression.append(idsIter.next());
-				if (idsIter.hasNext())
+				if (idsIter.hasNext()) {
 					procInstIdsExpression.append(CoreConstants.COMMA).append(CoreConstants.SPACE);
+				}
 			}
 			query = query + procInstIdsExpression.toString();
 		}
 
 		query = query.trim();
-		if (!query.endsWith("and"))
+		if (!query.endsWith("and")) {
 			query += " and";
+		}
 		query += " p.case_id = c." + CaseBMPBean.PK_COLUMN + " order by c." + CaseBMPBean.COLUMN_CREATED + " desc";
 
 		List<Serializable[]> results = null;
@@ -640,8 +653,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error executing query: " + query, e);
 		}
-		if (ListUtil.isEmpty(results))
+		if (ListUtil.isEmpty(results)) {
 			return null;
+		}
 
 		return getIdsWithDates(results);
 	}
@@ -658,19 +672,23 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			return null;
 		}
 
-		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("use_new_date_ranger_querier", Boolean.TRUE))
+		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("use_new_date_ranger_querier", Boolean.TRUE)) {
 			return getProcInstIdsByDateRangeAndProcDefNamesOrProcInstIdsUsingCases(from, to, processDefinitionNames, procInsIds);
+		}
 
 		List<Param> params = new ArrayList<Param>();
-		if (from != null)
+		if (from != null) {
 			params.add(new Param("piFrom", new java.util.Date(from.getTimestamp().getTime())));
-		if (to != null)
+		}
+		if (to != null) {
 			params.add(new Param("piTo", new java.util.Date(to.getTimestamp().getTime())));
+		}
 		boolean byProcInst = !ListUtil.isEmpty(procInsIds);
-		if (byProcInst)
+		if (byProcInst) {
 			params.add(new Param("procInstIds", procInsIds));
-		else
+		} else {
 			params.add(new Param("procDefNames", processDefinitionNames));
+		}
 
 		StringBuilder query = new StringBuilder("SELECT pi.id, pi.start, pi.end FROM ").append(ProcessInstance.class.getName())
 				.append(" pi").append((byProcInst ?
@@ -693,8 +711,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 
 	private Map<Long, Map<String, java.util.Date>> getIdsWithDates(List<Serializable[]> results) {
-		if (ListUtil.isEmpty(results))
+		if (ListUtil.isEmpty(results)) {
 			return null;
+		}
 
 		Map<Long, Map<String, java.util.Date>> idsWithDates = new LinkedHashMap<Long, Map<String, java.util.Date>>();
 		for (Object[] result: results) {
@@ -725,8 +744,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 
 	private List<Object[]> getProcessDateRanges(List<Long> processInstanceIds, List<Object[]> results) {
-		if (ListUtil.isEmpty(processInstanceIds))
+		if (ListUtil.isEmpty(processInstanceIds)) {
 			return results;
+		}
 
 		List<Long> usedIds = null;
 		if (processInstanceIds.size() > 1000) {
@@ -740,18 +760,21 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		List<Object[]> temp = getResultListByInlineQuery("select p.id, p.start, p.end from " + ProcessInstance.class.getName() +
 				" p where p.id in (:processInstanceIds)", Object[].class, new Param("processInstanceIds", usedIds));
 
-		if (results == null)
+		if (results == null) {
 			results = new ArrayList<Object[]>();
-		if (!ListUtil.isEmpty(temp))
+		}
+		if (!ListUtil.isEmpty(temp)) {
 			results.addAll(temp);
+		}
 
 		return getProcessDateRanges(processInstanceIds, results);
 	}
 
 	@Override
 	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId) {
-		if (processDefinitionId == null)
+		if (processDefinitionId == null) {
 			return null;
+		}
 
 		return getSingleResultByInlineQuery("select pd.name from " + ProcessDefinition.class.getName() + " pd where pd.id = :processDefinitionId",
 				String.class,
@@ -760,8 +783,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	@Override
 	public List<Long> getProcessDefinitionIdsByName(String procDefName) {
-		if (StringUtil.isEmpty(procDefName))
+		if (StringUtil.isEmpty(procDefName)) {
 			return null;
+		}
 
 		return getResultListByInlineQuery("select pd.id from " + ProcessDefinition.class.getName() + " pd where pd.name = :procDefName", Long.class,
 				new Param("procDefName", procDefName));
@@ -793,6 +817,37 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 		}
 
 		return var == null || var.getId() == null ? null : var;
+	}
+
+	@Override
+	@Transactional(readOnly = false)
+	public boolean updateVariable(Long procInstId, String name, Serializable value) {
+		if (procInstId == null || StringUtil.isEmpty(name) || value == null) {
+			return false;
+		}
+
+		try {
+			List<Variable> variables = getVariablesByNameAndProcessInstance(name, procInstId);
+			if (ListUtil.isEmpty(variables)) {
+				return true;
+			}
+
+			for (Variable variable: variables) {
+				variable.setVersion(0);
+				variable.setValue(value);
+				try {
+					merge(variable);
+				} catch (Exception e) {
+					getLogger().log(Level.WARNING, "Error updating variable " + variable + ", proc. inst. ID: " + procInstId, e);
+				}
+			}
+
+			return true;
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error updating variable " + name + ", proc. inst. ID: " + procInstId, e);
+		}
+
+		return false;
 	}
 
 	/*
@@ -858,13 +913,15 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 	}
 
 	private List<Variable> getValidVariables(List<Variable> vars) {
-		if (ListUtil.isEmpty(vars))
+		if (ListUtil.isEmpty(vars)) {
 			return null;
+		}
 
 		List<Variable> validVars = new ArrayList<Variable>();
 		for (Variable var: vars) {
-			if (var.getValue() == null)
+			if (var.getValue() == null) {
 				continue;
+			}
 
 			validVars.add(var);
 		}
@@ -956,22 +1013,25 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 			params.add(new Param(Variable.PARAM_IDS, viIds));
 		}
 		if (!ListUtil.isEmpty(tiIds)) {
-			if (!ListUtil.isEmpty(params))
+			if (!ListUtil.isEmpty(params)) {
 				query += " and";
+			}
 
 			query += " v.taskInstance in (:" + Variable.PARAM_TASK_INST_IDS + ")";
 			params.add(new Param(Variable.PARAM_TASK_INST_IDS, tiIds));
 		}
 		if (!ListUtil.isEmpty(piIds)) {
-			if (!ListUtil.isEmpty(params))
+			if (!ListUtil.isEmpty(params)) {
 				query += " and";
+			}
 
 			query += " v.processInstance in (:" + Variable.PARAM_PROC_INST_IDS + ")";
 			params.add(new Param(Variable.PARAM_PROC_INST_IDS, piIds));
 		}
 		if (!ListUtil.isEmpty(names)) {
-			if (!ListUtil.isEmpty(params))
+			if (!ListUtil.isEmpty(params)) {
 				query += " and";
+			}
 
 			query += " v.name in (:" + Variable.PARAM_NAMES + ")";
 			params.add(new Param(Variable.PARAM_NAMES, names));
@@ -992,8 +1052,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	@Override
 	public List<Variable> getVariablesByBytes(List<Long> varBytesIds) {
-		if (ListUtil.isEmpty(varBytesIds))
+		if (ListUtil.isEmpty(varBytesIds)) {
 			return null;
+		}
 
 		return getResultListByInlineQuery(
 				"from " + Variable.class.getName() + " v where v.byteArrayValue in (:varBytesIds)",
@@ -1004,8 +1065,9 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	@Override
 	public List<Variable> getVariablesByTokens(List<Long> tokensIds) {
-		if (ListUtil.isEmpty(tokensIds))
+		if (ListUtil.isEmpty(tokensIds)) {
 			return null;
+		}
 
 		return getResultListByInlineQuery(
 				"from " + Variable.class.getName() + " v where v.token in (:tokensIds)",
