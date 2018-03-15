@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.jbpm.graph.exe.ExecutionContext;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.7 $ Last modified: $Date: 2009/03/02 15:33:00 $ by $Author: civilis $
@@ -20,6 +22,8 @@ public class MessageValueContext {
 	public static final TypeRef caseBean = new TypeRef("bean", "case");
 
 	private final HashMap<TypeRef, Object> ctx;
+
+	private ExecutionContext executionContext;
 
 	public MessageValueContext() {
 		ctx = new HashMap<TypeRef, Object>();
@@ -67,6 +71,14 @@ public class MessageValueContext {
 		}
 
 		return scriptInputs;
+	}
+
+	public ExecutionContext getExecutionContext() {
+		return executionContext;
+	}
+
+	public void setExecutionContext(ExecutionContext executionContext) {
+		this.executionContext = executionContext;
 	}
 
 	@Override

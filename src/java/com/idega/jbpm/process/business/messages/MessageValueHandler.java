@@ -89,7 +89,8 @@ public class MessageValueHandler {
 		if (msgVals != null) {
 			String formattedMessage = MessageFormat.format(unformattedMessage, msgVals.toArray());
 			return formattedMessage;
-		} else
+		} else {
 			return unformattedMessage;
+		}
 	}
 }
