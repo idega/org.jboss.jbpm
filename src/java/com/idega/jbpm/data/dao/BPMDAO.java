@@ -111,6 +111,8 @@ public interface BPMDAO extends GenericDao {
 
 	public List<Long> getProcessDefinitionIdsByName(String procDefName);
 
+	public <T extends Serializable> List<T> getProcessInstanceIds(T procDefId, String procDefName);
+
 	public List<Variable> getVariablesByNameAndProcessInstance(String name, Long piId);
 	public List<Variable> getVariablesByNameAndProcessInstance(List<String> names, Long piId);
 	public List<Variable> getVariablesByNamesAndProcessInstanceIds(List<String> names, List<Long> piIds);

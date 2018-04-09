@@ -27,6 +27,7 @@ import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +63,7 @@ import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
+import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.idega.util.datastructures.map.MapUtil;
 
@@ -73,6 +75,7 @@ import com.idega.util.datastructures.map.MapUtil;
 @Repository("bpmBindsDAO")
 @Transactional(readOnly = true)
 @Scope(BeanDefinition.SCOPE_SINGLETON)
+@Primary
 public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 	private static final Logger LOGGER = Logger.getLogger(BPMDAOImpl.class.getName());
@@ -1245,4 +1248,35 @@ public class BPMDAOImpl extends GenericDaoImpl implements BPMDAO {
 
 		return getResultListByInlineQuery("select ti.id from " + TaskInstance.class.getName() + " ti where ti.token.id = :tokenId", Long.class, new Param("tokenId", tokenId));
 	}
+
+	@Override
+	public <T extends Serializable> List<T> getProcessInstanceIds(T procDefId, String procDefName) {
+		if (procDefId == null && StringUtil.isEmpty(procDefName)) {
+			return null;
+		}
+
+		Set<String> names = new HashSet<>();
+
+		if (procDefId != null && StringHandler.isNumeric(procDefId.toString())) {
+			String name = getProcessDefinitionNameByProcessDefinitionId(Long.valueOf(procDefId.toString()));
+			names.add(name);
+		}
+		if (!StringUtil.isEmpty(procDefName)) {
+			names.add(procDefName);
+		}
+
+		if (ListUtil.isEmpty(names)) {
+			return null;
+		}
+
+		List<Long> procInstIds = getProcessInstanceIdsByProcessDefinitionNames(new ArrayList<>(names));
+		if (ListUtil.isEmpty(procInstIds)) {
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		List<T> results = new ArrayList<>((List<T>) procInstIds);
+		return results;
+	}
+
 }
