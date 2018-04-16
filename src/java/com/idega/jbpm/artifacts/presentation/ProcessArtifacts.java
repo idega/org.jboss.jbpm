@@ -543,6 +543,7 @@ public class ProcessArtifacts {
 
 			List<BPMDocument> processDocuments = getProcessAssetsServices().getDocuments(processInstanceId, null, params.isNameFromExternalEntity(), params.getAllowPDFSigning());
 			if (ListUtil.isEmpty(processDocuments)) {
+				LOGGER.warning("There are no documents for proc. inst. " + processInstanceId + ". Params: " + params);
 				return null;
 			}
 
@@ -555,6 +556,7 @@ public class ProcessArtifacts {
 			long beanStart = measure ? System.currentTimeMillis() : 0;
 			IWContext iwc = getIWContext(false);
 			if (iwc == null) {
+				LOGGER.warning(IWContext.class.getName() + " is not available for proc. inst. " + processInstanceId + ". Params: " + params);
 				return null;
 			}
 
@@ -670,10 +672,11 @@ public class ProcessArtifacts {
 				rows.addRow(row);
 
 				row.setOrder(taskDocument.getOrder());
-				if (taskInstanceId!=null)
+				if (taskInstanceId!=null) {
 					row.setId(taskInstanceId.toString());
-				else
+				} else {
 					row.setId("0");
+				}
 
 				row.addCell(taskDocument.getDocumentName());
 				row.addCell(taskDocument.getCreateDate() == null ?
@@ -950,8 +953,9 @@ public class ProcessArtifacts {
 		try {
 			Long processInstanceId = params.getPiId();
 
-			if (processInstanceId == null || processInstanceId < 0)
+			if (processInstanceId == null || processInstanceId < 0) {
 				return null;
+			}
 
 			User loggedInUser = getBpmFactory().getBpmUserFactory().getCurrentBPMUser().getUserToUse();
 
@@ -1236,10 +1240,12 @@ public class ProcessArtifacts {
 	protected String getTaskStatus(IWResourceBundle iwrb,
 	        TaskInstance taskInstance) {
 
-		if (taskInstance.hasEnded())
+		if (taskInstance.hasEnded()) {
 			return iwrb.getLocalizedString("ended", "Ended");
-		if (taskInstance.getStart() != null)
+		}
+		if (taskInstance.getStart() != null) {
 			return iwrb.getLocalizedString("in_progess", "In progress");
+		}
 
 		return iwrb.getLocalizedString("not_started", "Not started");
 	}
@@ -1279,8 +1285,9 @@ public class ProcessArtifacts {
 
 	public boolean hasUserRolesEditorRights(Long processInstanceId) {
 
-		if (processInstanceId == null)
+		if (processInstanceId == null) {
 			return false;
+		}
 
 		try {
 			Permission perm = getPermissionsFactory().getRightsMgmtPermission(
@@ -1427,8 +1434,9 @@ public class ProcessArtifacts {
 			buttonsContainer.add(closeLink);
 		} else {
 
-			if (userId == null || setSameRightsForAttachments == null)
+			if (userId == null || setSameRightsForAttachments == null) {
 				setSameRightsForAttachments = false;
+			}
 
 			container.add(new Heading3(iwrb.getLocalizedString(
 			    "set_access_rights", "Set access rights")));
@@ -1446,13 +1454,14 @@ public class ProcessArtifacts {
 			// Permission to read
 			headerCell = headerRow.createHeaderCell();
 
-			if (taskInstanceId != null)
+			if (taskInstanceId != null) {
 				headerCell.add(new Text(iwrb.getLocalizedString(
 				    "allow_disallow_to_read", "Allow/disallow to read")));
-			else
+			} else {
 				headerCell.add(new Text(iwrb.getLocalizedString(
 				    "allow_disallow_to_see_role_contacts",
 				    "Allow/disallow to see contacts of role")));
+			}
 
 			// Set same rights for attachments
 			if (setSameRightsForAttachments) {
@@ -1489,13 +1498,14 @@ public class ProcessArtifacts {
 
 				CheckBox box = new CheckBox(roleName);
 
-				if (taskInstanceId != null)
+				if (taskInstanceId != null) {
 					box.setChecked(role.getAccesses() != null
 					        && role.getAccesses().contains(Access.read));
-				else
+				} else {
 					box.setChecked(role.getAccesses() != null
 					        && role.getAccesses().contains(
 					            Access.contactsCanBeSeen));
+				}
 
 				StringBuilder action = new StringBuilder(
 				        "CasesBPMAssets.setAccessRightsForBpmRelatedResource('")
@@ -1940,8 +1950,9 @@ public class ProcessArtifacts {
 
 			for (TaskInstanceW submittedTask: submittedTasks) {
 				Serializable id = submittedTask.getTaskInstanceId();
-				if (id.toString().equals(tiId.toString()))
+				if (id.toString().equals(tiId.toString())) {
 					return true;
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Error while resolving if task by ID " + tiId + " is submitted", e);
@@ -1967,8 +1978,9 @@ public class ProcessArtifacts {
 
 		String uri = CoreConstants.PAGES_URI_PREFIX;
 		com.idega.core.builder.data.ICPage homePage = bl.getUsersHomePage(iwc.getCurrentUser());
-		if (homePage != null)
+		if (homePage != null) {
 			uri = uri + homePage.getDefaultPageURI();
+		}
 
 		IWResourceBundle iwrb = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER).getResourceBundle(iwc);
 		return new AdvancedProperty(
@@ -2033,7 +2045,9 @@ public class ProcessArtifacts {
 	}
 
 	public RolesManager getRoleManager() {
-		if (roleManager == null) ELUtil.getInstance().autowire(this);
+		if (roleManager == null) {
+			ELUtil.getInstance().autowire(this);
+		}
 		return roleManager;
 	}
 
