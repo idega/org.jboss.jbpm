@@ -47,10 +47,14 @@ public class VariablesResolver extends DefaultSpringBean {
 		if (ectx != null) {
 			Object value = ectx.getContextInstance().getVariable(variableName, ectx.getToken());
 
-			if (value == null && ectx.getToken() != null) {
+			if (value == null) {
+				value = ectx.getVariable(variableName);
+			}
+
+			if (value == null && ectx.getProcessInstance() != null) {
 				value = getFromParentProcess(ectx.getProcessInstance(), variableName);
 			} else if (value == null) {
-				getLogger().warning("Can not resolve value for '" + variableName + "' because proc. inst. is unknown in executuin context " + ectx);
+				getLogger().warning("Can not resolve value for '" + variableName + "' because proc. inst. is unknown in execution context " + ectx);
 			}
 
 			return value;
