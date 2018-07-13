@@ -34,6 +34,8 @@ public class BPMProcessVariable implements Serializable {
 	public static final String EXPRESSION_LESS_OR_EQUALS = "<=";
 	public static final String EXPRESSION_EQUALS = "=";
 
+	private List<String> availableValues;
+
 	public BPMProcessVariable() {
 		super();
 	}
@@ -144,6 +146,16 @@ public class BPMProcessVariable implements Serializable {
 
 	public void setOrder(int order) {
 		this.order = order;
+	}
+
+
+
+	public List<String> getAvailableValues() {
+		return availableValues;
+	}
+
+	public void setAvailableValues(List<String> availableValues) {
+		this.availableValues = availableValues;
 	}
 
 	@Override
