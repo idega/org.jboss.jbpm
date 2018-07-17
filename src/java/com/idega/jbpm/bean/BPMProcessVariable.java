@@ -58,13 +58,12 @@ public class BPMProcessVariable implements Serializable {
 	 * @param expression values could be "=",">","<","<=",">=".
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public BPMProcessVariable(String name, String value, String type,
-			String expression) {
+	public BPMProcessVariable(String name, String value, String type, String expression) {
 		this(name, value, type);
 		this.expression = expression;
 	}
 
-	private String name, value, type, expression = null;
+	private String name, value, type, expression = null, localizedName;
 	private boolean flexible, multiple;
 	private int order = 0;
 
@@ -158,6 +157,14 @@ public class BPMProcessVariable implements Serializable {
 		this.availableValues = availableValues;
 	}
 
+	public String getLocalizedName() {
+		return localizedName;
+	}
+
+	public void setLocalizedName(String localizedName) {
+		this.localizedName = localizedName;
+	}
+
 	@Override
 	public String toString() {
 		return new StringBuilder("Name: " ).append(getName()).append(", type: ").append(getType()).append(", value: ").append(getValue()).toString();
@@ -183,11 +190,13 @@ public class BPMProcessVariable implements Serializable {
 			}
 			if (isMultiple() && value.indexOf(CoreConstants.SEMICOLON) != -1) {
 				String[] values = value.split(CoreConstants.SEMICOLON);
-				if (!ArrayUtil.isEmpty(values))
+				if (!ArrayUtil.isEmpty(values)) {
 					realValue = (T) Arrays.asList(values);
+				}
 			}
-			if (realValue == null)
+			if (realValue == null) {
 				realValue = value;
+			}
 		} else if (isDateType()) {
 			try {
 				realValue = IWDatePickerHandler.getParsedTimestampByCurrentLocale(getValue());
