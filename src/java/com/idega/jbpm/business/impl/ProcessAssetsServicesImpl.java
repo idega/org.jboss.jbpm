@@ -191,6 +191,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					continue;
 				}
 
+				Date submittedAt = tiW.getEnd();
 				Serializable tiId = tiW.getTaskInstanceId();
 				for (BinaryVariable binaryVariable: binaryVariables) {
 					if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
@@ -199,6 +200,8 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 					BPMAttachment attachment = new BPMAttachment();
 					attachments.add(attachment);
+
+					attachment.setTimestamp(submittedAt);
 
 					String hash = binaryVariable.getHash().toString();
 					attachment.setId(hash);

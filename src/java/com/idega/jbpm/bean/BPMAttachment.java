@@ -1,12 +1,18 @@
 package com.idega.jbpm.bean;
 
 import java.io.Serializable;
+import java.util.Date;
+
+import javax.xml.bind.annotation.XmlTransient;
 
 public class BPMAttachment implements Serializable {
 
 	private static final long serialVersionUID = 5056538842789014352L;
 
 	private String id, description, fileName, fileSize, downloadLink, source, date;
+
+	@XmlTransient
+	private Date timestamp;
 
 	public String getId() {
 		return id;
@@ -62,6 +68,14 @@ public class BPMAttachment implements Serializable {
 
 	public void setDate(String date) {
 		this.date = date;
+	}
+
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(Date timestamp) {
+		this.timestamp = timestamp;
 	}
 
 }
