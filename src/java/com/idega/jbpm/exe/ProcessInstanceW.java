@@ -62,6 +62,13 @@ public interface ProcessInstanceW {
 	public abstract List<TaskInstanceW> getAllUnfinishedTaskInstances();
 
 	/**
+	 *
+	 * @param user
+	 * @return all process instance task instances for provided user, that are has not ended yet (end == null) and not hidden
+	 */
+	public abstract List<TaskInstanceW> getUnfinishedTaskInstances(User user);
+
+	/**
 	 * @param taskName
 	 * @return see javadoc for getAllUnfinishedTaskInstances(), but also filtered by taskName
 	 */
