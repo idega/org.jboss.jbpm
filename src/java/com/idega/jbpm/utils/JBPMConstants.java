@@ -15,4 +15,9 @@ public class JBPMConstants {
 	public static final Logger bpmLogger = Logger.getLogger("IdegaBPMLogging");
 
 	public static final String SOURCE = "source";
+
+	public static final String VISIBLE_CONTACTS_GROUP_NAME = "Sýnilegur";
+	public static final String VISIBLE_CONTACTS_ROLE_NAME = "bpm_visible_contacts";
+
+	public static final String APP_PROP_SHOW_ONLY_SELECTED_CONTACTS = "bpm.show_only_selected_contacts";
 }

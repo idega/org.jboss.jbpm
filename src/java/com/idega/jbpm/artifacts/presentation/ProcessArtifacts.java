@@ -79,6 +79,7 @@ import com.idega.jbpm.presentation.xml.ProcessArtifactsListRow;
 import com.idega.jbpm.presentation.xml.ProcessArtifactsListRows;
 import com.idega.jbpm.rights.Right;
 import com.idega.jbpm.signing.SigningHandler;
+import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.utils.JBPMUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
@@ -1040,6 +1041,26 @@ public class ProcessArtifacts {
 
 			if (ListUtil.isEmpty(uniqueUsers)) {
 				uniqueUsers = Collections.emptyList();
+			}
+
+			//If flag is set to show only selected contacts, filter the unique users by the role bpm_visible_contacts
+			try {
+				IWMainApplicationSettings appSettings = IWMainApplication.getDefaultIWApplicationContext().getApplicationSettings();
+				boolean showOnlySelectedContacts = appSettings.getBoolean(JBPMConstants.APP_PROP_SHOW_ONLY_SELECTED_CONTACTS, false);
+				if (showOnlySelectedContacts && !ListUtil.isEmpty(uniqueUsers)) {
+					Collection<User> uniqueUsersTmp = new ArrayList<>(uniqueUsers);
+					uniqueUsers.clear();
+					for (User u : uniqueUsersTmp) {
+						if (u != null) {
+							Set<String> nativeUserRoles = getRoleManager().getUserNativeRoles(u);
+							if (!ListUtil.isEmpty(nativeUserRoles) && nativeUserRoles.contains(JBPMConstants.VISIBLE_CONTACTS_ROLE_NAME)) {
+								uniqueUsers.add(u);
+							}
+						}
+					}
+				}
+			} catch (Exception eF) {
+				LOGGER.log(Level.WARNING, "Could not filter the users connected to the process by the bpm_visible_contacts role:  ", eF);
 			}
 
 			ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
