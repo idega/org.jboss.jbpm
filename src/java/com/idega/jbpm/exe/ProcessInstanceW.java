@@ -214,4 +214,6 @@ public interface ProcessInstanceW {
 
 	public List<BPMDocument> getBPMDocuments(List<TaskInstanceW> tiWs, Locale locale);
 
+	public void end();
+
 }
