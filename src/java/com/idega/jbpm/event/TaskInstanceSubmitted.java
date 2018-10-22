@@ -1,5 +1,6 @@
 package com.idega.jbpm.event;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.springframework.context.ApplicationEvent;
@@ -10,11 +11,11 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 
 	private static final long serialVersionUID = 2972600186154204917L;
 
-	private Long piId, tiId;
+	private Serializable piId, tiId;
 
-	private Map<String, Object> variables;
+	private Map<String, ? extends Object> variables;
 
-	public TaskInstanceSubmitted(TaskInstanceW source, Long piId, Long tiId, Map<String, Object> variables) {
+	public TaskInstanceSubmitted(TaskInstanceW source, Serializable piId, Serializable tiId, Map<String, ? extends Object> variables) {
 		super(source);
 
 		this.piId = piId;
@@ -23,23 +24,27 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 		this.variables = variables;
 	}
 
-	public Long getProcessInstanceId() {
-		return piId;
+	public <T extends Serializable> T getProcessInstanceId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) piId;
+		return result;
 	}
 
-	public void setProcessInstanceId(Long piId) {
+	public void setProcessInstanceId(Serializable piId) {
 		this.piId = piId;
 	}
 
-	public Long getTaskInstanceId() {
-		return tiId;
+	public <T extends Serializable> T getTaskInstanceId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) tiId;
+		return result;
 	}
 
-	public void setTaskInstanceId(Long tiId) {
+	public void setTaskInstanceId(Serializable tiId) {
 		this.tiId = tiId;
 	}
 
-	public Map<String, Object> getVariables() {
+	public Map<String, ? extends Object> getVariables() {
 		return variables;
 	}
 
