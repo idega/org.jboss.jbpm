@@ -101,8 +101,9 @@ public class Role {
 	@Override
 	public boolean equals(Object arg0) {
 
-		if(super.equals(arg0))
+		if(super.equals(arg0)) {
 			return true;
+		}
 
 		String roleName = arg0 instanceof String ? (String)arg0 : arg0 instanceof Role ? ((Role)arg0).getRoleName() : null;
 
@@ -147,6 +148,11 @@ public class Role {
 
 	public void setRolesComments(List<String> rolesComments) {
 		this.rolesComments = rolesComments;
+	}
+
+	@Override
+	public String toString() {
+		return "Role " + getRoleName() + " accesses " + getAccesses() + " for user " + getUserId();
 	}
 
 }
