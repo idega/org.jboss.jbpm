@@ -106,6 +106,8 @@ public interface RolesManager {
 	public abstract List<Role> getRolesPermissionsForTaskInstance(
 	        Long taskInstanceId, String variableName);
 
+	public List<Role> getRolesPermissionsForTaskInstance(Long piId, Long taskId, Long taskInstanceId);
+
 	public abstract Collection<Role> getUserPermissionsForRolesContacts(
 	        Long processInstanceId, Integer userId);
 
@@ -155,4 +157,7 @@ public interface RolesManager {
 	public abstract boolean canWriteComments(Long processInstanceId, User user);
 
 	public abstract boolean doDisableAttachmentForAllRoles(Integer fileHash, Long processInstanceId, Long taskInstanceId);
+
+	public void assignTaskToUser(Long piId, Long tiId, String roleName, String userId, Access... accesses);
+
 }
