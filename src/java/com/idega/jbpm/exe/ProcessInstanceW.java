@@ -10,6 +10,7 @@ import org.jbpm.JbpmContext;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.graph.exe.Token;
 
+import com.idega.bpm.model.VariableInstance;
 import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.rights.Right;
 import com.idega.jbpm.variables.BinaryVariable;
@@ -215,5 +216,7 @@ public interface ProcessInstanceW {
 	public List<BPMDocument> getBPMDocuments(List<TaskInstanceW> tiWs, Locale locale);
 
 	public void end();
+
+	public <T extends VariableInstance> Collection<T> getVariables(List<String> names);
 
 }
