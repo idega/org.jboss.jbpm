@@ -4,10 +4,11 @@ import java.io.Serializable;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import com.idega.bpm.model.VariableInstance;
 import com.idega.jbpm.data.Variable;
 import com.idega.util.StringUtil;
 
-public abstract class VariableInstanceInfo implements Serializable {
+public abstract class VariableInstanceInfo implements VariableInstance {
 
 	private static final long serialVersionUID = 7094674925493141143L;
 	private static final Logger LOGGER = Logger.getLogger(VariableInstanceInfo.class.getName());
@@ -69,6 +70,13 @@ public abstract class VariableInstanceInfo implements Serializable {
 
 	public abstract <T extends Serializable> void setValue(T value);
 
+	@Override
+	public <T extends Serializable> T getVariableValue() {
+		T value = getValue();
+		return value;
+	}
+
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -119,16 +127,19 @@ public abstract class VariableInstanceInfo implements Serializable {
 		if (object instanceof VariableInstanceInfo) {
 			VariableInstanceInfo var = (VariableInstanceInfo) object;
 			Long varId = var.getId();
-			if (getId() == null || varId == null)
+			if (getId() == null || varId == null) {
 				return false;
+			}
 
 			String varName = var.getName();
-			if (getName() == null || varName == null)
+			if (getName() == null || varName == null) {
 				return false;
+			}
 
 			Serializable varValue = var.getValue();
-			if (getValue() == null || varValue == null)
+			if (getValue() == null || varValue == null) {
 				return false;
+			}
 
 			return getId().longValue() == varId.longValue() && getName().equals(varName) && getValue().toString().equals(varValue.toString());
 		}
