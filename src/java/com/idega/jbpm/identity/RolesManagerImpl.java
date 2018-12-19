@@ -100,6 +100,7 @@ public class RolesManagerImpl implements RolesManager {
 	@Transactional(readOnly = false)
 	public void createIdentitiesForRoles(Collection<Role> roles, Identity identity, long processInstanceId) {
 		if (ListUtil.isEmpty(roles)) {
+			logger.warning("No roles provided to create identity " + identity + " for proc. inst. " + processInstanceId);
 			return;
 		}
 
@@ -148,6 +149,11 @@ public class RolesManagerImpl implements RolesManager {
 			                + identity.getIdentityId()
 			                + ", identity expression = "
 			                + identity.getIdentityIdExpression());
+		}
+
+		if (ListUtil.isEmpty(actors)) {
+			logger.warning("No actors provided. Can not modify identity " + identity + " for proc. inst. " + processInstanceId);
+			return;
 		}
 
 		for (Actor actor: actors) {
@@ -484,6 +490,15 @@ public class RolesManagerImpl implements RolesManager {
 	@Override
 	@Transactional(readOnly = false)
 	public List<Actor> createProcessActors(JbpmContext context, Collection<Role> roles, final ProcessInstance processInstance) {
+		return createProcessActors(context, roles, processInstance.getId(), processInstance.getProcessDefinition().getName());
+	}
+
+	private List<Actor> createProcessActors(JbpmContext context, Collection<Role> roles, Long piId, String procDefName) {
+		if (piId == null) {
+			logger.warning("Process instance ID is not provided");
+			return null;
+		}
+
 		final Set<String> rolesNamesToCreate = new HashSet<String>(roles.size());
 
 		for (Role role : roles) {
@@ -500,7 +515,7 @@ public class RolesManagerImpl implements RolesManager {
 		    Actor.getSetByRoleNamesAndPIId,
 		    Actor.class,
 		    new Param(Actor.processRoleNameProperty, rolesNamesToCreate),
-		    new Param(Actor.processInstanceIdProperty, processInstance.getId())
+		    new Param(Actor.processInstanceIdProperty, piId)
 		);
 
 		// removing from "to create" list roles, that already have actors
@@ -514,8 +529,8 @@ public class RolesManagerImpl implements RolesManager {
 
 		if (!rolesNamesToCreate.isEmpty()) {
 			// creating actors for roles
-			String processName = processInstance.getProcessDefinition().getName();
-			Long processInstanceId = processInstance.getId();
+			String processName = procDefName;
+			Long processInstanceId = piId;
 
 			for (String actorRole : rolesNamesToCreate) {
 				Actor actor = new Actor();
@@ -546,6 +561,7 @@ public class RolesManagerImpl implements RolesManager {
 	@Transactional(readOnly = false)
 	public void createTaskRolesPermissions(JbpmContext context, Long taskId, List<Role> roles) {
 		if (ListUtil.isEmpty(roles)) {
+			logger.warning("Roles are not provided to create permissions for task " + taskId);
 			return;
 		}
 
@@ -562,12 +578,22 @@ public class RolesManagerImpl implements RolesManager {
 		);
 
 		// if eq, then all perms are created
-		if (perms.size() < rolesNames.size()) {
+		if (!ListUtil.isEmpty(perms) && perms.size() < rolesNames.size()) {
 			for (ActorPermissions actorPermissions: perms) {
-				roles.remove(actorPermissions.getRoleName());
+				Role roleToRemove = null;
+				for (Role role: roles) {
+					if (role.getRoleName().equals(actorPermissions.getRoleName())) {
+						roleToRemove = role;
+					}
+				}
+				if (roleToRemove != null) {
+					roles.remove(roleToRemove);
+				}
 				rolesNames.remove(actorPermissions.getRoleName());
 			}
+		}
 
+		if (!ListUtil.isEmpty(roles)) {
 			logger.info("Creating permissions for task: " + taskId + ", for roles: " + rolesNames);
 
 			for (Role role: roles) {
@@ -1391,6 +1417,16 @@ public class RolesManagerImpl implements RolesManager {
 			Role role = new Role(actor.getProcessRoleName());
 
 			List<ActorPermissions> perms = actor.getActorPermissions();
+			if (ListUtil.isEmpty(perms)) {
+				List<Param> params = new ArrayList<>();
+				if (taskId != null) {
+					params.add(new Param(ActorPermissions.taskIdProperty, taskId));
+				}
+				if (taskInstanceId != null) {
+					params.add(new Param(ActorPermissions.taskInstanceIdProperty, taskInstanceId));
+				}
+				perms = getBpmDAO().getResultList(ActorPermissions.getSetByTaskIdOrTaskInstanceId, ActorPermissions.class, ArrayUtil.convertListToArray(params));
+			}
 
 			ArrayList<Access> taskInstanceScopeANDVar = null;
 			ArrayList<Access> taskInstanceScopeNoVar = null;
@@ -2220,7 +2256,7 @@ public class RolesManagerImpl implements RolesManager {
 	}
 
 	@Override
-	public void assignTaskToUser(Long piId, Long tiId, String roleName, String userId, Access... accesses) {
+	public void assignTaskToUser(Long piId, Long tiId, String roleName, String userId, String processDefinitionName, Access... accesses) {
 		if (piId == null || tiId == null || StringUtil.isEmpty(roleName) || StringUtil.isEmpty(userId) || ArrayUtil.isEmpty(accesses)) {
 			logger.warning("Invalid parameters. Proc. inst. ID: " + piId + ", task inst. ID: " + tiId +
 					", role: " + roleName + ", user ID: " + userId + ", accesses: " + accesses);
@@ -2234,6 +2270,10 @@ public class RolesManagerImpl implements RolesManager {
 		List<Actor> actors = getUserActors(userId, piId);
 		if (ListUtil.isEmpty(actors)) {
 			createTaskRolesPermissions(null, tiId, roles);
+			actors = getUserActors(userId, piId);
+			if (ListUtil.isEmpty(actors)) {
+				actors = createProcessActors(null, roles, piId, processDefinitionName);
+			}
 		}
 		Identity identity = new Identity(userId, IdentityType.USER);
 		createIdentitiesForRoles(roles, identity, piId);

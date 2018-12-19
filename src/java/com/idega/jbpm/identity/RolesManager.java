@@ -158,6 +158,6 @@ public interface RolesManager {
 
 	public abstract boolean doDisableAttachmentForAllRoles(Integer fileHash, Long processInstanceId, Long taskInstanceId);
 
-	public void assignTaskToUser(Long piId, Long tiId, String roleName, String userId, Access... accesses);
+	public void assignTaskToUser(Long piId, Long tiId, String roleName, String userId, String processDefinitionName, Access... accesses);
 
 }
