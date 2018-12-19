@@ -59,4 +59,10 @@ public class Identity {
 	public void setIdentityIdExpression(String identityIdExpression) {
 		this.identityIdExpression = identityIdExpression;
 	}
+
+	@Override
+	public String toString() {
+		return "Identity ID: " + getIdentityId() + ", type: " + getIdentityType() + ", expression: " + getIdentityIdExpression();
+	}
+
 }
