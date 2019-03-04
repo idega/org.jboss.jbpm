@@ -490,9 +490,17 @@ public class RolesManagerImpl implements RolesManager {
 	@Override
 	@Transactional(readOnly = false)
 	public List<Actor> createProcessActors(JbpmContext context, Collection<Role> roles, final ProcessInstance processInstance) {
-		return createProcessActors(context, roles, processInstance.getId(), processInstance.getProcessDefinition().getName());
+		String procDefName = null;
+		try {
+			long procDefId = processInstance.getProcessDefinition().getId();
+			procDefName = getBpmDAO().getProcessDefinitionNameByProcessDefinitionId(procDefId);
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Error getting proc. def. name for proc. inst. " + processInstance.getId(), e);
+		}
+		return createProcessActors(context, roles, processInstance.getId(), procDefName);
 	}
 
+	@Transactional(readOnly = false)
 	private List<Actor> createProcessActors(JbpmContext context, Collection<Role> roles, Long piId, String procDefName) {
 		if (piId == null) {
 			logger.warning("Process instance ID is not provided");
