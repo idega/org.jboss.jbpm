@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 
 import org.jbpm.JbpmContext;
 import org.jbpm.JbpmException;
+import org.jbpm.graph.def.ProcessDefinition;
 import org.jbpm.graph.exe.ProcessInstance;
 import org.jbpm.security.AuthorizationService;
 import org.jbpm.taskmgmt.def.Task;
@@ -57,6 +58,7 @@ import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Group;
 import com.idega.user.data.User;
 import com.idega.util.ArrayUtil;
+import com.idega.util.DBUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
@@ -496,6 +498,18 @@ public class RolesManagerImpl implements RolesManager {
 			procDefName = getBpmDAO().getProcessDefinitionNameByProcessDefinitionId(procDefId);
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "Error getting proc. def. name for proc. inst. " + processInstance.getId(), e);
+		}
+		try {
+			if (StringUtil.isEmpty(procDefName)) {
+				ProcessInstance pi = context == null ?
+					processInstance :
+					context.getProcessInstance(processInstance.getId());
+				ProcessDefinition pd = pi.getProcessDefinition();
+				pd = DBUtil.getInstance().initializeAndUnproxy(pd);
+				procDefName = pd.getName();
+			}
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Error getting proc. def. name from proc. inst. " + processInstance.getId(), e);
 		}
 		return createProcessActors(context, roles, processInstance.getId(), procDefName);
 	}
