@@ -44,6 +44,7 @@ import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.jbpm.variables.VariablesManager;
+import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.DBUtil;
@@ -73,8 +74,9 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 	@Override
 	@Transactional(readOnly = false)
 	public void submitVariables(final Map<String, Object> variables, final long taskInstanceId, final boolean validate) {
-		if (MapUtil.isEmpty(variables))
+		if (MapUtil.isEmpty(variables)) {
 			return;
+		}
 
 		getIdegaJbpmContext().execute(new JbpmCallback<Void>() {
 			@Override
@@ -89,11 +91,13 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 		try {
 			IWMainApplication iwma = IWMainApplication.getDefaultIWMainApplication();
 			Map<?, ?> beans = WebApplicationContextUtils.getWebApplicationContext(iwma.getServletContext()).getBeansOfType(VariablesManager.class);
-			if (MapUtil.isEmpty(beans))
+			if (MapUtil.isEmpty(beans)) {
 				return;
+			}
 
-			for (Object bean: beans.values())
+			for (Object bean: beans.values()) {
 				((VariablesManager) bean).doManageVariables(piId, tiId, variables);
+			}
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error managing variables (" + variables + ") for process: " + piId + " and task: " + tiId, e);
 		}
@@ -177,6 +181,7 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 			return null;
 		}
 
+		IWContext iwc = CoreUtil.getIWContext();
 		if (taskInstanceId instanceof Long || StringHandler.isNumeric(taskInstanceId.toString())) {
 			final Long tiId = Long.valueOf(taskInstanceId.toString());
 
@@ -203,7 +208,7 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 								getLogger().warning("Token is null for task instance: " + taskInstanceId);
 							} else {
 								token = DBUtil.getInstance().initializeAndUnproxy(token);
-								vars = bpmFactory.getTaskInstanceW(taskInstanceId).getVariables(token);
+								vars = bpmFactory.getTaskInstanceW(taskInstanceId).getVariables(iwc, token);
 							}
 						} catch (Throwable e) {
 							getLogger().log(Level.WARNING, "Error loading variables for task: " + ti + ", ID: " + taskInstanceId + " by token: " + token +
@@ -241,7 +246,8 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 
 					if (!MapUtil.isEmpty(variables) && getSettings().getBoolean("bpm.load_vars_from_pi_if_empty", false)) {
 						ProcessInstanceW piW = bpmFactory.getProcessInstanceW(ti.getProcessInstance().getId());
-						TaskInstanceW startTiW = piW.getStartTaskInstance();
+						IWContext iwc = CoreUtil.getIWContext();
+						TaskInstanceW startTiW = piW.getStartTaskInstance(iwc);
 						TaskInstance startTi = context.getTaskInstance(startTiW.getTaskInstanceId());
 						List<String> variablesToLoad = new ArrayList<>();
 						for (String variableName: variables.keySet()) {
@@ -276,7 +282,7 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 			});
 		} else {
 			TaskInstanceW tiW = bpmFactory.getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
-			return tiW.getVariables(null);
+			return tiW.getVariables(iwc, null);
 		}
 	}
 
@@ -291,8 +297,9 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 		Map<String, Object> variables = populateVariables(taskInstanceId);
 		List<BinaryVariable> binVars = getBinaryVariablesHandler().resolveBinaryVariablesAsList(taskInstanceId, variables);
 
-		if (ListUtil.isEmpty(binVars))
+		if (ListUtil.isEmpty(binVars)) {
 			return binVars;
+		}
 
 		for (Iterator<BinaryVariable> iterator = binVars.iterator(); iterator.hasNext();) {
 			BinaryVariable binaryVariable = iterator.next();
@@ -382,8 +389,9 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 
 				String variableName = variableAccess.getVariableName();
 				if (validate) {
-					if (variableAccess.getAccess().isRequired() && !variables.containsKey(variableName))
+					if (variableAccess.getAccess().isRequired() && !variables.containsKey(variableName)) {
 						throw new TaskInstanceVariablesException("Required variable (" + variableName + ") not submitted.");
+					}
 
 					if (!variableAccess.isWritable() && variables.containsKey(variableName)) {
 						getLogger().warning("Tried to submit read-only variable (" + variableAccess.getVariableName() + ") for task instance: " +

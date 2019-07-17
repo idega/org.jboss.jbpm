@@ -310,7 +310,7 @@ public class JBPMTaskCreatorBean {
 
 		ProcessInstanceW spiw = getSubProcessInstance();
 		if (spiw != null) {
-			return spiw.getAllTaskInstances();
+			return spiw.getAllTaskInstances(CoreUtil.getIWContext());
 		}
 
 		return result;

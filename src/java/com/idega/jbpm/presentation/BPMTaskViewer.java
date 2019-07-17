@@ -164,7 +164,8 @@ public class BPMTaskViewer extends IWBaseComponent {
 	private UIComponent loadViewerFromTaskInstance(FacesContext context, Long taskInstanceId) {
 		try {
 			TaskInstanceW tiW = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
-			setPageTitle(tiW.getName(IWContext.getIWContext(context).getCurrentLocale()));
+			IWContext iwc = IWContext.getIWContext(context);
+			setPageTitle(tiW.getName(iwc, iwc.getCurrentLocale()));
 			View initView = tiW.loadView();
 			initView.setSubmitted(tiW.isSubmitted());
 

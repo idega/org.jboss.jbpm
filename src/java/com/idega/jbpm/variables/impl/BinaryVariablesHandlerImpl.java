@@ -39,6 +39,7 @@ import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.utils.JSONUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.BinaryVariablesHandler;
+import com.idega.presentation.IWContext;
 import com.idega.repository.RepositoryService;
 import com.idega.repository.bean.RepositoryItem;
 import com.idega.util.ArrayUtil;
@@ -139,8 +140,9 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 	}
 
 	private String concPF(String path, String fileName) {
-		if (!path.endsWith(CoreConstants.SLASH))
+		if (!path.endsWith(CoreConstants.SLASH)) {
 			path = path.concat(CoreConstants.SLASH);
+		}
 		return path.concat(fileName);
 	}
 
@@ -185,11 +187,13 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 				path = tmpUri;
 
 				String uploadPath = path;
-				if (!uploadPath.endsWith(CoreConstants.SLASH))
+				if (!uploadPath.endsWith(CoreConstants.SLASH)) {
 					uploadPath = uploadPath.concat(CoreConstants.SLASH);
+				}
 				try {
-					if (!repository.uploadFile(uploadPath, normalizedName, null, stream))
+					if (!repository.uploadFile(uploadPath, normalizedName, null, stream)) {
 						throw new RuntimeException("Unable to upload file to " + uploadPath.concat(normalizedName));
+					}
 				} catch (Exception e) {
 					doSendErrorNotification(stream, normalizedName, uploadPath, e);
 					throw e;
@@ -206,8 +210,9 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 			binaryVariable.setStorageType(STORAGE_TYPE);
 			binaryVariable.setContentLength(contentLength);
 
-			if (binaryVariable.getDescription() == null)
+			if (binaryVariable.getDescription() == null) {
 				binaryVariable.setDescription(fileName);
+			}
 		} catch (Exception e) {
 			String message = "Exception while storing binary variable. Path: " + path;
 			getLogger().log(Level.SEVERE, message, e);
@@ -374,8 +379,9 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 				}
 			}
 		} else if (taskInstanceId != null) {
+			IWContext iwc = CoreUtil.getIWContext();
 			TaskInstanceW tiW = bpmFactory.getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
-			return tiW.getAttachments();
+			return tiW.getAttachments(iwc);
 		}
 		return binaryVars;
 	}
@@ -397,8 +403,9 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 	@Override
 	public InputStream getBinaryVariableContent(BinaryVariable variable) {
 		String storageType = variable.getStorageType();
-		if (!STORAGE_TYPE.equals(storageType) && !"slide".equals(storageType))
+		if (!STORAGE_TYPE.equals(storageType) && !"slide".equals(storageType)) {
 			throw new IllegalArgumentException("Unsupported binary variable storage type: " + variable.getStorageType());
+		}
 
 		try {
 			RepositoryService repository = getRepositoryService();
@@ -448,19 +455,22 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 
 			if (stream == null) {
 				File tmp = CoreUtil.getFileFromRepository(fileUri);
-				if (tmp != null && tmp.exists() && tmp.canRead())
+				if (tmp != null && tmp.exists() && tmp.canRead()) {
 					stream = new FileInputStream(tmp);
-				else
+				} else {
 					getLogger().warning("Unable to get file " + fileUri + " from files system. " + tmp == null ?
 							"It (" + fileUri + ") does not exist" :
 							"It (" + tmp + ") either does not exist (" +!tmp.exists() + " or is not readable (" + !tmp.canRead() + "))");
+				}
 			}
 
-			if (stream == null)
+			if (stream == null) {
 				stream = getFromURL(repository, fileUri);
+			}
 
-			if (stream == null)
+			if (stream == null) {
 				getLogger().severe("Unable to get input stream for resource: " + fileUri);
+			}
 			return stream;
 		} catch (Exception e) {
 			getLogger().log(Level.SEVERE, "Exception while resolving binary variable. Path: " + variable.getIdentifier(), e);
@@ -516,13 +526,15 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 					String[] fileParts = fileNameInEnglish.split(CoreConstants.MINUS);
 					attachmentPath = attachmentPath.substring(attachmentPath.lastIndexOf(CoreConstants.SLASH) + 1);
 					String[] pathParts = attachmentPath.split(CoreConstants.MINUS);
-					if (ArrayUtil.isEmpty(fileParts) || ArrayUtil.isEmpty(pathParts) || fileParts.length != pathParts.length)
+					if (ArrayUtil.isEmpty(fileParts) || ArrayUtil.isEmpty(pathParts) || fileParts.length != pathParts.length) {
 						continue;
+					}
 
 					int sameParts = 0;
 					for (int i = 0; i < fileParts.length; i++) {
-						if (fileParts[i].contains(pathParts[i]) || pathParts[i].contains(fileParts[i]))
+						if (fileParts[i].contains(pathParts[i]) || pathParts[i].contains(fileParts[i])) {
 							sameParts++;
+						}
 					}
 					resourceFound = sameParts == fileParts.length;
 				}
@@ -540,8 +552,9 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 
 	@Override
 	public Object getBinaryVariablePersistentResource(BinaryVariable variable) {
-		if (!STORAGE_TYPE.equals(variable.getStorageType()))
+		if (!STORAGE_TYPE.equals(variable.getStorageType())) {
 			throw new IllegalArgumentException("Unsupported binary variable storage type: "+ variable.getStorageType());
+		}
 
 		try {
 			RepositoryService repository = getRepositoryService();
@@ -552,8 +565,9 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 			} catch (Exception e) {
 				getLogger().log(Level.WARNING, "Unable to get persistent object for resource: " + variable.getIdentifier(), e);
 			}
-			if (res != null && res.exists())
+			if (res != null && res.exists()) {
 				return res;
+			}
 
 			res = getResource(variable, repository);
 

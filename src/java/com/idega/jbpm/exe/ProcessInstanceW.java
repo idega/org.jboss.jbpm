@@ -15,6 +15,7 @@ import com.idega.jbpm.identity.Role;
 import com.idega.jbpm.rights.Right;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.view.ViewSubmission;
+import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 
 /**
@@ -26,48 +27,47 @@ public interface ProcessInstanceW {
 	/**
 	 * @return all task instances, including the ended ones
 	 */
-	public abstract List<TaskInstanceW> getAllTaskInstances();
+	public abstract List<TaskInstanceW> getAllTaskInstances(IWContext iwc);
 
 	/**
 	 * @param processInstanceId
 	 * @return all task instances, that were submitted and won't ever change. Can be treated as
 	 *         documents.
 	 */
-	public abstract List<TaskInstanceW> getSubmittedTaskInstances();
+	public abstract List<TaskInstanceW> getSubmittedTaskInstances(IWContext iwc);
 
-	public abstract List<TaskInstanceW> getSubmittedTaskInstances(String taskInstanceName);
+	public abstract List<TaskInstanceW> getSubmittedTaskInstances(IWContext iwc, String taskInstanceName);
 
 	public abstract TaskInstanceW getLastSubmittedTaskInstance(String taskInstanceName);
 
-	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user, Locale locale);
-	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable);
-	public abstract List<BPMDocument> getSubmittedDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable, List<String> tasksNamesToReturn);
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(IWContext iwc, User user, Locale locale);
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable);
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable, List<String> tasksNamesToReturn);
 
-	public abstract List<TaskInstanceW> getSubmittedTasksForUser(User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable, List<String> tasksNamesToReturn);
+	public abstract List<TaskInstanceW> getSubmittedTasksForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable, List<String> tasksNamesToReturn);
 
-	public abstract List<BPMDocument> getTaskDocumentsForUser(User user,  Locale locale);
-	public abstract List<BPMDocument> getTaskDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity);
-	public abstract List<BPMDocument> getTaskDocumentsForUser(User user, Locale locale, boolean doShowExternalEntity, List<String> tasksNamesToReturn);
+	public abstract List<BPMDocument> getTaskDocumentsForUser(IWContext iwc, User user,  Locale locale);
+	public abstract List<BPMDocument> getTaskDocumentsForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity);
+	public abstract List<BPMDocument> getTaskDocumentsForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity, List<String> tasksNamesToReturn);
 
 	/**
 	 * @param rootToken
 	 * @return not ended task instances for the token provided
 	 */
-	public abstract Collection<TaskInstanceW> getUnfinishedTaskInstances(
-	        Token rootToken);
+	public abstract Collection<TaskInstanceW> getUnfinishedTaskInstances( Token rootToken);
 
 	/**
 	 * @return all process instance task instances, that are has not ended yet (end == null) and not
 	 *         hidden
 	 */
-	public abstract List<TaskInstanceW> getAllUnfinishedTaskInstances();
+	public abstract List<TaskInstanceW> getAllUnfinishedTaskInstances(IWContext iwc);
 
 	/**
 	 *
 	 * @param user
 	 * @return all process instance task instances for provided user, that are has not ended yet (end == null) and not hidden
 	 */
-	public abstract List<TaskInstanceW> getUnfinishedTaskInstances(User user);
+	public abstract List<TaskInstanceW> getUnfinishedTaskInstances(IWContext iwc, User user);
 
 	/**
 	 * @param taskName
@@ -173,18 +173,18 @@ public interface ProcessInstanceW {
 	public abstract List<BPMEmailDocument> getAttachedEmails(User user);
 	public abstract List<BPMEmailDocument> getAttachedEmails(User user, boolean fetchMessage);
 
-	public abstract boolean hasEnded();
+	public abstract boolean hasEnded(IWContext iwc);
 
-	public <T extends Serializable> T getIdOfStartTaskInstance();
+	public <T extends Serializable> T getIdOfStartTaskInstance(IWContext iwc);
 
-	public abstract TaskInstanceW getStartTaskInstance();
+	public abstract TaskInstanceW getStartTaskInstance(IWContext iwc);
 
 	public abstract Collection<Role> getRolesContactsPermissions(Integer userId);
 
 	/**
 	 * @return a list of documents that where added with addAttachment subprocess
 	 */
-	public List<BinaryVariable> getAttachments();
+	public List<BinaryVariable> getAttachments(IWContext iwc);
 
 	/**
 	 * @param variableName
@@ -200,9 +200,9 @@ public interface ProcessInstanceW {
 
 	public abstract User getOwner();
 
-	public TaskInstanceW getSubmittedTaskInstance(String taskName, Map<String, Object> variables);
-	public boolean doSubmitTask(String taskName, Map<String, Object> variables);
-	public TaskInstanceW getSubmitedTask(TaskInstanceW task, ViewSubmission view, Map<String, Object> variables);
+	public TaskInstanceW getSubmittedTaskInstance(IWContext iwc, String taskName, Map<String, Object> variables);
+	public boolean doSubmitTask(IWContext iwc, String taskName, Map<String, Object> variables);
+	public TaskInstanceW getSubmitedTask(IWContext iwc, TaskInstanceW task, ViewSubmission view, Map<String, Object> variables);
 
 	public TaskInstanceW getTaskInstance(String taskName);
 	public List<Long> getIdsOfSubProcesses(Long procInstId);

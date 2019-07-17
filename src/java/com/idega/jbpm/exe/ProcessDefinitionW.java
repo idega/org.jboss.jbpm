@@ -34,7 +34,7 @@ public interface ProcessDefinitionW {
 	 * @param viewSubmission
 	 * @return process instance ID
 	 */
-	public abstract <T extends Serializable> T startProcess(ViewSubmission viewSubmission);
+	public abstract <T extends Serializable> T startProcess(IWContext iwc, ViewSubmission viewSubmission);
 
 	public abstract View loadInitView(Integer initiatorId);
 	public abstract View loadInitView(Integer initiatorId, String identifier);

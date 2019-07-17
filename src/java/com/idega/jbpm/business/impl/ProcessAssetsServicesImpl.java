@@ -85,6 +85,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 				tasksDocuments = loggedInUser == null ?
 						null :
 						bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getTaskDocumentsForUser(
+							iwc,
 							loggedInUser,
 							userLocale,
 							showExternalEntity,
@@ -142,11 +143,11 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			ProcessInstanceW pi = bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId);
 			if (resultType.getName().equals(BPMDocument.class.getName())) {
 				@SuppressWarnings("unchecked")
-				List<C> results = (List<C>) pi.getSubmittedDocumentsForUser(loggedInUser, userLocale, showExternalEntity, allowPDFSigning, tasksNamesToReturn);
+				List<C> results = (List<C>) pi.getSubmittedDocumentsForUser(iwc, loggedInUser, userLocale, showExternalEntity, allowPDFSigning, tasksNamesToReturn);
 				return results;
 			} else if (resultType.getName().equals(TaskInstanceW.class.getName())) {
 				@SuppressWarnings("unchecked")
-				List<C> results = (List<C>) pi.getSubmittedTasksForUser(loggedInUser, userLocale, showExternalEntity, allowPDFSigning, tasksNamesToReturn);
+				List<C> results = (List<C>) pi.getSubmittedTasksForUser(iwc, loggedInUser, userLocale, showExternalEntity, allowPDFSigning, tasksNamesToReturn);
 				return results;
 			}
 		} catch (Exception e) {
@@ -183,10 +184,11 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
 
 			Locale locale = getCurrentLocale();
+			IWContext iwc = getIWContext(false);
 
 			List<BPMAttachment> attachments = new ArrayList<>();
 			for (TaskInstanceW tiW: tasks) {
-				List<BinaryVariable> binaryVariables = tiW.getAttachments();
+				List<BinaryVariable> binaryVariables = tiW.getAttachments(iwc);
 				if (ListUtil.isEmpty(binaryVariables)) {
 					continue;
 				}

@@ -19,6 +19,7 @@ import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewSubmission;
+import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 
 /**
@@ -62,7 +63,7 @@ public interface TaskInstanceW {
 
 	public abstract void setTaskInstance(TaskInstance taskInstance);
 
-	public abstract String getName(Locale locale);
+	public abstract String getName(IWContext iwc, Locale locale);
 
 	public abstract <T> T getTaskInstance();
 	public abstract <T> T getTaskInstance(JbpmContext context);
@@ -100,7 +101,7 @@ public interface TaskInstanceW {
 
 	public boolean hasAttachment(String identifier, String variableName);
 
-	public abstract List<BinaryVariable> getAttachments();
+	public abstract List<BinaryVariable> getAttachments(IWContext iwc);
 
 	public abstract List<BinaryVariable> getAttachments(Variable variable);
 
@@ -144,7 +145,7 @@ public interface TaskInstanceW {
 
 	public Integer getOrder();
 
-	public Map<String, Object> getVariables(Token token);
+	public Map<String, Object> getVariables(IWContext iwc, Token token);
 
 	public String getPDFName(Locale locale);
 

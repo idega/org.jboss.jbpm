@@ -355,7 +355,7 @@ public class ProcessArtifacts {
 				if (!submittedDocument.isSignable() || hasDocumentGeneratedPDF(taskInstanceId)) {
 					// Sign icon will be in attachments' list (if not signed)
 					row.addCell(CoreConstants.EMPTY);
-				} else if (getSigningHandler() != null && !taskInstance.getProcessInstanceW().hasEnded()) {
+				} else if (getSigningHandler() != null && !taskInstance.getProcessInstanceW().hasEnded(iwc)) {
 					row.addCell(new StringBuilder("<img class=\"signGeneratedFormToPdfStyle\" src=\"").append(signPdfUri)
 					                .append("\" onclick=\"CasesBPMAssets.signCaseDocument")
 					                .append(getJavaScriptActionForPDF(iwrb, taskInstanceId, null, message, errorMessage)).append("\" />")
@@ -394,7 +394,8 @@ public class ProcessArtifacts {
 		boolean measure = JBPMUtil.isPerformanceMeasurementOn();
 		long start = measure ? System.currentTimeMillis() : 0;
 		try {
-			List<BinaryVariable> binaryVariables = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId).getAttachments();
+			IWContext iwc = getIWContext(false);
+			List<BinaryVariable> binaryVariables = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId).getAttachments(iwc);
 
 			if (ListUtil.isEmpty(binaryVariables)) {
 				return false;
@@ -586,7 +587,7 @@ public class ProcessArtifacts {
 			}
 
 			if (!StringUtil.isEmpty(params.getInactiveTasksToShow())){
-				List<TaskInstanceW> tasks = getBpmFactory().getProcessInstanceW(processInstanceId).getAllTaskInstances();
+				List<TaskInstanceW> tasks = getBpmFactory().getProcessInstanceW(processInstanceId).getAllTaskInstances(iwc);
 				StringTokenizer st = new StringTokenizer(params.getInactiveTasksToShow(), CoreConstants.SEMICOLON);
 		    	while (st.hasMoreTokens()) {
 		    		String taskName = st.nextToken();
@@ -790,7 +791,7 @@ public class ProcessArtifacts {
 
 				TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
 
-				List<BinaryVariable> binaryVariables = tiw.getAttachments();
+				List<BinaryVariable> binaryVariables = tiw.getAttachments(iwc);
 				ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
 				if (ListUtil.isEmpty(binaryVariables)) {
@@ -851,7 +852,7 @@ public class ProcessArtifacts {
 						getSigningHandler() != null &&
 						tiw.isSignable() &&
 						binaryVariable.isSignable() &&
-						!tiw.getProcessInstanceW().hasEnded()
+						!tiw.getProcessInstanceW().hasEnded(iwc)
 					) {
 						if (isPDFFile(binaryVariable.getFileName()) && (binaryVariable.getSigned() == null || !binaryVariable.getSigned())) {
 							row.addCell(new StringBuilder("<img src=\"").append(image).append("\" onclick=\"CasesBPMAssets.signCaseAttachment")
@@ -1964,7 +1965,7 @@ public class ProcessArtifacts {
 			}
 
 			ProcessInstanceW processInstanceW = tiW.getProcessInstanceW();
-			List<TaskInstanceW> submittedTasks = processInstanceW.getSubmittedTaskInstances();
+			List<TaskInstanceW> submittedTasks = processInstanceW.getSubmittedTaskInstances(CoreUtil.getIWContext());
 			if (ListUtil.isEmpty(submittedTasks)) {
 				return false;
 			}

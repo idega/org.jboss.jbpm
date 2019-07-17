@@ -495,9 +495,11 @@ public class BPMFactoryImpl implements BPMFactory {
 					return manager;
 				}
 			}
+		} else {
+			LOGGER.warning("There are no process managers");
 		}
 
-		throw new RuntimeException("Proc. inst. can not be loaded by ID: " + proInstId);
+		throw new RuntimeException("Proc. inst. can not be loaded by ID: " + proInstId + ". Tried with " + managers);
 	}
 
 	@Override
@@ -600,7 +602,7 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	@Override
-	public <T extends Serializable> T getIdOfStartTaskInstance(T piId) {
+	public <T extends Serializable> T getIdOfStartTaskInstance(T piId, IWContext iwc) {
 		if (piId instanceof Number || (piId != null && StringHandler.isNumeric(piId.toString()))) {
 			@SuppressWarnings("unchecked")
 			T id = (T) getIdOfStartTaskInstance(Long.valueOf(piId.toString()));
@@ -609,7 +611,7 @@ public class BPMFactoryImpl implements BPMFactory {
 
 		ProcessInstanceW piW = getProcessInstanceW(piId);
 		@SuppressWarnings("unchecked")
-		T id  = (T) (piW == null ? null : piW.getIdOfStartTaskInstance());
+		T id  = (T) (piW == null ? null : piW.getIdOfStartTaskInstance(iwc));
 		return id;
 	}
 
