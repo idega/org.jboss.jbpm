@@ -13,6 +13,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
@@ -35,18 +36,23 @@ import javax.persistence.Table;
  * @version $Revision: 1.6 $ Last modified: $Date: 2009/01/18 16:37:29 $ by $Author: civilis $
  */
 @Entity
-@Table(name = Actor.TABLE_NAME)
+@Table(name = Actor.TABLE_NAME, indexes = {
+		@Index(name = "bpm_actor_proc_id_index", columnList = "PROCESS_INSTANCE_ID"),
+		@Index(name = "bpm_actor_proc_role_index", columnList = "ROLE_NAME"),
+		@Index(name = "bpm_actor_id_index", columnList = "ACTOR_ID"),
+		@Index(name = "bpm_actor_proc_name_index", columnList = "PROCESS_NAME")
+})
 @NamedQueries( {
-        // @NamedQuery(name=Actor.getSetByRoleNamesAndProcessNameAndPIIdIsNull,
-        // query="from Actor pr where pr."+Actor.processNameProperty+" = :"+Actor.processNameProperty+" and pr."+Actor.processRoleNameProperty+" in(:"+Actor.processRoleNameProperty+") and pr."+Actor.processInstanceIdProperty+" is null"),
         @NamedQuery(name = Actor.getSetByRoleNamesAndPIId, query = "from Actor b where b."
+        		+ Actor.processInstanceIdProperty
+        		+ " = :"
+        		+ Actor.processInstanceIdProperty
+        		+ " and b."
                 + Actor.processRoleNameProperty
                 + " in(:"
                 + Actor.processRoleNameProperty
-                + ") and b."
-                + Actor.processInstanceIdProperty
-                + " = :"
-                + Actor.processInstanceIdProperty),
+                + ")"
+               ),
         @NamedQuery(name = Actor.getSetByPIIdsAndRoleNames, query = "from Actor pr where pr."
                 + Actor.processInstanceIdProperty
                 + " in(:"
@@ -55,10 +61,7 @@ import javax.persistence.Table;
                 + Actor.processRoleNameProperty
                 + " in (:"
                 + Actor.processRoleNameProperty + ")"),
-        // @NamedQuery(name=Actor.getAllByRoleNamesAndPIIdIsNull,
-        // query="from Actor b where b."+Actor.processRoleNameProperty+" in(:"+Actor.processRoleNameProperty+") and b."+Actor.processInstanceIdProperty+" is null"),
-        @NamedQuery(name = Actor.getAllByActorIds, query = "from Actor b where b."
-                + Actor.actorIdProperty + " in(:" + Actor.actorIdProperty + ")"),
+        @NamedQuery(name = Actor.getAllByActorIds, query = "from Actor b where b." + Actor.actorIdProperty + " in(:" + Actor.actorIdProperty + ")"),
         @NamedQuery(name = Actor.getAllProcessInstancesIdsHavingRoleName, query = "select distinct a."
                 + Actor.processInstanceIdProperty
                 + " from Actor a where a."
@@ -124,7 +127,6 @@ import javax.persistence.Table;
                 + " = true and a."
                 + Actor.processRoleNameProperty
                 + " is not null"),
-
         @NamedQuery(name = Actor.getProcessInstanceIdsByUserIdentity, query = "select act."
                 + Actor.processInstanceIdProperty
                 + " as piid from Actor act "
@@ -169,16 +171,6 @@ import javax.persistence.Table;
                 + Actor.createParam + " desc") })
 @SqlResultSetMapping(name = "processInstanceId", columns = @ColumnResult(name = "processInstanceId"))
 @NamedNativeQueries( {
-/*
-@NamedNativeQuery(name=Actor.getProcessInstanceIdsByUserIdentity, resultSetMapping="processInstanceId",
-		query=
-//						TODO: no need for native here, move to native identities and rewrite in jpaql
-			"select pr.process_instance_id as processInstanceId from "+Actor.TABLE_NAME+" pr "+
-			"inner join "+NativeIdentityBind.TABLE_NAME+" ni "+
-			"on ni.process_role_fk = pr.actor_id "+
-			"where ni.identity_id = :"+NativeIdentityBind.identityIdProperty+" and ni.identity_type = :"+NativeIdentityBind.identityTypeProperty
-),
-*/
 @NamedNativeQuery(name = Actor.getProcessInstanceIdsByUserRolesAndUserIdentity, resultSetMapping = "processInstanceId", query =
 // using native, because jpql doesn't support union
 "select act.process_instance_id as processInstanceId from " + Actor.TABLE_NAME
