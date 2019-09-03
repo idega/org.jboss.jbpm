@@ -99,6 +99,18 @@ public interface ProcessInstanceW {
 	public abstract <T extends Serializable> void setProcessInstanceId(T processInstanceId);
 
 	/**
+	 * 
+	 * @param id is {@link ProcessDefinitionW#getProcessDefinitionId()}
+	 */
+	public abstract <T extends Serializable> void setProcessDefinitionId(T id);
+
+	/**
+	 * 
+	 * @return is {@link ProcessDefinitionW#getProcessDefinitionId()}
+	 */
+	public abstract <T extends Serializable> T getProcessDefinitionId();
+
+	/**
 	 * assigned handler user id (see assignHandler method)
 	 *
 	 * @return
