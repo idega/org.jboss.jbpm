@@ -533,20 +533,24 @@ public class RolesManagerImpl implements RolesManager {
 
 		List<Actor> processActors = new ArrayList<Actor>();
 
-		List<Actor> existingActors = getBpmDAO().getResultList(
-		    Actor.getSetByRoleNamesAndPIId,
-		    Actor.class,
-		    new Param(Actor.processRoleNameProperty, rolesNamesToCreate),
-		    new Param(Actor.processInstanceIdProperty, piId)
-		);
+		boolean checkIfActorsExist = IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.check_if_actors_exist", true);
+		List<Actor> existingActors = checkIfActorsExist ?
+				getBpmDAO().getResultList(
+				    Actor.getSetByRoleNamesAndPIId,
+				    Actor.class,
+				    new Param(Actor.processRoleNameProperty, rolesNamesToCreate),
+				    new Param(Actor.processInstanceIdProperty, piId)
+				) : null;
 
 		// removing from "to create" list roles, that already have actors
-		for (Actor existingActor: existingActors) {
-			if (rolesNamesToCreate.contains(existingActor.getProcessRoleName())) {
-				rolesNamesToCreate.remove(existingActor.getProcessRoleName());
-			}
+		if (!ListUtil.isEmpty(existingActors)) {
+			for (Actor existingActor: existingActors) {
+				if (rolesNamesToCreate.contains(existingActor.getProcessRoleName())) {
+					rolesNamesToCreate.remove(existingActor.getProcessRoleName());
+				}
 
-			processActors.add(existingActor);
+				processActors.add(existingActor);
+			}
 		}
 
 		if (!rolesNamesToCreate.isEmpty()) {
@@ -555,13 +559,17 @@ public class RolesManagerImpl implements RolesManager {
 			Long processInstanceId = piId;
 
 			for (String actorRole : rolesNamesToCreate) {
-				Actor actor = new Actor();
-				actor.setProcessName(processName);
-				actor.setProcessRoleName(actorRole);
-				actor.setProcessInstanceId(processInstanceId);
+				try {
+					Actor actor = new Actor();
+					actor.setProcessName(processName);
+					actor.setProcessRoleName(actorRole);
+					actor.setProcessInstanceId(processInstanceId);
 
-				getBpmDAO().persist(actor);
-				processActors.add(actor);
+					getBpmDAO().persist(actor);
+					processActors.add(actor);
+				} catch (Exception e) {
+					logger.log(Level.WARNING, "Error creating actor " + actorRole + " for process " + processName + ", proc. inst. " + processInstanceId, e);
+				}
 			}
 		}
 
