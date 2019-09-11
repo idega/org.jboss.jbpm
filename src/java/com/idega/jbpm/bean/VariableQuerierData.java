@@ -111,6 +111,8 @@ public class VariableQuerierData implements Serializable {
 
 	/**
 	 * @param name same as {@link BPMProcessVariable#getName()}.
+	 * @param order
+	 * @param felixible if use 'like' expression
 	 * @param value same as {@link List} of
 	 * {@link BPMProcessVariable#getRealValue()}.
 	 * @param searchExpression same as
