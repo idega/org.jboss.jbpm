@@ -1,8 +1,8 @@
 package com.idega.jbpm.data;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
@@ -17,6 +17,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.idega.jbpm.exe.ProcessConstants;
+import com.idega.util.StringUtil;
 
 /**
  * Actor permissions for task or taskInstance. TaskInstance permissions should override ones
@@ -218,21 +219,25 @@ public class ActorPermissions implements Serializable {
 
 	public static final String actorsProperty = "actors";
 	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, mappedBy = Actor.actorPermissionsProperty, targetEntity = Actor.class)
-	private List<Actor> actors;
+	private Set<Actor> actors;
 
-	public List<Actor> getActors() {
+	public Set<Actor> getActors() {
 		return actors;
 	}
 
-	public void setActors(List<Actor> actors) {
+	public void setActors(Set<Actor> actors) {
 		this.actors = actors;
 	}
 
 	public void addActor(Actor actor) {
-		List<Actor> actors = getActors();
+		if (actor == null) {
+			return;
+		}
+
+		Set<Actor> actors = getActors();
 
 		if (actors == null) {
-			actors = new ArrayList<Actor>();
+			actors = new HashSet<>();
 			setActors(actors);
 		}
 
@@ -357,6 +362,39 @@ public class ActorPermissions implements Serializable {
 
 	public void setCanSeeAttachmentsOfRoleName(String canSeeAttachmentsOfRoleName) {
 		this.canSeeAttachmentsOfRoleName = canSeeAttachmentsOfRoleName;
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (object instanceof ActorPermissions) {
+			ActorPermissions perm = (ActorPermissions) object;
+
+			Long id = getId();
+			Long permId = perm.getId();
+			if (id != null && permId != null && id.longValue() == permId.longValue()) {
+				return true;
+			}
+
+			String role = getRoleName();
+			String permRole = perm.getRoleName();
+			if (!StringUtil.isEmpty(role) && !StringUtil.isEmpty(permRole) && !role.equals(permRole)) {
+				return false;
+			}
+
+			Long taskId = getTaskId();
+			Long permTaskId = perm.getTaskId();
+			if (taskId != null && permTaskId != null && taskId.longValue() == permTaskId.longValue()) {
+				return true;
+			}
+
+			Long taskInstId = getTaskInstanceId();
+			Long permTaskInstId = perm.getTaskInstanceId();
+			if (taskInstId != null && permTaskInstId != null && taskInstId.longValue() == permTaskInstId.longValue()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }

@@ -51,6 +51,7 @@ import com.idega.jbpm.identity.permission.BPMTypedPermission;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.jbpm.identity.permission.RoleAccessPermissionsHandler;
 import com.idega.jbpm.rights.Right;
+import com.idega.jbpm.utils.JBPMUtil;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
@@ -204,11 +205,7 @@ public class RolesManagerImpl implements RolesManager {
 			return;
 		}
 
-		List<Actor> actors = getBpmDAO().getResultList(
-		    Actor.getSetByRoleNamesAndPIId, Actor.class,
-		    new Param(Actor.processRoleNameProperty, rolesNames),
-		    new Param(Actor.processInstanceIdProperty, processInstanceId)
-		);
+		List<Actor> actors = getProcessRoles(rolesNames, processInstanceId);
 
 		modifyIdentitiesForActors(actors, identity, processInstanceId, remove);
 	}
@@ -241,7 +238,7 @@ public class RolesManagerImpl implements RolesManager {
 					}
 
 					Permission permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstanceId);
-					getAuthorizationService().checkPermission(permission);
+					checkPermission(permission);
 					return null;
 				}
 			});
@@ -254,6 +251,10 @@ public class RolesManagerImpl implements RolesManager {
 
 	@Override
 	public void checkPermission(Permission permission) throws BPMAccessControlException {
+		if (permission instanceof BPMTypedPermission && JBPMUtil.isAlwaysFullAccess()) {
+			return;
+		}
+
 		try {
 			getAuthorizationService().checkPermission(permission);
 		} catch (AccessControlException e) {
@@ -287,7 +288,7 @@ public class RolesManagerImpl implements RolesManager {
 					}
 
 					Permission permission = getPermissionsFactory().getTaskInstanceSubmitPermission(false, taskInstanceId);
-					getAuthorizationService().checkPermission(permission);
+					checkPermission(permission);
 					return null;
 				}
 			});
@@ -376,16 +377,11 @@ public class RolesManagerImpl implements RolesManager {
 			    new Param(Actor.processInstanceIdProperty, piId));
 		} else {
 
-			actors = getBpmDAO().getResultList(Actor.getSetByRoleNamesAndPIId,
-			    Actor.class,
-			    new Param(Actor.processRoleNameProperty, rolesNames),
-			    new Param(Actor.processInstanceIdProperty, piId));
+			actors = getProcessRoles(rolesNames, piId);
 		}
 
 		if (perm != null && actors != null && !actors.isEmpty()) {
 			// filtering roles, that the permission doesn't let to see
-
-			AuthorizationService authServ = getAuthorizationService();
 
 			ArrayList<Actor> filteredActors = new ArrayList<Actor>(actors
 			        .size());
@@ -404,7 +400,7 @@ public class RolesManagerImpl implements RolesManager {
 				try {
 					// check the permission provided, for instance, if current
 					// user can see contacts of the role
-					authServ.checkPermission((Permission) perm);
+					checkPermission((Permission) perm);
 					filteredActors.add(processRole);
 				} catch (AccessControlException e) {
 				}
@@ -536,10 +532,10 @@ public class RolesManagerImpl implements RolesManager {
 		boolean checkIfActorsExist = IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.check_if_actors_exist", true);
 		List<Actor> existingActors = checkIfActorsExist ?
 				getBpmDAO().getResultList(
-				    Actor.getSetByRoleNamesAndPIId,
-				    Actor.class,
-				    new Param(Actor.processRoleNameProperty, rolesNamesToCreate),
-				    new Param(Actor.processInstanceIdProperty, piId)
+					Actor.getSetByRoleNamesAndPIId,
+					Actor.class,
+					new Param(Actor.processRoleNameProperty, rolesNamesToCreate),
+					new Param(Actor.processInstanceIdProperty, piId)
 				) : null;
 
 		// removing from "to create" list roles, that already have actors
@@ -558,7 +554,7 @@ public class RolesManagerImpl implements RolesManager {
 			String processName = procDefName;
 			Long processInstanceId = piId;
 
-			for (String actorRole : rolesNamesToCreate) {
+			for (String actorRole: rolesNamesToCreate) {
 				try {
 					Actor actor = new Actor();
 					actor.setProcessName(processName);
@@ -589,10 +585,10 @@ public class RolesManagerImpl implements RolesManager {
 
 	@Override
 	@Transactional(readOnly = false)
-	public void createTaskRolesPermissions(JbpmContext context, Long taskId, List<Role> roles) {
+	public List<ActorPermissions> createTaskRolesPermissions(JbpmContext context, Long taskId, List<Role> roles) {
 		if (ListUtil.isEmpty(roles)) {
 			logger.warning("Roles are not provided to create permissions for task " + taskId);
-			return;
+			return null;
 		}
 
 		Set<String> rolesNames = new HashSet<String>(roles.size());
@@ -606,6 +602,11 @@ public class RolesManagerImpl implements RolesManager {
 		    new Param(ActorPermissions.taskIdProperty, taskId),
 		    new Param(ActorPermissions.roleNameProperty, rolesNames)
 		);
+
+		List<ActorPermissions> results = new ArrayList<>();
+		if (!ListUtil.isEmpty(perms)) {
+			results.addAll(perms);
+		}
 
 		// if eq, then all perms are created
 		if (!ListUtil.isEmpty(perms) && perms.size() < rolesNames.size()) {
@@ -636,17 +637,18 @@ public class RolesManagerImpl implements RolesManager {
 				perm.setCaseHandlerPermission(role.getAccesses().contains(Access.caseHandler));
 
 				getBpmDAO().persist(perm);
+				results.add(perm);
 			}
 		}
+
+		return results;
 	}
 
 	@Transactional(readOnly = false)
-	public List<ActorPermissions> createRolesPermissions(List<Role> roles,
-	        ProcessInstance processInstance) {
-
+	public List<ActorPermissions> createRolesPermissions(List<Role> roles, ProcessInstance processInstance) {
 		List<ActorPermissions> createdPermissions = null;
 
-		if (!roles.isEmpty()) {
+		if (!ListUtil.isEmpty(roles)) {
 
 			HashSet<String> rolesNames = new HashSet<String>(roles.size());
 			boolean hasContactsPermissions = false;
@@ -663,19 +665,13 @@ public class RolesManagerImpl implements RolesManager {
 				}
 			}
 
-			for (Role role : roles) {
-
+			for (Role role: roles) {
 				ActorPermissions perm = new ActorPermissions();
 				perm.setRoleName(role.getRoleName());
-				perm.setReadPermission(role.getAccesses() != null
-				        && role.getAccesses().contains(Access.read));
-				perm.setWritePermission(role.getAccesses() != null
-				        && role.getAccesses().contains(Access.write));
-				perm.setModifyRightsPermission(role.getAccesses() != null
-				        && role.getAccesses()
-				                .contains(Access.modifyPermissions));
-				perm.setCaseHandlerPermission(role.getAccesses() != null
-				        && role.getAccesses().contains(Access.caseHandler));
+				perm.setReadPermission(role.getAccesses() != null && role.getAccesses().contains(Access.read));
+				perm.setWritePermission(role.getAccesses() != null && role.getAccesses().contains(Access.write));
+				perm.setModifyRightsPermission(role.getAccesses() != null && role.getAccesses().contains(Access.modifyPermissions));
+				perm.setCaseHandlerPermission(role.getAccesses() != null && role.getAccesses().contains(Access.caseHandler));
 
 				getBpmDAO().persist(perm);
 
@@ -686,12 +682,9 @@ public class RolesManagerImpl implements RolesManager {
 			}
 
 			if (hasContactsPermissions) {
-
-				List<ActorPermissions> createdContactsPermissions = createRolesContactsPermissions(
-				    roles, processInstance);
+				List<ActorPermissions> createdContactsPermissions = createRolesContactsPermissions(roles, processInstance);
 
 				if (createdContactsPermissions != null) {
-
 					if (createdPermissions == null) {
 						createdPermissions = createdContactsPermissions;
 					} else {
@@ -847,15 +840,20 @@ public class RolesManagerImpl implements RolesManager {
 	@Override
 	@Transactional(readOnly = false)
 	public void assignTaskRolesPermissions(JbpmContext context, Long taskId, List<Role> roles, Long processInstanceId) {
+		if (JBPMUtil.isAlwaysFullAccess()) {
+			logger.info("Skipping assigning task roles permissions for task: " + taskId + ", roles: " + roles + " and proc. inst. " + processInstanceId);
+			return;
+		}
+
 		if (ListUtil.isEmpty(roles)) {
 			return;
 		}
 
-		createTaskRolesPermissions(context, taskId, roles);
+		List<ActorPermissions> taskRolesPermissions = createTaskRolesPermissions(context, taskId, roles);
 
 		Set<String> rolesNames = new HashSet<String>(roles.size());
 
-		for (Role role : roles) {
+		for (Role role: roles) {
 			rolesNames.add(role.getRoleName());
 		}
 
@@ -867,17 +865,12 @@ public class RolesManagerImpl implements RolesManager {
 			for (Iterator<Actor> actorsIterator = actors.iterator(); actorsIterator.hasNext();) {
 				Actor actor = actorsIterator.next();
 
-				List<ActorPermissions> perms = actor.getActorPermissions();
+				Set<ActorPermissions> perms = actor.getActorPermissions();
 				if (!ListUtil.isEmpty(perms)) {
-
-					// look, if this actor has permission for the task (and it
-					// is not a task
-					// instance permission). If true, then we remove the actor
-					// from actors list of
-					// further processing
+					//	If this actor has permission for the task (and it is not a task instance permission). If true, then we remove the actor from actors list of further processing
 					for (ActorPermissions perm : perms) {
 						if (taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null) {
-//							this actor already has permission for task (not task instance), so we skip it
+							//	This actor already has permission for task (not task instance), so we skip it
 							actorsIterator.remove();
 							break;
 						}
@@ -885,21 +878,21 @@ public class RolesManagerImpl implements RolesManager {
 				}
 			}
 
-			if (!actors.isEmpty()) {
-
-				// actors, that don't have task permissions, will be assigned
-				// with them here
-
-				List<ActorPermissions> permsToSet = getBpmDAO().getResultList(
-				    ActorPermissions.getSetByTaskIdAndProcessRoleNames,
-				    ActorPermissions.class,
-				    new Param(ActorPermissions.taskIdProperty, taskId),
-				    new Param(ActorPermissions.roleNameProperty, rolesNames)
-				);
+			if (!ListUtil.isEmpty(actors)) {
+				// 	Actors, that don't have task permissions, will be assigned with them here
+				List<ActorPermissions> permsToSet = ListUtil.isEmpty(taskRolesPermissions) ?
+						getBpmDAO().getResultList(
+								ActorPermissions.getSetByTaskIdAndProcessRoleNames,
+								ActorPermissions.class,
+								new Param(ActorPermissions.taskIdProperty, taskId),
+								new Param(ActorPermissions.roleNameProperty, rolesNames)
+						) :
+						taskRolesPermissions;
 
 				for (Actor actor: actors) {
+					String role = actor.getProcessRoleName();
 					for (ActorPermissions perm: permsToSet) {
-						if (actor.getProcessRoleName().equals(perm.getRoleName())) {
+						if (role.equals(perm.getRoleName())) {
 							actor.addActorPermission(perm);
 						}
 					}
@@ -912,24 +905,20 @@ public class RolesManagerImpl implements RolesManager {
 
 	@Override
 	@Transactional(readOnly = false)
-	public void assignRolesPermissions(List<Role> roles,
-	        ProcessInstance processInstance) {
-
-		if (roles.isEmpty()) {
+	public void assignRolesPermissions(List<Role> roles,  ProcessInstance processInstance) {
+		if (ListUtil.isEmpty(roles)) {
 			return;
 		}
 
-		List<ActorPermissions> rolesPermissions = createRolesPermissions(roles,
-		    processInstance);
+		List<ActorPermissions> rolesPermissions = createRolesPermissions(roles, processInstance);
 
-		HashSet<String> rolesNames = new HashSet<String>(roles.size());
+		Set<String> rolesNames = new HashSet<String>(roles.size());
 
 		for (Role role : roles) {
 			rolesNames.add(role.getRoleName());
 		}
 
-		List<Actor> rolesActors = getBpmDAO().getProcessRoles(rolesNames,
-		    processInstance.getId());
+		List<Actor> rolesActors = getProcessRoles(rolesNames, processInstance.getId());
 
 		if (rolesActors != null && !rolesActors.isEmpty()) {
 
@@ -942,11 +931,10 @@ public class RolesManagerImpl implements RolesManager {
 
 					if (roleActor.getProcessRoleName().equals(
 					    perm.getRoleName())) {
-						List<ActorPermissions> rolePerms = roleActor
-						        .getActorPermissions();
+						Set<ActorPermissions> rolePerms = roleActor.getActorPermissions();
 
 						if (rolePerms == null) {
-							rolePerms = new ArrayList<ActorPermissions>();
+							rolePerms = new HashSet<ActorPermissions>();
 							roleActor.setActorPermissions(rolePerms);
 						}
 
@@ -1041,12 +1029,7 @@ public class RolesManagerImpl implements RolesManager {
 			    new Param(Actor.processInstanceIdProperty, processInstanceId));
 		} else {
 
-			actors = getBpmDAO().getResultList(
-			    Actor.getSetByRoleNamesAndPIId,
-			    Actor.class,
-			    new Param(Actor.processInstanceIdProperty, processInstanceId),
-			    new Param(Actor.processRoleNameProperty, Arrays
-			            .asList(new String[] { processRoleName })));
+			actors = getProcessRoles(Arrays.asList(processRoleName), processInstanceId);
 		}
 
 		/*
@@ -1248,7 +1231,7 @@ public class RolesManagerImpl implements RolesManager {
 		if (setDefault) {
 			if (actor != null) {
 				// only caring if there's an specific actor for the user
-				List<ActorPermissions> perms = actor.getActorPermissions();
+				Set<ActorPermissions> perms = actor.getActorPermissions();
 				if (perms != null) {
 					for (ActorPermissions perm : perms) {
 						getBpmDAO().remove(perm);
@@ -1258,7 +1241,7 @@ public class RolesManagerImpl implements RolesManager {
 			}
 		} else if ("all".equals(role.getRoleName())) {
 		} else {
-			List<ActorPermissions> perms = actor.getActorPermissions();
+			Set<ActorPermissions> perms = actor.getActorPermissions();
 			ActorPermissions canSeeRolePerm = null;
 			if (perms != null) {
 				for (ActorPermissions perm : perms) {
@@ -1320,7 +1303,7 @@ public class RolesManagerImpl implements RolesManager {
 
 				// only caring if there's an specific actor for the user
 
-				List<ActorPermissions> perms = actor.getActorPermissions();
+				Set<ActorPermissions> perms = actor.getActorPermissions();
 
 				if (perms != null) {
 
@@ -1337,7 +1320,7 @@ public class RolesManagerImpl implements RolesManager {
 
 		} else {
 
-			List<ActorPermissions> perms = actor.getActorPermissions();
+			Set<ActorPermissions> perms = actor.getActorPermissions();
 			ActorPermissions canSeeRolePerm = null;
 
 			if (perms != null) {
@@ -1446,7 +1429,7 @@ public class RolesManagerImpl implements RolesManager {
 		for (Actor actor : actors) {
 			Role role = new Role(actor.getProcessRoleName());
 
-			List<ActorPermissions> perms = actor.getActorPermissions();
+			Set<ActorPermissions> perms = actor.getActorPermissions();
 			if (ListUtil.isEmpty(perms)) {
 				List<Param> params = new ArrayList<>();
 				if (taskId != null) {
@@ -1455,7 +1438,8 @@ public class RolesManagerImpl implements RolesManager {
 				if (taskInstanceId != null) {
 					params.add(new Param(ActorPermissions.taskInstanceIdProperty, taskInstanceId));
 				}
-				perms = getBpmDAO().getResultList(ActorPermissions.getSetByTaskIdOrTaskInstanceId, ActorPermissions.class, ArrayUtil.convertListToArray(params));
+				List<ActorPermissions> results = getBpmDAO().getResultList(ActorPermissions.getSetByTaskIdOrTaskInstanceId, ActorPermissions.class, ArrayUtil.convertListToArray(params));
+				perms = ListUtil.isEmpty(results) ? new HashSet<>() : new HashSet<>(results);
 			}
 
 			ArrayList<Access> taskInstanceScopeANDVar = null;
@@ -1584,7 +1568,7 @@ public class RolesManagerImpl implements RolesManager {
 			HashMultimap<String, ActorActorPerm> candidates = HashMultimap.create();
 
 			for (ActorPermissions perm : perms) {
-				List<Actor> actors = perm.getActors();
+				Collection<Actor> actors = perm.getActors();
 				if(ListUtil.isEmpty(actors)){
 					continue;
 				}
@@ -1850,11 +1834,11 @@ public class RolesManagerImpl implements RolesManager {
 						Actor actorToSetPermissionTo = actorsToSetPermissionsTo
 						        .get(i);
 
-						List<ActorPermissions> perms = actorToSetPermissionTo
+						Set<ActorPermissions> perms = actorToSetPermissionTo
 						        .getActorPermissions();
 
 						if (ListUtil.isEmpty(perms)) {
-							perms = new ArrayList<ActorPermissions>(1);
+							perms = new HashSet<ActorPermissions>(1);
 							actorToSetPermissionTo.setActorPermissions(perms);
 						}
 
@@ -1906,7 +1890,7 @@ public class RolesManagerImpl implements RolesManager {
 								        .setVariableIdentifier(variableIdentifier);
 								varPerm.setReadPermission(setReadPermission);
 								varPerm.setWritePermission(setWritePermission);
-								varPerm.setActors(actorsToSetPermissionsTo);
+								varPerm.setActors(new HashSet<>(actorsToSetPermissionsTo));
 
 								getBpmDAO().persist(varPerm);
 								perms.add(varPerm);
@@ -1949,7 +1933,7 @@ public class RolesManagerImpl implements RolesManager {
 								tiPerm.setVariableIdentifier(null);
 								tiPerm.setWritePermission(setWritePermission);
 								tiPerm.setReadPermission(setReadPermission);
-								tiPerm.setActors(actorsToSetPermissionsTo);
+								tiPerm.setActors(new HashSet<>(actorsToSetPermissionsTo));
 
 								getBpmDAO().persist(tiPerm);
 								perms.add(tiPerm);
@@ -2013,7 +1997,7 @@ public class RolesManagerImpl implements RolesManager {
 										tiPerm
 										        .setReadPermission(setReadPermission);
 										tiPerm
-										        .setActors(actorsToSetPermissionsTo);
+										        .setActors(new HashSet<>(actorsToSetPermissionsTo));
 
 										getBpmDAO().persist(tiPerm);
 										perms.add(tiPerm);
@@ -2145,8 +2129,11 @@ public class RolesManagerImpl implements RolesManager {
 	}
 
 	@Override
-	public List<Actor> getProcessRoles(Collection<String> rolesNames,
-	        Long processInstanceId) {
+	public List<Actor> getProcessRoles(Collection<String> rolesNames, Long processInstanceId) {
+		if (processInstanceId == null || ListUtil.isEmpty(rolesNames)) {
+			return null;
+		}
+
 		return getBpmDAO().getProcessRoles(rolesNames, processInstanceId);
 	}
 

@@ -218,9 +218,12 @@ public class ProcessArtifacts {
 		return business;
 	}
 
-	private Boolean isVisibleToOtherRoles(Long taskInstanceId, Long processInstanceId){
+	private Boolean isVisibleToOtherRoles(Long taskInstanceId, Long processInstanceId, Collection<Role> userRoles, Set<String> nativeRoles) {
+		if (!IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.ui_check_if_public_task", false)) {
+			return Boolean.TRUE;
+		}
+
 		Collection<Role> roles;
-		Collection<Role> userRoles;
 
 		if (taskInstanceId != null && processInstanceId != null) {
 			// TODO: add method to taskInstanceW and get permissions from there
@@ -229,19 +232,6 @@ public class ProcessArtifacts {
 			        .getTaskInstance(taskInstanceId);
 
 			roles = tiw.getRolesPermissions();
-			com.idega.user.data.User user = null;
-			try {
-				user = getUserBiz().getUserHome().findByPrimaryKey(IWContext.getCurrentInstance().getLoggedInUser().getId());
-			} catch (Exception e) {
-				return Boolean.TRUE;
-			}
-			if (user == null) {
-				return Boolean.TRUE;
-			}
-
-			userRoles = getRoleManager().getUserRoles(processInstanceId, user);
-			Set<String> nativeRoles = getRoleManager().getUserNativeRoles(user);
-
 			if (ListUtil.isEmpty(roles)) {
 				return Boolean.FALSE;
 			} else {
@@ -249,14 +239,18 @@ public class ProcessArtifacts {
 					String roleName = role.getRoleName();
 					if (role.getAccesses() != null && role.getAccesses().contains(Access.read)) {
 						Boolean userHasThisRole = Boolean.FALSE;
-						for (Role userRole: userRoles) {
-							if (userRole.getRoleName().equals(roleName)) {
-								userHasThisRole = Boolean.TRUE;
+						if (!ListUtil.isEmpty(userRoles)) {
+							for (Role userRole: userRoles) {
+								if (userRole.getRoleName().equals(roleName)) {
+									userHasThisRole = Boolean.TRUE;
+								}
 							}
 						}
-						for (String userRole: nativeRoles) {
-							if (userRole.equals(roleName)) {
-								userHasThisRole = Boolean.TRUE;
+						if (!ListUtil.isEmpty(nativeRoles)) {
+							for (String userRole: nativeRoles) {
+								if (userRole.equals(roleName)) {
+									userHasThisRole = Boolean.TRUE;
+								}
 							}
 						}
 						if (userHasThisRole.equals(Boolean.FALSE)) {
@@ -295,6 +289,20 @@ public class ProcessArtifacts {
 		boolean showPDFName = iwc.getIWMainApplication().getSettings().getBoolean("bpm.show_pdf_name_in_list", Boolean.FALSE);
 
 		ProcessManager pm = getBpmFactory().getProcessManagerByProcessInstanceId(processInstanceId);
+
+		List<Role> userRolesTmp = null;
+		Set<String> nativeRolesTmp = null;
+		if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.ui_check_if_public_task", false)) {
+			com.idega.user.data.User user = null;
+			try {
+				user = getUserBiz().getUserHome().findByPrimaryKey(IWContext.getCurrentInstance().getLoggedInUser().getId());
+			} catch (Exception e) {}
+			userRolesTmp = user == null ? null : getRoleManager().getUserRoles(processInstanceId, user);
+			nativeRolesTmp = user == null ? null : getRoleManager().getUserNativeRoles(user);
+		}
+		List<Role> userRoles = userRolesTmp;
+		Set<String> nativeRoles = nativeRolesTmp;
+
 		processDocuments.stream().forEach((submittedDocument) -> {
 			Long taskInstanceId = submittedDocument.getTaskInstanceId();
 
@@ -315,7 +323,7 @@ public class ProcessArtifacts {
 				styleClass = "pdfViewableItem";
 			}
 			styleClass = (StringUtil.isEmpty(styleClass) ? styleClass : styleClass.concat(CoreConstants.SPACE)).concat(
-					isVisibleToOtherRoles(taskInstanceId, processInstanceId) ?
+					isVisibleToOtherRoles(taskInstanceId, processInstanceId, userRoles, nativeRoles) ?
 							"public_task" : "private_task"
 			);
 			row.setStyleClass(styleClass);

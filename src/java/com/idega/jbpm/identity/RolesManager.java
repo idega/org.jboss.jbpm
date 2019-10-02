@@ -11,6 +11,7 @@ import org.jbpm.graph.exe.ProcessInstance;
 import com.idega.core.accesscontrol.business.AccessController;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.jbpm.data.Actor;
+import com.idega.jbpm.data.ActorPermissions;
 import com.idega.jbpm.data.NativeIdentityBind;
 import com.idega.jbpm.identity.permission.Access;
 import com.idega.jbpm.identity.permission.BPMTypedPermission;
@@ -59,7 +60,7 @@ public interface RolesManager {
 	public abstract Collection<User> getAllUsersForRoles(
 	        Collection<String> rolesNames, long piId, BPMTypedPermission perm);
 
-	public abstract void createTaskRolesPermissions(JbpmContext context, Long taskId, List<Role> roles);
+	public abstract List<ActorPermissions> createTaskRolesPermissions(JbpmContext context, Long taskId, List<Role> roles);
 
 	/**
 	 * creates actors for process roles provided, for given process instance

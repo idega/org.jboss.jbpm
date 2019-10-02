@@ -13,4 +13,11 @@ public class JBPMUtil {
 		return Boolean.FALSE;
 	}
 
+	public static boolean isAlwaysFullAccess() {
+		try {
+			return IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.skip_full_access_check", true);
+		} catch (Exception e) {}
+		return Boolean.FALSE;
+	}
+
 }

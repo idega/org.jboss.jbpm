@@ -2,7 +2,9 @@ package com.idega.jbpm.data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
@@ -24,6 +26,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
+
+import com.idega.util.StringUtil;
 
 /**
  * Actor represents the role specified in process definition, some user, or users group. Actor id is
@@ -236,7 +240,7 @@ public class Actor implements Serializable {
 	@ManyToMany(targetEntity = ActorPermissions.class, cascade = {
 	        CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH }, fetch = FetchType.LAZY)
 	@JoinTable(name = "BPM_ACT_PERMS", joinColumns = @JoinColumn(name = "ACTOR_ID"), inverseJoinColumns = @JoinColumn(name = "PERMISSION_ID"))
-	private List<ActorPermissions> actorPermissions;
+	private Set<ActorPermissions> actorPermissions;
 
 	public String getProcessRoleName() {
 		return processRoleName;
@@ -289,19 +293,23 @@ public class Actor implements Serializable {
 		this.processName = processName;
 	}
 
-	public List<ActorPermissions> getActorPermissions() {
+	public Set<ActorPermissions> getActorPermissions() {
 		return actorPermissions;
 	}
 
-	public void setActorPermissions(List<ActorPermissions> actorPermissions) {
+	public void setActorPermissions(Set<ActorPermissions> actorPermissions) {
 		this.actorPermissions = actorPermissions;
 	}
 
 	public void addActorPermission(ActorPermissions perm) {
-		List<ActorPermissions> perms = getActorPermissions();
+		if (perm == null) {
+			return;
+		}
+
+		Set<ActorPermissions> perms = getActorPermissions();
 
 		if (perms == null) {
-			perms = new ArrayList<ActorPermissions>();
+			perms = new HashSet<ActorPermissions>();
 			setActorPermissions(perms);
 		}
 
@@ -309,7 +317,30 @@ public class Actor implements Serializable {
 	}
 
 	@Override
-	public String toString() {
-		return "ID: " + getActorId() + ", role: " + getProcessRoleName() + ", proc. inst. ID: " + getProcessInstanceId() + ", process name: " + getProcessName();
+	public boolean equals(Object object) {
+		if (object instanceof Actor) {
+			Actor actor = (Actor) object;
+
+			Long id = getActorId();
+			Long actorId = actor.getActorId();
+			if (id != null && actorId != null && id.longValue() == actorId.longValue()) {
+				return true;
+			}
+
+			String role = getProcessRoleName();
+			String actorRole = actor.getProcessRoleName();
+			if (!StringUtil.isEmpty(role) && !StringUtil.isEmpty(actorRole) && !role.equals(actorRole)) {
+				return false;
+			}
+
+			Long piId = getProcessInstanceId();
+			Long actorPiId = actor.getProcessInstanceId();
+			if (piId != null && actorPiId != null && piId.longValue() == actorPiId.longValue()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
+
 }

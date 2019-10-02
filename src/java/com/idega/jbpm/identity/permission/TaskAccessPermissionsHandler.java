@@ -31,6 +31,7 @@ import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.PermissionHandleResult.PermissionHandleResultStatus;
+import com.idega.jbpm.utils.JBPMUtil;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 import com.idega.util.ArrayUtil;
@@ -71,8 +72,9 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 	private static final int TA = 3;
 
 	private BPMContext getBPMContext() {
-		if (bpmContext == null)
+		if (bpmContext == null) {
 			ELUtil.getInstance().autowire(this);
+		}
 		return bpmContext;
 	}
 
@@ -108,9 +110,9 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 
 					if (loggedInActorId == null) {
 						if (PermissionsFactoryImpl.submitTaskParametersPermType.equals(permission.getType()) ||
-							PermissionsFactoryImpl.viewTaskInstanceVariablePermType.equals(permission.getType()))
+							PermissionsFactoryImpl.viewTaskInstanceVariablePermType.equals(permission.getType())) {
 							result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
-						else if (PermissionsFactoryImpl.viewTaskInstancePermType.equals(permission.getType())) {
+						} else if (PermissionsFactoryImpl.viewTaskInstancePermType.equals(permission.getType())) {
 							Long taskInstanceId = null;
 							Object temp = permission.getAttribute(taskInstanceAtt);
 							if (temp instanceof Number) {
@@ -129,26 +131,30 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
-							if (ListUtil.isEmpty(permissionsForEveryone))
+							if (ListUtil.isEmpty(permissionsForEveryone)) {
 								result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
-							else {
+							} else {
 								for (Object[] permissions: permissionsForEveryone) {
-									if (ArrayUtil.isEmpty(permissions))
+									if (ArrayUtil.isEmpty(permissions)) {
 										continue;
+									}
 
 									for (Object object: permissions) {
 										if (object instanceof ActorPermissions) {
 											ActorPermissions actorPermissions = (ActorPermissions) object;
-											if (actorPermissions.getReadPermission() != null && actorPermissions.getReadPermission())
+											if (actorPermissions.getReadPermission() != null && actorPermissions.getReadPermission()) {
 												result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+											}
 										}
 									}
 								}
 							}
-							if (result == null)
+							if (result == null) {
 								result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
-						} else
+							}
+						} else {
 							result = new PermissionHandleResult(PermissionHandleResultStatus.noAccess, "Not logged in");
+						}
 					} else {
 						userId = new Integer(loggedInActorId);
 					}
@@ -173,8 +179,9 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 							                + taskInstance.getActorId()
 							                + ", taskInstanceId: "
 							                + taskInstance.getId());
-						} else
+						} else {
 							result = new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+						}
 					} else {
 						// Super admin always gets an access
 						if (isCurrentUserSuperAdmin()) {
@@ -187,10 +194,11 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 
 								String variableIdentifier = permission.getAttribute(variableIdentifierAtt);
 
-								if (StringUtil.isEmpty(variableIdentifier))
+								if (StringUtil.isEmpty(variableIdentifier)) {
 									throw new IllegalArgumentException(
 									        "Illegal permission passed. Passed of type=" + PermissionsFactoryImpl.viewTaskInstanceVariablePermType
 									                + ", but not variable identifier provided");
+								}
 
 								result = checkPermissionsForTaskInstance(userId, taskInstance, accessesWanted, variableIdentifier);
 							} else {
@@ -235,6 +243,10 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 			final Collection<Access> accesses,
 			final String variableIdentifier
 	) {
+		if (JBPMUtil.isAlwaysFullAccess()) {
+			return new PermissionHandleResult(PermissionHandleResultStatus.hasAccess);
+		}
+
 		return getBPMContext().execute(new JbpmCallback<PermissionHandleResult>() {
 
 			@Override
@@ -293,9 +305,10 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 
 								putAccess(accessesForRoles, hasTaskInstanceScopeANDVarAccess, TI_VAR, roleName);
 
-								if (hasTaskInstanceScopeANDVarAccess)
+								if (hasTaskInstanceScopeANDVarAccess) {
 									// We have the permission for variable, so we can search no more
 									break;
+								}
 							}
 						}
 
@@ -305,9 +318,10 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 
 							putAccess(accessesForRoles, hasTaskInstanceScopeAccess, TI, roleName);
 
-							if (hasTaskInstanceScopeAccess && variableIdentifier == null)
+							if (hasTaskInstanceScopeAccess && variableIdentifier == null) {
 								// We have access for task instance, and don't need access for variable, so we can search no more
 								break;
+							}
 						}
 					} else if (taskId.equals(perm.getTaskId()) && perm.getTaskInstanceId() == null) {
 						// Permission for task
@@ -356,10 +370,11 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 					}
 				}
 
-				if (result == null)
+				if (result == null) {
 					result = new PermissionHandleResult(
 					        PermissionHandleResultStatus.noAccess,
 					        "No permission for user=" + userId + ", for taskInstance=" + taskInstance.getId() + ", variableIdentifier=" + variableIdentifier);
+				}
 
 				return result;
 			}
@@ -393,8 +408,9 @@ public class TaskAccessPermissionsHandler extends DefaultSpringBean implements B
 	protected boolean isCurrentUserSuperAdmin() {
 		try {
 			IWContext iwc = CoreUtil.getIWContext();
-			if (iwc == null)
+			if (iwc == null) {
 				return false;
+			}
 
 			return iwc.isSuperAdmin();
 		} catch (UnavailableIWContext e) {}
