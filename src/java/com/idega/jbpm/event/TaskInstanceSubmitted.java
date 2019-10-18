@@ -11,6 +11,8 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 
 	private static final long serialVersionUID = 2972600186154204917L;
 
+	private Integer caseId, submittedBy;
+
 	private Serializable piId, tiId;
 
 	private Map<String, ? extends Object> variables;
@@ -50,6 +52,22 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 
 	public void setVariables(Map<String, Object> variables) {
 		this.variables = variables;
+	}
+
+	public Integer getCaseId() {
+		return caseId;
+	}
+
+	public void setCaseId(Integer caseId) {
+		this.caseId = caseId;
+	}
+
+	public Integer getSubmittedBy() {
+		return submittedBy;
+	}
+
+	public void setSubmittedBy(Integer submittedBy) {
+		this.submittedBy = submittedBy;
 	}
 
 	@Override
