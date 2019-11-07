@@ -2226,7 +2226,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				doIndexVariables(Integer.valueOf(piId.toString()).longValue());
 			}
 		} else if (event instanceof ProcessInstanceCreatedEvent) {
-			doIndexVariables(((ProcessInstanceCreatedEvent) event).getProcessInstanceId());
+			Serializable piId = ((ProcessInstanceCreatedEvent) event).getProcessInstanceId();
+			if (piId != null && StringHandler.isNumeric(piId.toString())) {
+				doIndexVariables(Long.valueOf(piId.toString()));
+			}
 		}
 	}
 
