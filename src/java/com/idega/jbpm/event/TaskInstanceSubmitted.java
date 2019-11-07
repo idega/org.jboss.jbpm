@@ -13,13 +13,17 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 
 	private Integer caseId, submittedBy;
 
-	private Serializable piId, tiId;
+	private Serializable piId, tiId, pdId;
+
+	private String procDefName;
 
 	private Map<String, ? extends Object> variables;
 
-	public TaskInstanceSubmitted(TaskInstanceW source, Serializable piId, Serializable tiId, Map<String, ? extends Object> variables) {
+	public TaskInstanceSubmitted(TaskInstanceW source, Serializable piId, Serializable tiId, Serializable pdId, String procDefName, Map<String, ? extends Object> variables) {
 		super(source);
 
+		this.pdId = pdId;
+		this.procDefName = procDefName;
 		this.piId = piId;
 		this.tiId = tiId;
 
@@ -68,6 +72,16 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 
 	public void setSubmittedBy(Integer submittedBy) {
 		this.submittedBy = submittedBy;
+	}
+
+	public <T extends Serializable> T getPdId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) pdId;
+		return result;
+	}
+
+	public String getProcDefName() {
+		return procDefName;
 	}
 
 	@Override
