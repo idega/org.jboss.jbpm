@@ -28,6 +28,7 @@ public interface ProcessInstanceW {
 	 * @return all task instances, including the ended ones
 	 */
 	public abstract List<TaskInstanceW> getAllTaskInstances(IWContext iwc);
+	public abstract List<TaskInstanceW> getAllTaskInstances(IWContext iwc, User user);
 
 	/**
 	 * @param processInstanceId
@@ -54,7 +55,7 @@ public interface ProcessInstanceW {
 	 * @param rootToken
 	 * @return not ended task instances for the token provided
 	 */
-	public abstract Collection<TaskInstanceW> getUnfinishedTaskInstances( Token rootToken);
+	public abstract Collection<TaskInstanceW> getUnfinishedTaskInstances(Token rootToken);
 
 	/**
 	 * @return all process instance task instances, that are has not ended yet (end == null) and not
@@ -99,13 +100,13 @@ public interface ProcessInstanceW {
 	public abstract <T extends Serializable> void setProcessInstanceId(T processInstanceId);
 
 	/**
-	 * 
+	 *
 	 * @param id is {@link ProcessDefinitionW#getProcessDefinitionId()}
 	 */
 	public abstract <T extends Serializable> void setProcessDefinitionId(T id);
 
 	/**
-	 * 
+	 *
 	 * @return is {@link ProcessDefinitionW#getProcessDefinitionId()}
 	 */
 	public abstract <T extends Serializable> T getProcessDefinitionId();
