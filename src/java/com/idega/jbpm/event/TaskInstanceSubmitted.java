@@ -11,13 +11,19 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 
 	private static final long serialVersionUID = 2972600186154204917L;
 
-	private Serializable piId, tiId;
+	private Integer caseId, submittedBy;
+
+	private Serializable piId, tiId, pdId;
+
+	private String procDefName;
 
 	private Map<String, ? extends Object> variables;
 
-	public TaskInstanceSubmitted(TaskInstanceW source, Serializable piId, Serializable tiId, Map<String, ? extends Object> variables) {
+	public TaskInstanceSubmitted(TaskInstanceW source, Serializable piId, Serializable tiId, Serializable pdId, String procDefName, Map<String, ? extends Object> variables) {
 		super(source);
 
+		this.pdId = pdId;
+		this.procDefName = procDefName;
 		this.piId = piId;
 		this.tiId = tiId;
 
@@ -50,6 +56,32 @@ public class TaskInstanceSubmitted extends ApplicationEvent {
 
 	public void setVariables(Map<String, Object> variables) {
 		this.variables = variables;
+	}
+
+	public Integer getCaseId() {
+		return caseId;
+	}
+
+	public void setCaseId(Integer caseId) {
+		this.caseId = caseId;
+	}
+
+	public Integer getSubmittedBy() {
+		return submittedBy;
+	}
+
+	public void setSubmittedBy(Integer submittedBy) {
+		this.submittedBy = submittedBy;
+	}
+
+	public <T extends Serializable> T getPdId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) pdId;
+		return result;
+	}
+
+	public String getProcDefName() {
+		return procDefName;
 	}
 
 	@Override
