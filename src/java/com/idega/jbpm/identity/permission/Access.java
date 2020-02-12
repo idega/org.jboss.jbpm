@@ -22,5 +22,6 @@ package com.idega.jbpm.identity.permission;
  */
 public enum Access {
 
-	read, write, modifyPermissions, caseHandler, contactsCanBeSeen, seeContacts, seeComments, writeComments, seeAttachments
+	read, write, modifyPermissions, caseHandler, contactsCanBeSeen, seeContacts, seeComments, writeComments, seeAttachments, initialTask;
+
 }
