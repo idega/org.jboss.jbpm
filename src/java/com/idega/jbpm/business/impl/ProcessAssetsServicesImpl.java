@@ -65,6 +65,34 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
+	public <T extends Serializable> List<BPMDocument> getTasks(T piId, User user, List<TaskInstanceW> tasks) {
+		if (piId == null || piId == null) {
+			return null;
+		}
+
+		Locale locale = null;
+		List<BPMDocument> tasksDocuments = new ArrayList<>();
+		try {
+			IWContext iwc = getIWContext(false);
+			if (iwc == null) {
+				return null;
+			}
+
+			locale = iwc.getCurrentLocale();
+
+			tasksDocuments = bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getTaskDocumentsForUser(iwc, user, locale, tasks);
+			if (!ListUtil.isEmpty(tasksDocuments)) {
+				Collections.sort(tasksDocuments, (c1, c2) -> c2.getDocumentName().compareTo(c1.getDocumentName()));
+			}
+
+			return tasksDocuments;
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting tasks for process instance: " + piId + " and user: " + user + " using locale: " +	locale + " and tasks " + tasks, e);
+		}
+		return null;
+	}
+
+	@Override
 	public <T extends Serializable> List<BPMDocument> getTasks(T piId, List<String> tasksNamesToReturn, boolean showExternalEntity) {
 		try {
 			if (piId == null || piId == null) {
@@ -110,6 +138,28 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	@Override
 	public <T extends Serializable> List<BPMDocument> getDocuments(T piId) {
 		return getDocuments(piId, null, false, false);
+	}
+
+	@Override
+	public <T extends Serializable> List<BPMDocument> getDocuments(T piId, User user, List<TaskInstanceW> submittedTasks) {
+		if (piId == null || piId == null) {
+			return null;
+		}
+
+		Locale locale = null;
+		try {
+			IWContext iwc = getIWContext(false);
+			if (iwc == null) {
+				return null;
+			}
+
+			locale = iwc.getCurrentLocale();
+
+			return bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getSubmittedDocumentsForUser(iwc, user, locale, submittedTasks);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting tasks for process instance: " + piId + " and user: " + user + " using locale: " +	locale + " and submitted tasks " + submittedTasks, e);
+		}
+		return null;
 	}
 
 	@Override

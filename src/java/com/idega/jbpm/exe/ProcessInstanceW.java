@@ -42,12 +42,14 @@ public interface ProcessInstanceW {
 	public abstract TaskInstanceW getLastSubmittedTaskInstance(String taskInstanceName);
 
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(IWContext iwc, User user, Locale locale);
+	public abstract List<BPMDocument> getSubmittedDocumentsForUser(IWContext iwc, User user, Locale locale, List<TaskInstanceW> documents);
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable);
 	public abstract List<BPMDocument> getSubmittedDocumentsForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable, List<String> tasksNamesToReturn);
 
 	public abstract List<TaskInstanceW> getSubmittedTasksForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity, boolean checkIfSignable, List<String> tasksNamesToReturn);
 
-	public abstract List<BPMDocument> getTaskDocumentsForUser(IWContext iwc, User user,  Locale locale);
+	public abstract List<BPMDocument> getTaskDocumentsForUser(IWContext iwc, User user, Locale locale);
+	public abstract List<BPMDocument> getTaskDocumentsForUser(IWContext iwc, User user, Locale locale, List<TaskInstanceW> tasks);
 	public abstract List<BPMDocument> getTaskDocumentsForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity);
 	public abstract List<BPMDocument> getTaskDocumentsForUser(IWContext iwc, User user, Locale locale, boolean doShowExternalEntity, List<String> tasksNamesToReturn);
 

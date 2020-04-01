@@ -8,12 +8,16 @@ import com.idega.jbpm.bean.BPMAttachment;
 import com.idega.jbpm.exe.BPMDocument;
 import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.presentation.IWContext;
+import com.idega.user.data.User;
 
 public interface ProcessAssetsServices {
 
 	public IWContext getIWContext(boolean checkIfLogged);
 
 	public <T extends Serializable> List<BPMDocument> getTasks(T piId);
+
+	public <T extends Serializable> List<BPMDocument> getTasks(T piId, User user, List<TaskInstanceW> tasks);
+
 	/**
 	 *
 	 * @param piId - ID of process instance
@@ -24,6 +28,9 @@ public interface ProcessAssetsServices {
 	public <T extends Serializable> List<BPMDocument> getTasks(T piId, List<String> tasksNamesToReturn, boolean showExternalEntity);
 
 	public <T extends Serializable> List<BPMDocument> getDocuments(T piId);
+
+	public <T extends Serializable> List<BPMDocument> getDocuments(T piId, User user, List<TaskInstanceW> documents);
+
 	/**
 	 *
 	 * @param piId - ID of process instance
