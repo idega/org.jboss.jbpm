@@ -76,8 +76,9 @@ public interface ProcessInstanceW {
 	 * @param taskName
 	 * @return see javadoc for getAllUnfinishedTaskInstances(), but also filtered by taskName
 	 */
-	public abstract List<TaskInstanceW> getUnfinishedTaskInstancesForTask(
-	        String taskName);
+	public abstract List<TaskInstanceW> getUnfinishedTaskInstancesForTask(String taskName);
+
+	public abstract List<TaskInstanceW> getUnfinishedTaskInstancesForTask(IWContext iwc, User user, String taskName);
 
 	/**
 	 * @param taskName
