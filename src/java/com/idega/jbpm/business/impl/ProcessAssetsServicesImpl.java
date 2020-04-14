@@ -224,14 +224,68 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
+	public List<BPMAttachment> getAttachments(List<BinaryVariable> binaryVariables, Date submittedAt, Serializable id) {
+		if (ListUtil.isEmpty(binaryVariables)) {
+			return null;
+		}
+
+		Locale locale = getCurrentLocale();
+		String mediaServletURI = IWMainApplication.getDefaultIWMainApplication().getMediaServletURI();
+		String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
+
+		List<BPMAttachment> attachments = new ArrayList<>();
+		for (BinaryVariable binaryVariable: binaryVariables) {
+			if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
+				continue;
+			}
+
+			BPMAttachment attachment = new BPMAttachment();
+			attachments.add(attachment);
+
+			attachment.setTimestamp(submittedAt);
+
+			String hash = binaryVariable.getHash().toString();
+			attachment.setId(hash);
+
+			String description = binaryVariable.getDescription();
+			attachment.setDescription(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
+
+			String fileName = binaryVariable.getFileName();
+			attachment.setFileName(fileName);
+
+			Long fileSize = binaryVariable.getContentLength();
+			attachment.setFileSize(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
+
+			if (id != null) {
+				URIUtil uri = new URIUtil(mediaServletURI);
+				uri.setParameter(MediaWritable.PRM_WRITABLE_CLASS, encrytptedURI);
+				uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, id.toString());
+				uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash);
+				attachment.setDownloadLink(uri.getUri());
+			}
+
+			if (submittedAt != null) {
+				attachment.setDate(new IWTimestamp(submittedAt).getLocaleDateAndTime(locale, DateFormat.MEDIUM, DateFormat.MEDIUM));
+			}
+
+			Map<String, Object> metadata = binaryVariable.getMetadata();
+			if (metadata != null){
+				Object sc  = metadata.get(JBPMConstants.SOURCE);
+				if (sc != null){
+					attachment.setSource(sc.toString());
+				}
+			}
+		}
+
+		return attachments;
+	}
+
+	@Override
 	public List<BPMAttachment> getAttachments(List<TaskInstanceW> tasks) {
 		try {
 			if (ListUtil.isEmpty(tasks)) {
 				return null;
 			}
-
-			String mediaServletURI = IWMainApplication.getDefaultIWMainApplication().getMediaServletURI();
-			String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
 
 			Locale locale = getCurrentLocale();
 			IWContext iwc = getIWContext(false);
@@ -243,49 +297,9 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					continue;
 				}
 
-				Date submittedAt = tiW.getEnd();
-				Serializable tiId = tiW.getTaskInstanceId();
-				for (BinaryVariable binaryVariable: binaryVariables) {
-					if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
-						continue;
-					}
-
-					BPMAttachment attachment = new BPMAttachment();
-					attachments.add(attachment);
-
-					attachment.setTimestamp(submittedAt);
-
-					String hash = binaryVariable.getHash().toString();
-					attachment.setId(hash);
-
-					String description = binaryVariable.getDescription();
-					attachment.setDescription(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
-
-					String fileName = binaryVariable.getFileName();
-					attachment.setFileName(fileName);
-
-					Long fileSize = binaryVariable.getContentLength();
-					attachment.setFileSize(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
-
-					URIUtil uri = new URIUtil(mediaServletURI);
-					uri.setParameter(MediaWritable.PRM_WRITABLE_CLASS, encrytptedURI);
-					uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, tiId.toString());
-					uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash);
-					attachment.setDownloadLink(uri.getUri());
-
-					Date submitted = tiW.getEnd();
-					if (submitted != null) {
-						attachment.setDate(new IWTimestamp(submitted).getLocaleDateAndTime(locale, DateFormat.MEDIUM, DateFormat.MEDIUM));
-					}
-
-					Map<String, Object> metadata = binaryVariable.getMetadata();
-					if (metadata != null){
-						Object sc  = metadata.get(JBPMConstants.SOURCE);
-						if (sc != null){
-							attachment.setSource(sc.toString());
-						}
-					}
-
+				List<BPMAttachment> taskAttachments = getAttachments(binaryVariables, tiW.getEnd(), tiW.getTaskInstanceId());
+				if (!ListUtil.isEmpty(taskAttachments)) {
+					attachments.addAll(taskAttachments);
 				}
 			}
 

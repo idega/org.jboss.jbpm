@@ -1,12 +1,14 @@
 package com.idega.jbpm.business;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import com.idega.jbpm.bean.BPMAttachment;
 import com.idega.jbpm.exe.BPMDocument;
 import com.idega.jbpm.exe.TaskInstanceW;
+import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
 
@@ -58,5 +60,7 @@ public interface ProcessAssetsServices {
 	 * @return
 	 */
 	public List<BPMAttachment> getAttachments(List<TaskInstanceW> tasks);
+
+	public List<BPMAttachment> getAttachments(List<BinaryVariable> binaryVariables, Date submittedAt, Serializable id);
 
 }
