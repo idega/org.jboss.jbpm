@@ -235,4 +235,6 @@ public interface ProcessInstanceW {
 
 	public <T extends VariableInstance> Collection<T> getVariables(List<String> names);
 
+	public boolean doInsertVariable(String name, String value);
+
 }
