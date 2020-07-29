@@ -65,6 +65,34 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
+	public <T extends Serializable> List<BPMDocument> getTasks(T piId, User user, List<TaskInstanceW> tasks) {
+		if (piId == null || piId == null) {
+			return null;
+		}
+
+		Locale locale = null;
+		List<BPMDocument> tasksDocuments = new ArrayList<>();
+		try {
+			IWContext iwc = getIWContext(false);
+			if (iwc == null) {
+				return null;
+			}
+
+			locale = iwc.getCurrentLocale();
+
+			tasksDocuments = bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getTaskDocumentsForUser(iwc, user, locale, tasks);
+			if (!ListUtil.isEmpty(tasksDocuments)) {
+				Collections.sort(tasksDocuments, (c1, c2) -> c2.getDocumentName().compareTo(c1.getDocumentName()));
+			}
+
+			return tasksDocuments;
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting tasks for process instance: " + piId + " and user: " + user + " using locale: " +	locale + " and tasks " + tasks, e);
+		}
+		return null;
+	}
+
+	@Override
 	public <T extends Serializable> List<BPMDocument> getTasks(T piId, List<String> tasksNamesToReturn, boolean showExternalEntity) {
 		try {
 			if (piId == null || piId == null) {
@@ -110,6 +138,28 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	@Override
 	public <T extends Serializable> List<BPMDocument> getDocuments(T piId) {
 		return getDocuments(piId, null, false, false);
+	}
+
+	@Override
+	public <T extends Serializable> List<BPMDocument> getDocuments(T piId, User user, List<TaskInstanceW> submittedTasks) {
+		if (piId == null || piId == null) {
+			return null;
+		}
+
+		Locale locale = null;
+		try {
+			IWContext iwc = getIWContext(false);
+			if (iwc == null) {
+				return null;
+			}
+
+			locale = iwc.getCurrentLocale();
+
+			return bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getSubmittedDocumentsForUser(iwc, user, locale, submittedTasks);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting tasks for process instance: " + piId + " and user: " + user + " using locale: " +	locale + " and submitted tasks " + submittedTasks, e);
+		}
+		return null;
 	}
 
 	@Override
@@ -174,14 +224,68 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
+	public List<BPMAttachment> getAttachments(List<BinaryVariable> binaryVariables, Date submittedAt, Serializable id) {
+		if (ListUtil.isEmpty(binaryVariables)) {
+			return null;
+		}
+
+		Locale locale = getCurrentLocale();
+		String mediaServletURI = IWMainApplication.getDefaultIWMainApplication().getMediaServletURI();
+		String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
+
+		List<BPMAttachment> attachments = new ArrayList<>();
+		for (BinaryVariable binaryVariable: binaryVariables) {
+			if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
+				continue;
+			}
+
+			BPMAttachment attachment = new BPMAttachment();
+			attachments.add(attachment);
+
+			attachment.setTimestamp(submittedAt);
+
+			String hash = binaryVariable.getHash().toString();
+			attachment.setId(hash);
+
+			String description = binaryVariable.getDescription();
+			attachment.setDescription(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
+
+			String fileName = binaryVariable.getFileName();
+			attachment.setFileName(fileName);
+
+			Long fileSize = binaryVariable.getContentLength();
+			attachment.setFileSize(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
+
+			if (id != null) {
+				URIUtil uri = new URIUtil(mediaServletURI);
+				uri.setParameter(MediaWritable.PRM_WRITABLE_CLASS, encrytptedURI);
+				uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, id.toString());
+				uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash);
+				attachment.setDownloadLink(uri.getUri());
+			}
+
+			if (submittedAt != null) {
+				attachment.setDate(new IWTimestamp(submittedAt).getLocaleDateAndTime(locale, DateFormat.MEDIUM, DateFormat.MEDIUM));
+			}
+
+			Map<String, Object> metadata = binaryVariable.getMetadata();
+			if (metadata != null){
+				Object sc  = metadata.get(JBPMConstants.SOURCE);
+				if (sc != null){
+					attachment.setSource(sc.toString());
+				}
+			}
+		}
+
+		return attachments;
+	}
+
+	@Override
 	public List<BPMAttachment> getAttachments(List<TaskInstanceW> tasks) {
 		try {
 			if (ListUtil.isEmpty(tasks)) {
 				return null;
 			}
-
-			String mediaServletURI = IWMainApplication.getDefaultIWMainApplication().getMediaServletURI();
-			String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
 
 			Locale locale = getCurrentLocale();
 			IWContext iwc = getIWContext(false);
@@ -193,49 +297,9 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					continue;
 				}
 
-				Date submittedAt = tiW.getEnd();
-				Serializable tiId = tiW.getTaskInstanceId();
-				for (BinaryVariable binaryVariable: binaryVariables) {
-					if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
-						continue;
-					}
-
-					BPMAttachment attachment = new BPMAttachment();
-					attachments.add(attachment);
-
-					attachment.setTimestamp(submittedAt);
-
-					String hash = binaryVariable.getHash().toString();
-					attachment.setId(hash);
-
-					String description = binaryVariable.getDescription();
-					attachment.setDescription(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
-
-					String fileName = binaryVariable.getFileName();
-					attachment.setFileName(fileName);
-
-					Long fileSize = binaryVariable.getContentLength();
-					attachment.setFileSize(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
-
-					URIUtil uri = new URIUtil(mediaServletURI);
-					uri.setParameter(MediaWritable.PRM_WRITABLE_CLASS, encrytptedURI);
-					uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, tiId.toString());
-					uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash);
-					attachment.setDownloadLink(uri.getUri());
-
-					Date submitted = tiW.getEnd();
-					if (submitted != null) {
-						attachment.setDate(new IWTimestamp(submitted).getLocaleDateAndTime(locale, DateFormat.MEDIUM, DateFormat.MEDIUM));
-					}
-
-					Map<String, Object> metadata = binaryVariable.getMetadata();
-					if (metadata != null){
-						Object sc  = metadata.get(JBPMConstants.SOURCE);
-						if (sc != null){
-							attachment.setSource(sc.toString());
-						}
-					}
-
+				List<BPMAttachment> taskAttachments = getAttachments(binaryVariables, tiW.getEnd(), tiW.getTaskInstanceId());
+				if (!ListUtil.isEmpty(taskAttachments)) {
+					attachments.addAll(taskAttachments);
 				}
 			}
 

@@ -147,7 +147,7 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 	}
 
 	@Override
-	public String getFolderForBinaryVariable(Long taskInstanceId) {
+	public <T extends Serializable> String getFolderForBinaryVariable(T taskInstanceId) {
 		String date = IWTimestamp.RightNow().getDateString(IWTimestamp.DATE_PATTERN);
 		return BPM_UPLOADED_FILES_PATH.concat(date).concat(CoreConstants.SLASH).concat(String.valueOf(taskInstanceId)).concat("/files");
 	}

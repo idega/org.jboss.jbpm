@@ -37,7 +37,7 @@ public interface BinaryVariablesHandler {
 	public void persistBinaryVariable(BinaryVariable binaryVariable, String path, String fileName, Long contentLength, InputStream stream,
 			boolean overwrite);
 
-	public String getFolderForBinaryVariable(Long taskInstanceId);
+	public <T extends Serializable> String getFolderForBinaryVariable(T taskInstanceId);
 
 	/**
 	 * @param variable
