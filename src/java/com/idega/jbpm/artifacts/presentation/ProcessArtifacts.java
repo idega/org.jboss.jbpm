@@ -1759,6 +1759,11 @@ public class ProcessArtifacts {
 			return;
 		}
 
+		if (!IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.notify_about_assignee", true)) {
+			LOGGER.info("Not sending email to " + emailAddress + " about assigned case (proc. inst. ID: " + processInstanceId + ")");
+			return;
+		}
+
 		IWApplicationContext iwac = IWMainApplication.getDefaultIWApplicationContext();
 		final String from = iwac.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, CoreConstants.EMAIL_DEFAULT_FROM);
 		final String host = iwac.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER, CoreConstants.EMAIL_DEFAULT_HOST);
