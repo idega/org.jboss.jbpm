@@ -31,6 +31,7 @@ import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
+import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
 import com.idega.util.IWTimestamp;
@@ -122,7 +123,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			} catch (Exception e) {
 				getLogger().log(Level.WARNING, "Error getting tasks for process instance: " + piId + " and user: " + loggedInUser + " using locale: " +	userLocale, e);
 			}
-			tasksDocuments = tasksDocuments == null ? new ArrayList<BPMDocument>(0) : tasksDocuments;
+			tasksDocuments = tasksDocuments == null ? new ArrayList<>(0) : tasksDocuments;
 
 			if (!ListUtil.isEmpty(tasksDocuments)) {
 				Collections.sort(tasksDocuments, (c1, c2) -> c2.getDocumentName().compareTo(c1.getDocumentName()));
@@ -235,7 +236,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 		List<BPMAttachment> attachments = new ArrayList<>();
 		for (BinaryVariable binaryVariable: binaryVariables) {
-			if (binaryVariable.getHash() == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
+			if (binaryVariable == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
 				continue;
 			}
 
@@ -244,8 +245,9 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 			attachment.setTimestamp(submittedAt);
 
-			String hash = binaryVariable.getHash().toString();
-			attachment.setId(hash);
+			Integer hash = binaryVariable.getHash();
+			String attachmentId = hash == null ? binaryVariable.getFileName().concat(id == null ? CoreConstants.EMPTY : id.toString()) : hash.toString();
+			attachment.setId(attachmentId);
 
 			String description = binaryVariable.getDescription();
 			attachment.setDescription(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
@@ -256,12 +258,14 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			Long fileSize = binaryVariable.getContentLength();
 			attachment.setFileSize(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
 
-			if (id != null) {
+			if (id != null && hash != null) {
 				URIUtil uri = new URIUtil(mediaServletURI);
 				uri.setParameter(MediaWritable.PRM_WRITABLE_CLASS, encrytptedURI);
 				uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, id.toString());
-				uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash);
+				uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash.toString());
 				attachment.setDownloadLink(uri.getUri());
+			} else {
+				attachment.setDownloadLink(binaryVariable.getIdentifier());
 			}
 
 			if (submittedAt != null) {
