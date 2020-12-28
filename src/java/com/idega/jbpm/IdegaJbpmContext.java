@@ -387,7 +387,11 @@ public class IdegaJbpmContext implements BPMContext, InitializingBean {
 				}
 
 				try {
-					String entryId = entityEntry.getId().toString();
+					Serializable entityId = entityEntry.getId();
+					if (entityId == null) {
+						continue;
+					}
+					String entryId = entityId.toString();
 					if (!StringHandler.isNumeric(entryId)) {
 						continue;
 					}
