@@ -8,4 +8,6 @@ public interface VariableInstance extends Serializable {
 
 	public <T extends Serializable> T getVariableValue();
 
+	public <T extends Serializable> T getProcessInstanceId();
+
 }

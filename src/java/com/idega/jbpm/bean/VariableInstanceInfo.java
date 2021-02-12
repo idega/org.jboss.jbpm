@@ -93,8 +93,11 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 		this.type = type;
 	}
 
-	public Long getProcessInstanceId() {
-		return processInstanceId;
+	@Override
+	public <T extends Serializable> T getProcessInstanceId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) processInstanceId;
+		return result;
 	}
 
 	public void setProcessInstanceId(Long processInstanceId) {
