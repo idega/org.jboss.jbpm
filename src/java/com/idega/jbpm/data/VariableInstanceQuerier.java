@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -115,7 +116,16 @@ public interface VariableInstanceQuerier extends GenericDao {
 			Collection<ProcessInstance> processInstances,
 			boolean checkTaskInstance,
 			boolean addEmptyVars,
-			boolean mirrowData);
+			boolean mirrowData
+	);
+
+	public List<VariableInstanceInfo> getVariables(
+			Collection<String> variableNames,
+			Set<Long> processInstancesIds,
+			boolean checkTaskInstance,
+			boolean addEmptyVars,
+			boolean mirrowData
+	);
 
 	/**
 	 *
