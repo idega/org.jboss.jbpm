@@ -264,6 +264,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 				uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, id.toString());
 				uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash.toString());
 				attachment.setDownloadLink(uri.getUri());
+				attachment.setSource(binaryVariable.getIdentifier());
 			} else {
 				attachment.setDownloadLink(binaryVariable.getIdentifier());
 			}
