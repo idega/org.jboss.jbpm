@@ -3,6 +3,8 @@ package com.idega.jbpm.view;
 import java.io.Serializable;
 import java.util.Map;
 
+import com.idega.presentation.IWContext;
+
 /**
  * meant to be used for resolving submission variables
  */
@@ -32,10 +34,14 @@ public interface ViewSubmission {
 
 	public abstract void setViewType(String viewType);
 
-	public <T extends Serializable> void setProcessInstanceId(T piId);
+	public abstract <T extends Serializable> void setProcessInstanceId(T piId);
 
-	public <T extends Serializable> T getProcessInstanceId();
+	public abstract <T extends Serializable> T getProcessInstanceId();
 
-	public boolean isAllowedToEdit();
+	public abstract boolean isAllowedToEdit();
+
+	public abstract void setContext(IWContext iwc);
+
+	public abstract IWContext getContext();
 
 }
