@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.idega.bpm.model.VariableInstance;
 import com.idega.presentation.ui.handlers.IWDatePickerHandler;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
@@ -16,7 +17,7 @@ import com.idega.util.ListUtil;
 import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 
-public class BPMProcessVariable implements Serializable {
+public class BPMProcessVariable implements Serializable, VariableInstance {
 
 	private static final long serialVersionUID = -8899276268497865624L;
 
@@ -67,6 +68,7 @@ public class BPMProcessVariable implements Serializable {
 	private boolean flexible, multiple;
 	private int order = 0;
 
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -147,8 +149,6 @@ public class BPMProcessVariable implements Serializable {
 		this.order = order;
 	}
 
-
-
 	public List<String> getAvailableValues() {
 		return availableValues;
 	}
@@ -212,7 +212,7 @@ public class BPMProcessVariable implements Serializable {
 		} else if (isLongType()) {
 			try {
 				if (multiValues) {
-					ArrayList<Long> longValues = new ArrayList<Long>();
+					ArrayList<Long> longValues = new ArrayList<>();
 					String[] values = value.split(CoreConstants.SEMICOLON);
 					for (String longValue: values) {
 						longValue = longValue.trim();
@@ -237,4 +237,56 @@ public class BPMProcessVariable implements Serializable {
 
 		return (T) realValue;
 	}
+
+	@Override
+	public <T extends Serializable> T getVariableValue() {
+		String value = getValue();
+		@SuppressWarnings("unchecked")
+		T result = (T) value;
+		return result;
+	}
+
+	@Override
+	public <T extends Serializable> T getProcessInstanceId() {
+		return null;
+	}
+
+	@Override
+	public VariableInstanceType getTypeOfVariable() {
+		if (isStringType()) {
+			return VariableInstanceType.STRING;
+		}
+		if (isDateType()) {
+			return VariableInstanceType.DATE;
+		}
+		if (isLongType()) {
+			return VariableInstanceType.LONG;
+		}
+		if (isListType()) {
+			return VariableInstanceType.LIST;
+		}
+		if (isDoubleType()) {
+			return VariableInstanceType.DOUBLE;
+		}
+
+		return VariableInstanceType.STRING;
+	}
+
+	@Override
+	public <T extends Serializable> T getVariableId() {
+		return null;
+	}
+
+	@Override
+	public <T extends Serializable> void setVariableValue(T value) {
+		if (value != null) {
+			setValue(value.toString());
+		}
+	}
+
+	@Override
+	public <T extends Serializable> T getTaskInstanceId() {
+		return null;
+	}
+
 }

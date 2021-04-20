@@ -1,24 +1,28 @@
 package com.idega.jbpm.bean;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-public class VariableInstanceInfoComparator implements Comparator<VariableInstanceInfo> {
+import com.idega.bpm.model.VariableInstance;
 
-	public int compare(VariableInstanceInfo var1, VariableInstanceInfo var2) {
+public class VariableInstanceInfoComparator implements Comparator<VariableInstance> {
+
+	@Override
+	public int compare(VariableInstance var1, VariableInstance var2) {
 		if (var1 == null || var2 == null) {
 			return 0;
 		}
-		
-		Long id1 = var1.getId();
-		if (id1 == null) {
-			return 0;
+
+		Serializable id1 = var1.getVariableId();
+		Serializable id2 = var2.getVariableId();
+
+		if (id1 instanceof Number && id2 instanceof Number) {
+			Long idLong1 = ((Number) id1).longValue();
+			Long idLong2 = ((Number) id2).longValue();
+			return -(idLong1.compareTo(idLong2));
 		}
-		Long id2 = var2.getId();
-		if (id2 == null) {
-			return 0;
-		}
-		
-		return -(id1.compareTo(id2));
+
+		return 0;
 	}
 
 }

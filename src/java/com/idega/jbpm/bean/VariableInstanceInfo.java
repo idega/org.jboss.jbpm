@@ -71,9 +71,21 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 	public abstract <T extends Serializable> void setValue(T value);
 
 	@Override
+	public <T extends Serializable> T getVariableId() {
+		@SuppressWarnings("unchecked")
+		T id = (T) getId();
+		return id;
+	}
+
+	@Override
 	public <T extends Serializable> T getVariableValue() {
 		T value = getValue();
 		return value;
+	}
+
+	@Override
+	public <T extends Serializable> void setVariableValue(T value) {
+		setValue(value);
 	}
 
 	@Override
@@ -182,6 +194,11 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 		};
 		info.setName(name);
 		return info;
+	}
+
+	@Override
+	public VariableInstanceType getTypeOfVariable() {
+		return getType();
 	}
 
 }
