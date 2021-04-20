@@ -17,7 +17,6 @@ import org.jbpm.taskmgmt.exe.TaskInstance;
 
 import com.idega.core.persistence.GenericDao;
 import com.idega.jbpm.bean.BPMProcessVariable;
-import com.idega.jbpm.bean.VariableInstanceInfo;
 import com.idega.jbpm.bean.VariableQuerierData;
 
 public interface VariableInstanceQuerier extends GenericDao {
@@ -28,41 +27,41 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * Use a method to get variables by process instance id: getVariablesByProcessInstanceId or getVariablesByProcessDefinition
 	 */
 	@Deprecated
-	public Collection<VariableInstanceInfo> getVariablesByProcessDefinitionNaiveWay(String processDefinitionName);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessDefinitionNaiveWay(String processDefinitionName);
 
-	public Collection<VariableInstanceInfo> getVariablesByProcessDefinition(String processDefinitionName);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessDefinition(String processDefinitionName);
 
 	/**
 	 * Use a method to get variables by process instance id: getVariablesByProcessInstanceId
 	 */
 	@Deprecated
-	public Collection<VariableInstanceInfo> getFullVariablesByProcessDefinition(String processDefinitionName);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getFullVariablesByProcessDefinition(String processDefinitionName);
 
-	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds);
-	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds, List<Long> existingVars);
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceId(Long processInstanceId);
-	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceId(Long processInstanceId);
-	public Collection<VariableInstanceInfo> getFullVariablesByProcessInstanceId(Long processInstanceId, boolean mirrow);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getFullVariablesByProcessInstanceIdsNaiveWay(List<Long> processInstanceIds, List<Long> existingVars);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessInstanceId(Long processInstanceId);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getFullVariablesByProcessInstanceId(Long processInstanceId);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getFullVariablesByProcessInstanceId(Long processInstanceId, boolean mirrow);
 
-	public Collection<VariableInstanceInfo> getFullVariablesByTaskInstanceId(Long taskInstanceId);
-	public Collection<VariableInstanceInfo> getFullVariablesByTaskInstanceIdsAndVariablesNames(List<Long> taskInstanceIds, List<String> names);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getFullVariablesByTaskInstanceId(Long taskInstanceId);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getFullVariablesByTaskInstanceIdsAndVariablesNames(List<Long> taskInstanceIds, List<String> names);
 
-	public Collection<VariableInstanceInfo> getVariableByProcessInstanceIdAndVariableName(Long procId, String name);
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariableByProcessInstanceIdAndVariableName(Long procId, String name);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessInstanceIdAndVariablesNames(Collection<Long> procIds, List<String> names);
 
-	public Collection<VariableInstanceInfo> getVariablesByProcessDefsAndVariablesNames(List<String> procDefNames, List<String> names);
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessDefsAndVariablesNames(List<String> procDefNames, List<String> names);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessInstanceIdAndVariablesNames(
 			Collection<Long> procIds,
 			List<String> names,
 			boolean checkTaskInstance
 	);
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessInstanceIdAndVariablesNames(
 			List<String> names,
 			Collection<Long> procIds,
 			boolean checkTaskInstance,
 			boolean addEmptyVars
 	);
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIdAndVariablesNames(
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessInstanceIdAndVariablesNames(
 			List<String> names,
 			Collection<Long> procIds,
 			boolean checkTaskInstance,
@@ -70,12 +69,12 @@ public interface VariableInstanceQuerier extends GenericDao {
 			boolean mirrowData
 	);
 
-	public Map<Long, Map<String, VariableInstanceInfo>> getGroupedData(Collection<VariableInstanceInfo> variables);
-	public Map<Long, Map<String, VariableInstanceInfo>> getGroupedData(Collection<VariableInstanceInfo> variables, boolean byTaskInstance);
+	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getGroupedData(Collection<V> variables);
+	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getGroupedData(Collection<V> variables, boolean byTaskInstance);
 
-	public Collection<VariableInstanceInfo> getVariablesByProcessDefAndVariableName(String procDefName, String name);
-	public Collection<VariableInstanceInfo> getVariablesByProcessDefAndVariableName(String procDefName, String name, boolean checkBind);
-	public Collection<VariableInstanceInfo> getVariablesByProcessDefAndVariablesNames(String procDefName, List<String> names, boolean checkBind);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessDefAndVariableName(String procDefName, String name);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessDefAndVariableName(String procDefName, String name, boolean checkBind);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessDefAndVariablesNames(String procDefName, List<String> names, boolean checkBind);
 
 	/**
 	 *
@@ -89,11 +88,11 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * or {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
-	public Collection<VariableInstanceInfo> getVariables(
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariables(
 			List<String> procDefNames,
 			List<String> variableNames,
-			boolean checkTaskInstance);
-
+			boolean checkTaskInstance
+	);
 
 	/**
 	 *
@@ -103,15 +102,15 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * @param processInstances to get variables for, not <code>null</code>;
 	 * @param checkTaskInstance - tells if {@link TaskInstance}s should be
 	 * selected too;
-	 * @param addEmptyVars tells if empty {@link VariableInstanceInfo}s
+	 * @param addEmptyVars tells if empty {@link com.idega.bpm.model.VariableInstance}s
 	 * should be created for variable names, which are not found in database.
-	 * They won't have {@link VariableInstanceInfo#getValue()};
+	 * They won't have {@link com.idega.bpm.model.VariableInstance#getVariableValue()};
 	 * @param mirrowData tells if {@link BPMVariableData} data table should be used;
 	 * @return {@link VariableInstance}s from jBPM data tables or
 	 * {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
-	public List<VariableInstanceInfo> getVariables(
+	public <V extends com.idega.bpm.model.VariableInstance> List<V> getVariables(
 			Collection<String> variableNames,
 			Collection<ProcessInstance> processInstances,
 			boolean checkTaskInstance,
@@ -119,7 +118,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 			boolean mirrowData
 	);
 
-	public List<VariableInstanceInfo> getVariables(
+	public <V extends com.idega.bpm.model.VariableInstance> List<V> getVariables(
 			Collection<String> variableNames,
 			Set<Long> processInstancesIds,
 			boolean checkTaskInstance,
@@ -135,24 +134,25 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * @param processInstances to get variables for, not <code>null</code>;
 	 * @param checkTaskInstance - tells if {@link TaskInstance}s should be
 	 * selected too;
-	 * @param addEmptyVars tells if empty {@link VariableInstanceInfo}s
+	 * @param addEmptyVars tells if empty {@link com.idega.bpm.model.VariableInstance}s
 	 * should be created for variable names, which are not found in database.
-	 * They won't have {@link VariableInstanceInfo#getValue()};
+	 * They won't have {@link com.idega.bpm.model.VariableInstance#getVariableValue()};
 	 * @param mirrowData tells if {@link BPMVariableData} data table should be used;
 	 * @return {@link VariableInstance}s from jBPM data tables or
 	 * {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
-	public Map<String, VariableInstanceInfo> getSortedVariables(
+	public <V extends com.idega.bpm.model.VariableInstance> Map<String, V> getSortedVariables(
 			Collection<String> variableNames,
 			Collection<ProcessInstance> processInstances,
 			boolean checkTaskInstance,
 			boolean addEmptyVars,
-			boolean mirrowData);
+			boolean mirrowData
+	);
 
-	public Collection<VariableInstanceInfo> getVariablesByNames(List<String> names);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByNames(List<String> names);
 
-	public Collection<VariableInstanceInfo> getVariablesByNameAndValue(String name, Serializable value);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByNameAndValue(String name, Serializable value);
 	public boolean isVariableStored(String name, Serializable value);
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value);
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(String name, Serializable value, List<Long> procInstIds);
@@ -166,10 +166,11 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * @return jBPM variable instances from database.
 	 * {@link Collections#EMPTY_LIST} on failure.
 	 */
-	public Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getProcessVariablesByNameAndValue(
 			String name,
 			List<Serializable> values,
-			List<String> procDefNames);
+			List<String> procDefNames
+	);
 
 	/**
 	 * <p>Gets values of jBPM variable instances from database.</p>
@@ -190,14 +191,15 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * {@link Collections#EMPTY_LIST} on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getProcessVariablesByNameAndValue(
 			String name,
 			List<Serializable> values,
 			List<String> procDefNames,
 			List<Long> procInstIds,
 			boolean selectProcessInstanceId,
 			boolean searchExpression,
-			boolean mirrow);
+			boolean mirrow
+	);
 
 	/**
 	 * <p>Gets values of jBPM variable instances from database.</p>
@@ -216,13 +218,14 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * {@link Collections#EMPTY_LIST} on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public Collection<VariableInstanceInfo> getProcessVariablesByNameAndValue(
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getProcessVariablesByNameAndValue(
 			String name,
 			VariableQuerierData values,
 			List<String> procDefNames,
 			List<Long> procInstIds,
 			boolean selectProcessInstanceId,
-			boolean mirrow);
+			boolean mirrow
+	);
 
 	/**
 	 *
@@ -236,16 +239,17 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * {@link BPMProcessVariable#getName()},
 	 * {@link BPMProcessVariable#isFlexible()}).
 	 * @return {@link Map} of ({@link ProcessInstance#getId()}, {@link Map} of
-	 * ({@link BPMProcessVariable#getName()}, {@link VariableInstanceInfo})).
+	 * ({@link BPMProcessVariable#getName()}, {@link com.idega.bpm.model.VariableInstance})).
 	 * <code>null</code> on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesByProcesses(
+	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesByProcesses(
 			Map<String, List<Serializable>> variablesWithValues,
 			List<String> variables,
 			List<String> procDefNames,
 			List<Long> procInstIds,
-			Map<String, Boolean> flexibleVariables);
+			Map<String, Boolean> flexibleVariables
+	);
 
 	/**
 	 *
@@ -258,11 +262,11 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * {@link BPMProcessVariable#getName()},
 	 * {@link BPMProcessVariable#isFlexible()}).
 	 * @return {@link Map} of ({@link ProcessInstance#getId()}, {@link Map} of
-	 * ({@link BPMProcessVariable#getName()}, {@link VariableInstanceInfo})).
+	 * ({@link BPMProcessVariable#getName()}, {@link com.idega.bpm.model.VariableInstance})).
 	 * <code>null</code> on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> variablesWithValues,
 			List<String> variables,
 			List<String> procDefNames,
@@ -271,13 +275,13 @@ public interface VariableInstanceQuerier extends GenericDao {
 
 	public List<String> getValuesByVariable(String name);
 
-	public Collection<VariableInstanceInfo> getVariablesByProcessInstanceIds(Collection<Long> procInstIds);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessInstanceIds(Collection<Long> procInstIds);
 
-	public List<VariableInstanceInfo> getVariablesByNameAndTaskInstance(Collection<String> names, Long tiId);
+	public <V extends com.idega.bpm.model.VariableInstance> List<V> getVariablesByNameAndTaskInstance(Collection<String> names, Long tiId);
 
-	public Map<Long, List<VariableInstanceInfo>> getGroupedVariables(Collection<VariableInstanceInfo> variables);
+	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, List<V>> getGroupedVariables(Collection<V> variables);
 
-	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
@@ -285,7 +289,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 			Map<String, Boolean> flexibleVariables,
 			boolean strictBinaryVariables
 	);
-	public Map<Long, Map<String, VariableInstanceInfo>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
@@ -295,9 +299,9 @@ public interface VariableInstanceQuerier extends GenericDao {
 			boolean selectOnlyProcIntsIds
 	);
 
-	public Collection<VariableInstanceInfo> getConverted(List<Serializable[]> data);
-	public Map<Long, Map<String, VariableInstanceInfo>> getConvertedVariables(List<Variable> variables);
-	public List<VariableInstanceInfo> getConverted(Map<Long, Map<String, VariableInstanceInfo>> vars);
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getConverted(List<Serializable[]> data);
+	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getConvertedVariables(List<Variable> variables);
+	public <V extends com.idega.bpm.model.VariableInstance> List<V> getConverted(Map<Long, Map<String, V>> vars);
 
 	public void doBindProcessVariables();
 	public void doIndexVariables(Long piId);
@@ -315,15 +319,16 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * {@link VariableInstance} by name defined in argumentVariableName;
 	 * @param processInstanceId is {@link ProcessInstance#getId()}, which
 	 * contains required {@link VariableInstance};
-	 * @return {@link Collection} of {@link VariableInstanceInfo}, which
+	 * @return {@link Collection} of {@link com.idega.bpm.model.VariableInstance}, which
 	 * matches criteria, or {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
-	public List<VariableInstanceInfo> findJBPMVariable(
+	public <V extends com.idega.bpm.model.VariableInstance> List<V> findJBPMVariable(
 			String requiredVariableName,
 			String argumentVariableName,
 			String argumentValue,
-			Long processInstanceId);
+			Long processInstanceId
+	);
 
 	/**
 	 *
@@ -338,7 +343,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * {@link VariableInstance} by name defined in argumentVariableName;
 	 * @param processInstanceId is {@link ProcessInstance#getId()}, which
 	 * contains required {@link VariableInstance};
-	 * @return {@link Collection} of {@link VariableInstanceInfo#getValue()},
+	 * @return {@link Collection} of {@link com.idega.bpm.model.VariableInstance#getVariableValue()},
 	 * which matches criteria, or {@link Collections#emptyList()} on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
