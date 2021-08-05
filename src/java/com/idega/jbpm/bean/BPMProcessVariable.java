@@ -34,6 +34,7 @@ public class BPMProcessVariable implements Serializable, VariableInstance {
 	public static final String EXPRESSION_GREATER_OR_EQUALS = ">=";
 	public static final String EXPRESSION_LESS_OR_EQUALS = "<=";
 	public static final String EXPRESSION_EQUALS = "=";
+	public static final String EXPRESSION_IS_NULL = "IS NULL";
 
 	private List<String> availableValues;
 
