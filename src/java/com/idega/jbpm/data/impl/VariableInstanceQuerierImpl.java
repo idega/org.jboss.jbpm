@@ -381,7 +381,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						if (info == null) {
 							throw new RuntimeException();
 						} else {
-							vars.put(getKey(i, info.getProcessInstanceId()), info);
+							Serializable id = info.getProcessInstanceId();
+							if (id instanceof Long) {
+								Long procInstId = (Long) id;
+								int key = getKey(i, procInstId);
+								vars.put(key, info);
+							}
 						}
 					}
 				}
@@ -510,19 +515,22 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		List<String> addedVars = new ArrayList<>();
 		for (V var : variables) {
 			String name = var.getName();
-			Long processInstance = var.getProcessInstanceId();
-			int key = getKey(names.indexOf(name), processInstance);
-			if (processInstance != null && addedVars.contains(name + processInstance)) {
-				V addedVar = vars.get(key);
-				if (addedVar != null && addedVar.getVariableValue() != null)
-				 {
-					continue;	//	Added variable has value, it's OK
+			Serializable id = var.getProcessInstanceId();
+			if (id instanceof Long) {
+				Long processInstance = (Long) id;
+				int key = getKey(names.indexOf(name), processInstance);
+				if (processInstance != null && addedVars.contains(name + processInstance)) {
+					V addedVar = vars.get(key);
+					if (addedVar != null && addedVar.getVariableValue() != null)
+					 {
+						continue;	//	Added variable has value, it's OK
+					}
+				} else {
+					addedVars.add(name + processInstance);
 				}
-			} else {
-				addedVars.add(name + processInstance);
-			}
 
-			vars.put(key, var);
+				vars.put(key, var);
+			}
 		}
 	}
 
@@ -727,10 +735,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			Long piId = null;
 			if (value instanceof String) {
 				if (isValueEquivalent(variable, value)) {
-					piId = variable.getProcessInstanceId();
+					Serializable id = variable.getProcessInstanceId();
+					piId = id instanceof Long ? (Long) id : null;
 				}
 			} else {
-				piId = variable.getProcessInstanceId();
+				Serializable id = variable.getProcessInstanceId();
+				piId = id instanceof Long ? (Long) id : null;
 			}
 
 			if (piId != null && !piIds.contains(piId)) {
@@ -984,7 +994,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 			if (resolvedProcInstIds.size() == 0) {
 				for (V var: resolvedVars) {
-					resolvedProcInstIds.put(var.getProcessInstanceId(), var);
+					Serializable instId = var.getProcessInstanceId();
+					if (instId instanceof Long) {
+						resolvedProcInstIds.put((Long) instId, var);
+					}
 				}
 			}
 
@@ -1022,7 +1035,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		Collection<V> finalResult = resolver == null ? null : resolver.getFinalSearchResult();
 		if (!ListUtil.isEmpty(finalResult)) {
 			for (V var: finalResult) {
-				String key = getKeyForVariable(var, true).concat(String.valueOf(var.getProcessInstanceId()));
+				Serializable id = var.getProcessInstanceId();
+				String key = getKeyForVariable(var, true).concat(String.valueOf(id));
 				if (!addedVars.contains(key)) {
 					resolvedVars.add(var);
 					addedVars.add(key);
@@ -1043,7 +1057,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		for (String resolvedId: resolvedIds) {
 			for (V var: vars) {
 				if (var.getVariableValue().toString().indexOf(resolvedId) != -1) {
-					String key = getKeyForVariable(var, true).concat(String.valueOf(var.getProcessInstanceId()));
+					Serializable procInstId = var.getProcessInstanceId();
+					String key = getKeyForVariable(var, true).concat(String.valueOf(procInstId));
 					if (!addedVars.contains(key)) {
 						resolvedVars.add(var);
 						addedVars.add(key);
@@ -1319,10 +1334,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					}
 
 					for (BinaryVariableData<V> binVarData: binaryData.values()) {
-						List<Serializable[]> rawData = binaryResults.get(binVarData.getProcessInstanceId());
+						Long procInstId = binVarData.getProcessInstanceId();
+						List<Serializable[]> rawData = binaryResults.get(procInstId);
 						if (rawData == null) {
 							rawData = new ArrayList<>();
-							binaryResults.put(binVarData.getProcessInstanceId(), rawData);
+							binaryResults.put(procInstId, rawData);
 						}
 						rawData.add(binVarData.getRawData());
 					}
@@ -1682,7 +1698,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	private String getKeyForVariable(VariableInstance var, boolean useValue) {
-		StringBuilder key = new StringBuilder(var.getName()).append(var.getProcessInstanceId().toString());
+		Serializable procInstId = var.getProcessInstanceId();
+		StringBuilder key = new StringBuilder(var.getName()).append(procInstId.toString());
 		if (useValue) {
 			Serializable value = var.getVariableValue();
 			key.append(value);
@@ -2272,9 +2289,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			VariableCreatedEvent variableEvent = (VariableCreatedEvent) event;
 
 			Map<String, Object> createdVariables = variableEvent.getVariables();
-			bindProcessVariables(variableEvent.getProcessDefinitionName(), variableEvent.getProcessInstanceId(), createdVariables == null ? null : createdVariables.keySet());
+			Serializable procInstId = variableEvent.getProcessInstanceId();
+			if (procInstId instanceof Long) {
+				Long processInstanceId = (Long) procInstId;
+				bindProcessVariables(variableEvent.getProcessDefinitionName(), processInstanceId, createdVariables == null ? null : createdVariables.keySet());
 
-			doIndexVariables(variableEvent.getProcessInstanceId());
+				doIndexVariables(processInstanceId);
+			}
 		} else if (event instanceof TaskInstanceSubmitted) {
 			TaskInstanceSubmitted taskSubmittedEvent = (TaskInstanceSubmitted) event;
 			Serializable piId = taskSubmittedEvent.getProcessInstanceId();
@@ -2564,15 +2585,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		Map<Long, List<V>> grouped = new HashMap<>();
 		for (V var: variables) {
-			Long piId = var.getProcessInstanceId();
-			if (piId == null) {
+			Serializable piId = var.getProcessInstanceId();
+			if (!(piId instanceof Long)) {
 				continue;
 			}
 
-			List<V> vars = grouped.get(piId);
+			Long procInstId = (Long) piId;
+			List<V> vars = grouped.get(procInstId);
 			if (vars == null) {
 				vars = new ArrayList<>();
-				grouped.put(piId, vars);
+				grouped.put(procInstId, vars);
 			}
 			vars.add(var);
 		}
@@ -3189,7 +3211,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				continue;
 			}
 
-			Long procInstId = var.getProcessInstanceId();
+			Serializable piId = var.getProcessInstanceId();
+			Long procInstId = piId instanceof Long ? (Long) piId : null;
+			if (procInstId == null) {
+				continue;
+			}
+
 			Map<String, V> procInstData = results.get(procInstId);
 			if (procInstData == null) {
 				procInstData = new HashMap<>();
@@ -3599,8 +3626,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			if (varInfo == null) {
 				continue;
 			}
-			Long piId = varInfo.getProcessInstanceId();
-			if (!ListUtil.isEmpty(originalProcInstIds) && !originalProcInstIds.contains(piId)) {
+			Serializable procInstId = varInfo.getProcessInstanceId();
+			Long piId = procInstId instanceof Long ? (Long) procInstId : null;
+			if (piId == null || !ListUtil.isEmpty(originalProcInstIds) && !originalProcInstIds.contains(piId)) {
 				continue;
 			}
 
@@ -3662,7 +3690,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		Map<Long, Map<String, V>> data = new LinkedHashMap<>();
 		for (V var: variables) {
-			Long id = byTaskInstance ? var.getTaskInstanceId() : var.getProcessInstanceId();
+			Serializable instId = byTaskInstance ? var.getTaskInstanceId() : var.getProcessInstanceId();
+			Long id = instId instanceof Long ? (Long) instId : null;
 			if (id == null) {
 				continue;
 			}
