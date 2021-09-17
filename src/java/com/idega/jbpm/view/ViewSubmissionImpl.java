@@ -3,7 +3,11 @@ package com.idega.jbpm.view;
 import java.io.Serializable;
 import java.util.Map;
 
+import com.idega.presentation.IWContext;
+
 public class ViewSubmissionImpl implements ViewSubmission {
+
+	private IWContext context;
 
 	private Map<String, Object> variables;
 
@@ -99,6 +103,16 @@ public class ViewSubmissionImpl implements ViewSubmission {
 
 	public void setAllowedToEdit(boolean allowedToEdit) {
 		this.allowedToEdit = allowedToEdit;
+	}
+
+	@Override
+	public void setContext(IWContext context) {
+		this.context = context;
+	}
+
+	@Override
+	public IWContext getContext() {
+		return context;
 	}
 
 }

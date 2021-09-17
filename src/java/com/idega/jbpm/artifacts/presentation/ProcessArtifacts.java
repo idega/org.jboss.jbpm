@@ -38,6 +38,7 @@ import org.w3c.dom.Document;
 
 import com.idega.block.email.presentation.EmailSender;
 import com.idega.block.process.business.ProcessConstants;
+import com.idega.bpm.model.VariableInstance;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.builder.business.BuilderLogic;
 import com.idega.builder.business.BuilderLogicWrapper;
@@ -625,7 +626,7 @@ public class ProcessArtifacts {
 		    						if (tasksDocuments != null) {
 		    							tasksDocuments.add(doc);
 		    						} else {
-		    							tasksDocuments = new ArrayList<BPMDocument>();
+		    							tasksDocuments = new ArrayList<>();
 		    							tasksDocuments.add(doc);
 		    						}
 		    					}
@@ -1006,7 +1007,7 @@ public class ProcessArtifacts {
 		if (ListUtil.isEmpty(usersConnectedToProcess)) {
 			return Collections.emptyList();
 		}
-		return new ArrayList<User>(usersConnectedToProcess);
+		return new ArrayList<>(usersConnectedToProcess);
 	}
 
 	public Document getProcessContactsList(ProcessArtifactsParamsBean params) {
@@ -1094,7 +1095,7 @@ public class ProcessArtifacts {
 			IWBundle bundle = IWMainApplication.getDefaultIWMainApplication().getBundle(IWBundleStarter.IW_BUNDLE_IDENTIFIER);
 
 			boolean showUserCompany = params.isShowUserCompany();
-			Map<String, Boolean> addedUsers = new ConcurrentHashMap<String, Boolean>();
+			Map<String, Boolean> addedUsers = new ConcurrentHashMap<>();
 			for (User user : uniqueUsers) {
 				String name = user.getName();
 				String emails = getUserEmails(user.getEmails(), processIdentifier, systemEmail);
@@ -1446,7 +1447,7 @@ public class ProcessArtifacts {
 			roles = piw.getRolesContactsPermissions(userId);
 		}
 
-		List<String[]> accessParamsList = new ArrayList<String[]>();
+		List<String[]> accessParamsList = new ArrayList<>();
 
 		Layer buttonsContainer = new Layer();
 		buttonsContainer.setStyleClass("links");
@@ -1767,6 +1768,11 @@ public class ProcessArtifacts {
 			return;
 		}
 
+		if (!IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.notify_about_assignee", true)) {
+			LOGGER.info("Not sending email to " + emailAddress + " about assigned case (proc. inst. ID: " + processInstanceId + ")");
+			return;
+		}
+
 		IWApplicationContext iwac = IWMainApplication.getDefaultIWApplicationContext();
 		final String from = iwac.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, CoreConstants.EMAIL_DEFAULT_FROM);
 		final String host = iwac.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER, CoreConstants.EMAIL_DEFAULT_HOST);
@@ -1780,7 +1786,7 @@ public class ProcessArtifacts {
 		String link = "unknown";
 		text = iwrb == null ? text : iwrb.getLocalizedString("assigned_case_text", text);
 		try {
-			Collection<VariableInstanceInfo> info =
+			Collection<VariableInstance> info =
 				getVariablesQuerier().getVariablesByProcessInstanceIdAndVariablesNames(
 						Arrays.asList(ProcessConstants.CASE_IDENTIFIER),
 						Arrays.asList(processInstanceId),
@@ -1789,7 +1795,7 @@ public class ProcessArtifacts {
 						false
 			);
 			String replace = ListUtil.isEmpty(info) ? iwrb == null ? "unknown" : iwrb.getLocalizedString("unknown", "unknown") :
-													info.iterator().next().getValue().toString();
+													info.iterator().next().getVariableValue().toString();
 			text = StringHandler.replace(text, "case_identifier", replace);
 
 			info = getVariablesQuerier().getVariablesByProcessInstanceIdAndVariablesNames(
@@ -1800,7 +1806,7 @@ public class ProcessArtifacts {
 						false
 			);
 			replace = ListUtil.isEmpty(info) ? iwrb == null ? "unknown" : iwrb.getLocalizedString("unknown", "unknown") :
-													info.iterator().next().getValue().toString();
+													info.iterator().next().getVariableValue().toString();
 			text = StringHandler.replace(text, "case_subject", replace);
 
 			BPMUser bpmUser = getBpmFactory().getBpmUserFactory().getBPMUser(handlerId);
@@ -1852,7 +1858,7 @@ public class ProcessArtifacts {
 		Integer assignedCaseHandlerId = piw.getHandlerId();
 		String assignedCaseHandlerIdStr = assignedCaseHandlerId == null ? null : String.valueOf(assignedCaseHandlerId);
 
-		List<AdvancedProperty> allHandlers = new ArrayList<AdvancedProperty>(1);
+		List<AdvancedProperty> allHandlers = new ArrayList<>(1);
 		IWContext iwc = getIWContext(true);
 		if (iwc == null) {
 			return null;

@@ -14,9 +14,9 @@ import javax.faces.component.UIComponent;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.idega.bpm.model.VariableInstance;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.core.business.DefaultSpringBean;
-import com.idega.jbpm.bean.BPMProcessVariable;
 import com.idega.jbpm.bean.VariableInstanceInfo;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -66,7 +66,7 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		return null;
 	}
 
-	protected Collection<VariableInstanceInfo> getVariables(String procDefName, String variableName) {
+	protected Collection<VariableInstance> getVariables(String procDefName, String variableName) {
 		if (StringUtil.isEmpty(procDefName) || StringUtil.isEmpty(variableName)) {
 			return null;
 		}
@@ -79,19 +79,19 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		return getVariablesQuerier().getVariablesByProcessInstanceIdAndVariablesNames(procInstIds, Arrays.asList(variableName), false);
 	}
 
-	public Collection<AdvancedProperty> getBinaryVariablesValues(Collection<VariableInstanceInfo> vars) {
+	public Collection<AdvancedProperty> getBinaryVariablesValues(Collection<VariableInstance> vars) {
 		return getBinaryVariablesValues(vars, Collections.emptyList());
 	}
 
-	public Collection<AdvancedProperty> getBinaryVariablesValues(Collection<VariableInstanceInfo> vars, Collection<?> values) {
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<AdvancedProperty> getBinaryVariablesValues(Collection<V> vars, Collection<?> values) {
 		if (ListUtil.isEmpty(vars)) {
 			return null;
 		}
 
-		List<String> addedValues = new ArrayList<String>();
-		Collection<AdvancedProperty> results = new ArrayList<AdvancedProperty>();
-		for (VariableInstanceInfo var: vars) {
-			Serializable value = var.getValue();
+		List<String> addedValues = new ArrayList<>();
+		Collection<AdvancedProperty> results = new ArrayList<>();
+		for (VariableInstance var: vars) {
+			Serializable value = var.getVariableValue();
 			if (!(value instanceof Collection)) {
 				continue;
 			}
@@ -114,7 +114,7 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 			return null;
 		}
 
-		Collection<AdvancedProperty> results = new ArrayList<AdvancedProperty>();
+		Collection<AdvancedProperty> results = new ArrayList<>();
 		for (Object entry: entries) {
 			if (entry == null) {
 				continue;
@@ -166,12 +166,12 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		return null;
 	}
 
-	public String getPresentation(BPMProcessVariable variable) {
-		if (variable == null || variable.getValue() == null) {
+	public String getPresentation(VariableInstance variable) {
+		if (variable == null || variable.getVariableValue() == null) {
 			return CoreConstants.MINUS;
 		}
 
-		return getPresentation(variable.getValue().toString());
+		return getPresentation(variable.getVariableValue().toString());
 	}
 
 	protected VariableInstanceQuerier getVariablesQuerier() {
@@ -200,7 +200,7 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	protected void addEmptyLabel(String bundleIdentifier) {
 		if (values == null) {
-			values = new ArrayList<AdvancedProperty>();
+			values = new ArrayList<>();
 		}
 
 		values.add(new AdvancedProperty(String.valueOf(-1),
@@ -269,7 +269,7 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		return presentation;
 	}
 
-	public Collection<VariableInstanceInfo> getFinalSearchResult() {
+	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getFinalSearchResult() {
 		return null;
 	}
 

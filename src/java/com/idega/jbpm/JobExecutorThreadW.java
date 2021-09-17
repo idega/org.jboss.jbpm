@@ -12,6 +12,7 @@ import org.jbpm.job.executor.JobExecutor;
 import org.jbpm.job.executor.JobExecutorThread;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.idega.idegaweb.DefaultIWBundle;
 import com.idega.util.ListUtil;
 import com.idega.util.expression.ELUtil;
 
@@ -36,12 +37,15 @@ public class JobExecutorThreadW extends JobExecutorThread {
 
 	@Override
 	protected Collection<Job> acquireJobs() {
-		return getBpmContext().execute(new JbpmCallback<Collection<Job>>() {
-			@Override
-			public Collection<Job> doInJbpm(JbpmContext context) throws JbpmException {
-				return acquireJobsSuper(context);
-			}
-		});
+		if (DefaultIWBundle.isProductionEnvironment()) {
+			return getBpmContext().execute(new JbpmCallback<Collection<Job>>() {
+				@Override
+				public Collection<Job> doInJbpm(JbpmContext context) throws JbpmException {
+					return acquireJobsSuper(context);
+				}
+			});
+		}
+		return Collections.emptyList();
 	}
 
 	private Collection<Job> acquireJobsSuper(JbpmContext context) {
@@ -80,12 +84,15 @@ public class JobExecutorThreadW extends JobExecutorThread {
 
 	@Override
 	protected Date getNextDueDate() {
-		return getBpmContext().execute(new JbpmCallback<Date>() {
-			@Override
-			public Date doInJbpm(JbpmContext context) throws JbpmException {
-				return getNextDueDateSuper();
-			}
-		});
+		if (DefaultIWBundle.isProductionEnvironment()) {
+			return getBpmContext().execute(new JbpmCallback<Date>() {
+				@Override
+				public Date doInJbpm(JbpmContext context) throws JbpmException {
+					return getNextDueDateSuper();
+				}
+			});
+		}
+		return null;
 	}
 
 	protected Date getNextDueDateSuper() {

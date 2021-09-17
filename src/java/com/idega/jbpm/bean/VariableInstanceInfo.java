@@ -71,9 +71,21 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 	public abstract <T extends Serializable> void setValue(T value);
 
 	@Override
+	public <T extends Serializable> T getVariableId() {
+		@SuppressWarnings("unchecked")
+		T id = (T) getId();
+		return id;
+	}
+
+	@Override
 	public <T extends Serializable> T getVariableValue() {
 		T value = getValue();
 		return value;
+	}
+
+	@Override
+	public <T extends Serializable> void setVariableValue(T value) {
+		setValue(value);
 	}
 
 	@Override
@@ -93,8 +105,11 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 		this.type = type;
 	}
 
-	public Long getProcessInstanceId() {
-		return processInstanceId;
+	@Override
+	public <T extends Serializable> T getProcessInstanceId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) processInstanceId;
+		return result;
 	}
 
 	public void setProcessInstanceId(Long processInstanceId) {
@@ -179,6 +194,11 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 		};
 		info.setName(name);
 		return info;
+	}
+
+	@Override
+	public VariableInstanceType getTypeOfVariable() {
+		return getType();
 	}
 
 }
