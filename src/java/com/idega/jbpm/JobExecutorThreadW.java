@@ -13,6 +13,7 @@ import org.jbpm.job.executor.JobExecutorThread;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.idegaweb.DefaultIWBundle;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.util.ListUtil;
 import com.idega.util.expression.ELUtil;
 
@@ -30,6 +31,10 @@ public class JobExecutorThreadW extends JobExecutorThread {
 	@Autowired
 	private BPMContext bpmContext;
 
+	private boolean isJobExecutorEnabled() {
+		return IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("jbpm.job_executor_enabled", true);
+	}
+
 	public JobExecutorThreadW(String name, JobExecutor jobExecutor, JbpmConfiguration jbpmConfiguration, int idleInterval, int maxIdleInterval,
 			long maxLockTime, int maxHistory) {
 		super(name, jobExecutor, jbpmConfiguration, idleInterval, maxIdleInterval, maxLockTime, maxHistory);
@@ -37,7 +42,7 @@ public class JobExecutorThreadW extends JobExecutorThread {
 
 	@Override
 	protected Collection<Job> acquireJobs() {
-		if (DefaultIWBundle.isProductionEnvironment()) {
+		if (DefaultIWBundle.isProductionEnvironment() && isJobExecutorEnabled()) {
 			return getBpmContext().execute(new JbpmCallback<Collection<Job>>() {
 				@Override
 				public Collection<Job> doInJbpm(JbpmContext context) throws JbpmException {
@@ -84,7 +89,7 @@ public class JobExecutorThreadW extends JobExecutorThread {
 
 	@Override
 	protected Date getNextDueDate() {
-		if (DefaultIWBundle.isProductionEnvironment()) {
+		if (DefaultIWBundle.isProductionEnvironment() && isJobExecutorEnabled()) {
 			return getBpmContext().execute(new JbpmCallback<Date>() {
 				@Override
 				public Date doInJbpm(JbpmContext context) throws JbpmException {
