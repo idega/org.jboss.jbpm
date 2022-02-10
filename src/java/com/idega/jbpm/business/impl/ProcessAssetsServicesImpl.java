@@ -293,11 +293,10 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			}
 
 			Locale locale = getCurrentLocale();
-			IWContext iwc = getIWContext(false);
 
 			List<BPMAttachment> attachments = new ArrayList<>();
 			for (TaskInstanceW tiW: tasks) {
-				List<BinaryVariable> binaryVariables = tiW.getAttachments(iwc);
+				List<BinaryVariable> binaryVariables = tiW.getAttachments();
 				if (ListUtil.isEmpty(binaryVariables)) {
 					continue;
 				}

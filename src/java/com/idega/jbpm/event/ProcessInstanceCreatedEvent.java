@@ -13,11 +13,10 @@ public class ProcessInstanceCreatedEvent extends ApplicationEvent {
 	private Serializable processDefintionId, processInstanceId;
 	private Map<String, Object> variables;
 
-	public ProcessInstanceCreatedEvent(String processDefinitionName, Serializable processDefintionId, Serializable processInstanceId, Map<String, Object> variables) {
+	public ProcessInstanceCreatedEvent(String processDefinitionName, Long processInstanceId, Map<String, Object> variables) {
 		super(processDefinitionName);
 
 		this.processDefinitionName = processDefinitionName;
-		this.processDefintionId = processDefintionId;
 		this.processInstanceId = processInstanceId;
 		this.variables = variables;
 	}

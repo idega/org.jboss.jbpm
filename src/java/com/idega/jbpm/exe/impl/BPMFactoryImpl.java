@@ -218,7 +218,7 @@ public class BPMFactoryImpl implements BPMFactory {
 			return Collections.emptyList();
 		}
 
-		ArrayList<View> views = new ArrayList<View>(binds.size());
+		ArrayList<View> views = new ArrayList<>(binds.size());
 
 		for (ViewTaskBind viewTaskBind : binds) {
 			String viewType = viewTaskBind.getViewType();
@@ -327,7 +327,7 @@ public class BPMFactoryImpl implements BPMFactory {
 	public void setProcessManagers(List<ProcessManager> processManagersList) {
 
 		// hashmap is thread safe for read only ops
-		processManagers = new HashMap<String, ProcessManager>(
+		processManagers = new HashMap<>(
 		        processManagersList.size());
 
 		for (ProcessManager processManager : processManagersList) {
@@ -545,7 +545,7 @@ public class BPMFactoryImpl implements BPMFactory {
 	public void setViewFactories(List<ViewFactory> viewFactoriesList) {
 
 		// hashmap is thread safe for read only ops
-		viewFactories = new HashMap<String, ViewFactory>(viewFactoriesList
+		viewFactories = new HashMap<>(viewFactoriesList
 		        .size());
 
 		for (ViewFactory viewFactory : viewFactoriesList) {
@@ -602,7 +602,7 @@ public class BPMFactoryImpl implements BPMFactory {
 	}
 
 	@Override
-	public <T extends Serializable> T getIdOfStartTaskInstance(T piId, IWContext iwc) {
+	public <T extends Serializable> T getIdOfStartTaskInstance(T piId) {
 		if (piId instanceof Number || (piId != null && StringHandler.isNumeric(piId.toString()))) {
 			@SuppressWarnings("unchecked")
 			T id = (T) getIdOfStartTaskInstance(Long.valueOf(piId.toString()));
@@ -611,7 +611,7 @@ public class BPMFactoryImpl implements BPMFactory {
 
 		ProcessInstanceW piW = getProcessInstanceW(piId);
 		@SuppressWarnings("unchecked")
-		T id  = (T) (piW == null ? null : piW.getIdOfStartTaskInstance(iwc));
+		T id  = (T) (piW == null ? null : piW.getIdOfStartTaskInstance());
 		return id;
 	}
 

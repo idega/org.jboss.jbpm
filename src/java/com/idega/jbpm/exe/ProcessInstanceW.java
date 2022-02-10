@@ -191,9 +191,9 @@ public interface ProcessInstanceW {
 
 	public abstract boolean hasEnded(IWContext iwc);
 
-	public <T extends Serializable> T getIdOfStartTaskInstance(IWContext iwc);
+	public <T extends Serializable> T getIdOfStartTaskInstance();
 
-	public abstract TaskInstanceW getStartTaskInstance(IWContext iwc);
+	public abstract TaskInstanceW getStartTaskInstance();
 
 	public abstract Collection<Role> getRolesContactsPermissions(Integer userId);
 
@@ -216,9 +216,9 @@ public interface ProcessInstanceW {
 
 	public abstract User getOwner();
 
-	public TaskInstanceW getSubmittedTaskInstance(IWContext iwc, String taskName, Map<String, Object> variables);
-	public boolean doSubmitTask(IWContext iwc, String taskName, Map<String, Object> variables);
-	public TaskInstanceW getSubmitedTask(IWContext iwc, TaskInstanceW task, ViewSubmission view, Map<String, Object> variables);
+	public TaskInstanceW getSubmittedTaskInstance(String taskName, Map<String, Object> variables);
+	public boolean doSubmitTask(String taskName, Map<String, Object> variables);
+	public TaskInstanceW getSubmitedTask(TaskInstanceW task, ViewSubmission view, Map<String, Object> variables);
 
 	public TaskInstanceW getTaskInstance(String taskName);
 	public List<Long> getIdsOfSubProcesses(Long procInstId);

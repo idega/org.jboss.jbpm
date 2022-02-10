@@ -101,7 +101,7 @@ public interface TaskInstanceW {
 
 	public boolean hasAttachment(String identifier, String variableName);
 
-	public abstract List<BinaryVariable> getAttachments(IWContext iwc);
+	public abstract List<BinaryVariable> getAttachments();
 
 	public abstract List<BinaryVariable> getAttachments(Variable variable);
 

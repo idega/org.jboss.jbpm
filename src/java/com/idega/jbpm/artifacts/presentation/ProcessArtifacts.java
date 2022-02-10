@@ -395,8 +395,7 @@ public class ProcessArtifacts {
 		boolean measure = JBPMUtil.isPerformanceMeasurementOn();
 		long start = measure ? System.currentTimeMillis() : 0;
 		try {
-			IWContext iwc = getIWContext(false);
-			List<BinaryVariable> binaryVariables = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId).getAttachments(iwc);
+			List<BinaryVariable> binaryVariables = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId).getAttachments();
 
 			if (ListUtil.isEmpty(binaryVariables)) {
 				return false;
@@ -792,7 +791,7 @@ public class ProcessArtifacts {
 
 				TaskInstanceW tiw = getBpmFactory().getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
 
-				List<BinaryVariable> binaryVariables = tiw.getAttachments(iwc);
+				List<BinaryVariable> binaryVariables = tiw.getAttachments();
 				ProcessArtifactsListRows rows = new ProcessArtifactsListRows();
 
 				if (ListUtil.isEmpty(binaryVariables)) {

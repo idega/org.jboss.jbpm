@@ -15,7 +15,6 @@ import com.idega.jbpm.identity.RolesManager;
 import com.idega.jbpm.identity.permission.PermissionsFactory;
 import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewSubmission;
-import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
@@ -127,7 +126,7 @@ public interface BPMFactory {
 
 	public abstract ProcessDefinitionW getProcessDefinitionW(String processName);
 
-	public <T extends Serializable> T getIdOfStartTaskInstance(T piId, IWContext iwc);
+	public <T extends Serializable> T getIdOfStartTaskInstance(T piId);
 
 	public <T extends Serializable> T getVariable(ExecutionContext ctx, String name);
 	public <T extends Serializable> T getVariable(ExecutionContext ctx, String name, Long piId);

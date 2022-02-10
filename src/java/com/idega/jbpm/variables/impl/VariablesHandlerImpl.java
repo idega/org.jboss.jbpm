@@ -215,7 +215,7 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 									(token == null ? CoreConstants.EMPTY : token.getId()), e);
 						}
 					}
-					Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
+					Map<String, Object> variables = vars == null ? new HashMap<>() : new HashMap<>(vars);
 
 					if (!ti.hasEnded()) {
 						TaskController taskController = ti.getTask().getTaskController();
@@ -246,8 +246,7 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 
 					if (!MapUtil.isEmpty(variables) && getSettings().getBoolean("bpm.load_vars_from_pi_if_empty", false)) {
 						ProcessInstanceW piW = bpmFactory.getProcessInstanceW(ti.getProcessInstance().getId());
-						IWContext iwc = CoreUtil.getIWContext();
-						TaskInstanceW startTiW = piW.getStartTaskInstance(iwc);
+						TaskInstanceW startTiW = piW.getStartTaskInstance();
 						TaskInstance startTi = context.getTaskInstance(startTiW.getTaskInstanceId());
 						List<String> variablesToLoad = new ArrayList<>();
 						for (String variableName: variables.keySet()) {
@@ -378,9 +377,9 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 			List<VariableAccess> variableAccesses = tiController == null ? Collections.emptyList() : tiController.getVariableAccesses();
 
 			if (variables == null) {
-				variables = new HashMap<String, Object>();
+				variables = new HashMap<>();
 			}
-			Set<String> undeclaredVariables = MapUtil.isEmpty(variables) ? new HashSet<String>() : new HashSet<String>(variables.keySet());
+			Set<String> undeclaredVariables = MapUtil.isEmpty(variables) ? new HashSet<>() : new HashSet<>(variables.keySet());
 
 			for (VariableAccess variableAccess: variableAccesses) {
 				if (variableAccess == null) {
