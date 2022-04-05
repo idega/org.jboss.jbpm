@@ -27,8 +27,8 @@ public interface ProcessInstanceW {
 	/**
 	 * @return all task instances, including the ended ones
 	 */
-	public abstract List<TaskInstanceW> getAllTaskInstances(IWContext iwc);
-	public abstract List<TaskInstanceW> getAllTaskInstances(IWContext iwc, User user);
+	public abstract List<TaskInstanceW> getAllTaskInstances();
+	public abstract List<TaskInstanceW> getAllTaskInstances(User user);
 
 	/**
 	 * @param processInstanceId

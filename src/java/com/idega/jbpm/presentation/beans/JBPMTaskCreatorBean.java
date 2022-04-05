@@ -281,7 +281,7 @@ public class JBPMTaskCreatorBean {
 	 */
 
 	private Collection<Task> getSubProcessTasks() {
-		final ArrayList<Task> result = new ArrayList<Task>();
+		final ArrayList<Task> result = new ArrayList<>();
 
 		final ProcessDefinitionW spdw = getSubProcessDefinition();
 		if (spdw != null) {
@@ -306,18 +306,18 @@ public class JBPMTaskCreatorBean {
 	}
 
 	private Collection<TaskInstanceW> getSubProcessTaskInstances() {
-		ArrayList<TaskInstanceW> result = new ArrayList<TaskInstanceW>();
+		ArrayList<TaskInstanceW> result = new ArrayList<>();
 
 		ProcessInstanceW spiw = getSubProcessInstance();
 		if (spiw != null) {
-			return spiw.getAllTaskInstances(CoreUtil.getIWContext());
+			return spiw.getAllTaskInstances();
 		}
 
 		return result;
 	}
 
 	Collection<Long> getSubmittedSubProcessTasks() {
-		ArrayList<Long> submittedTasks = new ArrayList<Long>();
+		ArrayList<Long> submittedTasks = new ArrayList<>();
 		Collection<TaskInstanceW> sptis = getSubProcessTaskInstances();
 
 		for (TaskInstanceW spti : sptis) {
@@ -367,7 +367,7 @@ public class JBPMTaskCreatorBean {
 	}
 
 	public Map<String, Long> getUnsubmittedSubProcessTasksMap() {
-		Map<String, Long> map = new TreeMap<String, Long>();
+		Map<String, Long> map = new TreeMap<>();
 
 		Collection<Task> unsubmittedTasks = getUnsubmittedSubProcessTasks();
 		for (Task unsubmittedTask : unsubmittedTasks) {

@@ -587,7 +587,7 @@ public class ProcessArtifacts {
 			}
 
 			if (!StringUtil.isEmpty(params.getInactiveTasksToShow())){
-				List<TaskInstanceW> tasks = getBpmFactory().getProcessInstanceW(processInstanceId).getAllTaskInstances(iwc);
+				List<TaskInstanceW> tasks = getBpmFactory().getProcessInstanceW(processInstanceId).getAllTaskInstances();
 				StringTokenizer st = new StringTokenizer(params.getInactiveTasksToShow(), CoreConstants.SEMICOLON);
 		    	while (st.hasMoreTokens()) {
 		    		String taskName = st.nextToken();
