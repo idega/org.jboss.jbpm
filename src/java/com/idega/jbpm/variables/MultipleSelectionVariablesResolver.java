@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.idega.bpm.model.VariableInstance;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.core.business.DefaultSpringBean;
+import com.idega.jbpm.bean.BPMProcessVariable;
 import com.idega.jbpm.bean.VariableInstanceInfo;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -167,6 +168,14 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	}
 
 	public String getPresentation(VariableInstance variable) {
+		if (variable == null || variable.getVariableValue() == null) {
+			return CoreConstants.MINUS;
+		}
+
+		return getPresentation(variable.getVariableValue().toString());
+	}
+
+	public String getPresentation(BPMProcessVariable variable) {
 		if (variable == null || variable.getVariableValue() == null) {
 			return CoreConstants.MINUS;
 		}
