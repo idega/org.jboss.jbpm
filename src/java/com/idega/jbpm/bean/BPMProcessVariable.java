@@ -248,7 +248,7 @@ public class BPMProcessVariable implements Serializable, VariableInstance {
 	}
 
 	@Override
-	public <T extends Serializable> T getProcessInstanceId() {
+	public Long getProcessInstanceId() {
 		return null;
 	}
 
@@ -286,7 +286,7 @@ public class BPMProcessVariable implements Serializable, VariableInstance {
 	}
 
 	@Override
-	public <T extends Serializable> T getTaskInstanceId() {
+	public Long getTaskInstanceId() {
 		return null;
 	}
 
