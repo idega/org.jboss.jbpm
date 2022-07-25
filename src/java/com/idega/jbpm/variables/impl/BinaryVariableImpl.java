@@ -3,6 +3,7 @@ package com.idega.jbpm.variables.impl;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URI;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -52,6 +53,8 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	private transient Variable variable;
 
 	private transient URI uri;
+
+	private transient Date date;
 
 	public BinaryVariableImpl() {
 		super();
@@ -259,7 +262,7 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 				iterator.remove();
 				binVars.add(this);
 
-				Map<String, Object> variable = new HashMap<String, Object>(1);
+				Map<String, Object> variable = new HashMap<>(1);
 				variable.put(getVariable().getDefaultStringRepresentation(), binVars);
 				getVariablesHandler().submitVariablesExplicitly(variable, getTaskInstanceId());
 				return;
@@ -298,7 +301,7 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	@Override
 	public Map<String, Object> getMetadata() {
 		if (metadata == null)
-			metadata = new HashMap<String, Object>();
+			metadata = new HashMap<>();
 		return metadata;
 	}
 
@@ -320,6 +323,16 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 	@Override
 	public void setPersistedToRepository(boolean persistedToRepository) {
 		this.persistedToRepository = persistedToRepository;
+	}
+
+	@Override
+	public Date getDate() {
+		return date;
+	}
+
+	@Override
+	public void setDate(Date date) {
+		this.date = date;
 	}
 
 }
