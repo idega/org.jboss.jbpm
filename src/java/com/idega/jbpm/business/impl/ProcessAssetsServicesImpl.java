@@ -243,6 +243,9 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			BPMAttachment attachment = new BPMAttachment();
 			attachments.add(attachment);
 
+			if (binaryVariable.getDate() != null) {
+				submittedAt = binaryVariable.getDate();
+			}
 			attachment.setTimestamp(submittedAt);
 
 			Integer hash = binaryVariable.getHash();
