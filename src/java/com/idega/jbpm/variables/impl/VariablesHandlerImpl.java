@@ -215,7 +215,7 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 									(token == null ? CoreConstants.EMPTY : token.getId()), e);
 						}
 					}
-					Map<String, Object> variables = vars == null ? new HashMap<String, Object>() : new HashMap<String, Object>(vars);
+					Map<String, Object> variables = vars == null ? new HashMap<>() : new HashMap<>(vars);
 
 					if (!ti.hasEnded()) {
 						TaskController taskController = ti.getTask().getTaskController();
@@ -281,7 +281,24 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 				}
 			});
 		} else {
-			TaskInstanceW tiW = bpmFactory.getProcessManagerByTaskInstanceId(taskInstanceId).getTaskInstance(taskInstanceId);
+			TaskInstanceW tiW = null;
+			try {
+				tiW = bpmFactory.getTaskInstanceW(taskInstanceId);
+			} catch (Exception e) {}
+			if (tiW == null) {
+				String piId = taskInstanceId.toString();
+				Map<String, Object> results = new HashMap<>();
+				ProcessInstanceW piW = bpmFactory.getProcessInstanceW(piId);
+				List<BinaryVariable> variables = piW == null ? null : piW.getAttachments(iwc);
+				if (!ListUtil.isEmpty(variables)) {
+					for (BinaryVariable binVar: variables) {
+						results.put(binVar.getIdentifier(), binVar);
+					}
+
+				}
+				return results;
+			}
+
 			return tiW.getVariables(iwc, null);
 		}
 	}
@@ -289,6 +306,17 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 	@Override
 	public List<BinaryVariable> resolveBinaryVariables(Serializable taskInstanceId) {
 		Map<String, Object> variables = populateVariables(taskInstanceId);
+
+		if (!MapUtil.isEmpty(variables) && variables.values().iterator().next() instanceof BinaryVariable) {
+			List<BinaryVariable> binaryVars = new ArrayList<>();
+			for (Object var: variables.values()) {
+				if (var instanceof BinaryVariable) {
+					binaryVars.add((BinaryVariable) var);
+				}
+			}
+			return binaryVars;
+		}
+
 		return getBinaryVariablesHandler().resolveBinaryVariablesAsList(taskInstanceId, variables);
 	}
 
@@ -378,9 +406,9 @@ public class VariablesHandlerImpl extends DefaultSpringBean implements Variables
 			List<VariableAccess> variableAccesses = tiController == null ? Collections.emptyList() : tiController.getVariableAccesses();
 
 			if (variables == null) {
-				variables = new HashMap<String, Object>();
+				variables = new HashMap<>();
 			}
-			Set<String> undeclaredVariables = MapUtil.isEmpty(variables) ? new HashSet<String>() : new HashSet<String>(variables.keySet());
+			Set<String> undeclaredVariables = MapUtil.isEmpty(variables) ? new HashSet<>() : new HashSet<>(variables.keySet());
 
 			for (VariableAccess variableAccess: variableAccesses) {
 				if (variableAccess == null) {
