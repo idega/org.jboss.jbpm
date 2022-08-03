@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import com.idega.presentation.IWContext;
+import com.idega.user.data.User;
 
 /**
  * meant to be used for resolving submission variables
@@ -43,5 +44,9 @@ public interface ViewSubmission {
 	public abstract void setContext(IWContext iwc);
 
 	public abstract IWContext getContext();
+
+	public abstract void setCreator(User creator);
+
+	public abstract User getCreator();
 
 }

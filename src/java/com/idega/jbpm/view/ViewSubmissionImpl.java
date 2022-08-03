@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import com.idega.presentation.IWContext;
+import com.idega.user.data.User;
 
 public class ViewSubmissionImpl implements ViewSubmission {
 
@@ -18,6 +19,8 @@ public class ViewSubmissionImpl implements ViewSubmission {
 	private String viewId, viewType;
 
 	private boolean allowedToEdit;
+
+	private User creator;
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -113,6 +116,16 @@ public class ViewSubmissionImpl implements ViewSubmission {
 	@Override
 	public IWContext getContext() {
 		return context;
+	}
+
+	@Override
+	public void setCreator(User creator) {
+		this.creator = creator;
+	}
+
+	@Override
+	public User getCreator() {
+		return creator;
 	}
 
 }
