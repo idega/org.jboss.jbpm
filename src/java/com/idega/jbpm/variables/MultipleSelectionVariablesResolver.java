@@ -43,6 +43,10 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	private Map<Long, Integer> procInstIdsAndCasesIds;
 
+	private Map<Integer, String> casesIdsAndProcInstIds;
+
+	private String searchBy;
+
 	public abstract Collection<AdvancedProperty> getValues(String procDefId, String variableName);
 
 	protected JSONUtil getJSONUtil() {
@@ -295,6 +299,22 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	public void setProcInstIdsAndCasesIds(Map<Long, Integer> procInstIdsAndCasesIds) {
 		this.procInstIdsAndCasesIds = procInstIdsAndCasesIds;
+	}
+
+	public Map<Integer, String> getCasesIdsAndProcInstIds() {
+		return casesIdsAndProcInstIds;
+	}
+
+	public void setCasesIdsAndProcInstIds(Map<Integer, String> casesIdsAndProcInstIds) {
+		this.casesIdsAndProcInstIds = casesIdsAndProcInstIds;
+	}
+
+	public String getSearchBy() {
+		return searchBy;
+	}
+
+	public void setSearchBy(String searchBy) {
+		this.searchBy = searchBy;
 	}
 
 }
