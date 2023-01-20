@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.idega.bpm.model.VariableInstance;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.core.business.DefaultSpringBean;
+import com.idega.jbpm.bean.BPMProcessVariable;
 import com.idega.jbpm.bean.VariableInstanceInfo;
 import com.idega.jbpm.data.VariableInstanceQuerier;
 import com.idega.jbpm.data.dao.BPMDAO;
@@ -46,6 +47,10 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 	private Map<Integer, String> casesIdsAndProcInstIds;
 
 	private String searchBy;
+
+	private List<BPMProcessVariable> searchByVariables;
+
+	private Map<String, VariableInstance> processData;
 
 	public abstract Collection<AdvancedProperty> getValues(String procDefId, String variableName);
 
@@ -273,6 +278,28 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 		return presentation;
 	}
 
+	protected String getSearchVariable(String variableName) {
+		if (StringUtil.isEmpty(variableName)) {
+			return null;
+		}
+
+		List<BPMProcessVariable> variables = getSearchByVariables();
+		if (ListUtil.isEmpty(variables)) {
+			return null;
+		}
+
+		for (BPMProcessVariable variable: variables) {
+			String name = variable == null ? null : variable.getName();
+			if (StringUtil.isEmpty(name) || !name.equals(variableName)) {
+				continue;
+			}
+
+			return variable.getValue();
+		}
+
+		return null;
+	}
+
 	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getFinalSearchResult() {
 		return null;
 	}
@@ -315,6 +342,22 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	public void setSearchBy(String searchBy) {
 		this.searchBy = searchBy;
+	}
+
+	public List<BPMProcessVariable> getSearchByVariables() {
+		return searchByVariables;
+	}
+
+	public void setSearchByVariables(List<BPMProcessVariable> searchByVariables) {
+		this.searchByVariables = searchByVariables;
+	}
+
+	public Map<String, VariableInstance> getProcessData() {
+		return processData;
+	}
+
+	public void setProcessData(Map<String, VariableInstance> processData) {
+		this.processData = processData;
 	}
 
 }
