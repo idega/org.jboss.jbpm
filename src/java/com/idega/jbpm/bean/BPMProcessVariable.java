@@ -65,6 +65,14 @@ public class BPMProcessVariable implements Serializable, VariableInstance {
 		this.expression = expression;
 	}
 
+	public BPMProcessVariable(String name, String value, boolean flexible) {
+		this();
+
+		this.name = name;
+		this.value = value;
+		this.flexible = flexible;
+	}
+
 	private String name, value, type, expression = null, localizedName;
 	private boolean flexible, multiple;
 	private int order = 0;
