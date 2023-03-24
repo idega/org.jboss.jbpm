@@ -263,55 +263,52 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 		String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
 
 		List<BPMAttachment> attachments = new ArrayList<>();
-		for (BinaryVariable binaryVariable: binaryVariables) {
+		binaryVariables.parallelStream().forEach(binaryVariable -> {
 			if (binaryVariable == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
-				continue;
-			}
-
-			BPMAttachment attachment = new BPMAttachment();
-			attachments.add(attachment);
-
-			if (binaryVariable.getDate() != null) {
-				submittedAt = binaryVariable.getDate();
-			}
-			attachment.setTimestamp(submittedAt);
-
-			Integer hash = binaryVariable.getHash();
-			String attachmentId = hash == null ? binaryVariable.getFileName().concat(id == null ? CoreConstants.EMPTY : id.toString()) : hash.toString();
-			attachment.setId(attachmentId);
-
-			String description = binaryVariable.getDescription();
-			attachment.setDescription(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
-
-			String fileName = binaryVariable.getFileName();
-			attachment.setFileName(fileName);
-
-			Long fileSize = binaryVariable.getContentLength();
-			attachment.setFileSize(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
-
-			if (id != null && hash != null) {
-				URIUtil uri = new URIUtil(mediaServletURI);
-				uri.setParameter(MediaWritable.PRM_WRITABLE_CLASS, encrytptedURI);
-				uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, id.toString());
-				uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash.toString());
-				attachment.setDownloadLink(uri.getUri());
-				attachment.setSource(binaryVariable.getIdentifier());
 			} else {
-				attachment.setDownloadLink(binaryVariable.getIdentifier());
-			}
+				BPMAttachment attachment = new BPMAttachment();
+				attachments.add(attachment);
 
-			if (submittedAt != null) {
-				attachment.setDate(new IWTimestamp(submittedAt).getLocaleDateAndTime(locale, DateFormat.MEDIUM, DateFormat.MEDIUM));
-			}
+				Date date = binaryVariable.getDate();
+				attachment.setTimestamp(date == null ? submittedAt: date);
 
-			Map<String, Object> metadata = binaryVariable.getMetadata();
-			if (metadata != null){
-				Object sc  = metadata.get(JBPMConstants.SOURCE);
-				if (sc != null){
-					attachment.setSource(sc.toString());
+				Integer hash = binaryVariable.getHash();
+				String attachmentId = hash == null ? binaryVariable.getFileName().concat(id == null ? CoreConstants.EMPTY : id.toString()) : hash.toString();
+				attachment.setId(attachmentId);
+
+				String description = binaryVariable.getDescription();
+				attachment.setDescription(StringUtil.isEmpty(description) ? binaryVariable.getFileName() : description);
+
+				String fileName = binaryVariable.getFileName();
+				attachment.setFileName(fileName);
+
+				Long fileSize = binaryVariable.getContentLength();
+				attachment.setFileSize(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
+
+				if (id != null && hash != null) {
+					URIUtil uri = new URIUtil(mediaServletURI);
+					uri.setParameter(MediaWritable.PRM_WRITABLE_CLASS, encrytptedURI);
+					uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, id.toString());
+					uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash.toString());
+					attachment.setDownloadLink(uri.getUri());
+					attachment.setSource(binaryVariable.getIdentifier());
+				} else {
+					attachment.setDownloadLink(binaryVariable.getIdentifier());
+				}
+
+				if (submittedAt != null) {
+					attachment.setDate(new IWTimestamp(submittedAt).getLocaleDateAndTime(locale, DateFormat.MEDIUM, DateFormat.MEDIUM));
+				}
+
+				Map<String, Object> metadata = binaryVariable.getMetadata();
+				if (metadata != null){
+					Object sc  = metadata.get(JBPMConstants.SOURCE);
+					if (sc != null){
+						attachment.setSource(sc.toString());
+					}
 				}
 			}
-		}
+		});
 
 		return attachments;
 	}
@@ -341,17 +338,15 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			Locale locale = iwc.getCurrentLocale();
 
 			List<BPMAttachment> attachments = new ArrayList<>();
-			for (TaskInstanceW tiW: tasks) {
+			tasks.parallelStream().forEach(tiW -> {
 				List<BinaryVariable> binaryVariables = tiW.getAttachments(iwc);
-				if (ListUtil.isEmpty(binaryVariables)) {
-					continue;
+				if (!ListUtil.isEmpty(binaryVariables)) {
+					List<BPMAttachment> taskAttachments = getAttachments(binaryVariables, tiW.getEnd(), tiW.getTaskInstanceId());
+					if (!ListUtil.isEmpty(taskAttachments)) {
+						attachments.addAll(taskAttachments);
+					}
 				}
-
-				List<BPMAttachment> taskAttachments = getAttachments(binaryVariables, tiW.getEnd(), tiW.getTaskInstanceId());
-				if (!ListUtil.isEmpty(taskAttachments)) {
-					attachments.addAll(taskAttachments);
-				}
-			}
+			});
 
 			if (!ListUtil.isEmpty(attachments)) {
 				try {
