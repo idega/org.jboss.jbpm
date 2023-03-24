@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import com.idega.jbpm.bean.BPMAttachment;
 import com.idega.jbpm.exe.BPMDocument;
+import com.idega.jbpm.exe.ProcessInstanceW;
 import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.presentation.IWContext;
@@ -20,6 +21,8 @@ public interface ProcessAssetsServices {
 
 	public <T extends Serializable> List<BPMDocument> getTasks(T piId, User user, List<TaskInstanceW> tasks);
 
+	public <T extends Serializable> List<BPMDocument> getTasks(IWContext iwc, ProcessInstanceW piW, User user, List<TaskInstanceW> tasks, Locale locale);
+
 	/**
 	 *
 	 * @param piId - ID of process instance
@@ -32,6 +35,8 @@ public interface ProcessAssetsServices {
 	public <T extends Serializable> List<BPMDocument> getDocuments(T piId);
 
 	public <T extends Serializable> List<BPMDocument> getDocuments(T piId, User user, List<TaskInstanceW> documents);
+
+	public <T extends Serializable> List<BPMDocument> getDocuments(IWContext iwc, ProcessInstanceW piW, User user, List<TaskInstanceW> submittedTasks, Locale locale);
 
 	/**
 	 *
@@ -60,6 +65,7 @@ public interface ProcessAssetsServices {
 	 * @return
 	 */
 	public List<BPMAttachment> getAttachments(List<TaskInstanceW> tasks);
+	public List<BPMAttachment> getAttachments(IWContext iwc, List<TaskInstanceW> tasks);
 
 	public List<BPMAttachment> getAttachments(List<BinaryVariable> binaryVariables, Date submittedAt, Serializable id);
 

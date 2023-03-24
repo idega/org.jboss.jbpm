@@ -67,28 +67,42 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 	@Override
 	public <T extends Serializable> List<BPMDocument> getTasks(T piId, User user, List<TaskInstanceW> tasks) {
-		if (piId == null || piId == null) {
+		if (piId == null || StringUtil.isEmpty(piId.toString())) {
 			return null;
 		}
 
 		Locale locale = null;
-		List<BPMDocument> tasksDocuments = new ArrayList<>();
 		try {
 			IWContext iwc = getIWContext(false);
 			if (iwc == null) {
 				return null;
 			}
 
+			ProcessInstanceW piW = bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId);
 			locale = iwc.getCurrentLocale();
+			return getTasks(iwc, piW, user, tasks, locale);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting tasks for process instance ID: " + piId + " and user: " + user + " using locale: " +	locale + " and tasks " + tasks, e);
+		}
+		return null;
+	}
 
-			tasksDocuments = bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getTaskDocumentsForUser(iwc, user, locale, tasks);
+	@Override
+	public <T extends Serializable> List<BPMDocument> getTasks(IWContext iwc, ProcessInstanceW piW, User user, List<TaskInstanceW> tasks, Locale locale) {
+		if (piW == null) {
+			return null;
+		}
+
+		List<BPMDocument> tasksDocuments = new ArrayList<>();
+		try {
+			tasksDocuments = piW.getTaskDocumentsForUser(iwc, user, locale, tasks);
 			if (!ListUtil.isEmpty(tasksDocuments)) {
 				Collections.sort(tasksDocuments, (c1, c2) -> c2.getDocumentName().compareTo(c1.getDocumentName()));
 			}
 
 			return tasksDocuments;
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error getting tasks for process instance: " + piId + " and user: " + user + " using locale: " +	locale + " and tasks " + tasks, e);
+			getLogger().log(Level.WARNING, "Error getting tasks for process instance: " + piW + " and user: " + user + " using locale: " +	locale + " and tasks " + tasks, e);
 		}
 		return null;
 	}
@@ -143,7 +157,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 	@Override
 	public <T extends Serializable> List<BPMDocument> getDocuments(T piId, User user, List<TaskInstanceW> submittedTasks) {
-		if (piId == null || piId == null) {
+		if (piId == null || StringUtil.isEmpty(piId.toString())) {
 			return null;
 		}
 
@@ -155,10 +169,24 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 			}
 
 			locale = iwc.getCurrentLocale();
-
-			return bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId).getSubmittedDocumentsForUser(iwc, user, locale, submittedTasks);
+			ProcessInstanceW piW = bpmFactory.getProcessManagerByProcessInstanceId(piId).getProcessInstance(piId);
+			return getDocuments(iwc, piW, user, submittedTasks, locale);
 		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error getting tasks for process instance: " + piId + " and user: " + user + " using locale: " +	locale + " and submitted tasks " + submittedTasks, e);
+			getLogger().log(Level.WARNING, "Error getting tasks for process instance ID: " + piId + " and user: " + user + " using locale: " +	locale + " and submitted tasks " + submittedTasks, e);
+		}
+		return null;
+	}
+
+	@Override
+	public <T extends Serializable> List<BPMDocument> getDocuments(IWContext iwc, ProcessInstanceW piW, User user, List<TaskInstanceW> submittedTasks, Locale locale) {
+		if (piW == null) {
+			return null;
+		}
+
+		try {
+			return piW.getSubmittedDocumentsForUser(iwc, user, locale, submittedTasks);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting tasks for process instance: " + piW + " and user: " + user + " using locale: " +	locale + " and submitted tasks " + submittedTasks, e);
 		}
 		return null;
 	}
@@ -225,7 +253,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 	}
 
 	@Override
-	public List<BPMAttachment> getAttachments(List<BinaryVariable> binaryVariables, Date submittedAt, Serializable id) {
+	public List<BPMAttachment> getAttachments(List<BinaryVariable> binaryVariables, final Date submittedAt, Serializable id) {
 		if (ListUtil.isEmpty(binaryVariables)) {
 			return null;
 		}
@@ -290,13 +318,27 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 	@Override
 	public List<BPMAttachment> getAttachments(List<TaskInstanceW> tasks) {
+		if (ListUtil.isEmpty(tasks)) {
+			return null;
+		}
+
+		try {
+			return getAttachments(getIWContext(false), tasks);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting attachments for tasks: " + tasks, e);
+		}
+
+		return null;
+	}
+
+	@Override
+	public List<BPMAttachment> getAttachments(IWContext iwc, List<TaskInstanceW> tasks) {
 		try {
 			if (ListUtil.isEmpty(tasks)) {
 				return null;
 			}
 
-			Locale locale = getCurrentLocale();
-			IWContext iwc = getIWContext(false);
+			Locale locale = iwc.getCurrentLocale();
 
 			List<BPMAttachment> attachments = new ArrayList<>();
 			for (TaskInstanceW tiW: tasks) {
