@@ -270,7 +270,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 				attachments.add(attachment);
 
 				Date date = binaryVariable.getDate();
-				attachment.setTimestamp(date == null ? submittedAt: date);
+				attachment.setTimestamp(date == null ? submittedAt : date);
 
 				Integer hash = binaryVariable.getHash();
 				String attachmentId = hash == null ? binaryVariable.getFileName().concat(id == null ? CoreConstants.EMPTY : id.toString()) : hash.toString();
