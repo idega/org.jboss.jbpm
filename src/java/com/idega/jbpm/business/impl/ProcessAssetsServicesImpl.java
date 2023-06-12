@@ -30,6 +30,8 @@ import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.jbpm.utils.JBPMConstants;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.presentation.IWContext;
+import com.idega.repository.RepositoryService;
+import com.idega.repository.jcr.JCRItem;
 import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -263,13 +265,24 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 		String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
 
 		List<BPMAttachment> attachments = new ArrayList<>();
+		RepositoryService repositoryService = getRepositoryService();
 		binaryVariables.parallelStream().forEach(binaryVariable -> {
 			if (binaryVariable == null || (binaryVariable.getHidden() != null && binaryVariable.getHidden() == true)) {
 			} else {
 				BPMAttachment attachment = new BPMAttachment();
 				attachments.add(attachment);
 
+				String identifier = binaryVariable.getIdentifier();
 				Date date = binaryVariable.getDate();
+				if (date == null && !StringUtil.isEmpty(identifier)) {
+					try {
+						JCRItem item = repositoryService.getRepositoryItemAsRootUser(identifier);
+						long created = item == null ? -1 : item.getCreationDate();
+						if (created > 0) {
+							date = new Date(created);
+						}
+					} catch (Exception e) {}
+				}
 				attachment.setTimestamp(date == null ? submittedAt : date);
 
 				Integer hash = binaryVariable.getHash();
@@ -291,13 +304,14 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, id.toString());
 					uri.setParameter(AttachmentWriter.PARAMETER_VARIABLE_HASH, hash.toString());
 					attachment.setDownloadLink(uri.getUri());
-					attachment.setSource(binaryVariable.getIdentifier());
+					attachment.setSource(identifier);
 				} else {
-					attachment.setDownloadLink(binaryVariable.getIdentifier());
+					attachment.setDownloadLink(identifier);
 				}
 
-				if (submittedAt != null) {
-					attachment.setDate(new IWTimestamp(submittedAt).getLocaleDateAndTime(locale, DateFormat.MEDIUM, DateFormat.MEDIUM));
+				Date dateToUse = date == null ? submittedAt : date;
+				if (dateToUse != null) {
+					attachment.setDate(new IWTimestamp(dateToUse).getLocaleDateAndTime(locale, DateFormat.MEDIUM, DateFormat.MEDIUM));
 				}
 
 				Map<String, Object> metadata = binaryVariable.getMetadata();
