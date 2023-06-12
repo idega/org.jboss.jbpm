@@ -10,6 +10,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -82,7 +83,7 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 	 */
 	@Override
 	public Map<String, Object> storeBinaryVariables(long taskInstanceId, Map<String, Object> variables) {
-		Map<String, Object> newVars = new HashMap<String, Object>(variables);
+		Map<String, Object> newVars = new HashMap<>(variables);
 
 		JSONUtil json = getBinVarJSONConverter();
 		for (Entry<String, Object> entry: newVars.entrySet()) {
@@ -97,11 +98,12 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 				if (val instanceof Collection<?>) {
 					@SuppressWarnings("unchecked")
 					Collection<BinaryVariable> binVars = (Collection<BinaryVariable>) val;
-					List<String> binaryVariables = new ArrayList<String>(binVars.size());
+					List<String> binaryVariables = new ArrayList<>(binVars.size());
 
 					for (BinaryVariable binVar: binVars) {
 						binVar.setTaskInstanceId(taskInstanceId);
 						binVar.setVariable(variable);
+						binVar.setDate(new Date(System.currentTimeMillis()));
 
 						if (!binVar.isPersisted()) {
 							binVar.persist();
@@ -273,7 +275,7 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 
 	@Override
 	public List<BinaryVariable> getVariables(String name, Object val, Long tiId) {
-		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
+		List<BinaryVariable> binaryVars = new ArrayList<>();
 		if (StringUtil.isEmpty(name) || val == null) {
 			return binaryVars;
 		}
@@ -334,11 +336,11 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 
 	@Override
 	public List<BinaryVariable> resolveBinaryVariablesAsList(Serializable taskInstanceId, Map<String, Object> variables) {
-		List<BinaryVariable> binaryVars = new ArrayList<BinaryVariable>();
+		List<BinaryVariable> binaryVars = new ArrayList<>();
 
 		if (taskInstanceId instanceof Long || StringHandler.isNumeric(taskInstanceId.toString())) {
 			Long tiId = Long.valueOf(taskInstanceId.toString());
-			Map<String, Boolean> addedVars = new HashMap<String, Boolean>();
+			Map<String, Boolean> addedVars = new HashMap<>();
 
 			if (!MapUtil.isEmpty(variables)) {
 				for (Entry<String, Object> entry: variables.entrySet()) {
@@ -589,7 +591,7 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 
 	@Override
 	public JSONUtil getBinVarJSONConverter() {
-		Map<String, Class<?>> binVarAliasMap = new HashMap<String, Class<?>>(2);
+		Map<String, Class<?>> binVarAliasMap = new HashMap<>(2);
 		binVarAliasMap.put(BINARY_VARIABLE, BinaryVariableImpl.class);
 		binVarAliasMap.put(VARIABLE, Variable.class);
 
