@@ -139,7 +139,12 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 	protected BinaryVariable getBinVar(VariablesHandler variablesHandler, Serializable taskInstanceId, int binaryVariableHash) {
 		List<BinaryVariable> variables = variablesHandler.resolveBinaryVariables(taskInstanceId);
 		for (BinaryVariable binaryVariable : variables) {
-			if (binaryVariable.getHash().equals(binaryVariableHash)) {
+			Integer hash = binaryVariable == null ? null : binaryVariable.getHash();
+			if (hash == null) {
+				continue;
+			}
+
+			if (hash.equals(binaryVariableHash)) {
 				return binaryVariable;
 			}
 		}
