@@ -298,4 +298,9 @@ public class BPMProcessVariable implements Serializable, VariableInstance {
 		return null;
 	}
 
+	@Override
+	public Object getRawValue() {
+		return getVariableValue();
+	}
+
 }

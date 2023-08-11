@@ -12,6 +12,8 @@ public interface VariableInstance extends Serializable {
 
 	public <T extends Serializable> T getVariableValue();
 
+	public Object getRawValue();
+
 	public <T extends Serializable> void setVariableValue(T value);
 
 	public <T extends Serializable> T getProcessInstanceId();

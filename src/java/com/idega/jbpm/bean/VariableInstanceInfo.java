@@ -116,6 +116,7 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 		this.processInstanceId = processInstanceId;
 	}
 
+	@Override
 	public Long getTaskInstanceId() {
 		return taskInstanceId;
 	}
@@ -167,6 +168,11 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 
 	public void setCaseId(String caseId) {
 		this.caseId = caseId;
+	}
+
+	@Override
+	public Object getRawValue() {
+		return getVariableValue();
 	}
 
 	@Override
