@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +23,7 @@ import com.idega.jbpm.identity.BPMUserFactory;
 import com.idega.jbpm.variables.BinaryVariable;
 import com.idega.jbpm.variables.VariablesHandler;
 import com.idega.presentation.IWContext;
+import com.idega.user.data.User;
 import com.idega.util.FileUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.StringUtil;
@@ -89,7 +92,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 
 		VariablesHandler variablesHandler = getVariablesHandler();
 
-		binaryVariable = getBinVar(variablesHandler, taskInstanceId, variableHash);
+		binaryVariable = getBinVar(iwc, variablesHandler, taskInstanceId, variableHash);
 		return binaryVariable;
 	}
 
@@ -109,7 +112,7 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 	}
 
 	@Override
-	public void writeTo(OutputStream out) throws IOException {
+	public void writeTo(IWContext iwc, OutputStream out) throws IOException {
 		if (binaryVariable == null) {
 			LOGGER.warning("Binary variable is undefined!");
 			return;
@@ -132,11 +135,12 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 			return;
 		}
 
-		setFile(getFileFromRepository(binaryVariable.getIdentifier()));
-		super.writeTo(out);
+		setFile(getFileFromRepository(iwc, binaryVariable.getIdentifier()));
+		super.writeTo(iwc, out);
 	}
 
-	protected BinaryVariable getBinVar(VariablesHandler variablesHandler, Serializable taskInstanceId, int binaryVariableHash) {
+	protected BinaryVariable getBinVar(IWContext iwc, VariablesHandler variablesHandler, Serializable taskInstanceId, int binaryVariableHash) {
+		User user = iwc != null && iwc.isLoggedOn() ? iwc.getCurrentUser() : null;
 		List<BinaryVariable> variables = variablesHandler.resolveBinaryVariables(taskInstanceId);
 		for (BinaryVariable binaryVariable : variables) {
 			Integer hash = binaryVariable == null ? null : binaryVariable.getHash();
@@ -145,7 +149,21 @@ public class AttachmentWriter extends DownloadWriter implements MediaWritable {
 			}
 
 			if (hash.equals(binaryVariableHash)) {
-				return binaryVariable;
+				boolean available = false;
+				Collection<String> paths = new HashSet<>();
+				try {
+					String identifier = binaryVariable.getIdentifier();
+					if (!StringUtil.isEmpty(identifier)) {
+						paths.add(identifier);
+					}
+					available = hasPermission(iwc, user, paths);
+				} catch (Exception e) {
+					getLogger().log(Level.WARNING, "Error while checking if " + user + " has permission to " + binaryVariable + " " + paths, e);
+				}
+
+				if (available) {
+					return binaryVariable;
+				}
 			}
 		}
 
