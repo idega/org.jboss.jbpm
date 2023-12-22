@@ -369,7 +369,13 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 						@Override
 						public int compare(BPMAttachment o1, BPMAttachment o2) {
-							return collator.compare(o1.getFileName(), o2.getFileName());
+							String name1 = o1 == null ? null : o1.getFileName();
+							String name2 = o2 == null ? null : o2.getFileName();
+							if (StringUtil.isEmpty(name1) || StringUtil.isEmpty(name2)) {
+								return 0;
+							}
+
+							return collator.compare(name1, name2);
 						}
 
 					});
