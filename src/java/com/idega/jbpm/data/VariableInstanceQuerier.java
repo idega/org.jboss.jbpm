@@ -69,8 +69,8 @@ public interface VariableInstanceQuerier extends GenericDao {
 			boolean mirrowData
 	);
 
-	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getGroupedData(Collection<V> variables);
-	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getGroupedData(Collection<V> variables, boolean byTaskInstance);
+	public <V extends com.idega.bpm.model.VariableInstance, T extends Serializable> Map<T, Map<String, V>> getGroupedData(Collection<V> variables);
+	public <V extends com.idega.bpm.model.VariableInstance, T extends Serializable> Map<T, Map<String, V>> getGroupedData(Collection<V> variables, boolean byTaskInstance);
 
 	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessDefAndVariableName(String procDefName, String name);
 	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByProcessDefAndVariableName(String procDefName, String name, boolean checkBind);
@@ -154,7 +154,7 @@ public interface VariableInstanceQuerier extends GenericDao {
 
 	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getVariablesByNameAndValue(String name, Serializable value);
 	public boolean isVariableStored(String name, Serializable value);
-	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value);
+	public <T extends Serializable> Collection<T> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value);
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(String name, Serializable value, List<Long> procInstIds);
 
 	/**
@@ -266,11 +266,11 @@ public interface VariableInstanceQuerier extends GenericDao {
 	 * <code>null</code> on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+	public <V extends com.idega.bpm.model.VariableInstance, T extends Serializable> Map<T, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> variablesWithValues,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			Map<String, Boolean> flexibleVariables);
 
 	public List<String> getValuesByVariable(String name);
@@ -281,27 +281,27 @@ public interface VariableInstanceQuerier extends GenericDao {
 
 	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, List<V>> getGroupedVariables(Collection<V> variables);
 
-	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+	public <V extends com.idega.bpm.model.VariableInstance, T extends Serializable> Map<T, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			Map<String, Boolean> flexibleVariables,
 			boolean strictBinaryVariables
 	);
-	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+	public <V extends com.idega.bpm.model.VariableInstance, T extends Serializable> Map<T, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> originalProcInstIds,
+			List<T> originalProcInstIds,
 			Map<String, Boolean> flexibleVariables,
 			boolean strictBinaryVariables,
 			boolean selectOnlyProcIntsIds
 	);
 
-	public <V extends com.idega.bpm.model.VariableInstance> Collection<V> getConverted(List<Serializable[]> data);
-	public <V extends com.idega.bpm.model.VariableInstance> Map<Long, Map<String, V>> getConvertedVariables(List<Variable> variables);
-	public <V extends com.idega.bpm.model.VariableInstance> List<V> getConverted(Map<Long, Map<String, V>> vars);
+	public <V extends com.idega.bpm.model.VariableInstance, T extends Serializable> Collection<V> getConverted(List<Serializable[]> data);
+	public <V extends com.idega.bpm.model.VariableInstance, T extends Serializable> Map<T, Map<String, V>> getConvertedVariables(List<Variable> variables);
+	public <V extends com.idega.bpm.model.VariableInstance, T extends Serializable> List<V> getConverted(Map<T, Map<String, V>> vars);
 
 	public void doBindProcessVariables();
 	public void doIndexVariables(Long piId);

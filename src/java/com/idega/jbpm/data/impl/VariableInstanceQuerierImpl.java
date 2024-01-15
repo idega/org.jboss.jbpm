@@ -710,6 +710,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return Boolean.TRUE;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Collection<Long> getProcessInstanceIdsByVariableNameAndValue(String name, Serializable value) {
 		return getProcessInstanceIdsByVariableNameAndValueAndProcInstIds(name, value, null);
@@ -879,7 +880,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	class BinaryVariableData<V extends VariableInstance> {
-		private Long procInstId;
+		private Serializable procInstId;
 		private Serializable[] rawData;
 		private V variable;
 
@@ -889,8 +890,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			this.variable = variable;
 		}
 
-		Long getProcessInstanceId() {
-			return procInstId;
+		<T extends Serializable> T getProcessInstanceId() {
+			@SuppressWarnings("unchecked")
+			T result = (T) procInstId;
+			return result;
 		}
 
 		Serializable[] getRawData() {
@@ -907,11 +910,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
-	private <V extends VariableInstance> Map<Long, BinaryVariableData<V>> getDataByVariablesByNameAndValuesAndProcessDefinitions(
+	private <V extends VariableInstance, T extends Serializable> Map<Long, BinaryVariableData<V>> getDataByVariablesByNameAndValuesAndProcessDefinitions(
 			String name,
 			List<String> procDefNames,
 			Collection<?> values,
-			List<Long> procInstIds
+			List<T> procInstIds
 	) {
 		if (StringUtil.isEmpty(name)) {
 			return Collections.emptyMap();
@@ -1114,11 +1117,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getProcessVariablesByNamesAndValues(Arrays.asList(data), null, procDefNames, procInstIds, selectProcessInstanceId, mirrow, false);
 	}
 
-	private <V extends VariableInstance> Collection<V> getProcessVariablesByNamesAndValues(
+	private <V extends VariableInstance, T extends Serializable> Collection<V> getProcessVariablesByNamesAndValues(
 			List<VariableQuerierData> data,
 			List<String> variablesWithoutValues,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			boolean selectProcessInstanceId,
 			boolean mirrow,
 			boolean strictBinaryVariables) {
@@ -1160,11 +1163,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getConverted(queriedData);
 	}
 
-	private List<Serializable[]> getInformationByVariablesNameAndValuesAndProcesses(
+	private <T extends Serializable> List<Serializable[]> getInformationByVariablesNameAndValuesAndProcesses(
 			List<VariableQuerierData> data,
 			List<String> variablesWithoutValues,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			boolean selectProcessInstanceId,
 			boolean mirrow,
 			boolean strictBinaryVariables) {
@@ -1182,7 +1185,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		);
 	}
 
-	private List<Long> getNarrowedResults(String prefix, String keyword, List<Long> initialIds, List<Long> resultIds) {
+	private <T extends Serializable> List<T> getNarrowedResults(String prefix, String keyword, List<T> initialIds, List<T> resultIds) {
 		if (ListUtil.isEmpty(initialIds)) {
 			return resultIds;
 		}
@@ -1191,7 +1194,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			resultIds = new ArrayList<>();
 		}
 
-		List<Long> usedIds = null;
+		List<T> usedIds = null;
 		if (initialIds.size() > 1000) {
 			usedIds = new ArrayList<>(initialIds.subList(0, 1000));
 			initialIds = new ArrayList<>(initialIds.subList(1000, initialIds.size()));
@@ -1221,8 +1224,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 
 				Serializable id = ids[0];
-				if (id instanceof Number) {
-					resultIds.add(((Number) id).longValue());
+				if (id != null) {
+					@SuppressWarnings("unchecked")
+					T result = (T) id;
+					resultIds.add(result);
 				}
 			}
 		}
@@ -1230,7 +1235,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getNarrowedResults(prefix, keyword, initialIds, resultIds);
 	}
 
-	private <V extends VariableInstance> List<Serializable[]> getInformationByVariablesNameAndValuesAndProcesses(
+	private <V extends VariableInstance, T extends Serializable> List<Serializable[]> getInformationByVariablesNameAndValuesAndProcesses(
 			String columnsToSelect,
 			String groupBy,
 			Integer numberOfColumns,
@@ -1239,7 +1244,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			List<String> variablesWithoutValues,
 
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			List<Long> taskInstIds,
 			List<Long> varIds,
 			boolean selectProcessInstanceId,
@@ -1254,7 +1259,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		String currentColumnPrefix = null;
 		String allValuesClause = CoreConstants.EMPTY;
 		StringBuffer valuesToSelect = new StringBuffer();
-		Map<Long, List<Serializable[]>> binaryResults = null;
+		Map<T, List<Serializable[]>> binaryResults = null;
 		Map<String, String> mirrows = new HashMap<>();
 		Map<String, String> fromParts = new HashMap<>();
 		Map<String, VariableInstanceType> types = new HashMap<>();
@@ -1334,7 +1339,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					}
 
 					for (BinaryVariableData<V> binVarData: binaryData.values()) {
-						Long procInstId = binVarData.getProcessInstanceId();
+						T procInstId = binVarData.getProcessInstanceId();
 						List<Serializable[]> rawData = binaryResults.get(procInstId);
 						if (rawData == null) {
 							rawData = new ArrayList<>();
@@ -1435,7 +1440,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			allValuesClause = " and ".concat(allValuesClause);
 		}
 
-		List<Long> tmpIds = null;
+		List<T> tmpIds = null;
 		if (binaryResults == null || !strictBinaryVariables) {
 			tmpIds = procInstIds;
 		} else {
@@ -1582,7 +1587,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getConverted(data);
 	}
 
-	private List<Serializable[]> getDataByInstanceIds(List<Serializable[]> data, String query, int columns, String expression, List<Long> instIds) {
+	private <T extends Serializable> List<Serializable[]> getDataByInstanceIds(List<Serializable[]> data, String query, int columns, String expression, List<T> instIds) {
 		if (data == null) {
 			data = new ArrayList<>();
 		}
@@ -1590,7 +1595,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			return data;
 		}
 
-		List<Long> usedIds = null;
+		List<T> usedIds = null;
 		if (instIds.size() > 1000) {
 			usedIds = new ArrayList<>(instIds.subList(0, 1000));
 			instIds = new ArrayList<>(instIds.subList(1000,	instIds.size()));
@@ -1653,11 +1658,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	 * @return {@link Collection} of {@link VariableInstance} or
 	 * <code>null</code> on failure.
 	 */
-	private <V extends VariableInstance> Collection<V> getProcessVariablesByNamesAndValues(
+	private <V extends VariableInstance, T extends Serializable> Collection<V> getProcessVariablesByNamesAndValues(
 			Map<String, VariableQuerierData> namesAndValues,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			boolean selectProcessInstanceId,
 			Map<String, Boolean> flexibleVariables,
 			boolean strictBinaryVariables) {
@@ -1744,7 +1749,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public <V extends VariableInstance> Collection<V> getConverted(List<Serializable[]> data) {
+	public <V extends VariableInstance, T extends Serializable> Collection<V> getConverted(List<Serializable[]> data) {
 		if (ListUtil.isEmpty(data)) {
 			return null;
 		}
@@ -1790,7 +1795,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				}
 
 				Serializable value = null;
-				Long piId = null, tiId = null;
+				T piId = null;
+				Long tiId = null;
 				String caseId = null;
 				if (numberOfColumns > COLUMNS) {
 					int index = COLUMNS;
@@ -1811,8 +1817,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					}
 					if (piIdIndex >= index && piIdIndex < dataSet.length) {
 						Serializable temp = dataSet[piIdIndex];
-						if (temp instanceof Number) {
-							piId = Long.valueOf(((Number) temp).longValue());
+						if (temp != null) {
+							@SuppressWarnings("unchecked")
+							T tempId = (T) temp;
+							piId = tempId;
 						}
 
 						int tiIdIndex = piIdIndex - 1;
@@ -2603,11 +2611,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public <V extends VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+	public <V extends VariableInstance, T extends Serializable> Map<T, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			Map<String, Boolean> flexibleVariables
 		) {
 
@@ -2773,12 +2781,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return new ValueToMatch(field, valueToMatch, flexible, multipleValues, sentences);
 	}
 
-	private BooleanJunction<?> getVariablesConditions(
+	private <T extends Serializable> BooleanJunction<?> getVariablesConditions(
 			Class<?> queryType,
 			QueryBuilder query,
 			VariableQuerierData activeVariable,
 			List<String> names,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			List<Long> taskInstIds,
 			List<Long> varIds,
 			Map<String, Boolean> flexibleVariables
@@ -2879,7 +2887,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		if (!ListUtil.isEmpty(procInstIds)) {
 			StringBuilder procInstIdsCond = new StringBuilder();
-			for (Iterator<Long> procInstIdsIter = procInstIds.iterator(); procInstIdsIter.hasNext();) {
+			for (Iterator<T> procInstIdsIter = procInstIds.iterator(); procInstIdsIter.hasNext();) {
 				procInstIdsCond.append(procInstIdsIter.next());
 				if (procInstIdsIter.hasNext()) {
 					procInstIdsCond.append(CoreConstants.SPACE);
@@ -2996,10 +3004,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
-	private List<Variable> getVariablesByLucene(
+	private <T extends Serializable> List<Variable> getVariablesByLucene(
 			final VariableQuerierData queryData,
 			final List<String> names,
-			final List<Long> procInstIds,
+			final List<T> procInstIds,
 			final List<Long> taskInstIds,
 			final List<Long> varIds,
 			final Map<String, Boolean> flexibleVariables
@@ -3051,10 +3059,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 	}
 
-	private List<Long> getProcessInstanceIdsFromVariablesByLucene(
+	private <T extends Serializable> List<T> getProcessInstanceIdsFromVariablesByLucene(
 			final VariableQuerierData queryData,
 			final List<String> names,
-			final List<Long> procInstIds,
+			final List<T> procInstIds,
 			final List<Long> taskInstIds,
 			final List<Long> varIds,
 			final Map<String, Boolean> flexibleVariables
@@ -3063,11 +3071,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 		boolean lucene = true;
 		try {
-			return getBpmContext().execute(new JbpmCallback<List<Long>>() {
+			return getBpmContext().execute(new JbpmCallback<List<T>>() {
 
 				@SuppressWarnings("unchecked")
 				@Override
-				public List<Long> doInJbpm(JbpmContext context) throws JbpmException {
+				public List<T> doInJbpm(JbpmContext context) throws JbpmException {
 					Session session = context.getSession();
 					FullTextSession fullTextSession = Search.getFullTextSession(session);
 					Transaction tx = fullTextSession.beginTransaction();
@@ -3096,19 +3104,19 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					}
 
 					if (queryType.getName().equals(VariableBytes.class.getName())) {
-						return (List<Long>) results;
+						return (List<T>) results;
 					} else {
-						List<Long[]> procInstIds = (List<Long[]>) results;
+						List<T[]> procInstIds = (List<T[]>) results;
 
-						Map<Long, Boolean> allProcInstIds = new HashMap<>();
+						Map<T, Boolean> allProcInstIds = new HashMap<>();
 						for (Object[] ids: procInstIds) {
 							if (ArrayUtil.isEmpty(ids)) {
 								continue;
 							}
 
 							for (Object id: ids) {
-								if (id instanceof Number) {
-									allProcInstIds.put(((Number) id).longValue(), Boolean.TRUE);
+								if (id != null) {
+									allProcInstIds.put((T) id, Boolean.TRUE);
 								}
 							}
 						}
@@ -3133,17 +3141,17 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return getVariablesCollectionByLucene(null, variables, procDefNames, procInstIds, null, null, null, false);
 	}
 
-	private <V extends VariableInstance> List<V> getVariablesCollectionByLucene(
+	private <V extends VariableInstance, T extends Serializable> List<V> getVariablesCollectionByLucene(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			List<Long> taskInstIds,
 			List<Long> varIds,
 			Map<String, Boolean> flexibleVariables,
 			boolean strictBinaryVariables
 	) {
-		Map<Long, Map<String, V>> vars = getVariablesByLucene(
+		Map<T, Map<String, V>> vars = getVariablesByLucene(
 				activeVariables,
 				variables,
 				procDefNames,
@@ -3161,7 +3169,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public <V extends VariableInstance> List<V> getConverted(Map<Long, Map<String, V>> vars) {
+	public <V extends VariableInstance, T extends Serializable> List<V> getConverted(Map<T, Map<String, V>> vars) {
 		if (MapUtil.isEmpty(vars)) {
 			return null;
 		}
@@ -3173,11 +3181,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return results;
 	}
 
-	private <V extends VariableInstance> Map<Long, Map<String, V>> getVariablesByLucene(
+	private <V extends VariableInstance, T extends Serializable> Map<T, Map<String, V>> getVariablesByLucene(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			Map<String, Boolean> flexibleVariables,
 			boolean strictBinaryVariables,
 			boolean selectOnlyProcInstIds
@@ -3195,12 +3203,12 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		);
 	}
 
-	private <V extends VariableInstance> Map<Long, Map<String, V>> getConverted(Collection<V> vars) {
+	private <V extends VariableInstance, T extends Serializable> Map<T, Map<String, V>> getConverted(Collection<V> vars) {
 		if (ListUtil.isEmpty(vars)) {
 			return null;
 		}
 
-		Map<Long, Map<String, V>> results = new HashMap<>();
+		Map<T, Map<String, V>> results = new HashMap<>();
 		for (V var: vars) {
 			Serializable value = var.getVariableValue();
 			if (value == null) {
@@ -3212,7 +3220,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 			}
 
 			Serializable piId = var.getProcessInstanceId();
-			Long procInstId = piId instanceof Long ? (Long) piId : null;
+			@SuppressWarnings("unchecked")
+			T procInstId = piId == null ? null : (T) piId;
 			if (procInstId == null) {
 				continue;
 			}
@@ -3228,11 +3237,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		return results;
 	}
 
-	private <V extends VariableInstance> Map<Long, Map<String, V>> getVariablesByLucene(
+	private <V extends VariableInstance, T extends Serializable> Map<T, Map<String, V>> getVariablesByLucene(
 			Map<String, VariableQuerierData> keywords,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> procInstIds,
+			List<T> procInstIds,
 			List<Long> taskInstIds,
 			List<Long> varIds,
 			Map<String, Boolean> flexibleVariables,
@@ -3244,7 +3253,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				variables = new ArrayList<>(variables);
 			}
 
-			Map<Long, Map<String, V>> results = null;
+			Map<T, Map<String, V>> results = null;
 
 			if (MapUtil.isEmpty(keywords)) {
 				if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("bpm.load_vars_by_hib_no_kw", Boolean.FALSE)) {
@@ -3301,8 +3310,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				//	1. Find proc. inst. IDs from variables by conditions
 				List<Variable> vars = null;
 				boolean loadAddtionalVars = !ListUtil.isEmpty(variables);
-				Map<Long, Boolean> allFoundedProcInstIds = null;
-				Map<Long, List<Variable>> allVariables = null;
+				Map<T, Boolean> allFoundedProcInstIds = null;
+				Map<T, List<Variable>> allVariables = null;
 				for (String varName: keywords.keySet()) {
 					VariableQuerierData queryData = keywords.get(varName);
 					String searchExpression = null;
@@ -3321,14 +3330,16 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 						return null;
 					}
 
-					Map<Long, Boolean> foundedProcInstIds = new HashMap<>();
+					Map<T, Boolean> foundedProcInstIds = new HashMap<>();
 					for (Object tmp: tmpResults) {
-						Long piId = null;
+						T piId = null;
 						Variable var = null;
 
 						boolean varObject = true;
-						if (tmp instanceof Number) {
-							piId = ((Number) tmp).longValue();
+						if (tmp != null) {
+							@SuppressWarnings("unchecked")
+							T tmpId = (T) tmp;
+							piId = tmpId;
 							varObject = false;
 						} else if (tmp instanceof Variable) {
 							var = (Variable) tmp;
@@ -3425,7 +3436,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 
 			if (selectOnlyProcInstIds) {
 				results = new HashMap<>();
-				for (Long piId: procInstIds) {
+				for (T piId: procInstIds) {
 					results.put(piId, null);
 				}
 			}
@@ -3438,15 +3449,15 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public <V extends VariableInstance> Map<Long, Map<String, V>> getConvertedVariables(List<Variable> variables) {
+	public <V extends VariableInstance, T extends Serializable> Map<T, Map<String, V>> getConvertedVariables(List<Variable> variables) {
 		if (ListUtil.isEmpty(variables)) {
 			return Collections.emptyMap();
 		}
 
 		Map<Number, VariableByteArrayInstance> variablesToConvert = new HashMap<>();
-		Map<Long, Map<String, V>> converted = new HashMap<>();
+		Map<T, Map<String, V>> converted = new HashMap<>();
 		for (Variable variable: variables) {
-			Long piId = variable.getProcessInstance();
+			T piId = variable.getProcessInstance();
 			if (piId == null) {
 				continue;
 			}
@@ -3491,7 +3502,7 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 					filledVar.setId(variable.getId());
 				}
 
-				if (variable.getId() != null && variable.getId() >= filledVar.getId()) {
+				if (variable.getId() != null && variable.getId().equals(filledVar.getId())) {
 					filledVar.setId(variable.getId());
 					filledVar.setValue(value);
 				}
@@ -3518,11 +3529,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public <V extends VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+	public <V extends VariableInstance, T extends Serializable> Map<T, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> originalProcInstIds,
+			List<T> originalProcInstIds,
 			Map<String, Boolean> flexibleVariables,
 			boolean strictBinaryVariables
 	) {
@@ -3538,11 +3549,11 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public <V extends VariableInstance> Map<Long, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
+	public <V extends VariableInstance, T extends Serializable> Map<T, Map<String, V>> getVariablesByNamesAndValuesAndExpressionsByProcesses(
 			Map<String, VariableQuerierData> activeVariables,
 			List<String> variables,
 			List<String> procDefNames,
-			List<Long> originalProcInstIds,
+			List<T> originalProcInstIds,
 			Map<String, Boolean> flexibleVariables,
 			boolean strictBinaryVariables,
 			boolean selectOnlyProcInstIds
@@ -3579,13 +3590,13 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		List<String> variablesToQuery = new ArrayList<>();
-		List<Long> procInstIds = originalProcInstIds == null ? null : new ArrayList<>(originalProcInstIds);
+		List<T> procInstIds = originalProcInstIds == null ? null : new ArrayList<>(originalProcInstIds);
 
 		if (!MapUtil.isEmpty(activeVariables)) {
 			variablesToQuery.addAll(activeVariables.keySet());
 		}
 
-		Map<Long, Map<String, V>> results = new LinkedHashMap<>();
+		Map<T, Map<String, V>> results = new LinkedHashMap<>();
 
 		if (!MapUtil.isEmpty(activeVariables)) {
 			for (String variableName: activeVariables.keySet()) {
@@ -3617,9 +3628,9 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		//	Making copy of cached process instance IDs
-		List<Long> cachedProcInstIds = MapUtil.isEmpty(results) ? null : new ArrayList<>(results.keySet());
+		List<T> cachedProcInstIds = MapUtil.isEmpty(results) ? null : new ArrayList<>(results.keySet());
 		//	Marking process instance IDs of queried data
-		Map<Long, Boolean> queriedIds = new HashMap<>();
+		Map<T, Boolean> queriedIds = new HashMap<>();
 
 		//	Combining cached results and queried results
 		for (V varInfo: info) {
@@ -3627,7 +3638,8 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 				continue;
 			}
 			Serializable procInstId = varInfo.getProcessInstanceId();
-			Long piId = procInstId instanceof Long ? (Long) procInstId : null;
+			@SuppressWarnings("unchecked")
+			T piId = (T) procInstId;
 			if (piId == null || !ListUtil.isEmpty(originalProcInstIds) && !originalProcInstIds.contains(piId)) {
 				continue;
 			}
@@ -3656,10 +3668,10 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 		}
 
 		if (!MapUtil.isEmpty(variablesAndValuesToQuery) && !MapUtil.isEmpty(queriedIds) && !ListUtil.isEmpty(cachedProcInstIds)) {
-			List<Long> idsToRemove = new ArrayList<>();
+			List<T> idsToRemove = new ArrayList<>();
 
 			//	Checking if anything was found by criteria(s) in DB that was found in cache by other criteria(s)
-			for (Long piId: cachedProcInstIds) {
+			for (T piId: cachedProcInstIds) {
 				if (!queriedIds.containsKey(piId)) {
 					idsToRemove.add(piId);
 				}
@@ -3678,20 +3690,21 @@ public class VariableInstanceQuerierImpl extends GenericDaoImpl implements Varia
 	}
 
 	@Override
-	public <V extends VariableInstance> Map<Long, Map<String, V>> getGroupedData(Collection<V> variables) {
+	public <V extends VariableInstance, T extends Serializable> Map<T, Map<String, V>> getGroupedData(Collection<V> variables) {
 		return getGroupedData(variables, false);
 	}
 
 	@Override
-	public <V extends VariableInstance> Map<Long, Map<String, V>> getGroupedData(Collection<V> variables, boolean byTaskInstance) {
+	public <V extends VariableInstance, T extends Serializable> Map<T, Map<String, V>> getGroupedData(Collection<V> variables, boolean byTaskInstance) {
 		if (ListUtil.isEmpty(variables)) {
 			return null;
 		}
 
-		Map<Long, Map<String, V>> data = new LinkedHashMap<>();
+		Map<T, Map<String, V>> data = new LinkedHashMap<>();
 		for (V var: variables) {
 			Serializable instId = byTaskInstance ? var.getTaskInstanceId() : var.getProcessInstanceId();
-			Long id = instId instanceof Long ? (Long) instId : null;
+			@SuppressWarnings("unchecked")
+			T id = instId == null ? null : (T) instId;
 			if (id == null) {
 				continue;
 			}

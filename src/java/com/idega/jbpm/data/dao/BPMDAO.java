@@ -68,7 +68,7 @@ public interface BPMDAO extends GenericDao {
 
 	public abstract List<Actor> getProcessRoles(Collection<String> rolesNames, Long processInstanceId);
 
-	public abstract List<ProcessInstance> getSubprocessInstancesOneLevel(long parentProcessInstanceId);
+	public abstract <T extends Serializable> List<ProcessInstance> getSubprocessInstancesOneLevel(T parentProcessInstanceId);
 
 	public abstract ProcessDefinition findLatestProcessDefinition(final String processName);
 
@@ -79,7 +79,7 @@ public interface BPMDAO extends GenericDao {
 
 	public abstract void importVariablesData();
 
-	public List<Long> getProcessInstanceIdsByProcessDefinitionNames(List<String> processDefinitionNames);
+	public <T extends Serializable> List<T> getProcessInstanceIdsByProcessDefinitionNames(List<String> processDefinitionNames);
 
 	/**
 	 * <p>Queries database for {@link List} of {@link ProcessInstance#getId()
@@ -92,10 +92,14 @@ public interface BPMDAO extends GenericDao {
 	 * @return {@link List} of {@link ProcessInstance#getId()}.
 	 * <code>null</code> on failure.
 	 */
-	public Map<Long, Map<String, java.util.Date>> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(IWTimestamp from, IWTimestamp to,
-			List<String> processDefinitionNames, List<Long> procInsIds);
+	public <T extends Serializable> Map<T, Map<String, java.util.Date>> getProcessInstanceIdsByDateRangeAndProcessDefinitionNamesOrProcInstIds(
+			IWTimestamp from,
+			IWTimestamp to,
+			List<String> processDefinitionNames,
+			List<T> procInsIds
+	);
 
-	public List<Object[]> getProcessDateRanges(Collection<Long> processInstanceIds);
+	public <T extends Serializable> List<Object[]> getProcessDateRanges(Collection<T> processInstanceIds);
 
 	public String getProcessDefinitionNameByProcessDefinitionId(Long processDefinitionId);
 
@@ -116,7 +120,7 @@ public interface BPMDAO extends GenericDao {
 	public List<Variable> getVariablesByNameAndProcessInstance(String name, Long piId);
 	public List<Variable> getVariablesByNameAndProcessInstance(List<String> names, Long piId);
 	public List<Variable> getVariablesByNamesAndProcessInstanceIds(List<String> names, List<Long> piIds);
-	public List<Variable> getVariablesByConditions(List<String> names, List<Long> piIds, List<Long> tiIds, List<Long> viIds);
+	public <T extends Serializable> List<Variable> getVariablesByConditions(List<String> names, List<T> piIds, List<Long> tiIds, List<Long> viIds);
 	public List<Variable> getVariablesByBytes(List<Long> varBytesIds);
 	public List<Variable> getVariablesByTokens(List<Long> tokensIds);
 

@@ -18,7 +18,7 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 	private String name, caseId;
 	private VariableInstanceType type;
 
-	private Long id, processInstanceId, taskInstanceId;
+	private Serializable id, processInstanceId, taskInstanceId;
 
 	static VariableInstanceType getType(Character type) {
 		return getType(type == null ? null : String.valueOf(type));
@@ -112,24 +112,28 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 		return result;
 	}
 
-	public void setProcessInstanceId(Long processInstanceId) {
+	public <T extends Serializable> void setProcessInstanceId(T processInstanceId) {
 		this.processInstanceId = processInstanceId;
 	}
 
 	@Override
-	public Long getTaskInstanceId() {
-		return taskInstanceId;
+	public <T extends Serializable> T getTaskInstanceId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) taskInstanceId;
+		return result;
 	}
 
-	public void setTaskInstanceId(Long taskInstanceId) {
+	public <T extends Serializable> void setTaskInstanceId(T taskInstanceId) {
 		this.taskInstanceId = taskInstanceId;
 	}
 
-	public Long getId() {
-		return id;
+	public <T extends Serializable> T getId() {
+		@SuppressWarnings("unchecked")
+		T result = (T) id;
+		return result;
 	}
 
-	public void setId(Long id) {
+	public <T extends Serializable> void setId(T id) {
 		this.id = id;
 	}
 
@@ -142,7 +146,7 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 	public boolean equals(Object object) {
 		if (object instanceof VariableInstanceInfo) {
 			VariableInstanceInfo var = (VariableInstanceInfo) object;
-			Long varId = var.getId();
+			Serializable varId = var.getId();
 			if (getId() == null || varId == null) {
 				return false;
 			}
@@ -157,7 +161,7 @@ public abstract class VariableInstanceInfo implements VariableInstance {
 				return false;
 			}
 
-			return getId().longValue() == varId.longValue() && getName().equals(varName) && getValue().toString().equals(varValue.toString());
+			return getId().toString().equals(varId.toString()) && getName().equals(varName) && getValue().toString().equals(varValue.toString());
 		}
 		return false;
 	}

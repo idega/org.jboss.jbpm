@@ -214,11 +214,11 @@ public class Variable implements Serializable {
 			List<VariableBytes> varBytes = bpmDAO
 					.findAllVariableBytesById(byteArrayValue);
 			if (ListUtil.isEmpty(varBytes)) {
-				bytesValue = new ArrayList<byte[]>(0);
+				bytesValue = new ArrayList<>(0);
 				return null;
 			}
 
-			Collection<byte[]> allBytes = new ArrayList<byte[]>();
+			Collection<byte[]> allBytes = new ArrayList<>();
 			for (VariableBytes vb: varBytes) {
 				allBytes.add(vb.getBytes());
 			}
@@ -230,8 +230,10 @@ public class Variable implements Serializable {
 		return null;
 	}
 
-	public Long getProcessInstance() {
-		return processInstance;
+	public <T extends Serializable> T getProcessInstance() {
+		@SuppressWarnings("unchecked")
+		T result = (T) processInstance;
+		return result;
 	}
 
 	public void setProcessInstance(Long processInstance) {
