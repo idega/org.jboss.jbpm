@@ -74,7 +74,7 @@ public class BPMProcessVariable implements Serializable, VariableInstance {
 	}
 
 	private String name, value, type, expression = null, localizedName;
-	private boolean flexible, multiple;
+	private boolean flexible, multiple, fullyFlexible;
 	private int order = 0;
 
 	@Override
@@ -302,5 +302,19 @@ public class BPMProcessVariable implements Serializable, VariableInstance {
 	public Object getRawValue() {
 		return getVariableValue();
 	}
+
+	/**
+	 * If fully flexible is TRUE, variable value should contain the full expression as "text_ = 'test' or text_ = 'test2'".
+	 * @return
+	 */
+	public boolean isFullyFlexible() {
+		return fullyFlexible;
+	}
+
+	public void setFullyFlexible(boolean fullyFlexible) {
+		this.fullyFlexible = fullyFlexible;
+	}
+
+
 
 }
