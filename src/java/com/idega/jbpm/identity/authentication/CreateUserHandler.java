@@ -23,6 +23,7 @@ import com.idega.event.UserCreatedEvent;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.identity.UserPersonalData;
+import com.idega.presentation.IWContext;
 import com.idega.user.business.StandardGroup;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.Gender;
@@ -124,7 +125,7 @@ public class CreateUserHandler extends DefaultSpringBean implements ActionHandle
 				standardGroupPK = null;
 
 //			doesn't check if login already exists, therefore this check needs to be made before calling this
-			usrCreated = userBusiness.createUserWithLogin(firstName, middleName, lastName, upd.getPersonalId(), null, null,
+			usrCreated = userBusiness.createUserWithLogin(IWContext.getIWContext(fctx), firstName, middleName, lastName, upd.getPersonalId(), null, null,
 						gender != null ? new Integer(gender.getPrimaryKey().toString()) : null,
 						dateOfBirth, standardGroupPK, userName, password, Boolean.TRUE, IWTimestamp.RightNow(), 5000, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE, null, null, upd.getJuridicalPerson());
 		} else {

@@ -16,16 +16,17 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.identity.UserPersonalData;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.User;
+import com.idega.util.CoreUtil;
 import com.idega.util.IWTimestamp;
 
 /**
  * Creates login for user account. User account id (userId property) should be
  * in the UserPersonalData provided. Password is generated and personal id is
  * used as login name.
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.4 $
- * 
+ *
  *          Last modified: $Date: 2009/01/27 16:02:59 $ by $Author: civilis $
  */
 @Service("createUserLoginHandler")
@@ -35,6 +36,7 @@ public class CreateUserLoginHandler implements ActionHandler {
 	private static final long serialVersionUID = -2010070902937038448L;
 	private UserPersonalData userData;
 
+	@Override
 	public void execute(ExecutionContext ectx) throws Exception {
 
 		if (getUserData() != null) {
@@ -52,7 +54,7 @@ public class CreateUserLoginHandler implements ActionHandler {
 
 			User usr = userBusiness.getUser(upd.getUserId());
 
-			userBusiness.createUserLogin(usr, upd.getPersonalId(), password,
+			userBusiness.createUserLogin(CoreUtil.getIWContext(), usr, upd.getPersonalId(), password,
 					true, IWTimestamp.RightNow(), 5000, false, true, false,
 					null);
 
@@ -66,7 +68,7 @@ public class CreateUserLoginHandler implements ActionHandler {
 
 	protected UserBusiness getUserBusiness() {
 		try {
-			return (UserBusiness) IBOLookup.getServiceInstance(
+			return IBOLookup.getServiceInstance(
 					IWMainApplication.getDefaultIWApplicationContext(),
 					UserBusiness.class);
 		} catch (IBOLookupException ile) {
