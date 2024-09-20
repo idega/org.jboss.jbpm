@@ -52,6 +52,8 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	private Map<String, VariableInstance> processData;
 
+	private Map<String, String> metaData;
+
 	public abstract Collection<AdvancedProperty> getValues(String procDefId, String variableName);
 
 	protected JSONUtil getJSONUtil() {
@@ -358,6 +360,14 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	public void setProcessData(Map<String, VariableInstance> processData) {
 		this.processData = processData;
+	}
+
+	public Map<String, String> getMetaData() {
+		return metaData;
+	}
+
+	public void setMetaData(Map<String, String> metaData) {
+		this.metaData = metaData;
 	}
 
 }
