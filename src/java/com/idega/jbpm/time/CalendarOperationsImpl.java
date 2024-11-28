@@ -5,20 +5,21 @@ import java.util.Date;
 import org.jbpm.calendar.BusinessCalendar;
 import org.jbpm.calendar.Duration;
 import org.jbpm.util.Clock;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.util.CoreConstants;
 
 /**
- * 
+ *
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.1 $
- * 
+ *
  *          Last modified: $Date: 2009/01/13 13:11:29 $ by $Author: civilis $
  */
-@Service("calendarOps")
-@Scope("singleton")
+@Service(CalendarOperations.BEAN_NAME)
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class CalendarOperationsImpl implements CalendarOperations {
 
 	private BusinessCalendar businessCalendar;
@@ -28,12 +29,14 @@ public class CalendarOperationsImpl implements CalendarOperations {
 		businessCalendar = new BusinessCalendar();
 	}
 
+	@Override
 	public Date add(Date date, String expression) {
 
 		expression = CoreConstants.PLUS + expression;
 		return eval(date, expression);
 	}
 
+	@Override
 	public Date substract(Date date, String expression) {
 
 		expression = CoreConstants.MINUS + expression;

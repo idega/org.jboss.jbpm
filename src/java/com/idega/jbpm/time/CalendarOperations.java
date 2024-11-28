@@ -5,14 +5,16 @@ import java.util.Date;
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.1 $
- * 
+ *
  *          Last modified: $Date: 2009/01/13 13:11:29 $ by $Author: civilis $
  */
 public interface CalendarOperations {
 
+	public static final String BEAN_NAME = "calendarOps";
+
 	/**
 	 * adds to the date provider the time, specified in expression.
-	 * 
+	 *
 	 * @param date
 	 * @param expression
 	 *            time units to add to the date, e.g.: 1 day, 5 minutes, 3
@@ -24,7 +26,7 @@ public interface CalendarOperations {
 
 	/**
 	 * @see add
-	 * 
+	 *
 	 * @param date
 	 * @param expression
 	 * @return
