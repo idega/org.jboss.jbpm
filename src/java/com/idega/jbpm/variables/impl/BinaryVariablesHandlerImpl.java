@@ -462,7 +462,7 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 				} else {
 					getLogger().warning("Unable to get file " + fileUri + " from files system. " + tmp == null ?
 							"It (" + fileUri + ") does not exist" :
-							"It (" + tmp + ") either does not exist (" +!tmp.exists() + " or is not readable (" + !tmp.canRead() + "))");
+							"It (" + tmp + ") either does not exist (" + (tmp == null ? "unknown" : !tmp.exists()) + " or is not readable (" + (tmp == null ? "unknown" : !tmp.canRead()) + "))");
 				}
 			}
 
