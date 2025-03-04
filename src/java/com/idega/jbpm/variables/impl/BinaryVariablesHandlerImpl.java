@@ -66,6 +66,8 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements BinaryVariablesHandler {
 
+	private static JSONUtil JSON_UTIL = null;
+
 	public static final String BPM_UPLOADED_FILES_PATH = JBPMConstants.BPM_PATH + "/attachments/";
 	public static final String STORAGE_TYPE = CoreConstants.REPOSITORY;
 	public static final String BINARY_VARIABLE = "binaryVariable";
@@ -591,11 +593,16 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 
 	@Override
 	public JSONUtil getBinVarJSONConverter() {
-		Map<String, Class<?>> binVarAliasMap = new HashMap<>(2);
-		binVarAliasMap.put(BINARY_VARIABLE, BinaryVariableImpl.class);
-		binVarAliasMap.put(VARIABLE, Variable.class);
+		if (JSON_UTIL == null) {
+			Map<String, Class<?>> binVarAliasMap = new HashMap<>(2);
+			binVarAliasMap.put(BINARY_VARIABLE, BinaryVariableImpl.class);
+			binVarAliasMap.put(VARIABLE, Variable.class);
 
-		JSONUtil json = new JSONUtil(binVarAliasMap);
-		return json;
+			JSONUtil json = new JSONUtil(binVarAliasMap);
+			JSON_UTIL = json;
+		}
+
+		return JSON_UTIL;
 	}
+
 }
