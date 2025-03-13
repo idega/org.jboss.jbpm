@@ -172,10 +172,12 @@ public class BinaryVariableImpl implements Serializable, BinaryVariable {
 		this.contentLength = contentLength;
 	}
 
+	@Override
 	public String getVariableName() {
 		return variableName;
 	}
 
+	@Override
 	public void setVariableName(String variableName) {
 		this.variableName = variableName;
 	}

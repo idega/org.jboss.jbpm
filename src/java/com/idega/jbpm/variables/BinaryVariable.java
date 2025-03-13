@@ -89,4 +89,8 @@ public interface BinaryVariable {
 
 	public void setDate(Date date);
 
+	public void setVariableName(String variableName);
+
+	public String getVariableName();
+
 }

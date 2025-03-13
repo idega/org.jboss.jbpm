@@ -321,6 +321,8 @@ public class BinaryVariablesHandlerImpl extends DefaultSpringBean implements Bin
 			}
 
 			if (binaryVariable != null) {
+				binaryVariable.setVariableName(name);
+
 				if (tiId != null) {
 					if (binaryVariable.getTaskInstanceId() == tiId.longValue()) {
 						binaryVars.add(binaryVariable);
