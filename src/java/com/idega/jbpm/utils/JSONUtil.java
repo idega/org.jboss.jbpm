@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.idega.util.StringUtil;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
@@ -62,6 +63,10 @@ public class JSONUtil {
 
 	@SuppressWarnings("unchecked")
 	public <T>T convertToObject(String jsonStr) {
+		if (StringUtil.isEmpty(jsonStr)) {
+			return null;
+		}
+
 		for (String alias: aliasMap.keySet()) {
 			xstream.alias(alias, aliasMap.get(alias));
 		}
