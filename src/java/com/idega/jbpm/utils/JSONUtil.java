@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.idega.idegaweb.IWMainApplication;
+import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
@@ -73,6 +75,16 @@ public class JSONUtil {
 
 		T obj = null;
 		try {
+			if (IWMainApplication.getDefaultIWMainApplication().getSettings().getBoolean("jbpm.fix_json_start_end", false)) {
+				String invalidStart = "{\"list\":{\"string\":\"{";
+				if (jsonStr.startsWith(invalidStart)) {
+					jsonStr = StringHandler.replace(jsonStr, invalidStart, "{\"list\":{\"string\":[\"{");
+				}
+				String invalidEnd = "\"}}";
+				if (jsonStr.endsWith(invalidEnd)) {
+					jsonStr = jsonStr.substring(0, jsonStr.length() - invalidEnd.length()).concat("\"]}}");
+				}
+			}
 			obj = (T) xstream.fromXML(jsonStr);
 		} catch (Exception e) {
 			Logger.getLogger(JSONUtil.class.getName()).log(Level.WARNING, "Error converting JSON ('" + jsonStr + "') to object", e);
@@ -86,7 +98,7 @@ public class JSONUtil {
 
 	public void addAlias(String key, Class<?> theClass) {
 		if (aliasMap == null) {
-			aliasMap = new HashMap<String, Class<?>>();
+			aliasMap = new HashMap<>();
 		}
 		aliasMap.put(key, theClass);
 	}
