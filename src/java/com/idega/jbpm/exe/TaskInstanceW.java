@@ -99,6 +99,8 @@ public interface TaskInstanceW {
 	);
 	public BinaryVariable addAttachment(Variable variable, String fileName, String description, String pathInRepository);
 
+	public boolean removeAttachment(BinaryVariable variable);
+
 	public boolean hasAttachment(String identifier, String variableName);
 
 	public abstract List<BinaryVariable> getAttachments(IWContext iwc);
