@@ -3,7 +3,9 @@ package com.idega.jbpm.bean;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -164,6 +166,25 @@ public class BPMProcessVariable implements Serializable, VariableInstance {
 
 	public void setAvailableValues(List<String> availableValues) {
 		this.availableValues = availableValues;
+	}
+
+	public void addAvailableValue(String value) {
+		if (StringUtil.isEmpty(value)) {
+			return;
+		}
+
+		Collection<String> values = getAvailableValues();
+		values = values == null ?
+				new HashSet<>() :
+				new HashSet<>(values);
+
+		String existingValue = getValue();
+		if (!StringUtil.isEmpty(existingValue)) {
+			values.add(existingValue);
+		}
+		values.add(value);
+
+		setAvailableValues(new ArrayList<>(values));
 	}
 
 	public String getLocalizedName() {
