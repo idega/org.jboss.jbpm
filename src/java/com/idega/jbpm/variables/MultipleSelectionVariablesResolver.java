@@ -54,6 +54,8 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	private Map<String, String> metaData;
 
+	private Object extraValue;
+
 	public abstract Collection<AdvancedProperty> getValues(String procDefId, String variableName);
 
 	protected JSONUtil getJSONUtil() {
@@ -368,6 +370,14 @@ public abstract class MultipleSelectionVariablesResolver extends DefaultSpringBe
 
 	public void setMetaData(Map<String, String> metaData) {
 		this.metaData = metaData;
+	}
+
+	public Object getExtraValue() {
+		return extraValue;
+	}
+
+	public void setExtraValue(Object extraValue) {
+		this.extraValue = extraValue;
 	}
 
 }
