@@ -162,4 +162,9 @@ public interface TaskInstanceW {
 
 	public Date getCreate();
 
+	public BinaryVariable addAttachment(Variable variable, String fileName, String description, InputStream is, String filesFolder, boolean overwrite, String source, Boolean forTaskInstance);
+
+	public Object getVariable(String variableName, Boolean forTaskInstance);
+
+
 }

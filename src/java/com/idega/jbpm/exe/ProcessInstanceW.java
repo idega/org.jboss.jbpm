@@ -237,4 +237,6 @@ public interface ProcessInstanceW {
 
 	public boolean doInsertVariable(String name, String value);
 
+	public TaskInstanceW doSubmitTask(IWContext iwc, String taskName, Map<String, Object> variables, com.idega.user.data.bean.User user);
+
 }
