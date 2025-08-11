@@ -49,4 +49,8 @@ public interface ViewSubmission {
 
 	public abstract User getCreator();
 
+	public abstract void setOwner(User owner);
+
+	public abstract User getOwner();
+
 }

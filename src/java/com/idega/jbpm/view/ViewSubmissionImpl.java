@@ -22,6 +22,8 @@ public class ViewSubmissionImpl implements ViewSubmission {
 
 	private User creator;
 
+	private User owner;
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public void populateVariables(Map<String, ? extends Object> variables) {
@@ -126,6 +128,16 @@ public class ViewSubmissionImpl implements ViewSubmission {
 	@Override
 	public User getCreator() {
 		return creator;
+	}
+
+	@Override
+	public void setOwner(User owner) {
+		this.owner = owner;
+	}
+
+	@Override
+	public User getOwner() {
+		return owner;
 	}
 
 }
