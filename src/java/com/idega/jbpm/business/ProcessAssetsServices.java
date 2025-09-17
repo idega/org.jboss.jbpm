@@ -69,4 +69,6 @@ public interface ProcessAssetsServices {
 
 	public List<BPMAttachment> getAttachments(List<BinaryVariable> binaryVariables, Date submittedAt, Serializable id);
 
+	public String getFileToken(String identifier);
+
 }

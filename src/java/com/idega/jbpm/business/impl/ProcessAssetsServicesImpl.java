@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.core.business.DefaultSpringBean;
+import com.idega.core.dao.ICFileDAO;
+import com.idega.core.file.data.bean.ICFile;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.io.MediaWritable;
 import com.idega.jbpm.artifacts.presentation.AttachmentWriter;
@@ -47,6 +49,9 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 	@Autowired
 	private BPMFactory bpmFactory;
+
+	@Autowired
+	private ICFileDAO fileDAO;
 
 	@Override
 	public IWContext getIWContext(boolean checkIfLogged) {
@@ -307,6 +312,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 					attachment.setSource(identifier);
 				} else {
 					attachment.setDownloadLink(identifier);
+					attachment.setFileToken(getFileToken(identifier));
 				}
 
 				Date dateToUse = date == null ? submittedAt : date;
@@ -316,7 +322,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 
 				Map<String, Object> metadata = binaryVariable.getMetadata();
 				if (metadata != null){
-					Object sc  = metadata.get(JBPMConstants.SOURCE);
+					Object sc = metadata.get(JBPMConstants.SOURCE);
 					if (sc != null){
 						attachment.setSource(sc.toString());
 					}
@@ -325,6 +331,32 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 		});
 
 		return attachments;
+	}
+
+	@Override
+	public String getFileToken(String identifier) {
+		if (StringUtil.isEmpty(identifier)) {
+			return null;
+		}
+
+		try {
+			if (!getSettings().getBoolean("bpm.gen_file_token", false)) {
+				return null;
+			}
+
+			ICFile file = fileDAO.findByUri(identifier);
+			if (file == null) {
+				file = fileDAO.createFile(identifier);
+			}
+
+			return file == null ?
+					null :
+					file.getToken();
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting file's token for " + identifier);
+		}
+
+		return null;
 	}
 
 	@Override

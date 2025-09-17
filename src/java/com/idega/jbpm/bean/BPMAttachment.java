@@ -9,7 +9,7 @@ public class BPMAttachment implements Serializable {
 
 	private static final long serialVersionUID = 5056538842789014352L;
 
-	private String id, description, fileName, fileSize, downloadLink, source, date;
+	private String id, description, fileName, fileSize, downloadLink, source, date, fileToken;
 
 	@XmlTransient
 	private Date timestamp;
@@ -76,6 +76,14 @@ public class BPMAttachment implements Serializable {
 
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
+	}
+
+	public String getFileToken() {
+		return fileToken;
+	}
+
+	public void setFileToken(String fileToken) {
+		this.fileToken = fileToken;
 	}
 
 }
