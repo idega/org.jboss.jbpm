@@ -86,4 +86,9 @@ public class BPMAttachment implements Serializable {
 		this.fileToken = fileToken;
 	}
 
+	@Override
+	public String toString() {
+		return "File name: " + getFileName() + ", ID: " + getId() + ", download link: " + getDownloadLink();
+	}
+
 }
