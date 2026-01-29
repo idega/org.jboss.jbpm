@@ -87,6 +87,25 @@ public class BPMAttachment implements Serializable {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof BPMAttachment) {
+			String dLink1 = getDownloadLink();
+			String dLink2 = ((BPMAttachment) obj).getDownloadLink();
+			if (dLink1 != null && dLink2 != null && dLink1.equals(dLink2)) {
+				return true;
+			}
+
+			String token1 = getFileToken();
+			String token2 = ((BPMAttachment) obj).getFileToken();
+			if (token1 != null && token2 != null && token1.equals(token2)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
 	public String toString() {
 		return "File name: " + getFileName() + ", ID: " + getId() + ", download link: " + getDownloadLink();
 	}
