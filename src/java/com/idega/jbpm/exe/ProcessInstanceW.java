@@ -80,6 +80,8 @@ public interface ProcessInstanceW {
 
 	public abstract List<TaskInstanceW> getUnfinishedTaskInstancesForTask(IWContext iwc, User user, String taskName);
 
+	public abstract List<TaskInstanceW> getUnfinishedTaskInstancesForTask(IWContext iwc, User user, String taskName, boolean checkIfFinished);
+
 	/**
 	 * @param taskName
 	 * @return see javadoc for getUnfinishedTaskInstancesForTask( String taskName), only single
@@ -218,6 +220,7 @@ public interface ProcessInstanceW {
 
 	public TaskInstanceW getSubmittedTaskInstance(IWContext iwc, String taskName, Map<String, Object> variables);
 	public boolean doSubmitTask(IWContext iwc, String taskName, Map<String, Object> variables);
+	public boolean doSubmitTask(IWContext iwc, String taskName, Map<String, Object> variables, boolean checkIfFinished);
 	public TaskInstanceW getSubmitedTask(IWContext iwc, TaskInstanceW task, ViewSubmission view, Map<String, Object> variables);
 
 	public TaskInstanceW getTaskInstance(String taskName);
