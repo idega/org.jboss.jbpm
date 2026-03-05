@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.util.CoreConstants;
 import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.thoughtworks.xstream.XStream;
@@ -65,7 +66,7 @@ public class JSONUtil {
 
 	@SuppressWarnings("unchecked")
 	public <T>T convertToObject(String jsonStr) {
-		if (StringUtil.isEmpty(jsonStr)) {
+		if (StringUtil.isEmpty(jsonStr) || !jsonStr.startsWith(CoreConstants.CURLY_BRACKET_LEFT)) {
 			return null;
 		}
 
