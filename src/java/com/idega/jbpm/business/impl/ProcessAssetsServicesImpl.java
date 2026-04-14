@@ -268,7 +268,7 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 		Locale locale = getCurrentLocale();
 		IWMainApplication iwma = getApplication();
 		String mediaServletURI = iwma.getMediaServletURI();
-		boolean alwaysUseRepoLink = iwma.getSettings().getBoolean("bpm.file_att_repo_uri", true);
+		boolean alwaysUseRepoLink = iwma.getSettings().getBoolean("bpm.file_att_repo_uri", false);
 		String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
 
 		List<BPMAttachment> attachments = new ArrayList<>();
