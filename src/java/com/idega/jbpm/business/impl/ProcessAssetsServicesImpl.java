@@ -266,7 +266,9 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 		}
 
 		Locale locale = getCurrentLocale();
-		String mediaServletURI = IWMainApplication.getDefaultIWMainApplication().getMediaServletURI();
+		IWMainApplication iwma = getApplication();
+		String mediaServletURI = iwma.getMediaServletURI();
+		boolean alwaysUseRepoLink = iwma.getSettings().getBoolean("bpm.file_att_repo_uri", true);
 		String encrytptedURI = IWMainApplication.getEncryptedClassName(AttachmentWriter.class);
 
 		List<BPMAttachment> attachments = new ArrayList<>();
@@ -303,7 +305,11 @@ public class ProcessAssetsServicesImpl extends DefaultSpringBean implements Proc
 				Long fileSize = binaryVariable.getContentLength();
 				attachment.setFileSize(FileUtil.getHumanReadableSize(fileSize == null ? Long.valueOf(0) : fileSize));
 
-				if (id != null && hash != null) {
+				if (alwaysUseRepoLink && !StringUtil.isEmpty(identifier)) {
+					attachment.setDownloadLink(identifier);
+					attachment.setFileToken(getFileToken(identifier));
+
+				} else if (id != null && hash != null) {
 					URIUtil uri = new URIUtil(mediaServletURI);
 					uri.setParameter(MediaWritable.PRM_WRITABLE_CLASS, encrytptedURI);
 					uri.setParameter(AttachmentWriter.PARAMETER_TASK_INSTANCE_ID, id.toString());
